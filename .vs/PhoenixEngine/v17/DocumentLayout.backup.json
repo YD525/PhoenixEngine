@@ -1,0 +1,445 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|c:\\users\\52508\\source\\repos\\phoenixengine\\phoenixengine\\convertmanagement\\converthelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|solutionrelative:phoenixengine\\convertmanagement\\converthelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|c:\\users\\52508\\source\\repos\\phoenixengine\\phoenixengine\\platformmanagement\\localai\\lmstudio.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|solutionrelative:phoenixengine\\platformmanagement\\localai\\lmstudio.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|c:\\users\\52508\\source\\repos\\phoenixengine\\phoenixengine\\platformmanagement\\localai\\localaijson.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|solutionrelative:phoenixengine\\platformmanagement\\localai\\localaijson.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|c:\\users\\52508\\source\\repos\\phoenixengine\\phoenixengine\\platformmanagement\\baichuanapi.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|solutionrelative:phoenixengine\\platformmanagement\\baichuanapi.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|c:\\users\\52508\\source\\repos\\phoenixengine\\phoenixengine\\platformmanagement\\chatgptapi.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|solutionrelative:phoenixengine\\platformmanagement\\chatgptapi.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|c:\\users\\52508\\source\\repos\\phoenixengine\\phoenixengine\\platformmanagement\\cohereapi.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|solutionrelative:phoenixengine\\platformmanagement\\cohereapi.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|c:\\users\\52508\\source\\repos\\phoenixengine\\phoenixengine\\platformmanagement\\deeplapi.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|solutionrelative:phoenixengine\\platformmanagement\\deeplapi.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|c:\\users\\52508\\source\\repos\\phoenixengine\\phoenixengine\\platformmanagement\\deepseekapi.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|solutionrelative:phoenixengine\\platformmanagement\\deepseekapi.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|c:\\users\\52508\\source\\repos\\phoenixengine\\phoenixengine\\platformmanagement\\geminiapi.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|solutionrelative:phoenixengine\\platformmanagement\\geminiapi.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|c:\\users\\52508\\source\\repos\\phoenixengine\\phoenixengine\\platformmanagement\\googletransapi.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|solutionrelative:phoenixengine\\platformmanagement\\googletransapi.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|c:\\users\\52508\\source\\repos\\phoenixengine\\phoenixengine\\translatemanagement\\advanceddictionary.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|solutionrelative:phoenixengine\\translatemanagement\\advanceddictionary.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|c:\\users\\52508\\source\\repos\\phoenixengine\\phoenixengine\\translatemanagement\\aitranslationmemory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|solutionrelative:phoenixengine\\translatemanagement\\aitranslationmemory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|c:\\users\\52508\\source\\repos\\phoenixengine\\phoenixengine\\translatemanagement\\batchtranslationhelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|solutionrelative:phoenixengine\\translatemanagement\\batchtranslationhelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|c:\\users\\52508\\source\\repos\\phoenixengine\\phoenixengine\\translatemanagement\\clouddbcache.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|solutionrelative:phoenixengine\\translatemanagement\\clouddbcache.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|c:\\users\\52508\\source\\repos\\phoenixengine\\phoenixengine\\translatemanagement\\jsongeter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|solutionrelative:phoenixengine\\translatemanagement\\jsongeter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|c:\\users\\52508\\source\\repos\\phoenixengine\\phoenixengine\\translatemanagement\\languagehelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|solutionrelative:phoenixengine\\translatemanagement\\languagehelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|c:\\users\\52508\\source\\repos\\phoenixengine\\phoenixengine\\translatemanagement\\localdbcache.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|solutionrelative:phoenixengine\\translatemanagement\\localdbcache.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|c:\\users\\52508\\source\\repos\\phoenixengine\\phoenixengine\\translatemanagement\\localtrans.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|solutionrelative:phoenixengine\\translatemanagement\\localtrans.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|c:\\users\\52508\\source\\repos\\phoenixengine\\phoenixengine\\translatemanagement\\speechhelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|solutionrelative:phoenixengine\\translatemanagement\\speechhelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|c:\\users\\52508\\source\\repos\\phoenixengine\\phoenixengine\\translatemanagement\\textsegmenttranslator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|solutionrelative:phoenixengine\\translatemanagement\\textsegmenttranslator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|c:\\users\\52508\\source\\repos\\phoenixengine\\phoenixengine\\translatemanagement\\texttokenizer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|solutionrelative:phoenixengine\\translatemanagement\\texttokenizer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|c:\\users\\52508\\source\\repos\\phoenixengine\\phoenixengine\\translatemanagement\\transcore.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|solutionrelative:phoenixengine\\translatemanagement\\transcore.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|c:\\users\\52508\\source\\repos\\phoenixengine\\phoenixengine\\translatemanagement\\translationpreprocessor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|solutionrelative:phoenixengine\\translatemanagement\\translationpreprocessor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|c:\\users\\52508\\source\\repos\\phoenixengine\\phoenixengine\\translatemanagement\\translationpreprocessorextend.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|solutionrelative:phoenixengine\\translatemanagement\\translationpreprocessorextend.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|c:\\users\\52508\\source\\repos\\phoenixengine\\phoenixengine\\translatemanagement\\translator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}|PhoenixEngine\\PhoenixEngine.csproj|solutionrelative:phoenixengine\\translatemanagement\\translator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 23,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 24,
+              "Title": "Translator.cs",
+              "DocumentMoniker": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\TranslateManagement\\Translator.cs",
+              "RelativeDocumentMoniker": "PhoenixEngine\\TranslateManagement\\Translator.cs",
+              "ToolTip": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\TranslateManagement\\Translator.cs",
+              "RelativeToolTip": "PhoenixEngine\\TranslateManagement\\Translator.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-18T10:39:58.97Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 23,
+              "Title": "TranslationPreprocessorExtend.cs",
+              "DocumentMoniker": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\TranslateManagement\\TranslationPreprocessorExtend.cs",
+              "RelativeDocumentMoniker": "PhoenixEngine\\TranslateManagement\\TranslationPreprocessorExtend.cs",
+              "ToolTip": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\TranslateManagement\\TranslationPreprocessorExtend.cs",
+              "RelativeToolTip": "PhoenixEngine\\TranslateManagement\\TranslationPreprocessorExtend.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-18T10:39:55.187Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 22,
+              "Title": "TranslationPreprocessor.cs",
+              "DocumentMoniker": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\TranslateManagement\\TranslationPreprocessor.cs",
+              "RelativeDocumentMoniker": "PhoenixEngine\\TranslateManagement\\TranslationPreprocessor.cs",
+              "ToolTip": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\TranslateManagement\\TranslationPreprocessor.cs",
+              "RelativeToolTip": "PhoenixEngine\\TranslateManagement\\TranslationPreprocessor.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-18T10:39:51.528Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 21,
+              "Title": "TransCore.cs",
+              "DocumentMoniker": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\TranslateManagement\\TransCore.cs",
+              "RelativeDocumentMoniker": "PhoenixEngine\\TranslateManagement\\TransCore.cs",
+              "ToolTip": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\TranslateManagement\\TransCore.cs",
+              "RelativeToolTip": "PhoenixEngine\\TranslateManagement\\TransCore.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-18T10:39:48.065Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "TextTokenizer.cs",
+              "DocumentMoniker": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\TranslateManagement\\TextTokenizer.cs",
+              "RelativeDocumentMoniker": "PhoenixEngine\\TranslateManagement\\TextTokenizer.cs",
+              "ToolTip": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\TranslateManagement\\TextTokenizer.cs",
+              "RelativeToolTip": "PhoenixEngine\\TranslateManagement\\TextTokenizer.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-18T10:39:44.499Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "TextSegmentTranslator.cs",
+              "DocumentMoniker": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\TranslateManagement\\TextSegmentTranslator.cs",
+              "RelativeDocumentMoniker": "PhoenixEngine\\TranslateManagement\\TextSegmentTranslator.cs",
+              "ToolTip": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\TranslateManagement\\TextSegmentTranslator.cs",
+              "RelativeToolTip": "PhoenixEngine\\TranslateManagement\\TextSegmentTranslator.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-18T10:39:40.421Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "SpeechHelper.cs",
+              "DocumentMoniker": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\TranslateManagement\\SpeechHelper.cs",
+              "RelativeDocumentMoniker": "PhoenixEngine\\TranslateManagement\\SpeechHelper.cs",
+              "ToolTip": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\TranslateManagement\\SpeechHelper.cs",
+              "RelativeToolTip": "PhoenixEngine\\TranslateManagement\\SpeechHelper.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-18T10:39:36.541Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "LocalTrans.cs",
+              "DocumentMoniker": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\TranslateManagement\\LocalTrans.cs",
+              "RelativeDocumentMoniker": "PhoenixEngine\\TranslateManagement\\LocalTrans.cs",
+              "ToolTip": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\TranslateManagement\\LocalTrans.cs",
+              "RelativeToolTip": "PhoenixEngine\\TranslateManagement\\LocalTrans.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAAlAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-18T10:39:32.109Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "LocalDBCache.cs",
+              "DocumentMoniker": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\TranslateManagement\\LocalDBCache.cs",
+              "RelativeDocumentMoniker": "PhoenixEngine\\TranslateManagement\\LocalDBCache.cs",
+              "ToolTip": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\TranslateManagement\\LocalDBCache.cs",
+              "RelativeToolTip": "PhoenixEngine\\TranslateManagement\\LocalDBCache.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-18T10:39:26.767Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "LanguageHelper.cs",
+              "DocumentMoniker": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\TranslateManagement\\LanguageHelper.cs",
+              "RelativeDocumentMoniker": "PhoenixEngine\\TranslateManagement\\LanguageHelper.cs",
+              "ToolTip": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\TranslateManagement\\LanguageHelper.cs",
+              "RelativeToolTip": "PhoenixEngine\\TranslateManagement\\LanguageHelper.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-18T10:39:21.969Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "JsonGeter.cs",
+              "DocumentMoniker": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\TranslateManagement\\JsonGeter.cs",
+              "RelativeDocumentMoniker": "PhoenixEngine\\TranslateManagement\\JsonGeter.cs",
+              "ToolTip": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\TranslateManagement\\JsonGeter.cs",
+              "RelativeToolTip": "PhoenixEngine\\TranslateManagement\\JsonGeter.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-18T10:39:18.472Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "CloudDBCache.cs",
+              "DocumentMoniker": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\TranslateManagement\\CloudDBCache.cs",
+              "RelativeDocumentMoniker": "PhoenixEngine\\TranslateManagement\\CloudDBCache.cs",
+              "ToolTip": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\TranslateManagement\\CloudDBCache.cs",
+              "RelativeToolTip": "PhoenixEngine\\TranslateManagement\\CloudDBCache.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAASAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-18T10:39:14.55Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "BatchTranslationHelper.cs",
+              "DocumentMoniker": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\TranslateManagement\\BatchTranslationHelper.cs",
+              "RelativeDocumentMoniker": "PhoenixEngine\\TranslateManagement\\BatchTranslationHelper.cs",
+              "ToolTip": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\TranslateManagement\\BatchTranslationHelper.cs",
+              "RelativeToolTip": "PhoenixEngine\\TranslateManagement\\BatchTranslationHelper.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-18T10:39:11.05Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "AITranslationMemory.cs",
+              "DocumentMoniker": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\TranslateManagement\\AITranslationMemory.cs",
+              "RelativeDocumentMoniker": "PhoenixEngine\\TranslateManagement\\AITranslationMemory.cs",
+              "ToolTip": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\TranslateManagement\\AITranslationMemory.cs",
+              "RelativeToolTip": "PhoenixEngine\\TranslateManagement\\AITranslationMemory.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-18T10:39:06.974Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "GoogleTransApi.cs",
+              "DocumentMoniker": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\PlatformManagement\\GoogleTransApi.cs",
+              "RelativeDocumentMoniker": "PhoenixEngine\\PlatformManagement\\GoogleTransApi.cs",
+              "ToolTip": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\PlatformManagement\\GoogleTransApi.cs",
+              "RelativeToolTip": "PhoenixEngine\\PlatformManagement\\GoogleTransApi.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-18T10:38:51.915Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "GeminiApi.cs",
+              "DocumentMoniker": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\PlatformManagement\\GeminiApi.cs",
+              "RelativeDocumentMoniker": "PhoenixEngine\\PlatformManagement\\GeminiApi.cs",
+              "ToolTip": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\PlatformManagement\\GeminiApi.cs",
+              "RelativeToolTip": "PhoenixEngine\\PlatformManagement\\GeminiApi.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-18T10:38:48.356Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "DeepSeekApi.cs",
+              "DocumentMoniker": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\PlatformManagement\\DeepSeekApi.cs",
+              "RelativeDocumentMoniker": "PhoenixEngine\\PlatformManagement\\DeepSeekApi.cs",
+              "ToolTip": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\PlatformManagement\\DeepSeekApi.cs",
+              "RelativeToolTip": "PhoenixEngine\\PlatformManagement\\DeepSeekApi.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-18T10:38:44.263Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "DeepLApi.cs",
+              "DocumentMoniker": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\PlatformManagement\\DeepLApi.cs",
+              "RelativeDocumentMoniker": "PhoenixEngine\\PlatformManagement\\DeepLApi.cs",
+              "ToolTip": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\PlatformManagement\\DeepLApi.cs",
+              "RelativeToolTip": "PhoenixEngine\\PlatformManagement\\DeepLApi.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-18T10:38:40.126Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "CohereApi.cs",
+              "DocumentMoniker": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\PlatformManagement\\CohereApi.cs",
+              "RelativeDocumentMoniker": "PhoenixEngine\\PlatformManagement\\CohereApi.cs",
+              "ToolTip": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\PlatformManagement\\CohereApi.cs",
+              "RelativeToolTip": "PhoenixEngine\\PlatformManagement\\CohereApi.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-18T10:38:35.167Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "ChatGptApi.cs",
+              "DocumentMoniker": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\PlatformManagement\\ChatGptApi.cs",
+              "RelativeDocumentMoniker": "PhoenixEngine\\PlatformManagement\\ChatGptApi.cs",
+              "ToolTip": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\PlatformManagement\\ChatGptApi.cs",
+              "RelativeToolTip": "PhoenixEngine\\PlatformManagement\\ChatGptApi.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAEAAAAXAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-18T10:38:31.402Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "BaichuanApi.cs",
+              "DocumentMoniker": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\PlatformManagement\\BaichuanApi.cs",
+              "RelativeDocumentMoniker": "PhoenixEngine\\PlatformManagement\\BaichuanApi.cs",
+              "ToolTip": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\PlatformManagement\\BaichuanApi.cs",
+              "RelativeToolTip": "PhoenixEngine\\PlatformManagement\\BaichuanApi.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-18T10:38:26.943Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "LocalAIJson.cs",
+              "DocumentMoniker": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\PlatformManagement\\LocalAI\\LocalAIJson.cs",
+              "RelativeDocumentMoniker": "PhoenixEngine\\PlatformManagement\\LocalAI\\LocalAIJson.cs",
+              "ToolTip": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\PlatformManagement\\LocalAI\\LocalAIJson.cs",
+              "RelativeToolTip": "PhoenixEngine\\PlatformManagement\\LocalAI\\LocalAIJson.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-18T10:38:22.707Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "LMStudio.cs",
+              "DocumentMoniker": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\PlatformManagement\\LocalAI\\LMStudio.cs",
+              "RelativeDocumentMoniker": "PhoenixEngine\\PlatformManagement\\LocalAI\\LMStudio.cs",
+              "ToolTip": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\PlatformManagement\\LocalAI\\LMStudio.cs",
+              "RelativeToolTip": "PhoenixEngine\\PlatformManagement\\LocalAI\\LMStudio.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-18T10:38:18.033Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "ConvertHelper.cs",
+              "DocumentMoniker": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\ConvertManagement\\ConvertHelper.cs",
+              "RelativeDocumentMoniker": "PhoenixEngine\\ConvertManagement\\ConvertHelper.cs",
+              "ToolTip": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\ConvertManagement\\ConvertHelper.cs",
+              "RelativeToolTip": "PhoenixEngine\\ConvertManagement\\ConvertHelper.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-18T10:37:10.51Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "AdvancedDictionary.cs",
+              "DocumentMoniker": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\TranslateManagement\\AdvancedDictionary.cs",
+              "RelativeDocumentMoniker": "PhoenixEngine\\TranslateManagement\\AdvancedDictionary.cs",
+              "ToolTip": "C:\\Users\\52508\\source\\repos\\PhoenixEngine\\PhoenixEngine\\TranslateManagement\\AdvancedDictionary.cs",
+              "RelativeToolTip": "PhoenixEngine\\TranslateManagement\\AdvancedDictionary.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAAAMAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-18T10:36:31.286Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
