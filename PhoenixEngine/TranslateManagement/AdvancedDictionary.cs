@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Text.RegularExpressions;
+using PhoenixEngine.ConvertManager;
+using PhoenixEngine.DataBaseManagement;
+using PhoenixEngine.Engine;
+using PhoenixEngine.TranslateCore;
 
 namespace PhoenixEngine.TranslateManagement
 {
@@ -54,7 +58,8 @@ namespace PhoenixEngine.TranslateManagement
         {
             string CheckTableSql = "SELECT name FROM sqlite_master WHERE type='table' AND name='AdvancedDictionary';";
 
-            var Result = DeFine.GlobalDB.ExecuteScalar(CheckTableSql);
+            var Result = EngineConfig.LocalDB.ExecuteScalar(CheckTableSql);
+
             if (Result == null || Result == DBNull.Value)
             {
                 string CreateTableSql = @"CREATE TABLE [AdvancedDictionary](
@@ -69,14 +74,14 @@ namespace PhoenixEngine.TranslateManagement
   [Regex] TEXT);
 ";
 
-                DeFine.GlobalDB.ExecuteNonQuery(CreateTableSql);
+                EngineConfig.LocalDB.ExecuteNonQuery(CreateTableSql);
             }
         }
 
         public static string GetSourceByRowid(int Rowid)
         {
             string SqlOrder = "Select [Source] From AdvancedDictionary Where Rowid = {0}";
-            return ConvertHelper.ObjToStr(DeFine.GlobalDB.ExecuteScalar(string.Format(SqlOrder,Rowid)));
+            return ConvertHelper.ObjToStr(EngineConfig.LocalDB.ExecuteScalar(string.Format(SqlOrder,Rowid)));
         }
         public static bool IsRegexMatch(string Input, string SetRegex)
         {
@@ -130,7 +135,7 @@ WHERE
     ))
   )
 ";
-            DataTable NTable = DeFine.GlobalDB.ExecuteQuery(string.Format(
+            DataTable NTable = EngineConfig.LocalDB.ExecuteQuery(string.Format(
                 SqlOrder,
                 EscapeSqlString(ModName),
                 EscapeSqlString(Type),
@@ -181,7 +186,7 @@ WHERE
 [From] = {item.From} AND
 [To] = {item.To}";
 
-            int Count = Convert.ToInt32(DeFine.GlobalDB.ExecuteScalar(CheckSql));
+            int Count = Convert.ToInt32(EngineConfig.LocalDB.ExecuteScalar(CheckSql));
             return Count > 0;
         }
 
@@ -203,7 +208,7 @@ VALUES (
 {Item.IgnoreCase},
 '{System.Web.HttpUtility.HtmlEncode(Item.Regex)}'
 )";
-                int State = DeFine.GlobalDB.ExecuteNonQuery(sql);
+                int State = EngineConfig.LocalDB.ExecuteNonQuery(sql);
                 if (State != 0)
                 {
                     return true;
@@ -228,7 +233,7 @@ Result = '{EscapeSqlString(item.Result)}' AND
 ExactMatch = {item.ExactMatch} AND
 IgnoreCase = {item.IgnoreCase} AND
 Regex = '{System.Web.HttpUtility.HtmlEncode(item.Regex)}'";
-            DeFine.GlobalDB.ExecuteNonQuery(sql);
+            EngineConfig.LocalDB.ExecuteNonQuery(sql);
         }
 
         public static PageItem<List<AdvancedDictionaryItem>> QueryByPage(int From, int To, int PageNo)
@@ -237,7 +242,7 @@ Regex = '{System.Web.HttpUtility.HtmlEncode(item.Regex)}'";
 
             int MaxPage = PageHelper.GetPageCount("AdvancedDictionary", Where);
 
-            DataTable NTable = PageHelper.GetTablePageData("AdvancedDictionary", PageNo, DeFine.DefPageSize, Where);
+            DataTable NTable = PageHelper.GetTablePageData("AdvancedDictionary", PageNo, EngineConfig.DefPageSize, Where);
 
             List<AdvancedDictionaryItem> Items = new List<AdvancedDictionaryItem>();
             for (int i = 0; i < NTable.Rows.Count; i++)
@@ -266,7 +271,7 @@ Regex = '{System.Web.HttpUtility.HtmlEncode(item.Regex)}'";
 
             int MaxPage = PageHelper.GetPageCount("AdvancedDictionary", Where);
 
-            DataTable NTable = PageHelper.GetTablePageData("AdvancedDictionary", PageNo, DeFine.DefPageSize, Where);
+            DataTable NTable = PageHelper.GetTablePageData("AdvancedDictionary", PageNo, EngineConfig.DefPageSize, Where);
 
             List<AdvancedDictionaryItem> Items = new List<AdvancedDictionaryItem>();
             for (int i = 0; i < NTable.Rows.Count; i++)
@@ -291,7 +296,7 @@ Regex = '{System.Web.HttpUtility.HtmlEncode(item.Regex)}'";
         public static bool DeleteByRowid(int Rowid)
         {
             string SqlOrder = "Delete From AdvancedDictionary Where Rowid = {0}";
-            int State = DeFine.GlobalDB.ExecuteNonQuery(string.Format(SqlOrder,Rowid));
+            int State = EngineConfig.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,Rowid));
             if (State != 0)
             {
                 return true;

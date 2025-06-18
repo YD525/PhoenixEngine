@@ -1,4 +1,12 @@
 ﻿
+using Cohere;
+using PhoenixEngine.ConvertManager;
+using PhoenixEngine.DelegateManagement;
+using PhoenixEngine.Engine;
+using PhoenixEngine.TranslateCore;
+using PhoenixEngine.TranslateManage;
+using static PhoenixEngine.TranslateManage.TransCore;
+
 namespace PhoenixEngine.PlatformManagement
 {
     public class CohereHelper
@@ -32,7 +40,7 @@ namespace PhoenixEngine.PlatformManagement
         public string QuickTrans(List<string> CustomWords,string TransSource, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string Param)
         {
             List<string> Related = new List<string>();
-            if (DeFine.GlobalLocalSetting.UsingContext && UseAIMemory)
+            if (EngineConfig.UsingContext && UseAIMemory)
             {
                 Related = EngineSelect.AIMemory.FindRelevantTranslations(FromLang, TransSource, AIMemoryCountLimit);
             }
@@ -44,9 +52,9 @@ namespace PhoenixEngine.PlatformManagement
                 GetTransSource += Param;
             }
 
-            if (ConvertHelper.ObjToStr(DeFine.GlobalLocalSetting.UserCustomAIPrompt).Trim().Length > 0)
+            if (ConvertHelper.ObjToStr(EngineConfig.UserCustomAIPrompt).Trim().Length > 0)
             {
-                GetTransSource += DeFine.GlobalLocalSetting.UserCustomAIPrompt + "\n\n";
+                GetTransSource += EngineConfig.UserCustomAIPrompt + "\n\n";
             }
 
             if (Related.Count > 0 || CustomWords.Count > 0)
@@ -76,9 +84,9 @@ namespace PhoenixEngine.PlatformManagement
             {
                 if (GetResult.Trim().Length > 0)
                 {
-                    if (DeFine.CurrentDashBoardView != null)
+                    if (DelegateHelper.SetLog != null)
                     {
-                        DeFine.CurrentDashBoardView.SetLogB(GetTransSource + "\r\n\r\n AI:\r\n" + GetResult);
+                        DelegateHelper.SetLog(GetTransSource + "\r\n\r\n AI(Cohere):\r\n" + GetResult,1);
                     }
 
                     if (GetResult.Trim().Equals("<translated_text>"))
@@ -96,7 +104,7 @@ namespace PhoenixEngine.PlatformManagement
         {
             try
             {
-                var Cohere = new CohereHelper(DeFine.GlobalLocalSetting.CohereKey);
+                var Cohere = new CohereHelper(EngineConfig.CohereKey);
                 string Result = Cohere.GenerateText(Msg);
                 return JsonGeter.GetValue(Result);
             }

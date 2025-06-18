@@ -1,6 +1,10 @@
 ﻿using System.Net;
 using System.Text.Json;
 using System.Web;
+using PhoenixEngine.DelegateManagement;
+using PhoenixEngine.Engine;
+using PhoenixEngine.RequestManagement;
+using PhoenixEngine.TranslateCore;
 
 namespace PhoenixEngine.PlatformManagement
 {
@@ -58,7 +62,7 @@ namespace PhoenixEngine.PlatformManagement
                 string sourceCode = sourceLanguage.HasValue ? ToLanguageCode(sourceLanguage.Value) : "auto";
 
                 string url = $"https://translation.googleapis.com/language/translate/v2" +
-                             $"?key={DeFine.GlobalLocalSetting.GoogleApiKey}" +
+                             $"?key={EngineConfig.GoogleApiKey}" +
                              $"&q={HttpUtility.UrlEncode(text)}" +
                              $"&target={targetCode}" +
                              $"&source={sourceCode}";
@@ -68,7 +72,10 @@ namespace PhoenixEngine.PlatformManagement
 
                 string json = response.Content.ReadAsStringAsync().Result;
 
-                DeFine.CurrentDashBoardView.SetLogB("GoogleApi:" + json);
+                if (DelegateHelper.SetLog != null)
+                {
+                    DelegateHelper.SetLog("GoogleApi:" + json,1);
+                }
 
                 using JsonDocument doc = JsonDocument.Parse(json);
 

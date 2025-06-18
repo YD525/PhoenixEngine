@@ -1,4 +1,6 @@
 ﻿using System.Text;
+using PhoenixEngine.TranslateCore;
+using PhoenixEngine.TranslateManagement;
 
 namespace PhoenixEngine.TranslateManage
 {

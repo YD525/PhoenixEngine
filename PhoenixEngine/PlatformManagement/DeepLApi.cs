@@ -1,5 +1,9 @@
 ﻿using System.Net;
 using System.Text.Json;
+using PhoenixEngine.DelegateManagement;
+using PhoenixEngine.Engine;
+using PhoenixEngine.RequestManagement;
+using PhoenixEngine.TranslateCore;
 
 namespace PhoenixEngine.PlatformManagement
 {
@@ -105,10 +109,10 @@ namespace PhoenixEngine.PlatformManagement
         {
             string GetJson = JsonSerializer.Serialize(Item);
             WebHeaderCollection Headers = new WebHeaderCollection();
-            Headers.Add("Authorization", string.Format("DeepL-Auth-Key {0}", DeFine.GlobalLocalSetting.DeepLKey));
+            Headers.Add("Authorization", string.Format("DeepL-Auth-Key {0}", EngineConfig.DeepLKey));
             string AutoHost = "";
 
-            if (DeFine.GlobalLocalSetting.IsFreeDeepL)
+            if (EngineConfig.IsFreeDeepL)
             {
                 AutoHost = DeepLFreeHost;
             }
@@ -127,7 +131,7 @@ namespace PhoenixEngine.PlatformManagement
                 Postdata = GetJson,
                 Cookie = "",
                 ContentType = "application/json",
-                Timeout = DeFine.GlobalRequestTimeOut,
+                Timeout = EngineConfig.GlobalRequestTimeOut,
                 ProxyIp = ProxyCenter.GlobalProxyIP
             };
             try
@@ -139,7 +143,10 @@ namespace PhoenixEngine.PlatformManagement
             string GetResult = new HttpHelper().GetHtml(Http).Html;
             try
             {
-                DeFine.CurrentDashBoardView.SetLogB("DeepL:" + GetResult);
+                if (DelegateHelper.SetLog != null)
+                {
+                    DelegateHelper.SetLog("DeepL:" + GetResult, 1);
+                }
                 return JsonSerializer.Deserialize<DeepLResult>(GetResult);
             }
             catch

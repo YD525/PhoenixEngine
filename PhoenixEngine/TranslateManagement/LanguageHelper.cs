@@ -1,4 +1,6 @@
 ﻿
+using PhoenixEngine.LanguageDetector;
+
 namespace PhoenixEngine.TranslateCore
 {
     // Copyright (C) 2025 YD525
@@ -175,20 +177,6 @@ namespace PhoenixEngine.TranslateCore
                 {
                     DetectLanguage(ref OneDetect, GetLine);
                 }
-            }
-
-            return OneDetect.GetMaxLang();
-        }
-
-        public static Languages DetectLanguage()
-        {
-            LanguageDetect OneDetect = new LanguageDetect();
-            for (int i = 0; i < DeFine.WorkingWin.TransViewList.Rows; i++)
-            {
-                FakeGrid MainGrid = DeFine.WorkingWin.TransViewList.RealLines[i];
-
-                var GetSourceText = MainGrid.SourceText.Trim();
-                DetectLanguage(ref OneDetect, GetSourceText);
             }
 
             return OneDetect.GetMaxLang();

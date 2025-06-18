@@ -1,5 +1,13 @@
 ﻿using System.Net;
 using System.Text.Json;
+using PhoenixEngine.ConvertManager;
+using PhoenixEngine.DelegateManagement;
+using PhoenixEngine.Engine;
+using PhoenixEngine.RequestManagement;
+using PhoenixEngine.TranslateCore;
+using PhoenixEngine.TranslateManage;
+using static PhoenixEngine.PlatformManagement.LocalAI.LocalAIJson;
+using static PhoenixEngine.TranslateManage.TransCore;
 
 namespace PhoenixEngine.PlatformManagement.LocalAI
 {
@@ -8,7 +16,7 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
         public OpenAIResponse? CallAI(string Msg)
         {
             int GetCount = Msg.Length;
-            OpenAIItem NOpenAIItem = new OpenAIItem(DeFine.GlobalLocalSetting.LMModel);
+            OpenAIItem NOpenAIItem = new OpenAIItem(EngineConfig.LMModel);
             NOpenAIItem.store = true;
             NOpenAIItem.messages.Add(new OpenAIMessage("user", Msg));
             var GetResult = CallAI(NOpenAIItem);
@@ -17,7 +25,7 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
 
         public OpenAIResponse? CallAI(OpenAIItem Item)
         {
-            string GenUrl = DeFine.GlobalLocalSetting.LMHost + ":" + DeFine.GlobalLocalSetting.LMPort + DeFine.GlobalLocalSetting.LMQueryParam;
+            string GenUrl = EngineConfig.LMHost + ":" + EngineConfig.LMPort + EngineConfig.LMQueryParam;
             string GetJson = JsonSerializer.Serialize(Item);
             WebHeaderCollection Headers = new WebHeaderCollection();
             //Headers.Add("Authorization", string.Format("Bearer {0}", DeFine.GlobalLocalSetting.LMKey));
@@ -43,7 +51,6 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
             string GetResult = new HttpHelper().GetHtml(Http).Html;
             try
             {
-                DeFine.CurrentDashBoardView.SetLogB("LocalAI(LM):" + GetResult);
                 return JsonSerializer.Deserialize<OpenAIResponse>(GetResult);
             }
             catch
@@ -55,7 +62,7 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
         public string QuickTrans(List<string> CustomWords, string TransSource, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string Param)
         {
             List<string> Related = new List<string>();
-            if (DeFine.GlobalLocalSetting.UsingContext && UseAIMemory)
+            if (EngineConfig.UsingContext && UseAIMemory)
             {
                 Related = EngineSelect.AIMemory.FindRelevantTranslations(FromLang, TransSource, AIMemoryCountLimit);
             }
@@ -67,9 +74,9 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
                 GetTransSource += Param;
             }
 
-            if (ConvertHelper.ObjToStr(DeFine.GlobalLocalSetting.UserCustomAIPrompt).Trim().Length > 0)
+            if (ConvertHelper.ObjToStr(EngineConfig.UserCustomAIPrompt).Trim().Length > 0)
             {
-                GetTransSource += DeFine.GlobalLocalSetting.UserCustomAIPrompt + "\n\n";
+                GetTransSource += EngineConfig.UserCustomAIPrompt + "\n\n";
             }
 
             if (Related.Count > 0 || CustomWords.Count > 0)
@@ -115,9 +122,9 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
                             return string.Empty;
                         }
 
-                        if (DeFine.CurrentDashBoardView != null)
+                        if (DelegateHelper.SetLog != null)
                         {
-                            DeFine.CurrentDashBoardView.SetLogB(GetTransSource + "\r\n\r\n AI:\r\n" + GetStr);
+                            DelegateHelper.SetLog(GetTransSource + "\r\n\r\n LocalAI(LM):\r\n" + GetStr,1);
                         }
 
                         if (GetStr.Trim().Equals("<translated_text>"))

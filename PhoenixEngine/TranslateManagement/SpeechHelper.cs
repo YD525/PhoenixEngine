@@ -1,4 +1,6 @@
 ﻿
+using PhoenixEngine.TranslateCore;
+
 namespace PhoenixEngine.TranslateManagement
 {
     public static class SpeechHelper

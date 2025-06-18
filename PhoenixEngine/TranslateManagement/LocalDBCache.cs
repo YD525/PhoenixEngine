@@ -1,4 +1,8 @@
 ﻿
+using PhoenixEngine.ConvertManager;
+using PhoenixEngine.Engine;
+using PhoenixEngine.TranslateCore;
+
 namespace PhoenixEngine.TranslateManagement
 {
     public class LocalTransItem
@@ -12,9 +16,9 @@ namespace PhoenixEngine.TranslateManagement
 
         public LocalTransItem(string Key,string Result)
         {
-            this.ModName = DeFine.CurrentModName;
+            this.ModName = EngineConfig.CurrentModName;
             this.Key = Key;
-            this.To = (int)DeFine.TargetLanguage;
+            this.To = (int)EngineConfig.TargetLanguage;
             this.Result = Result;
             this.Index = 0;
             this.ColorSet = ConvertHelper.ObjToInt(ColorSet);
@@ -38,7 +42,7 @@ namespace PhoenixEngine.TranslateManagement
             {
                 string SqlOrder = "Delete From LocalTranslation Where [ModName] = '{0}' And [To] = {1}";
 
-                int State = DeFine.GlobalDB.ExecuteNonQuery(string.Format(SqlOrder, DeFine.CurrentModName, (int)DeFine.TargetLanguage));
+                int State = EngineConfig.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, EngineConfig.CurrentModName, (int)EngineConfig.TargetLanguage));
 
                 if (State != 0)
                 {
@@ -56,7 +60,7 @@ namespace PhoenixEngine.TranslateManagement
             {
                 string SqlOrder = "Delete From LocalTranslation Where [ModName] = '{0}' And [Result] = '{1}' And [To] = {2}";
 
-                int State = DeFine.GlobalDB.ExecuteNonQuery(string.Format(SqlOrder, DeFine.CurrentModName,System.Web.HttpUtility.HtmlEncode(ResultText),(int)DeFine.TargetLanguage));
+                int State = EngineConfig.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, EngineConfig.CurrentModName,System.Web.HttpUtility.HtmlEncode(ResultText),(int)EngineConfig.TargetLanguage));
 
                 if (State != 0)
                 {
@@ -74,7 +78,7 @@ namespace PhoenixEngine.TranslateManagement
             {
                 string SqlOrder = "Delete From LocalTranslation Where [ModName] = '{0}' And [Key] = '{1}' And [To] = {2}";
 
-                int State = DeFine.GlobalDB.ExecuteNonQuery(string.Format(SqlOrder, DeFine.CurrentModName,Key,(int)DeFine.TargetLanguage));
+                int State = EngineConfig.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, EngineConfig.CurrentModName,Key,(int)EngineConfig.TargetLanguage));
 
                 if (State!=0)
                 {
@@ -92,7 +96,7 @@ namespace PhoenixEngine.TranslateManagement
             {
                 string SqlOrder = "Select Result From LocalTranslation Where [ModName] = '{0}' And[Key] = '{1}' And [To] = {2}";
 
-                string GetText = ConvertHelper.ObjToStr(DeFine.GlobalDB.ExecuteScalar(string.Format(SqlOrder, DeFine.CurrentModName,Key,(int)DeFine.TargetLanguage)));
+                string GetText = ConvertHelper.ObjToStr(EngineConfig.LocalDB.ExecuteScalar(string.Format(SqlOrder, EngineConfig.CurrentModName,Key,(int)EngineConfig.TargetLanguage)));
 
                 if (GetText.Trim().Length > 0)
                 {
@@ -106,7 +110,7 @@ namespace PhoenixEngine.TranslateManagement
 
         public static string FindCache(string Key)
         {
-            return FindCache(DeFine.CurrentModName, Key, (int)DeFine.TargetLanguage);
+            return FindCache(EngineConfig.CurrentModName, Key, (int)EngineConfig.TargetLanguage);
         }
 
 
@@ -116,7 +120,7 @@ namespace PhoenixEngine.TranslateManagement
             {
                 string SqlOrder = "Select Result From LocalTranslation Where [ModName] = '{0}' And [Key] = '{1}' And [To] = {2}";
 
-                string GetResult = ConvertHelper.ObjToStr(DeFine.GlobalDB.ExecuteScalar(string.Format(SqlOrder,ModName,Key,To)));
+                string GetResult = ConvertHelper.ObjToStr(EngineConfig.LocalDB.ExecuteScalar(string.Format(SqlOrder,ModName,Key,To)));
 
                 if (GetResult.Trim().Length > 0)
                 {
@@ -146,12 +150,12 @@ namespace PhoenixEngine.TranslateManagement
                 }
             }
 
-            int GetRowID = ConvertHelper.ObjToInt(DeFine.GlobalDB.ExecuteScalar(String.Format("Select Rowid From LocalTranslation Where [ModName] = '{0}' And [Key] = '{1}' And [To] = {2}", Item.ModName,Item.Key,Item.To)));
+            int GetRowID = ConvertHelper.ObjToInt(EngineConfig.LocalDB.ExecuteScalar(String.Format("Select Rowid From LocalTranslation Where [ModName] = '{0}' And [Key] = '{1}' And [To] = {2}", Item.ModName,Item.Key,Item.To)));
 
             if (GetRowID < 0 && Item.Result.Trim().Length > 0)
             {
                 string SqlOrder = "Insert Into LocalTranslation([ModName],[Key],[To],[Result],[Index],[ColorSet])Values('{0}','{1}',{2},'{3}',{4},{5})";
-                int State = DeFine.GlobalDB.ExecuteNonQuery(string.Format(SqlOrder,
+                int State = EngineConfig.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,
                     Item.ModName,
                     Item.Key,
                     Item.To,
@@ -168,7 +172,7 @@ namespace PhoenixEngine.TranslateManagement
             else
             {
                 string SqlOrder = "UPDate LocalTranslation Set [Result] = '{1}',[Index] = {2},[ColorSet] = {3} Where Rowid = {0}";
-                int State = DeFine.GlobalDB.ExecuteNonQuery(string.Format(SqlOrder,GetRowID,System.Web.HttpUtility.HtmlEncode(Item.Result),Item.Index,Item.ColorSet));
+                int State = EngineConfig.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,GetRowID,System.Web.HttpUtility.HtmlEncode(Item.Result),Item.Index,Item.ColorSet));
                 if (State != 0)
                 {
                     return true;

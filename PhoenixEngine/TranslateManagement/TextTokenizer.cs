@@ -1,5 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using PhoenixEngine.TranslateCore;
+using PhoenixEngine.TranslateManage;
 
 namespace PhoenixEngine.TranslateManagement
 {

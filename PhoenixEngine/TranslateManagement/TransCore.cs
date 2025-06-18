@@ -1,4 +1,10 @@
 ﻿
+using PhoenixEngine.ConvertManager;
+using PhoenixEngine.Engine;
+using PhoenixEngine.PlatformManagement;
+using PhoenixEngine.PlatformManagement.LocalAI;
+using PhoenixEngine.TranslateCore;
+
 namespace PhoenixEngine.TranslateManage
 {
     // Copyright (C) 2025 YD525
@@ -40,56 +46,56 @@ namespace PhoenixEngine.TranslateManage
                 EngineSelects.Clear();
 
                 // Google support
-                if (DeFine.GlobalLocalSetting.GoogleYunApiUsing &&
-                    !string.IsNullOrWhiteSpace(DeFine.GlobalLocalSetting.GoogleApiKey))
+                if (EngineConfig.GoogleYunApiEnable &&
+                    !string.IsNullOrWhiteSpace(EngineConfig.GoogleApiKey))
                 {
                     EngineSelects.Add(new EngineSelect(new GoogleTransApi(), 1));
                 }
 
                 // ChatGPT support
-                if (DeFine.GlobalLocalSetting.ChatGptApiUsing &&
-                    !string.IsNullOrWhiteSpace(DeFine.GlobalLocalSetting.ChatGptKey))
+                if (EngineConfig.ChatGptApiEnable &&
+                    !string.IsNullOrWhiteSpace(EngineConfig.ChatGptKey))
                 {
                     EngineSelects.Add(new EngineSelect(new ChatGptApi(), 6));
                 }
 
                 // Gemini support
-                if (DeFine.GlobalLocalSetting.GeminiApiUsing &&
-                    !string.IsNullOrWhiteSpace(DeFine.GlobalLocalSetting.GeminiKey))
+                if (EngineConfig.GeminiApiEnable &&
+                    !string.IsNullOrWhiteSpace(EngineConfig.GeminiKey))
                 {
                     EngineSelects.Add(new EngineSelect(new GeminiApi(), 6));
                 }
 
                 // DeepSeek support
-                if (DeFine.GlobalLocalSetting.DeepSeekApiUsing &&
-                    !string.IsNullOrWhiteSpace(DeFine.GlobalLocalSetting.DeepSeekKey))
+                if (EngineConfig.DeepSeekApiEnable &&
+                    !string.IsNullOrWhiteSpace(EngineConfig.DeepSeekKey))
                 {
                     EngineSelects.Add(new EngineSelect(new DeepSeekApi(), 6));
                 }
 
                 // Cohere support
-                if (DeFine.GlobalLocalSetting.CohereApiUsing &&
-                    !string.IsNullOrWhiteSpace(DeFine.GlobalLocalSetting.CohereKey))
+                if (EngineConfig.CohereApiEnable &&
+                    !string.IsNullOrWhiteSpace(EngineConfig.CohereKey))
                 {
                     EngineSelects.Add(new EngineSelect(new CohereApi(), 6));
                 }
 
                 // Baichuan support
-                if (DeFine.GlobalLocalSetting.BaichuanApiUsing &&
-                    !string.IsNullOrWhiteSpace(DeFine.GlobalLocalSetting.BaichuanKey))
+                if (EngineConfig.BaichuanApiEnable &&
+                    !string.IsNullOrWhiteSpace(EngineConfig.BaichuanKey))
                 {
                     EngineSelects.Add(new EngineSelect(new BaichuanApi(), 6));
                 }
 
                 //LocalAI(LM) support
-                if (DeFine.GlobalLocalSetting.LMLocalAIEngineUsing)
+                if (EngineConfig.LMLocalAIEngineEnable)
                 {
                     EngineSelects.Add(new EngineSelect(new LMStudio(), 1,0));
                 }
 
                 // DeepL support
-                if (DeFine.GlobalLocalSetting.DeepLApiUsing &&
-                    !string.IsNullOrWhiteSpace(DeFine.GlobalLocalSetting.DeepLKey))
+                if (EngineConfig.DeepLApiEnable &&
+                    !string.IsNullOrWhiteSpace(EngineConfig.DeepLKey))
                 {
                     EngineSelects.Add(new EngineSelect(new DeepLApi(), 6));
                 }
@@ -151,7 +157,7 @@ namespace PhoenixEngine.TranslateManage
                     string GetTrans = "";
                     if (!IsBook)
                     {
-                        GetTrans = CurrentEngine.Call(Type, Source, Target, SourceStr, true, DeFine.GlobalLocalSetting.ContextLimit, string.Empty, ref CanAddCache);
+                        GetTrans = CurrentEngine.Call(Type, Source, Target, SourceStr, true, EngineConfig.ContextLimit, string.Empty, ref CanAddCache);
                     }
                     else
                     {

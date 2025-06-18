@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using PhoenixEngine.DataBaseManagement;
 using PhoenixEngine.TranslateCore;
 
 namespace PhoenixEngine.Engine
@@ -15,6 +16,20 @@ namespace PhoenixEngine.Engine
 
     public class EngineConfig
     {
+        #region RequestConfig
+
+        public static string ProxyIP { get; set; } = "";
+
+        public static int GlobalRequestTimeOut = 8000;
+
+        #endregion
+
+        #region DataBase
+
+        public static int DefPageSize = 0;
+        public static SQLiteHelper LocalDB = new SQLiteHelper();
+
+        #endregion
         #region Translation Param
 
         public static string CurrentModName = "";
@@ -72,7 +87,6 @@ namespace PhoenixEngine.Engine
         /// </summary>
         public static int ThrottleDelayMs { get; set; } = 200;
         public static int ContextLimit { get; set; } = 3;
-        public static string ProxyIP { get; set; } = "";
         public static int TransCount { get; set; } = 0;
         public static int MaxThreadCount { get; set; } = 2;
         public static bool AutoSetThreadLimit { get; set; } = true;

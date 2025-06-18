@@ -1,4 +1,10 @@
 ﻿
+using System.Text;
+using System.Text.RegularExpressions;
+using PhoenixEngine.Engine;
+using PhoenixEngine.TranslateCore;
+using PhoenixEngine.TranslateManagement;
+
 namespace PhoenixEngine.TranslateManage
 {
     // Copyright (C) 2025 YD525
@@ -44,7 +50,7 @@ namespace PhoenixEngine.TranslateManage
 
             List<string> Words = new List<string>();
 
-            var Datas = AdvancedDictionary.Query(DeFine.CurrentModName, Type, From, To, SourceStr);
+            var Datas = AdvancedDictionary.Query(EngineConfig.CurrentModName, Type, From, To, SourceStr);
             bool UseWordBoundary = LanguageExtensions.IsSpaceDelimitedLanguage(From);
 
             string TempStr = SourceStr;
@@ -77,7 +83,7 @@ namespace PhoenixEngine.TranslateManage
 
             bool UseWordBoundary = LanguageExtensions.IsSpaceDelimitedLanguage(From);
 
-            var Datas = AdvancedDictionary.Query(DeFine.CurrentModName, Type, From, To, SourceStr);
+            var Datas = AdvancedDictionary.Query(EngineConfig.CurrentModName, Type, From, To, SourceStr);
 
             for (int i = 0; i < Datas.Count; i++)
             {
