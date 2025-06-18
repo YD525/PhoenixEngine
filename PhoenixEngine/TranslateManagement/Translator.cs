@@ -1,4 +1,6 @@
 ﻿
+using PhoenixEngine.TranslateCore;
+
 namespace PhoenixEngine.TranslateManage
 {
     // Copyright (C) 2025 YD525
