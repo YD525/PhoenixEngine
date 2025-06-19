@@ -87,7 +87,6 @@ namespace PhoenixEngine.Engine
         /// </summary>
         public static int ThrottleDelayMs { get; set; } = 200;
         public static int ContextLimit { get; set; } = 3;
-        public static int TransCount { get; set; } = 0;
         public static int MaxThreadCount { get; set; } = 2;
         public static bool AutoSetThreadLimit { get; set; } = true;
         public static bool UsingContext { get; set; } = true;

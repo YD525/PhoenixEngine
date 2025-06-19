@@ -1,5 +1,6 @@
 ﻿
 using PhoenixEngine.ConvertManager;
+using PhoenixEngine.DelegateManagement;
 using PhoenixEngine.Engine;
 using PhoenixEngine.PlatformManagement;
 using PhoenixEngine.PlatformManagement.LocalAI;
@@ -227,17 +228,20 @@ namespace PhoenixEngine.TranslateManage
                     {
                         bool CanTrans = false;
 
-                        if (DeFine.GlobalLocalSetting.DivCacheEngineUsing)
+                        if (EngineConfig.DivCacheEngineEnable)
                         {
                             string GetDefSource = GetSource;
                             GetSource = NTranslationPreprocessor.GeneratePlaceholderText(From, To, GetSource, Type, out CanTrans);
 
-                            if (DeFine.LocalConfigView != null)
+                            if (DelegateHelper.SetOutputCall != null)
                             {
-                                DeFine.LocalConfigView.SetOutput(GetSource);
-                                DeFine.LocalConfigView.SetKeyWords(NTranslationPreprocessor.ReplaceTags);
+                                DelegateHelper.SetOutputCall(GetSource);
                             }
-                          
+
+                            if (DelegateHelper.SetKeyWordsCall != null)
+                            {
+                                DelegateHelper.SetKeyWordsCall(NTranslationPreprocessor.ReplaceTags);
+                            }
 
                             Translator.SendTranslateMsg("Local Engine(SSELex)", GetDefSource, GetSource);
                         }
@@ -250,7 +254,7 @@ namespace PhoenixEngine.TranslateManage
                         {
                             if (this.Engine is GoogleTransApi)
                             {
-                                if (DeFine.GlobalLocalSetting.GoogleYunApiUsing)
+                                if (EngineConfig.GoogleYunApiEnable)
                                 {
                                     var GetData = ConvertHelper.ObjToStr(((GoogleTransApi)this.Engine).Translate(GetSource, From, To));
                                     TransText = GetData;
@@ -273,7 +277,7 @@ namespace PhoenixEngine.TranslateManage
                             else
                             if (this.Engine is DeepLApi)
                             {
-                                if (DeFine.GlobalLocalSetting.DeepLApiUsing)
+                                if (EngineConfig.DeepLApiEnable)
                                 {
                                     var GetData = ((DeepLApi)this.Engine).QuickTrans(GetSource, From, To).Trim();
 
@@ -315,7 +319,7 @@ namespace PhoenixEngine.TranslateManage
 
                         List<string> CustomWords = new List<string>();
 
-                        if (DeFine.GlobalLocalSetting.DivCacheEngineUsing)
+                        if (EngineConfig.DivCacheEngineEnable)
                         {
                             CustomWords = NTranslationPreprocessor.GeneratePlaceholderTextByAI(From, To, GetSource, Type, out CanTrans);
 
@@ -325,12 +329,15 @@ namespace PhoenixEngine.TranslateManage
                                 GenParam += CustomWords[i] + "\n";
                             }
 
-                            if (DeFine.LocalConfigView != null)
+                            if (DelegateHelper.SetOutputCall != null)
                             {
-                                DeFine.LocalConfigView.SetOutput(GenParam);
-                                DeFine.LocalConfigView.SetKeyWords(NTranslationPreprocessor.ReplaceTags);
+                                DelegateHelper.SetOutputCall(GenParam);
                             }
-                            
+
+                            if (DelegateHelper.SetKeyWordsCall != null)
+                            {
+                                DelegateHelper.SetKeyWordsCall(NTranslationPreprocessor.ReplaceTags);
+                            }
 
                             Translator.SendTranslateMsg("Local Engine(SSELex)", GetSource, GenParam);
                         }
@@ -343,7 +350,7 @@ namespace PhoenixEngine.TranslateManage
                         {
                             if (this.Engine is LMStudio)
                             {
-                                if (DeFine.GlobalLocalSetting.LMLocalAIEngineUsing)
+                                if (EngineConfig.LMLocalAIEngineEnable)
                                 {
                                     var GetData = ((LMStudio)this.Engine).QuickTrans(CustomWords, GetSource, From, To, UseAIMemory, AIMemoryCountLimit, Param).Trim();
 
@@ -373,7 +380,7 @@ namespace PhoenixEngine.TranslateManage
                             else
                             if (this.Engine is CohereApi)
                             {
-                                if (DeFine.GlobalLocalSetting.CohereApiUsing)
+                                if (EngineConfig.CohereApiEnable)
                                 {
                                     var GetData = ((CohereApi)this.Engine).QuickTrans(CustomWords, GetSource, From, To, UseAIMemory, AIMemoryCountLimit, Param).Trim();
 
@@ -403,7 +410,7 @@ namespace PhoenixEngine.TranslateManage
                             else
                             if (this.Engine is ChatGptApi)
                             {
-                                if (DeFine.GlobalLocalSetting.ChatGptApiUsing)
+                                if (EngineConfig.ChatGptApiEnable)
                                 {
                                     var GetData = ((ChatGptApi)this.Engine).QuickTrans(CustomWords, GetSource, From, To, UseAIMemory, AIMemoryCountLimit, Param).Trim();
 
@@ -433,7 +440,7 @@ namespace PhoenixEngine.TranslateManage
                             else
                             if (this.Engine is GeminiApi)
                             {
-                                if (DeFine.GlobalLocalSetting.GeminiApiUsing)
+                                if (EngineConfig.GeminiApiEnable)
                                 {
                                     var GetData = ((GeminiApi)this.Engine).QuickTrans(CustomWords, GetSource, From, To, UseAIMemory, AIMemoryCountLimit, Param).Trim();
 
@@ -463,7 +470,7 @@ namespace PhoenixEngine.TranslateManage
                             else
                             if (this.Engine is DeepSeekApi)
                             {
-                                if (DeFine.GlobalLocalSetting.DeepSeekApiUsing)
+                                if (EngineConfig.DeepSeekApiEnable)
                                 {
                                     var GetData = ((DeepSeekApi)this.Engine).QuickTrans(CustomWords, GetSource, From, To, UseAIMemory, AIMemoryCountLimit, Param).Trim();
 
@@ -493,7 +500,7 @@ namespace PhoenixEngine.TranslateManage
                             else
                             if (this.Engine is BaichuanApi)
                             {
-                                if (DeFine.GlobalLocalSetting.BaichuanApiUsing)
+                                if (EngineConfig.BaichuanApiEnable)
                                 {
                                     var GetData = ((BaichuanApi)this.Engine).QuickTrans(CustomWords, GetSource, From, To, UseAIMemory, AIMemoryCountLimit, Param).Trim();
 
@@ -538,7 +545,10 @@ namespace PhoenixEngine.TranslateManage
 
                     if (TransText.Length > 0)
                     {
-                        DashBoardService.SetUsage(CurrentPlatform, GetSource.Length);
+                        if (DelegateHelper.SetUsageCall != null)
+                        {
+                            DelegateHelper.SetUsageCall(CurrentPlatform, GetSource.Length);
+                        }
                     }
 
                     return TransText;

@@ -37,7 +37,7 @@ namespace PhoenixEngine.TranslateCore
             try { 
             string SqlOrder = "Select Result From CloudTranslation Where [ModName] = '{0}' And [Key] = '{1}' And [To] = {2}";
 
-            string GetResult = ConvertHelper.ObjToStr(EngineConfig.LocalDB.ExecuteScalar(string.Format(SqlOrder, ModName, Key,(int)DeFine.TargetLanguage)));
+            string GetResult = ConvertHelper.ObjToStr(EngineConfig.LocalDB.ExecuteScalar(string.Format(SqlOrder, ModName, Key,(int)EngineConfig.TargetLanguage)));
 
             if (GetResult.Trim().Length > 0)
             {
