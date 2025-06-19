@@ -14,39 +14,55 @@ namespace PhoenixEngine.SSELexiconBridge
     /// </summary>
     public class NativeBridge
     {
-        public static void FormatData()
+        public class TranslatorBridge
         {
-            Translator.FormatData();
-        }
+            public static void FormatData()
+            {
+                Translator.FormatData();
+            }
 
-        public static void ClearCache()
-        {
-            Translator.ClearCache();
-        }
+            public static void ClearCache()
+            {
+                Translator.ClearCache();
+            }
 
-        public static string? GetTranslatorCache(string Key)
-        {
-            if (Translator.TransData.ContainsKey(Key))
+            public static string? GetTranslatorCache(string Key)
             {
-                return Translator.TransData[Key];
+                if (Translator.TransData.ContainsKey(Key))
+                {
+                    return Translator.TransData[Key];
+                }
+                else
+                {
+                    return null;
+                }
             }
-            else
+
+            public static string GetTransData(string Key)
             {
-                return null;
+                var GetResult = GetTranslatorCache(Key);
+                if (GetResult != null)
+                {
+                    return GetResult;
+                }
+                else
+                {
+                    Translator.TransData.Add(Key, string.Empty);
+                }
+                return string.Empty;
             }
-        }
-        public static string GetTransData(string Key)
-        {
-            var GetResult = GetTranslatorCache(Key);
-            if (GetResult != null)
+
+            public static void SetTransData(string Key, string Value)
             {
-                return GetResult;
+                if (Translator.TransData.ContainsKey(Key))
+                {
+                    Translator.TransData[Key] = Value;
+                }
+                else
+                {
+                    Translator.TransData.Add(Key, Value);
+                }
             }
-            else
-            {
-                Translator.TransData.Add(Key, string.Empty);
-            }
-            return string.Empty;
         }
     }
 }

@@ -16,8 +16,8 @@ namespace PhoenixEngine.Engine
 
     public class ThreadUsageInfo
     {
-        public int CurrentThreads = 0;
-        public int MaxThreads = 0;
+        public int CurrentThreads { get; set; } = 0;
+        public int MaxThreads { get; set; } = 0;
     }
 
     public class EngineConfig
