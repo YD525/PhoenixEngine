@@ -9,6 +9,10 @@ using PhoenixEngine.TranslateCore;
 
 namespace PhoenixEngine.TranslateManagement
 {
+    // Copyright (C) 2025 YD525
+    // Licensed under the GNU GPLv3
+    // See LICENSE for details
+    //https://github.com/YD525/PhoenixEngine
     public class AdvancedDictionaryItem
     {
         public int Rowid = 0;

@@ -11,7 +11,6 @@ namespace PhoenixEngine.DataBaseManagement
 {
     public class PageHelper
     {
-
         public static int GetPageCount(string TableName, string Where)
         {
             int GetCount = ConvertHelper.ObjToInt(EngineConfig.LocalDB.ExecuteScalar(string.Format("Select Count(*) From {0} ", TableName) + Where));

@@ -8,6 +8,10 @@ using PhoenixEngine.TranslateCore;
 
 namespace PhoenixEngine.Engine
 {
+    // Copyright (C) 2025 YD525
+    // Licensed under the GNU GPLv3
+    // See LICENSE for details
+    //https://github.com/YD525/PhoenixEngine
     public class ThreadUsageInfo
     {
         public int CurrentThreads = 0;
