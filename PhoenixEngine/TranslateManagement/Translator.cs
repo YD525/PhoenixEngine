@@ -125,5 +125,46 @@ namespace PhoenixEngine.TranslateManage
                 return false;
             }
         }
+
+        public static void FormatData()
+        {
+            try
+            {
+                for (int i = 0; i < Translator.TransData.Count; i++)
+                {
+                    try
+                    {
+                        var GetHashKey = Translator.TransData.ElementAt(i).Key;
+                        if (Translator.TransData[GetHashKey].Trim().Length > 0)
+                        {
+                            SetData(GetHashKey, Translator.TransData[GetHashKey].Trim());
+                        }
+                    }
+                    catch (System.Exception ex)
+                    {
+                        System.Console.WriteLine($"Error in WriteAllMemoryData loop at index {i}: {ex.Message}");
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                System.Console.WriteLine($"Error in WriteAllMemoryData: {ex.Message}");
+            }
+        }
+
+        public static void SetData(string GetKey, string TransData)
+        {
+            string NewStr = TransData;
+            TranslationPreprocessor.NormalizePunctuation(ref NewStr);
+            if (Regex.Replace(NewStr, @"\s+", "").Length > 0)
+            {
+                Translator.TransData[GetKey] = NewStr;
+            }
+            else
+            {
+                Translator.TransData[GetKey] = string.Empty;
+            }
+        }
+
     }
 }
