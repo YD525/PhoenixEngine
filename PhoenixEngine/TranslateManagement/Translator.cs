@@ -137,7 +137,7 @@ namespace PhoenixEngine.TranslateManage
                         var GetHashKey = Translator.TransData.ElementAt(i).Key;
                         if (Translator.TransData[GetHashKey].Trim().Length > 0)
                         {
-                            SetData(GetHashKey, Translator.TransData[GetHashKey].Trim());
+                            FormatData(GetHashKey, Translator.TransData[GetHashKey].Trim());
                         }
                     }
                     catch (System.Exception ex)
@@ -152,7 +152,7 @@ namespace PhoenixEngine.TranslateManage
             }
         }
 
-        public static void SetData(string GetKey, string TransData)
+        public static void FormatData(string GetKey, string TransData)
         {
             string NewStr = TransData;
             TranslationPreprocessor.NormalizePunctuation(ref NewStr);

@@ -19,12 +19,28 @@ namespace PhoenixEngine.SSELexiconBridge
             Translator.FormatData();
         }
 
+        public static void ClearCache()
+        {
+            Translator.ClearCache();
+        }
 
-        public static string GetTransData(string Key)
+        public static string? GetTranslatorCache(string Key)
         {
             if (Translator.TransData.ContainsKey(Key))
             {
                 return Translator.TransData[Key];
+            }
+            else
+            {
+                return null;
+            }
+        }
+        public static string GetTransData(string Key)
+        {
+            var GetResult = GetTranslatorCache(Key);
+            if (GetResult != null)
+            {
+                return GetResult;
             }
             else
             {
