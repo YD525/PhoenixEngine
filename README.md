@@ -1,1 +1,1 @@
-Don't freeload, give me a Star before you go!
+If you like it, please give me a Star before you go!
