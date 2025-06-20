@@ -200,7 +200,6 @@ namespace PhoenixEngine.SSEATComBridge
                 CurrentConfig.ProxyIP = EngineConfig.ProxyIP;
                 CurrentConfig.GlobalRequestTimeOut = EngineConfig.GlobalRequestTimeOut;
 
-                CurrentConfig.CurrentModName = EngineConfig.CurrentModName;
                 CurrentConfig.SourceLanguage = EngineConfig.SourceLanguage;
                 CurrentConfig.TargetLanguage = EngineConfig.TargetLanguage;
 
@@ -249,12 +248,11 @@ namespace PhoenixEngine.SSEATComBridge
             Engine.Init();
             IsInit = true;
         }
-        public static int convert_lang_to_id(string Lang)
+        public static int from_language_code(string Lang)
         {
-            Languages GetLang = (Languages)Enum.Parse(typeof(Languages), Lang);
-            return (int)GetLang;
+           return (int)LanguageHelper.FromLanguageCode(Lang);
         }
-        public static string translate(string Key, string Text, int Src, int Dst)
+        public static string translate(string ModName,string Type,string Key, string Text, int Src, int Dst)
         {
             if (!IsInit)
             {
@@ -269,7 +267,7 @@ namespace PhoenixEngine.SSEATComBridge
                 }
 
                 bool CanSleep = true;
-                return Translator.QuickTrans(EngineConfig.CurrentModName, string.Empty, Key, Text, (Languages)Src, (Languages)Dst, ref CanSleep);
+                return Translator.QuickTrans(ModName,Type, Key, Text, (Languages)Src, (Languages)Dst, ref CanSleep);
             }
             catch (Exception e)
             {
@@ -314,7 +312,6 @@ namespace PhoenixEngine.SSEATComBridge
             EngineConfig.GlobalRequestTimeOut = CurrentConfig.GlobalRequestTimeOut;
 
             // Translation Param
-            EngineConfig.CurrentModName = CurrentConfig.CurrentModName;
             EngineConfig.SourceLanguage = CurrentConfig.SourceLanguage;
             EngineConfig.TargetLanguage = CurrentConfig.TargetLanguage;
 

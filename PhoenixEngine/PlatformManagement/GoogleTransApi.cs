@@ -11,25 +11,6 @@ namespace PhoenixEngine.PlatformManagement
     public class GoogleTransApi
     {
         private static readonly HttpClient _httpClient = CreateHttpClient();
-
-        public static string ToLanguageCode(Languages language)
-        {
-            return language switch
-            {
-                Languages.English => "en",
-                Languages.SimplifiedChinese => "zh-CN",
-                Languages.TraditionalChinese => "zh-TW",
-                Languages.Japanese => "ja",
-                Languages.German => "de",
-                Languages.Korean => "ko",
-                Languages.Turkish => "tr",
-                Languages.Brazilian => "pt-BR",
-                Languages.Portuguese => "pt",
-                Languages.Russian => "ru",
-                Languages.Ukrainian => "uk",
-                _ => throw new ArgumentOutOfRangeException(nameof(language), "Unsupported language")
-            };
-        }
         private static HttpClient CreateHttpClient()
         {
             try
@@ -58,8 +39,8 @@ namespace PhoenixEngine.PlatformManagement
 
             try
             {
-                string targetCode = ToLanguageCode(targetLanguage);
-                string sourceCode = sourceLanguage.HasValue ? ToLanguageCode(sourceLanguage.Value) : "auto";
+                string targetCode = LanguageHelper.ToLanguageCode(targetLanguage);
+                string sourceCode = sourceLanguage.HasValue ? LanguageHelper.ToLanguageCode(sourceLanguage.Value) : "auto";
 
                 string url = $"https://translation.googleapis.com/language/translate/v2" +
                              $"?key={EngineConfig.GoogleApiKey}" +

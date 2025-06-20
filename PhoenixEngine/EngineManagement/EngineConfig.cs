@@ -49,11 +49,6 @@ namespace PhoenixEngine.EngineManagement
         #region Translation Param
 
         /// <summary>
-        /// The name of the current mod being translated (e.g., "xxx.esp").
-        /// </summary>
-        public static string CurrentModName { get; set; } = "";
-
-        /// <summary>
         /// The source language of the text to be translated.
         /// </summary>
         public static Languages SourceLanguage { get; set; } = Languages.Null;
@@ -237,7 +232,6 @@ namespace PhoenixEngine.EngineManagement
 
                 Writer.Write(DefPageSize);
 
-                Writer.Write(CurrentModName ?? "");
                 Writer.Write((int)SourceLanguage);
                 Writer.Write((int)TargetLanguage);
 
@@ -305,7 +299,6 @@ namespace PhoenixEngine.EngineManagement
 
                 DefPageSize = Reader.ReadInt32();
 
-                CurrentModName = Reader.ReadString();
                 SourceLanguage = (Languages)Reader.ReadInt32();
                 TargetLanguage = (Languages)Reader.ReadInt32();
 

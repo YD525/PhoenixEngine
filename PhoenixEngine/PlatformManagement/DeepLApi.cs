@@ -30,60 +30,13 @@ namespace PhoenixEngine.PlatformManagement
     {
         private static string DeepLFreeHost = "https://api-free.deepl.com/v2/translate";
         private static string DeepLHost = "https://api.deepl.com/v2/translate";
-        public static string GetLanguageCode(Languages Language)
-        {
-            switch (Language)
-            {
-                case Languages.English:
-                    return "EN";
-                case Languages.SimplifiedChinese:
-                    return "ZH";
-                case Languages.TraditionalChinese:
-                    return "ZH-TW";
-                case Languages.Japanese:
-                    return "JA";
-                case Languages.German:
-                    return "DE";
-                case Languages.Korean:
-                    return "KO";
-                case Languages.Turkish:
-                    return "TR";
-                case Languages.Brazilian:
-                    return "PT-BR"; // DeepL uses "PT-BR" for Brazilian Portuguese
-                case Languages.Portuguese:
-                    return "PT";    
-                case Languages.Russian:
-                    return "RU";
-                case Languages.Italian:
-                    return "IT";
-                case Languages.Spanish:
-                    return "ES";
-                case Languages.Hindi:
-                    return "HI";
-                case Languages.Urdu:
-                    return "UR";
-                case Languages.Indonesian:
-                    return "ID";
-                case Languages.French:
-                    return "FR";
-                case Languages.Vietnamese:
-                    return "VI";
-                case Languages.Polish:
-                    return "PL";
-                case Languages.CanadianFrench:
-                    return "FR-CA";
-                case Languages.Ukrainian:
-                    return "UK";
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(Language), "Unknown language");
-            }
-        }
+       
         public string QuickTrans(string TransSource, Languages FromLang, Languages ToLang)
         {
             try
             {
                 DeepLItem NDeepLItem = new DeepLItem();
-                NDeepLItem.target_lang = GetLanguageCode(ToLang);
+                NDeepLItem.target_lang = LanguageHelper.ToLanguageCode(ToLang).ToUpper();
                 NDeepLItem.text = new List<string>() { TransSource };
                 var GetResult = CallAI(NDeepLItem);
                 if (GetResult == null)

@@ -42,13 +42,13 @@ namespace PhoenixEngine.TranslateManage
         
         }
 
-        public List<string> GeneratePlaceholderTextByAI(Languages From, Languages To, string SourceStr, string Type, out bool NeedFurtherTranslate)
+        public List<string> GeneratePlaceholderTextByAI(string ModName,Languages From, Languages To, string SourceStr, string Type, out bool NeedFurtherTranslate)
         {
             ReplaceTags.Clear();
 
             List<string> Words = new List<string>();
 
-            var Datas = AdvancedDictionary.Query(EngineConfig.CurrentModName, Type, From, To, SourceStr);
+            var Datas = AdvancedDictionary.Query(ModName, Type, From, To, SourceStr);
             bool UseWordBoundary = LanguageExtensions.IsSpaceDelimitedLanguage(From);
 
             string TempStr = SourceStr;
@@ -74,14 +74,14 @@ namespace PhoenixEngine.TranslateManage
             return Words;
         }
 
-        public string GeneratePlaceholderText(Languages From, Languages To, string SourceStr, string Type, out bool NeedFurtherTranslate)
+        public string GeneratePlaceholderText(string ModName,Languages From, Languages To, string SourceStr, string Type, out bool NeedFurtherTranslate)
         {
             ReplaceTags.Clear();
             HasPlaceholder = false;
 
             bool UseWordBoundary = LanguageExtensions.IsSpaceDelimitedLanguage(From);
 
-            var Datas = AdvancedDictionary.Query(EngineConfig.CurrentModName, Type, From, To, SourceStr);
+            var Datas = AdvancedDictionary.Query(ModName, Type, From, To, SourceStr);
 
             for (int i = 0; i < Datas.Count; i++)
             {

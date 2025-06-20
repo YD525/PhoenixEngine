@@ -114,7 +114,7 @@ namespace PhoenixEngine.TranslateManage
         /// <param name="Target"></param>
         /// <param name="SourceStr"></param>
         /// <returns></returns>
-        public string TransAny(string Type, string Key, Languages Source, Languages Target, string SourceStr, bool IsBook, ref bool CanAddCache, ref bool CanSleep)
+        public string TransAny(string ModName,string Type, string Key, Languages Source, Languages Target, string SourceStr, bool IsBook, ref bool CanAddCache, ref bool CanSleep)
         {
             if (SourceStr == "")
             {
@@ -125,7 +125,7 @@ namespace PhoenixEngine.TranslateManage
                 return SourceStr;
             }
 
-            string GetCacheStr = CloudDBCache.FindCache(Key);
+            string GetCacheStr = CloudDBCache.FindCache(ModName,Key);
 
             if (GetCacheStr.Trim().Length > 0)
             {
@@ -158,11 +158,11 @@ namespace PhoenixEngine.TranslateManage
                     string GetTrans = "";
                     if (!IsBook)
                     {
-                        GetTrans = CurrentEngine.Call(Type, Source, Target, SourceStr, true, EngineConfig.ContextLimit, string.Empty, ref CanAddCache);
+                        GetTrans = CurrentEngine.Call(ModName,Type, Source, Target, SourceStr, true, EngineConfig.ContextLimit, string.Empty, ref CanAddCache);
                     }
                     else
                     {
-                        GetTrans = CurrentEngine.Call(Type, Source, Target, SourceStr, false, 1, AIParam, ref CanAddCache);
+                        GetTrans = CurrentEngine.Call(ModName,Type, Source, Target, SourceStr, false, 1, AIParam, ref CanAddCache);
                     }
 
                     if (CanSleep)
@@ -214,7 +214,7 @@ namespace PhoenixEngine.TranslateManage
                 }
             }
 
-            public string Call(string Type, Languages From, Languages To, string SourceStr, bool UseAIMemory, int AIMemoryCountLimit, string Param, ref bool CanAddCache)
+            public string Call(string ModName,string Type, Languages From, Languages To, string SourceStr, bool UseAIMemory, int AIMemoryCountLimit, string Param, ref bool CanAddCache)
             {
                 TranslationPreprocessor NTranslationPreprocessor = new TranslationPreprocessor();
 
@@ -231,7 +231,7 @@ namespace PhoenixEngine.TranslateManage
                         if (EngineConfig.DivCacheEngineEnable)
                         {
                             string GetDefSource = GetSource;
-                            GetSource = NTranslationPreprocessor.GeneratePlaceholderText(From, To, GetSource, Type, out CanTrans);
+                            GetSource = NTranslationPreprocessor.GeneratePlaceholderText(ModName,From, To, GetSource, Type, out CanTrans);
 
                             if (DelegateHelper.SetOutputCall != null)
                             {
@@ -321,7 +321,7 @@ namespace PhoenixEngine.TranslateManage
 
                         if (EngineConfig.DivCacheEngineEnable)
                         {
-                            CustomWords = NTranslationPreprocessor.GeneratePlaceholderTextByAI(From, To, GetSource, Type, out CanTrans);
+                            CustomWords = NTranslationPreprocessor.GeneratePlaceholderTextByAI(ModName,From, To, GetSource, Type, out CanTrans);
 
                             string GenParam = "";
                             for (int i = 0; i < CustomWords.Count; i++)

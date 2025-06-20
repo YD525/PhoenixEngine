@@ -87,7 +87,7 @@ namespace PhoenixEngine.TranslateManage
             }
 
             bool CanAddCache = true;
-            Content = CurrentTransCore.TransAny(Type, Key,SourceLanguage, To, Content, IsBook, ref CanAddCache, ref CanSleep);
+            Content = CurrentTransCore.TransAny(ModName,Type, Key,SourceLanguage, To, Content, IsBook, ref CanAddCache, ref CanSleep);
 
             TranslationPreprocessor.NormalizePunctuation(ref Content);
             TranslationPreprocessor.ProcessEmptyEndLine(ref Content);

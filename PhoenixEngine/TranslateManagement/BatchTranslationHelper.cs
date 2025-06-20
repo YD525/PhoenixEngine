@@ -13,6 +13,7 @@ namespace PhoenixEngine.TranslateManage
 
     public class TranslationUnit
     {
+        public string ModName = "";
         public int WorkEnd = 0;
         public Thread ?CurrentTrd;
         public double Score = 100;
@@ -83,7 +84,7 @@ namespace PhoenixEngine.TranslateManage
                         if (WorkEnd != 2)
                         {
                             bool CanSleep = true;
-                            var GetResult = Translator.QuickTrans(EngineConfig.CurrentModName, this.Type, this.Key, this.SourceText, EngineConfig.SourceLanguage, EngineConfig.TargetLanguage, ref CanSleep);
+                            var GetResult = Translator.QuickTrans(this.ModName, this.Type, this.Key, this.SourceText, EngineConfig.SourceLanguage, EngineConfig.TargetLanguage, ref CanSleep);
                             if (GetResult.Trim().Length > 0)
                             {
                                 TransText = GetResult.Trim();
@@ -146,8 +147,9 @@ namespace PhoenixEngine.TranslateManage
             TransThreadToken?.Cancel();
         }
 
-        public TranslationUnit(string Key, string Type, string SourceText, string TransText)
+        public TranslationUnit(string ModName,string Key, string Type, string SourceText, string TransText)
         {
+            this.ModName = ModName;
             this.Key = Key;
             this.Type = Type;
             this.SourceText = SourceText;
