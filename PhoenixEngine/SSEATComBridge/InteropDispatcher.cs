@@ -13,82 +13,11 @@ namespace PhoenixEngine.SSEATComBridge
     [ComVisible(true)]
     public class InteropDispatcher
     {
-        public static void FormatData()
-        {
-            Translator.FormatData();
-        }
-
-        public static void ClearCache()
-        {
-            Translator.ClearCache();
-        }
-
-        public static string? GetTranslatorCache(string Key)
-        {
-            if (Translator.TransData.ContainsKey(Key))
-            {
-                return Translator.TransData[Key];
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        public static string GetTransData(string Key)
-        {
-            var GetResult = GetTranslatorCache(Key);
-            if (GetResult != null)
-            {
-                return GetResult;
-            }
-            else
-            {
-                Translator.TransData.Add(Key, string.Empty);
-            }
-            return string.Empty;
-        }
-
-        public static void SetTransData(string Key, string Value)
-        {
-            if (Translator.TransData.ContainsKey(Key))
-            {
-                Translator.TransData[Key] = Value;
-            }
-            else
-            {
-                Translator.TransData.Add(Key, Value);
-            }
-        }
-
-        public static int ConvertLangToID(string Lang)
-        { 
-            Languages GetLang = (Languages)Enum.Parse(typeof(Languages), Lang);
-            return (int)GetLang;
-        }
-
-        public static string translate(string Key,string Text,int Src,int Dst)
-        {
-            try 
-            {
-                if (Key.Trim().Length == 0 || Key == null)
-                {
-                    throw new Exception("Key is Null!");
-                }
-
-                bool CanSleep = true;
-                return Translator.QuickTrans(EngineConfig.CurrentModName,string.Empty,Key,Text,(Languages)Src, (Languages)Dst,ref CanSleep);
-            }
-            catch (Exception e) 
-            {
-                throw;
-            }
-        }
+        public static bool IsInit = false;
 
         #region Engine Config
-
-        public static ConfigJson ?CurrentConfig = new ConfigJson();
-        public class ConfigJson
+        private static ConfigJson ?CurrentConfig = new ConfigJson();
+        private class ConfigJson
         {
             #region RequestConfig
 
@@ -264,17 +193,111 @@ namespace PhoenixEngine.SSEATComBridge
 
             #endregion
         }
+        private static void SyncCurrentConfig()
+        {
+            if (CurrentConfig != null)
+            {
+                CurrentConfig.ProxyIP = EngineConfig.ProxyIP;
+                CurrentConfig.GlobalRequestTimeOut = EngineConfig.GlobalRequestTimeOut;
+
+                CurrentConfig.CurrentModName = EngineConfig.CurrentModName;
+                CurrentConfig.SourceLanguage = EngineConfig.SourceLanguage;
+                CurrentConfig.TargetLanguage = EngineConfig.TargetLanguage;
+
+                CurrentConfig.ChatGptApiEnable = EngineConfig.ChatGptApiEnable;
+                CurrentConfig.GeminiApiEnable = EngineConfig.GeminiApiEnable;
+                CurrentConfig.CohereApiEnable = EngineConfig.CohereApiEnable;
+                CurrentConfig.DeepSeekApiEnable = EngineConfig.DeepSeekApiEnable;
+                CurrentConfig.BaichuanApiEnable = EngineConfig.BaichuanApiEnable;
+                CurrentConfig.GoogleYunApiEnable = EngineConfig.GoogleYunApiEnable;
+                CurrentConfig.DivCacheEngineEnable = EngineConfig.DivCacheEngineEnable;
+                CurrentConfig.LMLocalAIEngineEnable = EngineConfig.LMLocalAIEngineEnable;
+                CurrentConfig.DeepLApiEnable = EngineConfig.DeepLApiEnable;
+
+                CurrentConfig.GoogleApiKey = EngineConfig.GoogleApiKey;
+                CurrentConfig.ChatGptKey = EngineConfig.ChatGptKey;
+                CurrentConfig.ChatGptModel = EngineConfig.ChatGptModel;
+                CurrentConfig.GeminiKey = EngineConfig.GeminiKey;
+                CurrentConfig.GeminiModel = EngineConfig.GeminiModel;
+                CurrentConfig.DeepSeekKey = EngineConfig.DeepSeekKey;
+                CurrentConfig.DeepSeekModel = EngineConfig.DeepSeekModel;
+                CurrentConfig.BaichuanKey = EngineConfig.BaichuanKey;
+                CurrentConfig.BaichuanModel = EngineConfig.BaichuanModel;
+                CurrentConfig.CohereKey = EngineConfig.CohereKey;
+                CurrentConfig.DeepLKey = EngineConfig.DeepLKey;
+                CurrentConfig.IsFreeDeepL = EngineConfig.IsFreeDeepL;
+
+                CurrentConfig.LMHost = EngineConfig.LMHost;
+                CurrentConfig.LMPort = EngineConfig.LMPort;
+                CurrentConfig.LMQueryParam = EngineConfig.LMQueryParam;
+                CurrentConfig.LMModel = EngineConfig.LMModel;
+
+                CurrentConfig.ThrottleRatio = EngineConfig.ThrottleRatio;
+                CurrentConfig.ThrottleDelayMs = EngineConfig.ThrottleDelayMs;
+                CurrentConfig.MaxThreadCount = EngineConfig.MaxThreadCount;
+                CurrentConfig.AutoSetThreadLimit = EngineConfig.AutoSetThreadLimit;
+                CurrentConfig.ContextEnable = EngineConfig.ContextEnable;
+                CurrentConfig.ContextLimit = EngineConfig.ContextLimit;
+                CurrentConfig.UserCustomAIPrompt = EngineConfig.UserCustomAIPrompt;
+            }
+        }
+        #endregion
+
+        #region Com
+        public static void init()
+        {
+            Engine.Init();
+            IsInit = true;
+        }
+        public static int convert_lang_to_id(string Lang)
+        {
+            Languages GetLang = (Languages)Enum.Parse(typeof(Languages), Lang);
+            return (int)GetLang;
+        }
+        public static string translate(string Key, string Text, int Src, int Dst)
+        {
+            if (!IsInit)
+            {
+                throw new Exception("Initialization required.");
+            }
+
+            try
+            {
+                if (Key.Trim().Length == 0 || Key == null)
+                {
+                    throw new Exception("Key is Null!");
+                }
+
+                bool CanSleep = true;
+                return Translator.QuickTrans(EngineConfig.CurrentModName, string.Empty, Key, Text, (Languages)Src, (Languages)Dst, ref CanSleep);
+            }
+            catch (Exception e)
+            {
+                throw;
+            }
+        }
         public static string get_config()
         {
+            if (!IsInit)
+            {
+                throw new Exception("Initialization required.");
+            }
+
+            SyncCurrentConfig();
             return JsonSerializer.Serialize(CurrentConfig);
         }
         public static bool set_config(string Json)
         {
-            try 
-            { 
+            if (!IsInit)
+            {
+                throw new Exception("Initialization required.");
+            }
+
+            try
+            {
                 CurrentConfig = JsonSerializer.Deserialize<ConfigJson>(Json);
             }
-            catch 
+            catch
             {
                 CurrentConfig = null;
                 return false;
@@ -335,9 +358,10 @@ namespace PhoenixEngine.SSEATComBridge
             EngineConfig.ContextLimit = CurrentConfig.ContextLimit;
             EngineConfig.UserCustomAIPrompt = CurrentConfig.UserCustomAIPrompt;
 
+            EngineConfig.Save();
+
             return true;
         }
-
         #endregion
     }
 }
