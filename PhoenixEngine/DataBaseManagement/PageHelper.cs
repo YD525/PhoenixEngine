@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Data;
 using PhoenixEngine.ConvertManager;
-using PhoenixEngine.Engine;
+using PhoenixEngine.EngineManagement;
 
 namespace PhoenixEngine.DataBaseManagement
 {
@@ -13,7 +8,7 @@ namespace PhoenixEngine.DataBaseManagement
     {
         public static int GetPageCount(string TableName, string Where)
         {
-            int GetCount = ConvertHelper.ObjToInt(EngineConfig.LocalDB.ExecuteScalar(string.Format("Select Count(*) From {0} ", TableName) + Where));
+            int GetCount = ConvertHelper.ObjToInt(Engine.LocalDB.ExecuteScalar(string.Format("Select Count(*) From {0} ", TableName) + Where));
             int PageCount = GetCount / EngineConfig.DefPageSize;
             if (GetCount % EngineConfig.DefPageSize > 0)
             {
@@ -29,7 +24,7 @@ namespace PhoenixEngine.DataBaseManagement
                 Where += " ";
             }
             string SqlOrder = string.Format("Select Rowid,* From {0} ", TableName) + Where + string.Format("Order BY Rowid Desc Limit (({0}-1)*{1}),{1};", PageNo, Count);
-            return EngineConfig.LocalDB.ExecuteQuery(SqlOrder);
+            return Engine.LocalDB.ExecuteQuery(SqlOrder);
         }
 
     }

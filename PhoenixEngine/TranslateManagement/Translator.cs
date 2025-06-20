@@ -1,8 +1,7 @@
 ﻿
 using System.Text.RegularExpressions;
-using PhoenixEngine.Engine;
+using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
-using PhoenixEngine.TranslateManagement;
 using static PhoenixEngine.TranslateManage.TransCore;
 
 namespace PhoenixEngine.TranslateManage
@@ -115,7 +114,7 @@ namespace PhoenixEngine.TranslateManage
         public static bool ClearCloudCache(string ModName)
         {
             string SqlOrder = "Delete From CloudTranslation Where ModName = '" + ModName + "'";
-            int State = EngineConfig.LocalDB.ExecuteNonQuery(SqlOrder);
+            int State = Engine.LocalDB.ExecuteNonQuery(SqlOrder);
             if (State != 0)
             {
                 return true;

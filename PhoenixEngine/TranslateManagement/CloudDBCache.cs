@@ -1,6 +1,6 @@
 ﻿using System.Data;
 using PhoenixEngine.ConvertManager;
-using PhoenixEngine.Engine;
+using PhoenixEngine.EngineManagement;
 
 namespace PhoenixEngine.TranslateCore
 {
@@ -17,7 +17,7 @@ namespace PhoenixEngine.TranslateCore
             {
                 string SqlOrder = "Delete From CloudTranslation Where [ModName] = '{0}' And [Key] = '{1}' And [To] = {2}";
 
-                int State = EngineConfig.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,EngineConfig.CurrentModName,Key,(int)EngineConfig.TargetLanguage));
+                int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,EngineConfig.CurrentModName,Key,(int)EngineConfig.TargetLanguage));
 
                 if (State!=0)
                 {
@@ -37,7 +37,7 @@ namespace PhoenixEngine.TranslateCore
             try { 
             string SqlOrder = "Select Result From CloudTranslation Where [ModName] = '{0}' And [Key] = '{1}' And [To] = {2}";
 
-            string GetResult = ConvertHelper.ObjToStr(EngineConfig.LocalDB.ExecuteScalar(string.Format(SqlOrder, ModName, Key,(int)EngineConfig.TargetLanguage)));
+            string GetResult = ConvertHelper.ObjToStr(Engine.LocalDB.ExecuteScalar(string.Format(SqlOrder, ModName, Key,(int)EngineConfig.TargetLanguage)));
 
             if (GetResult.Trim().Length > 0)
             {
@@ -56,13 +56,13 @@ namespace PhoenixEngine.TranslateCore
                return false;
             }
             try {
-            int GetRowID = ConvertHelper.ObjToInt(EngineConfig.LocalDB.ExecuteScalar(String.Format("Select Rowid From CloudTranslation Where [ModName] = '{0}' And [Key] = '{1}' And [To] = {2}",ModName,Key,To)));
+            int GetRowID = ConvertHelper.ObjToInt(Engine.LocalDB.ExecuteScalar(String.Format("Select Rowid From CloudTranslation Where [ModName] = '{0}' And [Key] = '{1}' And [To] = {2}",ModName,Key,To)));
 
             if (GetRowID < 0)
             {
                 string SqlOrder = "Insert Into CloudTranslation([ModName],[Key],[To],[Result])Values('{0}','{1}',{2},'{3}')";
 
-                int State = EngineConfig.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,ModName,Key, To, System.Web.HttpUtility.HtmlEncode(Result)));
+                int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,ModName,Key, To, System.Web.HttpUtility.HtmlEncode(Result)));
 
                 if (State != 0)
                 {
@@ -83,7 +83,7 @@ namespace PhoenixEngine.TranslateCore
             try { 
             string SqlOrder = "Select Rowid,Result From CloudTranslation Where [ModName] = '{0}' And [Key] = '{1}' And [To] = {2}";
 
-            DataTable GetResult = EngineConfig.LocalDB.ExecuteQuery(string.Format(SqlOrder,ModName,Key,To));
+            DataTable GetResult = Engine.LocalDB.ExecuteQuery(string.Format(SqlOrder,ModName,Key,To));
 
             if (GetResult.Rows.Count > 0)
             {
@@ -101,7 +101,7 @@ namespace PhoenixEngine.TranslateCore
         {
             try {
             string SqlOrder = "Delete From CloudTranslation Where Rowid = {0}";
-            int State = EngineConfig.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,Rowid));
+            int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,Rowid));
             if (State != 0)
             {
                 return true;
@@ -109,6 +109,20 @@ namespace PhoenixEngine.TranslateCore
             return false;
             }
             catch { return false; }
+        }
+
+        public static bool ClearCloudCache(string ModName)
+        {
+            string SqlOrder = "Delete From CloudTranslation Where ModName = '" + ModName + "'";
+            int State = Engine.LocalDB.ExecuteNonQuery(SqlOrder);
+            if (State != 0)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 }

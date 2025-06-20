@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using PhoenixEngine.DataBaseManagement;
 using PhoenixEngine.TranslateCore;
 
-namespace PhoenixEngine.Engine
+namespace PhoenixEngine.EngineManagement
 {
     // Copyright (C) 2025 YD525
     // Licensed under the GNU GPLv3
@@ -43,12 +43,6 @@ namespace PhoenixEngine.Engine
         /// Represents how many items are shown per page by default.
         /// </summary>
         public static int DefPageSize { get; set; } = 0;
-
-        /// <summary>
-        /// Instance of the local SQLite database helper.
-        /// Represents the pointer/reference to the current local database.
-        /// </summary>
-        public static SQLiteHelper LocalDB = new SQLiteHelper();
 
         #endregion
 
@@ -210,6 +204,17 @@ namespace PhoenixEngine.Engine
         /// </summary>
         public static string UserCustomAIPrompt { get; set; } = "";
 
+
+        public static void Save()
+        { 
+        
+        }
+
+
+        public static int AutoCalcThreadLimit()
+        {
+            return 2;
+        }
         #endregion
     }
 }

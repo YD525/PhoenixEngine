@@ -1,21 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.Entity.Core.Metadata.Edm;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography;
-using System.Security.Policy;
-using System.Text;
+﻿using System.Runtime.InteropServices;
 using System.Text.Json;
-using System.Threading.Tasks;
-using PhoenixEngine.DataBaseManagement;
-using PhoenixEngine.Engine;
+using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
-using PhoenixEngine.TranslateManagement;
-using static System.Net.Mime.MediaTypeNames;
-using static PhoenixEngine.SSEATComBridge.InteropDispatcher;
 
 namespace PhoenixEngine.SSEATComBridge
 {

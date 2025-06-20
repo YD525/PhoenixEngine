@@ -2,7 +2,7 @@
 using Cohere;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.DelegateManagement;
-using PhoenixEngine.Engine;
+using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
 using static PhoenixEngine.TranslateManage.TransCore;
