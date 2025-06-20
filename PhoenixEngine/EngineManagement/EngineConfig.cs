@@ -212,7 +212,7 @@ namespace PhoenixEngine.EngineManagement
 
         private static readonly byte[] XorKey = Encoding.UTF8.GetBytes("PhoenixEngine");
 
-        private static byte[] SimpleEncrypt(byte[] data)
+        private static byte[] XOREncrypt(byte[] data)
         {
             byte[] result = new byte[data.Length];
             for (int i = 0; i < data.Length; i++)
@@ -222,9 +222,9 @@ namespace PhoenixEngine.EngineManagement
             return result;
         }
 
-        private static byte[] SimpleDecrypt(byte[] data)
+        private static byte[] XORDecrypt(byte[] data)
         {
-            return SimpleEncrypt(data);
+            return XOREncrypt(data);
         }
 
         public static void Save()
@@ -280,7 +280,7 @@ namespace PhoenixEngine.EngineManagement
                 Writer.Flush();
 
                 var PlainBytes = Ms.ToArray();
-                var EncryptedBytes = SimpleEncrypt(PlainBytes);
+                var EncryptedBytes = XOREncrypt(PlainBytes);
                 File.WriteAllBytes(Engine.CurrentPath + "EngineConfig.data", EncryptedBytes);
             }
         }
@@ -295,7 +295,7 @@ namespace PhoenixEngine.EngineManagement
             }
 
             var EncryptedBytes = File.ReadAllBytes(SetFullPath);
-            var PlainBytes = SimpleDecrypt(EncryptedBytes);
+            var PlainBytes = XORDecrypt(EncryptedBytes);
 
             using (var Ms = new MemoryStream(PlainBytes))
             using (var Reader = new BinaryReader(Ms, Encoding.UTF8, true))
