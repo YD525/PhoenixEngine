@@ -125,7 +125,7 @@ namespace PhoenixEngine.TranslateManage
                 return SourceStr;
             }
 
-            string GetCacheStr = CloudDBCache.FindCache(ModName,Key);
+            string GetCacheStr = CloudDBCache.FindCache(ModName,Key, Target);
 
             if (GetCacheStr.Trim().Length > 0)
             {

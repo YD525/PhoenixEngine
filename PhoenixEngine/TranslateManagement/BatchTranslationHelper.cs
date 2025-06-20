@@ -25,6 +25,8 @@ namespace PhoenixEngine.TranslateManage
         public bool Transing = false;
         public bool Leader = false;
         public bool Translated = false;
+        public Languages SourceLanguage = Languages.Auto;
+        public Languages TargetLanguage = Languages.Null;
 
         private CancellationTokenSource ?TransThreadToken;
 
@@ -84,7 +86,7 @@ namespace PhoenixEngine.TranslateManage
                         if (WorkEnd != 2)
                         {
                             bool CanSleep = true;
-                            var GetResult = Translator.QuickTrans(this.ModName, this.Type, this.Key, this.SourceText, EngineConfig.SourceLanguage, EngineConfig.TargetLanguage, ref CanSleep);
+                            var GetResult = Translator.QuickTrans(this.ModName, this.Type, this.Key, this.SourceText, this.SourceLanguage, this.TargetLanguage, ref CanSleep);
                             if (GetResult.Trim().Length > 0)
                             {
                                 TransText = GetResult.Trim();

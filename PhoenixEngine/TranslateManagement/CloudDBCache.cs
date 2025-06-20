@@ -29,13 +29,13 @@ CREATE TABLE [CloudTranslation](
             }
         }
 
-        public static bool DeleteCache(string ModName,string Key)
+        public static bool DeleteCache(string ModName,string Key,Languages TargetLanguage)
         {
             try
             {
                 string SqlOrder = "Delete From CloudTranslation Where [ModName] = '{0}' And [Key] = '{1}' And [To] = {2}";
 
-                int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, ModName, Key,(int)EngineConfig.TargetLanguage));
+                int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, ModName, Key,(int)TargetLanguage));
 
                 if (State!=0)
                 {
@@ -46,12 +46,12 @@ CREATE TABLE [CloudTranslation](
             }
             catch { return false; }
         }
-        public static string FindCache(string ModName,string Key)
+        public static string FindCache(string ModName,string Key, Languages TargetLanguage)
         {
             try { 
             string SqlOrder = "Select Result From CloudTranslation Where [ModName] = '{0}' And [Key] = '{1}' And [To] = {2}";
 
-            string GetResult = ConvertHelper.ObjToStr(Engine.LocalDB.ExecuteScalar(string.Format(SqlOrder, ModName, Key,(int)EngineConfig.TargetLanguage)));
+            string GetResult = ConvertHelper.ObjToStr(Engine.LocalDB.ExecuteScalar(string.Format(SqlOrder, ModName, Key,(int)TargetLanguage)));
 
             if (GetResult.Trim().Length > 0)
             {

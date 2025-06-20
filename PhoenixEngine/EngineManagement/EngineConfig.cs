@@ -46,20 +46,6 @@ namespace PhoenixEngine.EngineManagement
 
         #endregion
 
-        #region Translation Param
-
-        /// <summary>
-        /// The source language of the text to be translated.
-        /// </summary>
-        public static Languages SourceLanguage { get; set; } = Languages.Null;
-
-        /// <summary>
-        /// The target language for translation.
-        /// </summary>
-        public static Languages TargetLanguage { get; set; } = Languages.Null;
-
-        #endregion
-
         #region Platform Enable State
 
         /// <summary>
@@ -232,9 +218,6 @@ namespace PhoenixEngine.EngineManagement
 
                 Writer.Write(DefPageSize);
 
-                Writer.Write((int)SourceLanguage);
-                Writer.Write((int)TargetLanguage);
-
                 Writer.Write(ChatGptApiEnable);
                 Writer.Write(GeminiApiEnable);
                 Writer.Write(CohereApiEnable);
@@ -288,6 +271,8 @@ namespace PhoenixEngine.EngineManagement
                 return;
             }
 
+            try { 
+
             var EncryptedBytes = File.ReadAllBytes(SetFullPath);
             var PlainBytes = XORDecrypt(EncryptedBytes);
 
@@ -298,9 +283,6 @@ namespace PhoenixEngine.EngineManagement
                 GlobalRequestTimeOut = Reader.ReadInt32();
 
                 DefPageSize = Reader.ReadInt32();
-
-                SourceLanguage = (Languages)Reader.ReadInt32();
-                TargetLanguage = (Languages)Reader.ReadInt32();
 
                 ChatGptApiEnable = Reader.ReadBoolean();
                 GeminiApiEnable = Reader.ReadBoolean();
@@ -337,6 +319,12 @@ namespace PhoenixEngine.EngineManagement
                 ContextEnable = Reader.ReadBoolean();
                 ContextLimit = Reader.ReadInt32();
                 UserCustomAIPrompt = Reader.ReadString();
+            }
+
+            }
+            catch
+            {
+                Save();
             }
         }
 

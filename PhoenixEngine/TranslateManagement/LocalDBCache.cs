@@ -18,11 +18,11 @@ namespace PhoenixEngine.TranslateManagement
         public int Index = 0;
         public int ColorSet = 0;
 
-        public LocalTransItem(string ModName,string Key,string Result)
+        public LocalTransItem(string ModName,string Key,Languages TargetLanguage, string Result)
         {
             this.ModName = ModName;
             this.Key = Key;
-            this.To = (int)EngineConfig.TargetLanguage;
+            this.To = (int)TargetLanguage;
             this.Result = Result;
             this.Index = 0;
             this.ColorSet = ConvertHelper.ObjToInt(ColorSet);
@@ -59,13 +59,13 @@ CREATE TABLE [LocalTranslation](
                 Engine.LocalDB.ExecuteNonQuery(CreateTableSql);
             }
         }
-        public static bool DeleteCacheByModName(string ModName)
+        public static bool DeleteCacheByModName(string ModName,Languages TargetLanguage)
         {
             try
             {
                 string SqlOrder = "Delete From LocalTranslation Where [ModName] = '{0}' And [To] = {1}";
 
-                int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, ModName, (int)EngineConfig.TargetLanguage));
+                int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, ModName, (int)TargetLanguage));
 
                 if (State != 0)
                 {
@@ -77,13 +77,13 @@ CREATE TABLE [LocalTranslation](
             catch { return false; }
         }
 
-        public static bool DeleteCacheByResult(string ModName,string ResultText)
+        public static bool DeleteCacheByResult(string ModName,string ResultText,Languages TargetLanguage)
         {
             try
             {
                 string SqlOrder = "Delete From LocalTranslation Where [ModName] = '{0}' And [Result] = '{1}' And [To] = {2}";
 
-                int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, ModName, System.Web.HttpUtility.HtmlEncode(ResultText),(int)EngineConfig.TargetLanguage));
+                int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, ModName, System.Web.HttpUtility.HtmlEncode(ResultText),(int)TargetLanguage));
 
                 if (State != 0)
                 {
@@ -95,13 +95,13 @@ CREATE TABLE [LocalTranslation](
             catch { return false; }
         }
 
-        public static bool DeleteCache(string ModName,string Key)
+        public static bool DeleteCache(string ModName,string Key,Languages TargetLanguage)
         {
             try
             {
                 string SqlOrder = "Delete From LocalTranslation Where [ModName] = '{0}' And [Key] = '{1}' And [To] = {2}";
 
-                int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, ModName, Key,(int)EngineConfig.TargetLanguage));
+                int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, ModName, Key,(int)TargetLanguage));
 
                 if (State!=0)
                 {
@@ -113,13 +113,13 @@ CREATE TABLE [LocalTranslation](
             catch { return false; }
         }
 
-        public static string GetCacheText(string ModName,string Key)
+        public static string GetCacheText(string ModName,string Key,Languages TargetLanguage)
         {
             try
             {
                 string SqlOrder = "Select Result From LocalTranslation Where [ModName] = '{0}' And[Key] = '{1}' And [To] = {2}";
 
-                string GetText = ConvertHelper.ObjToStr(Engine.LocalDB.ExecuteScalar(string.Format(SqlOrder, ModName, Key,(int)EngineConfig.TargetLanguage)));
+                string GetText = ConvertHelper.ObjToStr(Engine.LocalDB.ExecuteScalar(string.Format(SqlOrder, ModName, Key,(int)TargetLanguage)));
 
                 if (GetText.Trim().Length > 0)
                 {
@@ -131,9 +131,9 @@ CREATE TABLE [LocalTranslation](
             catch { return string.Empty; }
         }
 
-        public static string FindCache(string ModName,string Key)
+        public static string FindCache(string ModName,string Key,Languages TargetLanguage)
         {
-            return FindCache(ModName, Key, (int)EngineConfig.TargetLanguage);
+            return FindCache(ModName, Key, (int)TargetLanguage);
         }
 
 
@@ -162,13 +162,13 @@ CREATE TABLE [LocalTranslation](
                 return false;
             }
 
-            string FindCache = CloudDBCache.FindCache(Item.ModName, Item.Key);
+            string FindCache = CloudDBCache.FindCache(Item.ModName, Item.Key, (Languages)Item.To);
 
             if (FindCache.Trim().Length > 0)
             {
                 if (FindCache.Equals(Item.Result))
                 {
-                    DeleteCache(Item.ModName, Item.Key);
+                    DeleteCache(Item.ModName, Item.Key, (Languages)Item.To);
                     return false;
                 }
             }

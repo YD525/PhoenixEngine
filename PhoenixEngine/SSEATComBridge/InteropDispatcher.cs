@@ -200,9 +200,6 @@ namespace PhoenixEngine.SSEATComBridge
                 CurrentConfig.ProxyIP = EngineConfig.ProxyIP;
                 CurrentConfig.GlobalRequestTimeOut = EngineConfig.GlobalRequestTimeOut;
 
-                CurrentConfig.SourceLanguage = EngineConfig.SourceLanguage;
-                CurrentConfig.TargetLanguage = EngineConfig.TargetLanguage;
-
                 CurrentConfig.ChatGptApiEnable = EngineConfig.ChatGptApiEnable;
                 CurrentConfig.GeminiApiEnable = EngineConfig.GeminiApiEnable;
                 CurrentConfig.CohereApiEnable = EngineConfig.CohereApiEnable;
@@ -310,10 +307,6 @@ namespace PhoenixEngine.SSEATComBridge
             // RequestConfig
             EngineConfig.ProxyIP = CurrentConfig.ProxyIP;
             EngineConfig.GlobalRequestTimeOut = CurrentConfig.GlobalRequestTimeOut;
-
-            // Translation Param
-            EngineConfig.SourceLanguage = CurrentConfig.SourceLanguage;
-            EngineConfig.TargetLanguage = CurrentConfig.TargetLanguage;
 
             // Platform Enable State
             EngineConfig.ChatGptApiEnable = CurrentConfig.ChatGptApiEnable;
