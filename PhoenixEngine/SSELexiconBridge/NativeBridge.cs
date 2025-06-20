@@ -64,10 +64,7 @@ namespace PhoenixEngine.SSELexiconBridge
                 }
             }
 
-            public static void Translate()
-            { 
             
-            }
         }
     }
 }
