@@ -63,6 +63,11 @@ namespace PhoenixEngine.SSELexiconBridge
                     Translator.TransData.Add(Key, Value);
                 }
             }
+
+            public static void Translate()
+            { 
+            
+            }
         }
     }
 }
