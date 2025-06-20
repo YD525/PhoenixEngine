@@ -23,6 +23,8 @@ namespace PhoenixEngine.TranslateManagement
     }
     public class TextSegmentTranslator
     {
+        public string ModName = "";
+        public string Key = "";
         public string Source = "";
         public List<string> TransLines = new List<string>();
         public int TransCount = 0;
@@ -97,6 +99,8 @@ namespace PhoenixEngine.TranslateManagement
         List<Segment> Content = new List<Segment>();
         public void TransBook(Languages SourceLanguage, Languages TargetLanguage, string ModName,string Key, string Source, CancellationToken Token)
         {
+            this.ModName = ModName;
+            this.Key = Key;
             Content.Clear();
             this.Source = Source;
             Content = Load(Source);

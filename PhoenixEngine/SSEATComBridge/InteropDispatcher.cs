@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text.Json;
 using PhoenixEngine.DataBaseManagement;
@@ -12,7 +13,7 @@ namespace PhoenixEngine.SSEATComBridge
 {
 
     /// <summary>
-    /// For SSEAT
+    /// For SSEAT V2
     /// </summary>
     [ComVisible(true)]
     public class InteropDispatcher
@@ -49,20 +50,31 @@ namespace PhoenixEngine.SSEATComBridge
         ///
         /// Note: The target language must be explicitly set and cannot be Auto.
         /// </summary>
-        public static void config_language(int Src, int Dst)
+        public static void config_language(string Json)
         {
-            From = (Languages)Src;
-            To = (Languages)Dst;
+            ConfigLanguageJson? GetItem = null;
 
-            if (BulkTranslator == null)
+            try
             {
-                BulkTranslator = new BatchTranslationHelper(From, To, new List<TranslationUnit>(), true);
+                GetItem = JsonSerializer.Deserialize<ConfigLanguageJson>(Json);
             }
-            else
+            catch { }
+
+            if (GetItem != null)
             {
-                BulkTranslator.Close();
-                BulkTranslator = null;
-                BulkTranslator = new BatchTranslationHelper(From, To, new List<TranslationUnit>(), true);
+                From = (Languages)GetItem.Src;
+                To = (Languages)GetItem.Dst;
+
+                if (BulkTranslator == null)
+                {
+                    BulkTranslator = new BatchTranslationHelper(From, To, new List<TranslationUnit>(), true);
+                }
+                else
+                {
+                    BulkTranslator.Close();
+                    BulkTranslator = null;
+                    BulkTranslator = new BatchTranslationHelper(From, To, new List<TranslationUnit>(), true);
+                }
             }
         }
 
@@ -117,14 +129,27 @@ namespace PhoenixEngine.SSEATComBridge
         ///
         /// Returns:
         /// Integer value representing the corresponding language enum.
-        public static int from_language_code(string Lang)
+        public static int from_language_code(string Json)
         {
-            if (Lang.ToLower() == "auto")
+            FromLanguageCodeJson? GetItem = null;
+
+            try
             {
-                return (int)Languages.Auto;
+                GetItem = JsonSerializer.Deserialize<FromLanguageCodeJson>(Json);
+            }
+            catch { }
+
+            if (GetItem != null)
+            {
+                if (GetItem.Lang.ToLower() == "auto")
+                {
+                    return (int)Languages.Auto;
+                }
+
+                return (int)LanguageHelper.FromLanguageCode(GetItem.Lang);
             }
 
-            return (int)LanguageHelper.FromLanguageCode(Lang);
+            return (int)Languages.Null;
         }
 
         /// <summary>
@@ -146,17 +171,20 @@ namespace PhoenixEngine.SSEATComBridge
             {
                 throw new Exception("from_language_code() required.");
             }
+
+            TranslationUnitJson? GetItem = null;
+
             try
             {
-                TranslationUnitJson? GetItem = JsonSerializer.Deserialize<TranslationUnitJson>(Json);
-
-                if (GetItem != null)
-                {
-                    BulkTranslator.UnitsToTranslate.Add(new TranslationUnit(GetItem.ModName, GetItem.Key, GetItem.Type, GetItem.SourceText, GetItem.TransText));
-                    return true;
-                }
+                GetItem = JsonSerializer.Deserialize<TranslationUnitJson>(Json);
             }
             catch { }
+
+            if (GetItem != null)
+            {
+                BulkTranslator.UnitsToTranslate.Add(new TranslationUnit(GetItem.ModName, GetItem.Key, GetItem.Type, GetItem.SourceText, GetItem.TransText));
+                return true;
+            }
 
             return false;
         }
@@ -226,15 +254,26 @@ namespace PhoenixEngine.SSEATComBridge
         /// true  - if the translation process was successfully started
         /// false - if BulkTranslator was not initialized
         /// </summary>
-        public static bool start_translation(int ThreadLimit)
+        public static bool start_translation(string Json)
         {
             if (BulkTranslator != null)
             {
-                EngineConfig.AutoSetThreadLimit = false;
-                EngineConfig.MaxThreadCount = ThreadLimit;
+                StartTranslationJson? GetItem = null;
 
-                BulkTranslator.Start();
-                return true;
+                try
+                {
+                    GetItem = JsonSerializer.Deserialize<StartTranslationJson>(Json);
+                }
+                catch { }
+
+                if (GetItem != null)
+                {
+                    EngineConfig.AutoSetThreadLimit = false;
+                    EngineConfig.MaxThreadCount = GetItem.ThreadLimit;
+
+                    BulkTranslator.Start();
+                    return true;
+                }
             }
             return false;
         }
@@ -440,7 +479,7 @@ namespace PhoenixEngine.SSEATComBridge
         /// <summary>
         /// Queries a paginated list of keywords from the advanced dictionary.
         /// </summary>
-        public static string query_keyword(string Json)
+        public static string query_keywords(string Json)
         {
             QueryKeyWordJson? Item = null;
             try
@@ -456,6 +495,142 @@ namespace PhoenixEngine.SSEATComBridge
 
             return JsonSerializer.Serialize(new PageItem<List<AdvancedDictionaryItem>>(new List<AdvancedDictionaryItem>(),-1,-1));
         }
+
+        /// <summary>
+        /// Starts a background thread to translate a book's text content.
+        /// </summary>
+        /// <param name="Json">
+        /// A JSON string containing the following fields:
+        /// - ModName: The name of the mod (used to identify the source of the book)
+        /// - Key: A unique key for the book entry
+        /// - Source: The full text content of the book that needs to be translated
+        /// </param>
+        /// <returns>
+        /// Returns the managed thread ID of the created translation thread.
+        /// If JSON deserialization fails or an exception occurs, returns -1.
+        /// </returns>
+        public static int translate_book_text(string Json)
+        {
+            int ThreadID = -1;
+            BookTransItemJson? Item = null;
+            try
+            {
+                Item = JsonSerializer.Deserialize<BookTransItemJson>(Json);
+            }
+            catch
+            { }
+
+            if (Item != null)
+            {
+                TextSegmentTranslator NTextSegmentTranslator = new TextSegmentTranslator();
+                CancellationToken CreatEndCall = new CancellationToken();
+                Thread CreatTrd = new Thread(() => 
+                { 
+                    NTextSegmentTranslator.TransBook(BridgeHelper.From, BridgeHelper.To,Item.ModName,Item.Key,Item.Source, CreatEndCall);
+                });
+
+                BookTransingItem NBookTransingItem = new BookTransingItem();
+                NBookTransingItem.Translator = NTextSegmentTranslator;
+                NBookTransingItem.CurrentThread = CreatTrd;
+                NBookTransingItem.EndCall = CreatEndCall;
+
+                BridgeHelper.BookTransTrds.Add(NBookTransingItem);
+
+                CreatTrd.Start();
+                ThreadID = CreatTrd.ManagedThreadId;
+            }
+
+            return ThreadID;
+        }
+
+        /// <summary>
+        /// Attempts to cancel a running book translation task based on the given thread ID.
+        /// </summary>
+        /// <param name="Json">
+        /// A JSON string containing the following field:
+        /// - ThreadID: The managed thread ID of the translation task to be cancelled.
+        /// </param>
+        /// <returns>
+        /// Returns true if a matching translation thread was found and cancellation was triggered; otherwise, returns false.
+        /// </returns>
+        public static bool end_book_translation(string Json)
+        {
+            EndBookTranslationJson? Item = null;
+            try
+            {
+                Item = JsonSerializer.Deserialize<EndBookTranslationJson>(Json);
+            }
+            catch
+            { }
+
+            if (Item != null)
+            {
+                for (int i = 0; i < BookTransTrds.Count; i++)
+                {
+                    if (BookTransTrds[i] != null && BookTransTrds[i].CurrentThread != null)
+                    {
+                        if (BookTransTrds[i].CurrentThread.ManagedThreadId.Equals(Item.ThreadID))
+                        {
+                            BookTransTrds[i].EndCall.ThrowIfCancellationRequested();
+
+                            BookTransTrds.RemoveAt(i);
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Dequeues the first completed book translation result from the active translation tasks.
+        /// </summary>
+        /// <returns>
+        /// A JSON string representing the first completed book translation with the following fields:
+        /// - ModName: The mod name
+        /// - Key: The unique key identifying the book entry
+        /// - Text: The translated text content
+        /// - IsEnd: Whether the translation task is finished for this item
+        /// - State: The state of the queue after dequeue operation:
+        ///     0 = There are still more translation results waiting to be dequeued
+        ///     1 = All translation results have been dequeued (queue is empty)
+        ///    -1 = No completed translation results available currently
+        /// </returns>
+        public static string dequeue_book_translated()
+        {
+            BookTransListJson GetFristBook = new BookTransListJson();
+            List<int> WaitDeleteIDs = new List<int>();
+
+            for (int i = 0; i < BridgeHelper.BookTransTrds.Count; i++)
+            {
+                if (BridgeHelper.BookTransTrds[i].Translator.IsEnd)
+                {
+                    GetFristBook.ModName = BridgeHelper.BookTransTrds[i].Translator.ModName;
+                    GetFristBook.Key = BridgeHelper.BookTransTrds[i].Translator.Key;
+                    GetFristBook.Text = BridgeHelper.BookTransTrds[i].Translator.CurrentText;
+                    GetFristBook.IsEnd = BridgeHelper.BookTransTrds[i].Translator.IsEnd;
+                    BridgeHelper.BookTransTrds.RemoveAt(i);
+                    break;
+                }
+            }
+
+            if (GetFristBook.Key.Trim().Length == 0 && BridgeHelper.BookTransTrds.Count == 0)
+            {
+                GetFristBook.State = -1;
+            }
+            else
+            if (BridgeHelper.BookTransTrds.Count > 0)
+            {
+                GetFristBook.State = 0;
+            }
+            else
+            {
+                GetFristBook.State = 1;
+            }
+
+            return JsonSerializer.Serialize(GetFristBook);
+        }
+
         #endregion
     }
 }

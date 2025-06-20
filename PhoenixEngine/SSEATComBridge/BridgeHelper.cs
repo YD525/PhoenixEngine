@@ -6,11 +6,21 @@ using System.Threading.Tasks;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
+using PhoenixEngine.TranslateManagement;
 
 namespace PhoenixEngine.SSEATComBridge
 {
+   
+    public class BookTransingItem
+    {
+        public Thread ?CurrentThread = null;
+        public TextSegmentTranslator Translator = null;
+        public CancellationToken EndCall;
+    }
     public class BridgeHelper
     {
+        public static List<BookTransingItem> BookTransTrds = new List<BookTransingItem>();
+
         public static BatchTranslationHelper? BulkTranslator = null;
 
         public static bool IsInit = false;
@@ -240,6 +250,38 @@ namespace PhoenixEngine.SSEATComBridge
                 CurrentConfig.UserCustomAIPrompt = EngineConfig.UserCustomAIPrompt;
             }
         }
+    }
+    public class BookTransListJson
+    {
+        public string ModName = "";
+        public string Key = "";
+        public int CurrentThreadCount = 0;
+        public string Text = "";
+        public bool IsEnd = false;
+        public int State = 0;
+    }
+    public class EndBookTranslationJson
+    {
+        public int ThreadID { get; set; } = 0;
+    }
+    public class BookTransItemJson
+    {
+        public string ModName { get; set; } = "";
+        public string Key { get; set; } = "";
+        public string Source { get; set; } = "";
+    }
+    public class StartTranslationJson
+    { 
+        public int ThreadLimit { get; set; } = 2;
+    }
+    public class FromLanguageCodeJson
+    {
+        public string Lang { get; set; } = "";
+    }
+    public class ConfigLanguageJson
+    {
+        public int Src { get; set; } = 0;
+        public int Dst { get; set; } = 0;
     }
 
     public class TranslationUnitJson
