@@ -11,6 +11,24 @@ namespace PhoenixEngine.TranslateCore
 
     public class CloudDBCache
     {
+        public static void Init()
+        {
+            string CheckTableSql = "SELECT name FROM sqlite_master WHERE type='table' AND name='CloudTranslation';";
+            var Result = Engine.LocalDB.ExecuteScalar(CheckTableSql);
+
+            if (Result == null || Result == DBNull.Value)
+            {
+                string CreateTableSql = @"
+CREATE TABLE [CloudTranslation](
+  [ModName] TEXT, 
+  [Key] TEXT, 
+  [To] INT, 
+  [Result] TEXT
+);";
+                Engine.LocalDB.ExecuteNonQuery(CreateTableSql);
+            }
+        }
+
         public static bool DeleteCache(string Key)
         {
             try

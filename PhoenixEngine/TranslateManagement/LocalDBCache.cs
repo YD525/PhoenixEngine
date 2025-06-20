@@ -40,6 +40,25 @@ namespace PhoenixEngine.TranslateManagement
     }
     public class LocalDBCache
     {
+        public static void Init()
+        {
+            string CheckTableSql = "SELECT name FROM sqlite_master WHERE type='table' AND name='LocalTranslation';";
+            var Result = Engine.LocalDB.ExecuteScalar(CheckTableSql);
+
+            if (Result == null || Result == DBNull.Value)
+            {
+                string CreateTableSql = @"
+CREATE TABLE [LocalTranslation](
+  [ModName] TEXT, 
+  [Key] TEXT, 
+  [To] INT, 
+  [Result] TEXT, 
+  [Index] INT, 
+  [ColorSet] INT
+);";
+                Engine.LocalDB.ExecuteNonQuery(CreateTableSql);
+            }
+        }
         public static bool DeleteCacheByModName()
         {
             try
