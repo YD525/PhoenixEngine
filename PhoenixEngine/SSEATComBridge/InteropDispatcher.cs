@@ -98,6 +98,8 @@ namespace PhoenixEngine.SSEATComBridge
             }
         }
 
+        #region Engine Config
+
         public static ConfigJson ?CurrentConfig = new ConfigJson();
         public class ConfigJson
         {
@@ -279,13 +281,22 @@ namespace PhoenixEngine.SSEATComBridge
         {
             return JsonSerializer.Serialize(CurrentConfig);
         }
-        public static void set_config(string Json)
+        public static bool set_config(string Json)
         {
-            CurrentConfig = JsonSerializer.Deserialize<ConfigJson>(Json);
+            try 
+            { 
+                CurrentConfig = JsonSerializer.Deserialize<ConfigJson>(Json);
+            }
+            catch 
+            {
+                CurrentConfig = null;
+                return false;
+            }
+
             if (CurrentConfig == null)
             {
                 CurrentConfig = new ConfigJson();
-                return;
+                return false;
             }
 
             // RequestConfig
@@ -336,6 +347,10 @@ namespace PhoenixEngine.SSEATComBridge
             EngineConfig.ContextEnable = CurrentConfig.ContextEnable;
             EngineConfig.ContextLimit = CurrentConfig.ContextLimit;
             EngineConfig.UserCustomAIPrompt = CurrentConfig.UserCustomAIPrompt;
+
+            return true;
         }
+
+        #endregion
     }
 }
