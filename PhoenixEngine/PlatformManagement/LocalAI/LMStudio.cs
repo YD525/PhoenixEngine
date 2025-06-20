@@ -62,7 +62,7 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
         public string QuickTrans(List<string> CustomWords, string TransSource, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string Param)
         {
             List<string> Related = new List<string>();
-            if (EngineConfig.UsingContext && UseAIMemory)
+            if (EngineConfig.ContextEnable && UseAIMemory)
             {
                 Related = EngineSelect.AIMemory.FindRelevantTranslations(FromLang, TransSource, AIMemoryCountLimit);
             }

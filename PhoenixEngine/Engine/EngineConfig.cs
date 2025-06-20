@@ -196,7 +196,7 @@ namespace PhoenixEngine.Engine
         /// If true, the process will consider contextual information;  
         /// if false, it will only handle the current string without any context.
         /// </summary>
-        public static bool UsingContext { get; set; } = true;
+        public static bool ContextEnable { get; set; } = true;
 
         /// <summary>
         /// Specifies the maximum number of context entries to include during generation.
