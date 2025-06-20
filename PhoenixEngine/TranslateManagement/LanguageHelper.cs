@@ -201,6 +201,22 @@ namespace PhoenixEngine.TranslateCore
             return OneDetect.GetMaxLang();
         }
 
+        public class FileLanguageDetect
+        {
+            LanguageDetect LanguageDetectItem = new LanguageDetect();
+
+            public void DetectLanguageByFile(string Line)
+            {
+                DetectLanguage(ref LanguageDetectItem, Line);
+            }
+
+            public Languages GetLang()
+            {
+                return LanguageDetectItem.GetMaxLang();
+            }
+        }
+       
+
         public static Languages DetectLanguageByContent(string Text)
         {
             LanguageDetect OneDetect = new LanguageDetect();

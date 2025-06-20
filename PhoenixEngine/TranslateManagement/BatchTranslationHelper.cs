@@ -1,8 +1,10 @@
 ﻿
+using System.Linq;
 using PhoenixEngine.DelegateManagement;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManagement;
+using static PhoenixEngine.TranslateCore.LanguageHelper;
 
 namespace PhoenixEngine.TranslateManage
 {
@@ -25,12 +27,10 @@ namespace PhoenixEngine.TranslateManage
         public bool Transing = false;
         public bool Leader = false;
         public bool Translated = false;
-        public Languages SourceLanguage = Languages.Auto;
-        public Languages TargetLanguage = Languages.Null;
 
         private CancellationTokenSource ?TransThreadToken;
 
-        public void StartWork()
+        public void StartWork(BatchTranslationHelper Source)
         {
             if (this.TransText.Trim().Length > 0)
             {
@@ -40,9 +40,9 @@ namespace PhoenixEngine.TranslateManage
 
             if (this.IsDuplicateSource)
             {
-                if (!BatchTranslationHelper.SameItems.ContainsKey(this.SourceText))
+                if (!Source.SameItems.ContainsKey(this.SourceText))
                 {
-                    BatchTranslationHelper.SameItems.Add(this.SourceText, string.Empty);
+                    Source.SameItems.Add(this.SourceText, string.Empty);
                 }
                 else
                 {
@@ -59,7 +59,7 @@ namespace PhoenixEngine.TranslateManage
                 var Token = TransThreadToken.Token;
                 try
                 {
-                NextGet:
+                    NextGet:
                     Token.ThrowIfCancellationRequested();
 
                     if (this.SourceText.Trim().Length > 0)
@@ -86,7 +86,7 @@ namespace PhoenixEngine.TranslateManage
                         if (WorkEnd != 2)
                         {
                             bool CanSleep = true;
-                            var GetResult = Translator.QuickTrans(this.ModName, this.Type, this.Key, this.SourceText, this.SourceLanguage, this.TargetLanguage, ref CanSleep);
+                            var GetResult = Translator.QuickTrans(this.ModName, this.Type, this.Key, this.SourceText, Source.From, Source.To, ref CanSleep);
                             if (GetResult.Trim().Length > 0)
                             {
                                 TransText = GetResult.Trim();
@@ -102,9 +102,9 @@ namespace PhoenixEngine.TranslateManage
 
                                 if (this.IsDuplicateSource)
                                 {
-                                    if (BatchTranslationHelper.SameItems.ContainsKey(this.SourceText))
+                                    if (Source.SameItems.ContainsKey(this.SourceText))
                                     {
-                                        BatchTranslationHelper.SameItems[this.SourceText] = GetResult;
+                                        Source.SameItems[this.SourceText] = GetResult;
                                     }
                                 }
 
@@ -112,7 +112,7 @@ namespace PhoenixEngine.TranslateManage
 
                                 this.Translated = true;
 
-                                BatchTranslationHelper.AddTranslatedByKey(this.Key);
+                                Source.AddTranslated(this);
 
                                 Token.ThrowIfCancellationRequested();
                             }
@@ -157,7 +157,37 @@ namespace PhoenixEngine.TranslateManage
             this.SourceText = SourceText;
             this.TransText = TransText;
         }
+    }
+    public class BatchTranslationHelper
+    {
+        public Dictionary<string, string> SameItems = new Dictionary<string, string>();
 
+        public List<TranslationUnit> UnitsLeaderToTranslate = new List<TranslationUnit>();
+        public List<TranslationUnit> UnitsToTranslate = new List<TranslationUnit>();
+
+        public Queue<TranslationUnit> UnitsTranslated = new Queue<TranslationUnit>();
+        public List<string> TranslatedKeys = new List<string>();
+
+        public int AutoThreadLimit = 0;
+
+        public Languages DetectSourceLang = Languages.Null;
+
+        public Languages From = Languages.Auto;
+        public Languages To = Languages.Null;
+
+        public BatchTranslationHelper(Languages From, Languages To, List<TranslationUnit> UnitsToTranslate,bool ClearCache = false)
+        {
+            if (ClearCache)
+            {
+                Translator.ClearCache();
+            }
+
+            this.From = From;
+            this.To = To;
+
+            this.UnitsToTranslate = UnitsToTranslate;
+            Init();
+        }
         public static double TokenBasedSimilarity(string TextA, string TextB, Languages Lang)
         {
             // Tokenize
@@ -172,80 +202,83 @@ namespace PhoenixEngine.TranslateManage
 
             return (double)Intersection / Union; // Jaccard similarity
         }
-
-        public static List<TranslationUnit> MarkLeadersAndSortWithTokenSimilarity(List<TranslationUnit> Items, Languages Lang)
+        public void MarkLeadersAndSortWithTokenSimilarityAndSeparate(List<TranslationUnit> Items, Languages Lang)
         {
-            int N = Items.Count;
-            double[,] SimMatrix = new double[N, N];
+            Int32 N = Items.Count;
+            Double[,] SimMatrix = new Double[N, N];
 
-            // Calculate similarity matrix
-            for (int I = 0; I < N; I++)
+            // Calculate token-based similarity matrix
+            for (Int32 I = 0; I < N; I++)
             {
-                for (int J = I; J < N; J++)
+                for (Int32 J = I; J < N; J++)
                 {
-                    double Sim = TokenBasedSimilarity(Items[I].SourceText, Items[J].SourceText, Lang);
+                    Double Sim = TokenBasedSimilarity(Items[I].SourceText, Items[J].SourceText, Lang);
                     SimMatrix[I, J] = Sim;
                     SimMatrix[J, I] = Sim;
                 }
             }
 
-            // Calculate similarity sums for each item
-            double[] SimSums = new double[N];
-            for (int I = 0; I < N; I++)
+            // Compute the sum of similarities for each item
+            Double[] SimSums = new Double[N];
+            for (Int32 I = 0; I < N; I++)
             {
-                double Sum = 0;
-                for (int J = 0; J < N; J++)
+                Double Sum = 0;
+                for (Int32 J = 0; J < N; J++)
                 {
                     if (I != J) Sum += SimMatrix[I, J];
                 }
                 SimSums[I] = Sum;
             }
 
-            // Find the item with the highest similarity sum as leader
-            double MaxSimSum = SimSums.Max();
-            int LeaderIndex = Array.IndexOf(SimSums, MaxSimSum);
+            // Identify the leader with the highest total similarity
+            Double MaxSimSum = SimSums.Max();
+            Int32 LeaderIndex = Array.IndexOf(SimSums, MaxSimSum);
 
             // Reset all leader flags
             foreach (var Item in Items)
                 Item.Leader = false;
 
+            // Clear target lists
+            UnitsLeaderToTranslate.Clear();
+            UnitsToTranslate.Clear();
+
+            // Assign the leader to its dedicated list
             if (LeaderIndex >= 0 && LeaderIndex < N)
+            {
                 Items[LeaderIndex].Leader = true;
+                UnitsLeaderToTranslate.Add(Items[LeaderIndex]);
+            }
 
-            // Sort: leaders first, then by Key
-            return Items.OrderByDescending(x => x.Leader).ThenBy(x => x.Key).ToList();
+            // Add non-leader items to the main list, sorted by Key
+            var NonLeaders = Items.Where(X => !X.Leader).OrderBy(X => X.Key).ToList();
+            UnitsToTranslate.AddRange(NonLeaders);
         }
-    }
-    public class BatchTranslationHelper
-    {
-        public static Dictionary<string, string> SameItems = new Dictionary<string, string>();
-        public static List<TranslationUnit> TranslationUnits = new List<TranslationUnit>();
-        public static Queue<string> TranslatedKeys = new Queue<string>();
 
-        public static ThreadUsageInfo ThreadUsage = new ThreadUsageInfo();
+        public ThreadUsageInfo ThreadUsage = new ThreadUsageInfo();
 
-        public static object TranslatedAddLocker = new object();
-        public static void AddTranslatedByKey(string Key)
+        public object TranslatedAddLocker = new object();
+        public void AddTranslated(TranslationUnit Item)
         {
             lock (TranslatedAddLocker)
             {
-                TranslatedKeys.Enqueue(Key);
+                UnitsTranslated.Enqueue(Item);
+                TranslatedKeys.Add(Item.Key);
             }
         }
 
-        public static int GetWorkCount()
+        public int GetWorkCount()
         {
             int WorkCount = 0;
-            for (int i = 0; i < TranslationUnits.Count; i++)
+            for (int i = 0; i < UnitsToTranslate.Count; i++)
             {
-                if (TranslationUnits[i].Transing)
+                if (UnitsToTranslate[i].Transing)
                 {
                     WorkCount++;
                 }
             }
             return WorkCount;
         }
-        public static void MarkDuplicates(List<TranslationUnit> Items)
+        public void MarkDuplicates(List<TranslationUnit> Items)
         {
             var CountDict = new Dictionary<string, int>();
 
@@ -264,15 +297,17 @@ namespace PhoenixEngine.TranslateManage
                 Item.IsDuplicateSource = CountDict[Key] > 1;
             }
         }
-        public static void Init()
+        public void Init()
         {
-            TranslatedKeys.Clear();
+            WorkState = 0;
+            UnitsLeaderToTranslate.Clear();
+
             SameItems.Clear();
-            TranslationUnits.Clear();
+            UnitsTranslated.Clear();
+            TranslatedKeys.Clear();
+         
 
-            InitTranslationUnits();
-
-            MarkDuplicates(TranslationUnits);
+            MarkDuplicates(UnitsToTranslate);
 
             if (EngineConfig.MaxThreadCount <= 0)
             {
@@ -282,38 +317,55 @@ namespace PhoenixEngine.TranslateManage
             AutoSleep = 1;
         }
 
-        public static void InitTranslationUnits()
-        { 
-        
-        }
+        public CancellationTokenSource TransMainTrdCancel = null;
+        public Thread ?TransMainTrd = null;
 
-        public static CancellationTokenSource TransMainTrdCancel = null;
-        public static Thread ?TransMainTrd = null;
+        public int CurrentTrdCount = 0;
 
-        public static int CurrentTrdCount = 0;
-
-        public static void CancelMainTransThread()
+        public void CancelMainTransThread()
         {
             TransMainTrdCancel?.Cancel();
         }
-        public static int AutoSleep = 1;
+        public int AutoSleep = 1;
 
-        public static bool IsWork = false;
+        public bool IsWork = false;
 
-        public static int WorkState = 0;
-        public static void Start()
+        public int WorkState = 0;
+        public void Start()
         {
-            WorkState = 0;
-
-            Init();
-
             TransMainTrd = new Thread(() =>
             {
                 IsWork = true;
+
+                WorkState = 1;
+
+                if (this.From != Languages.Auto)
+                {
+                    this.DetectSourceLang = this.From;
+                }
+                else
+                {
+                    FileLanguageDetect? LangDetecter = new FileLanguageDetect();
+
+                    for (int i = 0; i < this.UnitsToTranslate.Count; i++)
+                    {
+                        LangDetecter.DetectLanguageByFile(this.UnitsToTranslate[i].SourceText);
+                    }
+
+                    this.DetectSourceLang = LangDetecter.GetLang();
+
+                    LangDetecter = null;
+                }
+
+                MarkLeadersAndSortWithTokenSimilarityAndSeparate(this.UnitsToTranslate, this.DetectSourceLang);
+           
                 TransMainTrdCancel = new CancellationTokenSource();
                 var Token = TransMainTrdCancel.Token;
 
                 int CurrentTrds = 0;
+
+                WorkState = 2;
+
                 while (true)
                 {
                     try
@@ -325,17 +377,26 @@ namespace PhoenixEngine.TranslateManage
                         bool CanExit = true;
                         Token.ThrowIfCancellationRequested();
                         CurrentTrds = GetWorkCount();
+
                         if (CurrentTrds < EngineConfig.MaxThreadCount)
                         {
-                            for (int i = 0; i < TranslationUnits.Count; i++)
+                            var Leader = UnitsLeaderToTranslate.FirstOrDefault(u => u.WorkEnd <= 0);
+                            if (Leader != null)
                             {
-                                if (TranslationUnits[i].WorkEnd <= 0)
-                                {
-                                    TranslationUnits[i].StartWork();
-                                    CanExit = false;
-                                    break;
-                                }
+                                Leader.StartWork(this);
+                                CanExit = false;
+                                goto Next;
                             }
+
+                            var Normal = UnitsToTranslate.FirstOrDefault(u => u.WorkEnd <= 0);
+                            if (Normal != null)
+                            {
+                                Normal.StartWork(this);
+                                CanExit = false;
+                                goto Next;
+                            }
+
+                            Next:
 
                             if (CurrentTrds > EngineConfig.MaxThreadCount * EngineConfig.ThrottleRatio)
                             {
@@ -355,14 +416,14 @@ namespace PhoenixEngine.TranslateManage
                         if (CanExit)
                         {
                             int SucessCount = 0;
-                            for (int i = 0; i < TranslationUnits.Count; i++)
+                            for (int i = 0; i < UnitsToTranslate.Count; i++)
                             {
-                                if (TranslationUnits[i].WorkEnd == 2)
+                                if (UnitsToTranslate[i].WorkEnd == 2)
                                 {
                                     SucessCount++;
                                 }
                             }
-                            if (SucessCount == TranslationUnits.Count)
+                            if (SucessCount == UnitsToTranslate.Count)
                             {
                                 if (SameItems != null)
                                 {
@@ -378,9 +439,10 @@ namespace PhoenixEngine.TranslateManage
 
                                 IsWork = false;
 
-                                WorkState = 1;
+                                WorkState = 3;
 
-                                BatchTranslationHelper.Close();
+                                Close();
+
                                 return;
                             }
                             else
@@ -410,7 +472,7 @@ namespace PhoenixEngine.TranslateManage
 
             TransMainTrd.Start();
         }
-        public static void Close()
+        public void Close()
         {
             try
             {
@@ -418,13 +480,13 @@ namespace PhoenixEngine.TranslateManage
             }
             catch { }
 
-            for (int i = 0; i < TranslationUnits.Count; i++)
+            for (int i = 0; i < UnitsToTranslate.Count; i++)
             {
-                if (TranslationUnits[i].Transing)
+                if (UnitsToTranslate[i].Transing)
                 {
                     try
                     {
-                        TranslationUnits[i].CancelWorkThread();
+                        UnitsToTranslate[i].CancelWorkThread();
                     }
                     catch { }
                 }
@@ -433,23 +495,23 @@ namespace PhoenixEngine.TranslateManage
             TransMainTrd = null;
         }
 
-        public static void SetDuplicateSource(string GetKey)
+        public void SetDuplicateSource(string Source)
         {
-            for (int ir = 0; ir < TranslationUnits.Count; ir++)
+            IEnumerable<TranslationUnit> AllUnits = UnitsToTranslate.Concat(UnitsLeaderToTranslate);
+
+            foreach (var Unit in AllUnits)
             {
-                if (TranslationUnits[ir].SourceText.Equals(GetKey))
+                if (Unit.SourceText == Source && !TranslatedKeys.Contains(Unit.Key))
                 {
-                    if (Translator.TransData.ContainsKey(TranslationUnits[ir].Key))
+                    Translator.TransData[Unit.Key] = SameItems[Source];
+
+                    lock (TranslatedAddLocker)
                     {
-                        Translator.TransData[TranslationUnits[ir].Key] = SameItems[GetKey];
-                    }
-                    else
-                    {
-                        Translator.TransData.Add(TranslationUnits[ir].Key, SameItems[GetKey]);
+                        UnitsTranslated.Enqueue(Unit);
+                        TranslatedKeys.Add(Unit.Key);
                     }
                 }
             }
         }
-
     }
 }

@@ -146,7 +146,7 @@ namespace PhoenixEngine.EngineManagement
         /// The ratio of the maximum thread count at which throttling is triggered. 
         /// Range is 0 to 1, default is 0.5 meaning throttling starts when over 50% usage.
         /// </summary>
-        public static double ThrottleRatio { get; set; } = 0.5;
+        public static double ThrottleRatio { get; set; } = 0.7;
 
         /// <summary>
         /// The sleep time in milliseconds for the main thread during throttling. Default is 200ms.
