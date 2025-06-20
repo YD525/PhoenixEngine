@@ -205,16 +205,148 @@ namespace PhoenixEngine.EngineManagement
         public static string UserCustomAIPrompt { get; set; } = "";
 
 
-        public static void Save()
-        { 
-        
-        }
-
-
         public static int AutoCalcThreadLimit()
         {
             return 2;
         }
+
+        private static readonly byte[] XorKey = Encoding.UTF8.GetBytes("PhoenixEngine");
+
+        private static byte[] SimpleEncrypt(byte[] data)
+        {
+            byte[] result = new byte[data.Length];
+            for (int i = 0; i < data.Length; i++)
+            {
+                result[i] = (byte)(data[i] ^ XorKey[i % XorKey.Length]);
+            }
+            return result;
+        }
+
+        private static byte[] SimpleDecrypt(byte[] data)
+        {
+            return SimpleEncrypt(data);
+        }
+
+        public static void Save()
+        {
+            using (var Ms = new MemoryStream())
+            using (var Writer = new BinaryWriter(Ms, Encoding.UTF8, true))
+            {
+                Writer.Write(ProxyIP ?? "");
+                Writer.Write(GlobalRequestTimeOut);
+
+                Writer.Write(DefPageSize);
+
+                Writer.Write(CurrentModName ?? "");
+                Writer.Write((int)SourceLanguage);
+                Writer.Write((int)TargetLanguage);
+
+                Writer.Write(ChatGptApiEnable);
+                Writer.Write(GeminiApiEnable);
+                Writer.Write(CohereApiEnable);
+                Writer.Write(DeepSeekApiEnable);
+                Writer.Write(BaichuanApiEnable);
+                Writer.Write(GoogleYunApiEnable);
+                Writer.Write(DivCacheEngineEnable);
+                Writer.Write(LMLocalAIEngineEnable);
+                Writer.Write(DeepLApiEnable);
+
+                Writer.Write(GoogleApiKey ?? "");
+                Writer.Write(ChatGptKey ?? "");
+                Writer.Write(ChatGptModel ?? "");
+                Writer.Write(GeminiKey ?? "");
+                Writer.Write(GeminiModel ?? "");
+                Writer.Write(DeepSeekKey ?? "");
+                Writer.Write(DeepSeekModel ?? "");
+                Writer.Write(BaichuanKey ?? "");
+                Writer.Write(BaichuanModel ?? "");
+                Writer.Write(CohereKey ?? "");
+                Writer.Write(DeepLKey ?? "");
+                Writer.Write(IsFreeDeepL);
+
+                Writer.Write(LMHost ?? "");
+                Writer.Write(LMPort);
+                Writer.Write(LMQueryParam ?? "");
+                Writer.Write(LMModel ?? "");
+
+                Writer.Write(ThrottleRatio);
+                Writer.Write(ThrottleDelayMs);
+                Writer.Write(MaxThreadCount);
+                Writer.Write(AutoSetThreadLimit);
+                Writer.Write(ContextEnable);
+                Writer.Write(ContextLimit);
+                Writer.Write(UserCustomAIPrompt ?? "");
+
+                Writer.Flush();
+
+                var PlainBytes = Ms.ToArray();
+                var EncryptedBytes = SimpleEncrypt(PlainBytes);
+                File.WriteAllBytes(Engine.CurrentPath + "EngineConfig.data", EncryptedBytes);
+            }
+        }
+
+        public static void Load()
+        {
+            string SetFullPath = Engine.CurrentPath + "EngineConfig.data";
+            if (!File.Exists(SetFullPath))
+            {
+                Save();
+                return;
+            }
+
+            var EncryptedBytes = File.ReadAllBytes(SetFullPath);
+            var PlainBytes = SimpleDecrypt(EncryptedBytes);
+
+            using (var Ms = new MemoryStream(PlainBytes))
+            using (var Reader = new BinaryReader(Ms, Encoding.UTF8, true))
+            {
+                ProxyIP = Reader.ReadString();
+                GlobalRequestTimeOut = Reader.ReadInt32();
+
+                DefPageSize = Reader.ReadInt32();
+
+                CurrentModName = Reader.ReadString();
+                SourceLanguage = (Languages)Reader.ReadInt32();
+                TargetLanguage = (Languages)Reader.ReadInt32();
+
+                ChatGptApiEnable = Reader.ReadBoolean();
+                GeminiApiEnable = Reader.ReadBoolean();
+                CohereApiEnable = Reader.ReadBoolean();
+                DeepSeekApiEnable = Reader.ReadBoolean();
+                BaichuanApiEnable = Reader.ReadBoolean();
+                GoogleYunApiEnable = Reader.ReadBoolean();
+                DivCacheEngineEnable = Reader.ReadBoolean();
+                LMLocalAIEngineEnable = Reader.ReadBoolean();
+                DeepLApiEnable = Reader.ReadBoolean();
+
+                GoogleApiKey = Reader.ReadString();
+                ChatGptKey = Reader.ReadString();
+                ChatGptModel = Reader.ReadString();
+                GeminiKey = Reader.ReadString();
+                GeminiModel = Reader.ReadString();
+                DeepSeekKey = Reader.ReadString();
+                DeepSeekModel = Reader.ReadString();
+                BaichuanKey = Reader.ReadString();
+                BaichuanModel = Reader.ReadString();
+                CohereKey = Reader.ReadString();
+                DeepLKey = Reader.ReadString();
+                IsFreeDeepL = Reader.ReadBoolean();
+
+                LMHost = Reader.ReadString();
+                LMPort = Reader.ReadInt32();
+                LMQueryParam = Reader.ReadString();
+                LMModel = Reader.ReadString();
+
+                ThrottleRatio = Reader.ReadDouble();
+                ThrottleDelayMs = Reader.ReadInt32();
+                MaxThreadCount = Reader.ReadInt32();
+                AutoSetThreadLimit = Reader.ReadBoolean();
+                ContextEnable = Reader.ReadBoolean();
+                ContextLimit = Reader.ReadInt32();
+                UserCustomAIPrompt = Reader.ReadString();
+            }
+        }
+
         #endregion
     }
 }

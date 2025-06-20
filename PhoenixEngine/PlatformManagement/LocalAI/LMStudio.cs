@@ -67,7 +67,7 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
                 Related = EngineSelect.AIMemory.FindRelevantTranslations(FromLang, TransSource, AIMemoryCountLimit);
             }
 
-            var GetTransSource = $"You are a professional translation AI.Translate the following text from {LanguageHelper.ToLanguageCode(FromLang)} to {LanguageHelper.ToLanguageCode(ToLang)}:\n\n";
+            var GetTransSource = $"You are a professional translation AI. Translate the following text from {LanguageHelper.ToLanguageCode(FromLang)} to {LanguageHelper.ToLanguageCode(ToLang)}. Respond ONLY with the translated content.Do not include any explanations or comments.\n";
 
             if (Param.Trim().Length > 0)
             {
@@ -76,7 +76,7 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
 
             if (ConvertHelper.ObjToStr(EngineConfig.UserCustomAIPrompt).Trim().Length > 0)
             {
-                GetTransSource += EngineConfig.UserCustomAIPrompt + "\n\n";
+                GetTransSource += EngineConfig.UserCustomAIPrompt + "\n";
             }
 
             if (Related.Count > 0 || CustomWords.Count > 0)

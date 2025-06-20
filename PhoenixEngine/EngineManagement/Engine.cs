@@ -13,6 +13,7 @@ namespace PhoenixEngine.EngineManagement
 {
     public class Engine
     {
+        public static string CurrentPath = "";
         /// <summary>
         /// Instance of the local SQLite database helper.
         /// Represents the pointer/reference to the current local database.
@@ -21,6 +22,8 @@ namespace PhoenixEngine.EngineManagement
 
         public static void Init()
         {
+            CurrentPath = GetFullPath(@"\");
+
             string GetFilePath = GetFullPath(@"\Engine.db");
 
             if (!File.Exists(GetFilePath))
@@ -33,6 +36,8 @@ namespace PhoenixEngine.EngineManagement
             AdvancedDictionary.Init();
             CloudDBCache.Init();
             LocalDBCache.Init();
+
+            EngineConfig.Load();
         }
 
         public static void Vacuum()
