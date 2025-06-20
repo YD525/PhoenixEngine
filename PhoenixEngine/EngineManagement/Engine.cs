@@ -28,11 +28,11 @@ namespace PhoenixEngine.EngineManagement
                 SQLiteConnection.CreateFile(GetFilePath);
             }
 
+            LocalDB.OpenSql(GetFilePath);
+
             AdvancedDictionary.Init();
             CloudDBCache.Init();
             LocalDBCache.Init();
-
-            LocalDB.OpenSql(GetFilePath);
         }
 
         public static void Vacuum()
