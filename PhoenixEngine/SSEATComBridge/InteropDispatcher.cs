@@ -1,278 +1,278 @@
 ﻿using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text.Json;
+using PhoenixEngine.DataBaseManagement;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
+using PhoenixEngine.TranslateManagement;
+using static PhoenixEngine.SSEATComBridge.BridgeHelper;
 
 namespace PhoenixEngine.SSEATComBridge
 {
-    
+
     /// <summary>
     /// For SSEAT
     /// </summary>
     [ComVisible(true)]
     public class InteropDispatcher
     {
-        public static bool IsInit = false;
-
-        #region Engine Config
-
-        private static ConfigJson ?CurrentConfig = new ConfigJson();
-        private class ConfigJson
-        {
-            #region RequestConfig
-
-            /// <summary>
-            /// Configured proxy IP address for network requests.
-            /// </summary>
-            public string ProxyIP { get; set; } = "";
-
-            /// <summary>
-            /// Global maximum timeout duration (in milliseconds) for network requests.
-            /// </summary>
-            public int GlobalRequestTimeOut { get; set; } = 8000;
-
-            #endregion
-
-            #region Translation Param
-
-            /// <summary>
-            /// The name of the current mod being translated (e.g., "xxx.esp").
-            /// </summary>
-            public string CurrentModName { get; set; } = "";
-
-            /// <summary>
-            /// The source language of the text to be translated.
-            /// </summary>
-            public Languages SourceLanguage { get; set; } = Languages.Null;
-
-            /// <summary>
-            /// The target language for translation.
-            /// </summary>
-            public Languages TargetLanguage { get; set; } = Languages.Null;
-
-            #endregion
-
-            #region Platform Enable State
-
-            /// <summary>
-            /// Flags indicating whether each AI or translation platform is enabled.
-            /// Multiple platforms can be enabled simultaneously, and the system will perform load balancing among them.
-            /// </summary>
-
-            public bool ChatGptApiEnable { get; set; } = false;
-            public bool GeminiApiEnable { get; set; } = false;
-            public bool CohereApiEnable { get; set; } = false;
-            public bool DeepSeekApiEnable { get; set; } = false;
-            public bool BaichuanApiEnable { get; set; } = false;
-            public bool GoogleYunApiEnable { get; set; } = false;
-            public bool DivCacheEngineEnable { get; set; } = false;
-            public bool LMLocalAIEngineEnable { get; set; } = false;
-            public bool DeepLApiEnable { get; set; } = false;
-
-            #endregion
-
-            #region ApiKey Set
-
-            /// <summary>
-            /// Stores API keys and model names for various translation and AI platforms.
-            /// These keys must be obtained from the respective service providers.
-            /// </summary>
-
-            /// <summary>
-            /// Google Translate API key.
-            /// </summary>
-            public string GoogleApiKey { get; set; } = "";
-
-            /// <summary>
-            /// OpenAI ChatGPT API key.
-            /// </summary>
-            public string ChatGptKey { get; set; } = "";
-
-            /// <summary>
-            /// Model name for ChatGPT (e.g., gpt-4o-mini).
-            /// </summary>
-            public string ChatGptModel { get; set; } = "gpt-4o-mini";
-
-            /// <summary>
-            /// Google Gemini API key.
-            /// </summary>
-            public string GeminiKey { get; set; } = "";
-
-            /// <summary>
-            /// Model name for Gemini (e.g., gemini-2.0-flash).
-            /// </summary>
-            public string GeminiModel { get; set; } = "gemini-2.0-flash";
-
-            /// <summary>
-            /// DeepSeek API key.
-            /// </summary>
-            public string DeepSeekKey { get; set; } = "";
-
-            /// <summary>
-            /// Model name for DeepSeek (e.g., deepseek-chat).
-            /// </summary>
-            public string DeepSeekModel { get; set; } = "deepseek-chat";
-
-            /// <summary>
-            /// Baichuan API key.
-            /// </summary>
-            public string BaichuanKey { get; set; } = "";
-
-            /// <summary>
-            /// Model name for Baichuan (e.g., Baichuan4-Turbo).
-            /// </summary>
-            public string BaichuanModel { get; set; } = "Baichuan4-Turbo";
-
-            /// <summary>
-            /// Cohere API key.
-            /// </summary>
-            public string CohereKey { get; set; } = "";
-
-            /// <summary>
-            /// DeepL Translate API key.
-            /// </summary>
-            public string DeepLKey { get; set; } = "";
-
-
-            public bool IsFreeDeepL { get; set; } = true;
-
-            /// <summary>
-            /// LM Studio
-            /// </summary>
-            public string LMHost { get; set; } = "http://localhost";
-            public int LMPort { get; set; } = 1234;
-            public string LMQueryParam { get; set; } = "/v1/chat/completions";
-            public string LMModel { get; set; } = "google/gemma-3-12b";
-
-            #endregion
-
-            #region EngineSetting
-
-            /// <summary>
-            /// The ratio of the maximum thread count at which throttling is triggered. 
-            /// Range is 0 to 1, default is 0.5 meaning throttling starts when over 50% usage.
-            /// </summary>
-            public double ThrottleRatio { get; set; } = 0.5;
-
-            /// <summary>
-            /// The sleep time in milliseconds for the main thread during throttling. Default is 200ms.
-            /// </summary>
-            public int ThrottleDelayMs { get; set; } = 200;
-
-            /// <summary>
-            /// Specifies the maximum number of threads to use for processing.
-            /// This value determines the upper limit of concurrent threads the system can use.
-            /// </summary>
-
-            public int MaxThreadCount { get; set; } = 2;
-
-            /// <summary>
-            /// Indicates whether to automatically set the maximum number of threads.
-            /// If true, the system will determine and apply a suitable thread limit based on hardware or configuration.
-            /// </summary>
-            public bool AutoSetThreadLimit { get; set; } = true;
-
-            /// <summary>
-            /// Indicates whether to enable context-based generation.
-            /// If true, the process will consider contextual information;  
-            /// if false, it will only handle the current string without any context.
-            /// </summary>
-            public bool ContextEnable { get; set; } = true;
-
-            /// <summary>
-            /// Specifies the maximum number of context entries to include during generation.
-            /// For example, if set to 3, up to 3 context lines will be used.
-            /// </summary>
-            public int ContextLimit { get; set; } = 3;
-
-            /// <summary>
-            /// User-defined custom prompt sent to the AI model.
-            /// This prompt can be used to guide the AI's behavior or translation style.
-            /// </summary>
-            public string UserCustomAIPrompt { get; set; } = "";
-
-            #endregion
-        }
-        private static void SyncCurrentConfig()
-        {
-            if (CurrentConfig != null)
-            {
-                CurrentConfig.ProxyIP = EngineConfig.ProxyIP;
-                CurrentConfig.GlobalRequestTimeOut = EngineConfig.GlobalRequestTimeOut;
-
-                CurrentConfig.ChatGptApiEnable = EngineConfig.ChatGptApiEnable;
-                CurrentConfig.GeminiApiEnable = EngineConfig.GeminiApiEnable;
-                CurrentConfig.CohereApiEnable = EngineConfig.CohereApiEnable;
-                CurrentConfig.DeepSeekApiEnable = EngineConfig.DeepSeekApiEnable;
-                CurrentConfig.BaichuanApiEnable = EngineConfig.BaichuanApiEnable;
-                CurrentConfig.GoogleYunApiEnable = EngineConfig.GoogleYunApiEnable;
-                CurrentConfig.DivCacheEngineEnable = EngineConfig.DivCacheEngineEnable;
-                CurrentConfig.LMLocalAIEngineEnable = EngineConfig.LMLocalAIEngineEnable;
-                CurrentConfig.DeepLApiEnable = EngineConfig.DeepLApiEnable;
-
-                CurrentConfig.GoogleApiKey = EngineConfig.GoogleApiKey;
-                CurrentConfig.ChatGptKey = EngineConfig.ChatGptKey;
-                CurrentConfig.ChatGptModel = EngineConfig.ChatGptModel;
-                CurrentConfig.GeminiKey = EngineConfig.GeminiKey;
-                CurrentConfig.GeminiModel = EngineConfig.GeminiModel;
-                CurrentConfig.DeepSeekKey = EngineConfig.DeepSeekKey;
-                CurrentConfig.DeepSeekModel = EngineConfig.DeepSeekModel;
-                CurrentConfig.BaichuanKey = EngineConfig.BaichuanKey;
-                CurrentConfig.BaichuanModel = EngineConfig.BaichuanModel;
-                CurrentConfig.CohereKey = EngineConfig.CohereKey;
-                CurrentConfig.DeepLKey = EngineConfig.DeepLKey;
-                CurrentConfig.IsFreeDeepL = EngineConfig.IsFreeDeepL;
-
-                CurrentConfig.LMHost = EngineConfig.LMHost;
-                CurrentConfig.LMPort = EngineConfig.LMPort;
-                CurrentConfig.LMQueryParam = EngineConfig.LMQueryParam;
-                CurrentConfig.LMModel = EngineConfig.LMModel;
-
-                CurrentConfig.ThrottleRatio = EngineConfig.ThrottleRatio;
-                CurrentConfig.ThrottleDelayMs = EngineConfig.ThrottleDelayMs;
-                CurrentConfig.MaxThreadCount = EngineConfig.MaxThreadCount;
-                CurrentConfig.AutoSetThreadLimit = EngineConfig.AutoSetThreadLimit;
-                CurrentConfig.ContextEnable = EngineConfig.ContextEnable;
-                CurrentConfig.ContextLimit = EngineConfig.ContextLimit;
-                CurrentConfig.UserCustomAIPrompt = EngineConfig.UserCustomAIPrompt;
-            }
-        }
-
-        #endregion
-
         #region Com
+        //init();
+        //config_language(from_language_code("en"),from_language_code("de"));
+        //clear();
+
+        //enqueue_translation_unit...
+        //start_translation(2);
+
+        /// <summary>
+        /// Initializes the engine.
+        ///
+        /// This method must be called first before using any other functionality.
+        /// It sets up necessary engine components and marks the engine as initialized.
+        /// </summary>
         public static void init()
         {
             Engine.Init();
             IsInit = true;
         }
+
+        /// <summary>
+        /// Configures the source and target languages for translation.
+        ///
+        /// Parameters:
+        /// Src - Integer code representing the source language (can be Auto for automatic detection).
+        /// Dst - Integer code representing the target language (must NOT be Auto).
+        ///
+        /// This method initializes or reinitializes the BulkTranslator with the specified languages.
+        /// If BulkTranslator already exists, it will be closed and recreated.
+        ///
+        /// Note: The target language must be explicitly set and cannot be Auto.
+        /// </summary>
+        public static void config_language(int Src, int Dst)
+        {
+            From = (Languages)Src;
+            To = (Languages)Dst;
+
+            if (BulkTranslator == null)
+            {
+                BulkTranslator = new BatchTranslationHelper(From, To, new List<TranslationUnit>(), true);
+            }
+            else
+            {
+                BulkTranslator.Close();
+                BulkTranslator = null;
+                BulkTranslator = new BatchTranslationHelper(From, To, new List<TranslationUnit>(), true);
+            }
+        }
+
+        /// <summary>
+        /// Clears the current translation queue and resets the translator state.
+        ///
+        /// This method reinitializes the BulkTranslator, effectively removing all
+        /// translation units that were previously enqueued via enqueue_translation_unit.
+        ///
+        /// Returns:
+        /// true  - if the translator was successfully cleared
+        /// false - if the translator was not initialized
+        /// </summary>
+        public static bool clear()
+        {
+            if (BulkTranslator != null)
+            {
+                BulkTranslator.Init();
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Gets the current number of active translation threads.
+        ///
+        /// Returns:
+        /// The count of threads currently working on translation tasks,
+        /// or -1 if the translator is not initialized.
+        /// </summary>
+        public static int get_current_thread_count()
+        {
+            int ThreadCount = -1;
+
+            if (BulkTranslator != null)
+            {
+                ThreadCount = BulkTranslator.CurrentTrdCount;
+            }
+
+            return ThreadCount;
+        }
+
+        /// <summary>
+        /// Converts a language code (e.g., "en", "ja", "zh") into its corresponding integer enum value.
+        ///
+        /// Special Case:
+        /// If the input is "auto" (case-insensitive), it returns the enum value for automatic language detection.
+        /// Only the **source language** supports "auto". The **target language** must always be explicitly specified.
+        ///
+        /// Parameters:
+        /// Lang - A string representing the language code.
+        ///
+        /// Returns:
+        /// Integer value representing the corresponding language enum.
         public static int from_language_code(string Lang)
         {
-           return (int)LanguageHelper.FromLanguageCode(Lang);
-        }
-        public static string translate(string ModName,string Type,string Key, string Text, int Src, int Dst)
-        {
-            if (!IsInit)
+            if (Lang.ToLower() == "auto")
             {
-                throw new Exception("Initialization required.");
+                return (int)Languages.Auto;
             }
 
+            return (int)LanguageHelper.FromLanguageCode(Lang);
+        }
+
+        /// <summary>
+        /// Adds a new translation unit to the translation queue from a JSON string.
+        /// 
+        /// This method deserializes the JSON input into a TranslationUnitJson object
+        /// and appends it to the list of units to translate.
+        ///
+        /// Prerequisite:
+        /// The BulkTranslator must be initialized first using from_language_code().
+        ///
+        /// Returns:
+        /// true  - if the item was successfully parsed and added to the queue
+        /// false - if parsing failed or the input was invalid
+        /// </summary>
+        public static bool enqueue_translation_unit(string Json)
+        {
+            if (BulkTranslator == null)
+            {
+                throw new Exception("from_language_code() required.");
+            }
             try
             {
-                if (Key.Trim().Length == 0 || Key == null)
+                TranslationUnitJson? GetItem = JsonSerializer.Deserialize<TranslationUnitJson>(Json);
+
+                if (GetItem != null)
                 {
-                    throw new Exception("Key is Null!");
+                    BulkTranslator.UnitsToTranslate.Add(new TranslationUnit(GetItem.ModName, GetItem.Key, GetItem.Type, GetItem.SourceText, GetItem.TransText));
+                    return true;
+                }
+            }
+            catch { }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Dequeues one translated result from the translated queue and returns it as a JSON string.
+        ///
+        /// ReturnState explanation:
+        /// -1 => Language configuration is missing (BulkTranslator is null; you must call config_language first)
+        ///  0 => There are still translated items left in the queue
+        ///  1 => All translated items have been dequeued (this was the last one)
+        /// </summary>
+        public static string dequeue_translated()
+        {
+            TranslatedResultJson NTranslatedResult = new TranslatedResultJson();
+            int ReturnState = -1;
+
+            if (BulkTranslator != null)
+            {
+                bool State;
+                var GetItem = BulkTranslator.DequeueTranslated(out State);
+
+                if (GetItem != null)
+                {
+                    NTranslatedResult.Item = new TranslationUnitJson();
+
+                    NTranslatedResult.Item.ModName = GetItem.ModName;
+                    NTranslatedResult.Item.Score = GetItem.Score;
+
+                    NTranslatedResult.Item.Key = GetItem.Key;
+                    NTranslatedResult.Item.Type = GetItem.Type;
+
+                    NTranslatedResult.Item.SourceText = GetItem.SourceText;
+                    NTranslatedResult.Item.TransText = GetItem.TransText;
+
+                    NTranslatedResult.Item.IsDuplicateSource = GetItem.IsDuplicateSource;
+                    NTranslatedResult.Item.Leader = GetItem.Leader;
+                    NTranslatedResult.Item.Translated = GetItem.Translated;
                 }
 
-                bool CanSleep = true;
-                return Translator.QuickTrans(ModName,Type, Key, Text, (Languages)Src, (Languages)Dst, ref CanSleep);
+                if (State)
+                {
+                    ReturnState = 1;
+                    clear();
+                }
+                else
+                {
+                    ReturnState = 0;
+                }
             }
-            catch (Exception e)
-            {
-                throw;
-            }
+
+            NTranslatedResult.State = ReturnState;
+
+            return JsonSerializer.Serialize(NTranslatedResult);
         }
+
+        /// <summary>
+        /// Starts the translation process with a specified maximum number of threads.
+        ///
+        /// This method sets the thread limit manually (disabling auto adjustment),
+        /// updates the engine configuration, and begins processing the translation queue.
+        ///
+        /// Parameters:
+        /// ThreadLimit - Maximum number of concurrent translation threads.
+        ///
+        /// Returns:
+        /// true  - if the translation process was successfully started
+        /// false - if BulkTranslator was not initialized
+        /// </summary>
+        public static bool start_translation(int ThreadLimit)
+        {
+            if (BulkTranslator != null)
+            {
+                EngineConfig.AutoSetThreadLimit = false;
+                EngineConfig.MaxThreadCount = ThreadLimit;
+
+                BulkTranslator.Start();
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Temporarily stops the translation process.
+        ///
+        /// This method calls Close() on the BulkTranslator to cancel ongoing translation threads,
+        /// but does not clear the translation queue or results.  
+        /// You can resume translation later by calling start_translation() again.
+        ///
+        /// Returns:
+        /// true  - if the translator was successfully paused
+        /// false - if the translator was not initialized
+        /// </summary>
+        public static bool end_translation()
+        {
+            if (BulkTranslator != null)
+            {
+                BulkTranslator.Close();
+
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Retrieves the current engine configuration as a JSON string.
+        ///
+        /// This method ensures that the configuration is up to date by calling SyncCurrentConfig().
+        /// It can only be used after the engine has been initialized (IsInit == true).
+        ///
+        /// Throws:
+        /// Exception - if the engine has not been initialized.
+        ///
+        /// Returns:
+        /// A JSON string representing the current engine configuration.
+        /// </summary>
         public static string get_config()
         {
             if (!IsInit)
@@ -283,6 +283,23 @@ namespace PhoenixEngine.SSEATComBridge
             SyncCurrentConfig();
             return JsonSerializer.Serialize(CurrentConfig);
         }
+
+        /// <summary>
+        /// Applies a JSON configuration to the translation engine.
+        ///
+        /// This method deserializes a JSON string into a ConfigJson object and updates the internal engine settings accordingly.
+        /// It must be called only after initialization (IsInit == true).
+        ///
+        /// Parameters:
+        /// Json - A JSON string that matches the structure of ConfigJson.
+        ///
+        /// Returns:
+        /// true  - if the configuration was successfully parsed and applied
+        /// false - if parsing failed (default configuration will be restored)
+        ///
+        /// Throws:
+        /// Exception - if the engine has not been initialized
+        /// </summary>
         public static bool set_config(string Json)
         {
             if (!IsInit)
@@ -355,6 +372,90 @@ namespace PhoenixEngine.SSEATComBridge
             return true;
         }
 
+        /// <summary>
+        /// Adds a keyword entry to the translation engine's advanced dictionary.
+        ///
+        /// The keyword data is provided as a JSON string which is deserialized into an
+        /// AdvancedDictionaryJson object. If deserialization is successful, the data
+        /// is converted to an AdvancedDictionaryItem and added to the advanced dictionary.
+        ///
+        /// Parameters:
+        /// Json - A JSON string representing the keyword entry to add.
+        /// </summary>
+        public static void add_keyword(string Json)
+        {
+            AdvancedDictionaryJson? Item = null;
+            try
+            {
+                Item = JsonSerializer.Deserialize<AdvancedDictionaryJson>(Json);
+            }
+            catch { }
+
+            if (Item != null)
+            {
+                AdvancedDictionaryItem NAdvancedDictionaryItem = new AdvancedDictionaryItem();
+
+                NAdvancedDictionaryItem.TargetModName = Item.TargetModName;
+                NAdvancedDictionaryItem.Type = Item.Type;
+                NAdvancedDictionaryItem.From = Item.From;
+                NAdvancedDictionaryItem.To = Item.To;
+                NAdvancedDictionaryItem.Source = Item.Source;
+                NAdvancedDictionaryItem.Result = Item.Result;
+                NAdvancedDictionaryItem.ExactMatch = Item.ExactMatch;
+                NAdvancedDictionaryItem.IgnoreCase = Item.IgnoreCase;
+                NAdvancedDictionaryItem.Regex = Item.Regex;
+
+                AdvancedDictionary.AddItem(NAdvancedDictionaryItem);
+            }
+            
+        }
+       
+        /// <summary>
+        /// Removes a keyword from the advanced dictionary by its row ID.
+        ///
+        /// The method deserializes the input JSON to obtain the row ID of the keyword to remove.
+        /// It then deletes the keyword entry with the specified row ID from the dictionary.
+        ///
+        /// Parameters:
+        /// Json - A JSON string containing the "rowid" of the keyword to delete.
+        ///
+        /// Returns:
+        /// true if the keyword was successfully deleted; otherwise, false.
+        /// </summary>
+        public static bool remove_keyword(string Json) 
+        {
+            RemoveKeyWordJson? Item = null;
+            try
+            {
+                Item = JsonSerializer.Deserialize<RemoveKeyWordJson>(Json);
+            }
+            catch { }
+            if (Item != null)
+            {
+                return AdvancedDictionary.DeleteByRowid(Item.rowid);
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Queries a paginated list of keywords from the advanced dictionary.
+        /// </summary>
+        public static string query_keyword(string Json)
+        {
+            QueryKeyWordJson? Item = null;
+            try
+            {
+                Item = JsonSerializer.Deserialize<QueryKeyWordJson>(Json);
+            }
+            catch
+            { }
+            if (Item != null)
+            {
+               return JsonSerializer.Serialize(AdvancedDictionary.QueryByPage(Item.From, Item.To, Item.PageNo));
+            }
+
+            return JsonSerializer.Serialize(new PageItem<List<AdvancedDictionaryItem>>(new List<AdvancedDictionaryItem>(),-1,-1));
+        }
         #endregion
     }
 }

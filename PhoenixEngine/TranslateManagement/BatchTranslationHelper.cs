@@ -173,7 +173,7 @@ namespace PhoenixEngine.TranslateManage
 
         public Dictionary<string, string> SameItems = new Dictionary<string, string>();
 
-        public List<TranslationUnit> UnitsLeaderToTranslate = new List<TranslationUnit>();
+        private List<TranslationUnit> UnitsLeaderToTranslate = new List<TranslationUnit>();
 
         public List<TranslationUnit> UnitsToTranslate = new List<TranslationUnit>();
 
