@@ -21,6 +21,8 @@ namespace PhoenixEngine.TranslateManage
 
         public static TranslateMsg SendTranslateMsg;
 
+        public static readonly object TransDataLocker = new object();
+
         public static Dictionary<string, string> TransData = new Dictionary<string, string>();
 
         public static void ClearCache()

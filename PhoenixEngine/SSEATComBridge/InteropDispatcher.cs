@@ -16,6 +16,7 @@ namespace PhoenixEngine.SSEATComBridge
         public static bool IsInit = false;
 
         #region Engine Config
+
         private static ConfigJson ?CurrentConfig = new ConfigJson();
         private class ConfigJson
         {
@@ -237,6 +238,7 @@ namespace PhoenixEngine.SSEATComBridge
                 CurrentConfig.UserCustomAIPrompt = EngineConfig.UserCustomAIPrompt;
             }
         }
+
         #endregion
 
         #region Com
@@ -352,6 +354,7 @@ namespace PhoenixEngine.SSEATComBridge
 
             return true;
         }
+
         #endregion
     }
 }

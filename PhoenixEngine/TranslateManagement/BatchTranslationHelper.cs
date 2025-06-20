@@ -40,15 +40,18 @@ namespace PhoenixEngine.TranslateManage
 
             if (this.IsDuplicateSource)
             {
-                if (!Source.SameItems.ContainsKey(this.SourceText))
+                lock (Source.SameItemsLocker)
                 {
-                    Source.SameItems.Add(this.SourceText, string.Empty);
-                }
-                else
-                {
-                    this.Transing = false;
-                    WorkEnd = 2;
-                    return;
+                    if (!Source.SameItems.ContainsKey(this.SourceText))
+                    {
+                        Source.SameItems.Add(this.SourceText, string.Empty);
+                    }
+                    else
+                    {
+                        this.Transing = false;
+                        WorkEnd = 2;
+                        return;
+                    }
                 }
             }
             WorkEnd = 1;
@@ -91,20 +94,26 @@ namespace PhoenixEngine.TranslateManage
                             {
                                 TransText = GetResult.Trim();
 
-                                if (Translator.TransData.ContainsKey(this.Key))
+                                lock (Translator.TransDataLocker)
                                 {
-                                    Translator.TransData[this.Key] = GetResult;
-                                }
-                                else
-                                {
-                                    Translator.TransData.Add(this.Key, GetResult);
+                                    if (Translator.TransData.ContainsKey(this.Key))
+                                    {
+                                        Translator.TransData[this.Key] = GetResult;
+                                    }
+                                    else
+                                    {
+                                        Translator.TransData.Add(this.Key, GetResult);
+                                    }
                                 }
 
                                 if (this.IsDuplicateSource)
                                 {
-                                    if (Source.SameItems.ContainsKey(this.SourceText))
+                                    lock (Source.SameItemsLocker)
                                     {
-                                        Source.SameItems[this.SourceText] = GetResult;
+                                        if (Source.SameItems.ContainsKey(this.SourceText))
+                                        {
+                                            Source.SameItems[this.SourceText] = GetResult;
+                                        }
                                     }
                                 }
 
@@ -160,12 +169,17 @@ namespace PhoenixEngine.TranslateManage
     }
     public class BatchTranslationHelper
     {
+        public readonly object SameItemsLocker = new object();
+
         public Dictionary<string, string> SameItems = new Dictionary<string, string>();
 
         public List<TranslationUnit> UnitsLeaderToTranslate = new List<TranslationUnit>();
+
         public List<TranslationUnit> UnitsToTranslate = new List<TranslationUnit>();
 
+        public readonly object UnitsTranslatedLocker = new object();
         public Queue<TranslationUnit> UnitsTranslated = new Queue<TranslationUnit>();
+
         public List<string> TranslatedKeys = new List<string>();
 
         public int AutoThreadLimit = 0;
@@ -256,7 +270,8 @@ namespace PhoenixEngine.TranslateManage
 
         public ThreadUsageInfo ThreadUsage = new ThreadUsageInfo();
 
-        public object TranslatedAddLocker = new object();
+        public readonly object TranslatedAddLocker = new object();
+
         public void AddTranslated(TranslationUnit Item)
         {
             lock (TranslatedAddLocker)
@@ -302,10 +317,16 @@ namespace PhoenixEngine.TranslateManage
             WorkState = 0;
             UnitsLeaderToTranslate.Clear();
 
-            SameItems.Clear();
-            UnitsTranslated.Clear();
-            TranslatedKeys.Clear();
-         
+            lock (SameItemsLocker)
+            {
+                SameItems.Clear();
+            }
+
+            lock (TranslatedAddLocker)
+            {
+                UnitsTranslated.Clear();
+                TranslatedKeys.Clear();
+            }
 
             MarkDuplicates(UnitsToTranslate);
 
@@ -503,7 +524,10 @@ namespace PhoenixEngine.TranslateManage
             {
                 if (Unit.SourceText == Source && !TranslatedKeys.Contains(Unit.Key))
                 {
-                    Translator.TransData[Unit.Key] = SameItems[Source];
+                    lock (Translator.TransDataLocker)
+                    {
+                        Translator.TransData[Unit.Key] = SameItems[Source];
+                    } 
 
                     lock (TranslatedAddLocker)
                     {
@@ -511,6 +535,29 @@ namespace PhoenixEngine.TranslateManage
                         TranslatedKeys.Add(Unit.Key);
                     }
                 }
+            }
+        }
+
+        public TranslationUnit? DequeueTranslated(out bool IsEnd)
+        {
+            lock (UnitsTranslatedLocker)
+            {
+                if (UnitsTranslated.Count == 0)
+                {
+                    if (this.WorkState == 3)
+                    {
+                        IsEnd = true;
+                        return null;
+                    }
+                    else
+                    {
+                        IsEnd = false;
+                        return null;
+                    }   
+                }
+
+                IsEnd = false;
+                return UnitsTranslated.Dequeue();
             }
         }
     }

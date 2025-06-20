@@ -18,53 +18,66 @@ namespace PhoenixEngine.SSELexiconBridge
         {
             public static void FormatData()
             {
-                Translator.FormatData();
+                lock (Translator.TransDataLocker)
+                {
+                    Translator.FormatData();
+                } 
             }
 
             public static void ClearCache()
             {
-                Translator.ClearCache();
+                lock (Translator.TransDataLocker)
+                {
+                    Translator.ClearCache();
+                }
             }
 
             public static string? GetTranslatorCache(string Key)
             {
-                if (Translator.TransData.ContainsKey(Key))
+                lock (Translator.TransDataLocker)
                 {
-                    return Translator.TransData[Key];
-                }
-                else
-                {
-                    return null;
+                    if (Translator.TransData.ContainsKey(Key))
+                    {
+                        return Translator.TransData[Key];
+                    }
+                    else
+                    {
+                        return null;
+                    }
                 }
             }
 
             public static string GetTransData(string Key)
             {
-                var GetResult = GetTranslatorCache(Key);
-                if (GetResult != null)
+                lock (Translator.TransDataLocker)
                 {
-                    return GetResult;
-                }
-                else
-                {
-                    Translator.TransData.Add(Key, string.Empty);
-                }
-                return string.Empty;
+                    var GetResult = GetTranslatorCache(Key);
+                    if (GetResult != null)
+                    {
+                        return GetResult;
+                    }
+                    else
+                    {
+                        Translator.TransData.Add(Key, string.Empty);
+                    }
+                    return string.Empty;
+                }  
             }
 
             public static void SetTransData(string Key, string Value)
             {
-                if (Translator.TransData.ContainsKey(Key))
+                lock (Translator.TransDataLocker)
                 {
-                    Translator.TransData[Key] = Value;
-                }
-                else
-                {
-                    Translator.TransData.Add(Key, Value);
+                    if (Translator.TransData.ContainsKey(Key))
+                    {
+                        Translator.TransData[Key] = Value;
+                    }
+                    else
+                    {
+                        Translator.TransData.Add(Key, Value);
+                    }
                 }
             }
-
-            
         }
     }
 }
