@@ -8,6 +8,19 @@ namespace PhoenixEngine.TranslateManagement
     //https://github.com/YD525/PhoenixEngine
     public class TranslationPreprocessorExtend
     {
+        public static bool IsNullOrEmpty(string Input)
+        {
+            if (Input == null)
+            {
+                return true;
+            }
+            if (Input.Trim().Length == 0)
+            {
+                return true;
+            }
+
+            return false;
+        }
         public static bool IsNumeric(string Input)
         {
             if (string.IsNullOrWhiteSpace(Input))
