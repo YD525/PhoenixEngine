@@ -97,9 +97,13 @@ namespace PhoenixEngine.TranslateManagement
             this.CurrentText = Source;
         }
         List<Segment> Content = new List<Segment>();
-        public void TransBook(Languages SourceLanguage, Languages TargetLanguage, string ModName,string Key, string Source, CancellationToken Token)
+        public void TransBook(string Key, string Source, CancellationToken Token)
         {
-            this.ModName = ModName;
+            this.ModName = Engine.GetModName();
+
+            Languages SourceLanguage = Engine.From;
+            Languages TargetLanguage = Engine.To;
+
             this.Key = Key;
             Content.Clear();
             this.Source = Source;
@@ -137,7 +141,7 @@ namespace PhoenixEngine.TranslateManagement
 
                             bool CanSleep = false;
                             LineID++;
-                            var GetTransLine = Translator.QuickTrans(ModName, "Book", Key + LineID.ToString(), GetSourceLine, SourceLanguage, TargetLanguage, ref CanSleep, true);
+                            var GetTransLine = Translator.QuickTrans(this.ModName, "Book", Key + LineID.ToString(), GetSourceLine, SourceLanguage, TargetLanguage, ref CanSleep, true);
 
                             if (GetTransLine.Trim().Length > 0)
                             {

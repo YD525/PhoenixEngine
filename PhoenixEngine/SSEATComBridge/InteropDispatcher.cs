@@ -38,6 +38,21 @@ namespace PhoenixEngine.SSEATComBridge
             IsInit = true;
         }
 
+        private class VersionItem
+        { 
+            public string Version { get; set; }
+
+            public VersionItem(string Version)
+            {
+                this.Version = Version;
+            }
+        }
+
+        public static string get_version()
+        {
+            return JsonSerializer.Serialize(new VersionItem(DeFine.Version));
+        }
+
         /// <summary>
         /// Configures the source and target languages for translation.
         ///
@@ -50,7 +65,7 @@ namespace PhoenixEngine.SSEATComBridge
         ///
         /// Note: The target language must be explicitly set and cannot be Auto.
         /// </summary>
-        public static void config_language(string Json)
+        public static bool config_language(string Json)
         {
             ConfigLanguageJson? GetItem = null;
 
@@ -62,20 +77,10 @@ namespace PhoenixEngine.SSEATComBridge
 
             if (GetItem != null)
             {
-                From = (Languages)GetItem.Src;
-                To = (Languages)GetItem.Dst;
-
-                if (BulkTranslator == null)
-                {
-                    BulkTranslator = new BatchTranslationHelper(From, To, new List<TranslationUnit>(), true);
-                }
-                else
-                {
-                    BulkTranslator.Close();
-                    BulkTranslator = null;
-                    BulkTranslator = new BatchTranslationHelper(From, To, new List<TranslationUnit>(), true);
-                }
+               return Engine.ConfigLanguage((Languages)GetItem.Src, (Languages)GetItem.Dst);
             }
+
+            return false;
         }
 
         /// <summary>
@@ -83,19 +88,10 @@ namespace PhoenixEngine.SSEATComBridge
         ///
         /// This method reinitializes the BulkTranslator, effectively removing all
         /// translation units that were previously enqueued via enqueue_translation_unit.
-        ///
-        /// Returns:
-        /// true  - if the translator was successfully cleared
-        /// false - if the translator was not initialized
         /// </summary>
-        public static bool clear()
+        public static void clear()
         {
-            if (BulkTranslator != null)
-            {
-                BulkTranslator.Init();
-                return true;
-            }
-            return false;
+            Engine.End();
         }
 
         /// <summary>
@@ -107,14 +103,7 @@ namespace PhoenixEngine.SSEATComBridge
         /// </summary>
         public static int get_current_thread_count()
         {
-            int ThreadCount = -1;
-
-            if (BulkTranslator != null)
-            {
-                ThreadCount = BulkTranslator.CurrentTrdCount;
-            }
-
-            return ThreadCount;
+            return Engine.GetThreadCount();
         }
 
         /// <summary>
@@ -167,11 +156,6 @@ namespace PhoenixEngine.SSEATComBridge
         /// </summary>
         public static bool enqueue_translation_unit(string Json)
         {
-            if (BulkTranslator == null)
-            {
-                throw new Exception("from_language_code() required.");
-            }
-
             TranslationUnitJson? GetItem = null;
 
             try
@@ -182,7 +166,7 @@ namespace PhoenixEngine.SSEATComBridge
 
             if (GetItem != null)
             {
-                BulkTranslator.UnitsToTranslate.Add(new TranslationUnit(GetItem.ModName, GetItem.Key, GetItem.Type, GetItem.SourceText, GetItem.TransText));
+                Engine.AddTranslationUnit(new TranslationUnit(GetItem.ModName, GetItem.Key, GetItem.Type, GetItem.SourceText, GetItem.TransText));
                 return true;
             }
 
@@ -202,38 +186,35 @@ namespace PhoenixEngine.SSEATComBridge
             TranslatedResultJson NTranslatedResult = new TranslatedResultJson();
             int ReturnState = -1;
 
-            if (BulkTranslator != null)
+            bool State = false;
+            var GetItem = Engine.DequeueTranslated(ref State);
+
+            if (GetItem != null)
             {
-                bool State;
-                var GetItem = BulkTranslator.DequeueTranslated(out State);
+                NTranslatedResult.Item = new TranslationUnitJson();
 
-                if (GetItem != null)
-                {
-                    NTranslatedResult.Item = new TranslationUnitJson();
+                NTranslatedResult.Item.ModName = GetItem.ModName;
+                NTranslatedResult.Item.Score = GetItem.Score;
 
-                    NTranslatedResult.Item.ModName = GetItem.ModName;
-                    NTranslatedResult.Item.Score = GetItem.Score;
+                NTranslatedResult.Item.Key = GetItem.Key;
+                NTranslatedResult.Item.Type = GetItem.Type;
 
-                    NTranslatedResult.Item.Key = GetItem.Key;
-                    NTranslatedResult.Item.Type = GetItem.Type;
+                NTranslatedResult.Item.SourceText = GetItem.SourceText;
+                NTranslatedResult.Item.TransText = GetItem.TransText;
 
-                    NTranslatedResult.Item.SourceText = GetItem.SourceText;
-                    NTranslatedResult.Item.TransText = GetItem.TransText;
+                NTranslatedResult.Item.IsDuplicateSource = GetItem.IsDuplicateSource;
+                NTranslatedResult.Item.Leader = GetItem.Leader;
+                NTranslatedResult.Item.Translated = GetItem.Translated;
+            }
 
-                    NTranslatedResult.Item.IsDuplicateSource = GetItem.IsDuplicateSource;
-                    NTranslatedResult.Item.Leader = GetItem.Leader;
-                    NTranslatedResult.Item.Translated = GetItem.Translated;
-                }
-
-                if (State)
-                {
-                    ReturnState = 1;
-                    clear();
-                }
-                else
-                {
-                    ReturnState = 0;
-                }
+            if (State)
+            {
+                ReturnState = 1;
+                clear();
+            }
+            else
+            {
+                ReturnState = 0;
             }
 
             NTranslatedResult.State = ReturnState;
@@ -254,26 +235,24 @@ namespace PhoenixEngine.SSEATComBridge
         /// true  - if the translation process was successfully started
         /// false - if BulkTranslator was not initialized
         /// </summary>
-        public static bool start_translation(string Json)
+        public static bool start_translation(string Json,bool ClearCache)
         {
-            if (BulkTranslator != null)
+            StartTranslationJson? GetItem = null;
+
+            try
             {
-                StartTranslationJson? GetItem = null;
+                GetItem = JsonSerializer.Deserialize<StartTranslationJson>(Json);
+            }
+            catch { }
 
-                try
-                {
-                    GetItem = JsonSerializer.Deserialize<StartTranslationJson>(Json);
-                }
-                catch { }
+            if (GetItem != null)
+            {
+                EngineConfig.AutoSetThreadLimit = false;
+                EngineConfig.MaxThreadCount = GetItem.ThreadLimit;
 
-                if (GetItem != null)
-                {
-                    EngineConfig.AutoSetThreadLimit = false;
-                    EngineConfig.MaxThreadCount = GetItem.ThreadLimit;
+                Engine.Start(ClearCache);
 
-                    BulkTranslator.Start();
-                    return true;
-                }
+                return true;
             }
             return false;
         }
@@ -289,15 +268,9 @@ namespace PhoenixEngine.SSEATComBridge
         /// true  - if the translator was successfully paused
         /// false - if the translator was not initialized
         /// </summary>
-        public static bool end_translation()
+        public static void end_translation()
         {
-            if (BulkTranslator != null)
-            {
-                BulkTranslator.Close();
-
-                return true;
-            }
-            return false;
+            Engine.End();
         }
 
         /// <summary>
@@ -526,7 +499,7 @@ namespace PhoenixEngine.SSEATComBridge
                 CancellationToken CreatEndCall = new CancellationToken();
                 Thread CreatTrd = new Thread(() => 
                 { 
-                    NTextSegmentTranslator.TransBook(BridgeHelper.From, BridgeHelper.To,Item.ModName,Item.Key,Item.Source, CreatEndCall);
+                    NTextSegmentTranslator.TransBook(Item.Key,Item.Source, CreatEndCall);
                 });
 
                 BookTransingItem NBookTransingItem = new BookTransingItem();

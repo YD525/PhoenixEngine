@@ -21,13 +21,7 @@ namespace PhoenixEngine.SSEATComBridge
     {
         public static List<BookTransingItem> BookTransTrds = new List<BookTransingItem>();
 
-        public static BatchTranslationHelper? BulkTranslator = null;
-
         public static bool IsInit = false;
-
-        public static Languages From = Languages.Auto;
-
-        public static Languages To = Languages.Null;
 
         public static ConfigJson? CurrentConfig = new ConfigJson();
         public class ConfigJson
@@ -47,11 +41,6 @@ namespace PhoenixEngine.SSEATComBridge
             #endregion
 
             #region Translation Param
-
-            /// <summary>
-            /// The name of the current mod being translated (e.g., "xxx.esp").
-            /// </summary>
-            public string CurrentModName { get; set; } = "";
 
             /// <summary>
             /// The source language of the text to be translated.
@@ -266,7 +255,6 @@ namespace PhoenixEngine.SSEATComBridge
     }
     public class BookTransItemJson
     {
-        public string ModName { get; set; } = "";
         public string Key { get; set; } = "";
         public string Source { get; set; } = "";
     }

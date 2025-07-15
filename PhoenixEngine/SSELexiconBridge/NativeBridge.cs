@@ -16,6 +16,10 @@ namespace PhoenixEngine.SSELexiconBridge
     {
         public class TranslatorBridge
         {
+            public static string GetVersion()
+            {
+                return DeFine.Version;
+            }
             public static void FormatData()
             {
                 lock (Translator.TransDataLocker)
