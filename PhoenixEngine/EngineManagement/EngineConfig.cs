@@ -271,55 +271,60 @@ namespace PhoenixEngine.EngineManagement
                 return;
             }
 
-            try { 
-
-            var EncryptedBytes = File.ReadAllBytes(SetFullPath);
-            var PlainBytes = XORDecrypt(EncryptedBytes);
-
-            using (var Ms = new MemoryStream(PlainBytes))
-            using (var Reader = new BinaryReader(Ms, Encoding.UTF8, true))
+            try
             {
-                ProxyIP = Reader.ReadString();
-                GlobalRequestTimeOut = Reader.ReadInt32();
 
-                DefPageSize = Reader.ReadInt32();
+                var EncryptedBytes = File.ReadAllBytes(SetFullPath);
+                var PlainBytes = XORDecrypt(EncryptedBytes);
 
-                ChatGptApiEnable = Reader.ReadBoolean();
-                GeminiApiEnable = Reader.ReadBoolean();
-                CohereApiEnable = Reader.ReadBoolean();
-                DeepSeekApiEnable = Reader.ReadBoolean();
-                BaichuanApiEnable = Reader.ReadBoolean();
-                GoogleYunApiEnable = Reader.ReadBoolean();
-                DivCacheEngineEnable = Reader.ReadBoolean();
-                LMLocalAIEngineEnable = Reader.ReadBoolean();
-                DeepLApiEnable = Reader.ReadBoolean();
+                using (var Ms = new MemoryStream(PlainBytes))
+                using (var Reader = new BinaryReader(Ms, Encoding.UTF8, true))
+                {
+                    ProxyIP = Reader.ReadString();
+                    GlobalRequestTimeOut = Reader.ReadInt32();
 
-                GoogleApiKey = Reader.ReadString();
-                ChatGptKey = Reader.ReadString();
-                ChatGptModel = Reader.ReadString();
-                GeminiKey = Reader.ReadString();
-                GeminiModel = Reader.ReadString();
-                DeepSeekKey = Reader.ReadString();
-                DeepSeekModel = Reader.ReadString();
-                BaichuanKey = Reader.ReadString();
-                BaichuanModel = Reader.ReadString();
-                CohereKey = Reader.ReadString();
-                DeepLKey = Reader.ReadString();
-                IsFreeDeepL = Reader.ReadBoolean();
+                    DefPageSize = Reader.ReadInt32();
+                    if (DefPageSize == 0)
+                    {
+                        DefPageSize = 20;
+                    }
 
-                LMHost = Reader.ReadString();
-                LMPort = Reader.ReadInt32();
-                LMQueryParam = Reader.ReadString();
-                LMModel = Reader.ReadString();
+                    ChatGptApiEnable = Reader.ReadBoolean();
+                    GeminiApiEnable = Reader.ReadBoolean();
+                    CohereApiEnable = Reader.ReadBoolean();
+                    DeepSeekApiEnable = Reader.ReadBoolean();
+                    BaichuanApiEnable = Reader.ReadBoolean();
+                    GoogleYunApiEnable = Reader.ReadBoolean();
+                    DivCacheEngineEnable = Reader.ReadBoolean();
+                    LMLocalAIEngineEnable = Reader.ReadBoolean();
+                    DeepLApiEnable = Reader.ReadBoolean();
 
-                ThrottleRatio = Reader.ReadDouble();
-                ThrottleDelayMs = Reader.ReadInt32();
-                MaxThreadCount = Reader.ReadInt32();
-                AutoSetThreadLimit = Reader.ReadBoolean();
-                ContextEnable = Reader.ReadBoolean();
-                ContextLimit = Reader.ReadInt32();
-                UserCustomAIPrompt = Reader.ReadString();
-            }
+                    GoogleApiKey = Reader.ReadString();
+                    ChatGptKey = Reader.ReadString();
+                    ChatGptModel = Reader.ReadString();
+                    GeminiKey = Reader.ReadString();
+                    GeminiModel = Reader.ReadString();
+                    DeepSeekKey = Reader.ReadString();
+                    DeepSeekModel = Reader.ReadString();
+                    BaichuanKey = Reader.ReadString();
+                    BaichuanModel = Reader.ReadString();
+                    CohereKey = Reader.ReadString();
+                    DeepLKey = Reader.ReadString();
+                    IsFreeDeepL = Reader.ReadBoolean();
+
+                    LMHost = Reader.ReadString();
+                    LMPort = Reader.ReadInt32();
+                    LMQueryParam = Reader.ReadString();
+                    LMModel = Reader.ReadString();
+
+                    ThrottleRatio = Reader.ReadDouble();
+                    ThrottleDelayMs = Reader.ReadInt32();
+                    MaxThreadCount = Reader.ReadInt32();
+                    AutoSetThreadLimit = Reader.ReadBoolean();
+                    ContextEnable = Reader.ReadBoolean();
+                    ContextLimit = Reader.ReadInt32();
+                    UserCustomAIPrompt = Reader.ReadString();
+                }
 
             }
             catch
