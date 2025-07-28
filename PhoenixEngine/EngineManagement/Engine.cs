@@ -94,7 +94,7 @@ namespace PhoenixEngine.EngineManagement
             Start(false);
         }
 
-        public static void Start(bool ClearCache = false)
+        public static void Start(bool ClearCache)
         {
             if (From != Languages.Null && To != Languages.Null)
             {

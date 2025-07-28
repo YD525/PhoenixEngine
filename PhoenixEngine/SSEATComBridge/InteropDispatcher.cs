@@ -53,6 +53,11 @@ namespace PhoenixEngine.SSEATComBridge
             return JsonSerializer.Serialize(new VersionItem(DeFine.Version));
         }
 
+        public static void set_modname(string modname)
+        {
+            Engine.ChangeModName(modname);
+        }
+
         /// <summary>
         /// Configures the source and target languages for translation.
         ///

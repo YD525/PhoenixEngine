@@ -360,12 +360,6 @@ namespace PhoenixEngine.TranslateManage
 
         public void Start()
         {
-            if (IsStop)
-            {
-                IsStop = false;
-                return;
-            }
-
             if (IsWork || TransMainTrd != null)
             {
                 TransMainTrd = new Thread(() =>
@@ -537,7 +531,15 @@ namespace PhoenixEngine.TranslateManage
 
             TransMainTrd = null;
         }
-       
+
+        public void Keep()
+        {
+            if (IsStop)
+            {
+                IsStop = false;
+            }
+        }
+
         public void Stop()
         {
             IsStop = true;
