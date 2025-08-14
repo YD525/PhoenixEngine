@@ -156,7 +156,9 @@ namespace PhoenixEngine.TranslateManage
         public static void FormatData(string GetKey, string TransData)
         {
             string NewStr = TransData;
+
             TranslationPreprocessor.NormalizePunctuation(ref NewStr);
+
             if (Regex.Replace(NewStr, @"\s+", "").Length > 0)
             {
                 Translator.TransData[GetKey] = NewStr;

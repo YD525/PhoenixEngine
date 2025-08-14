@@ -5,7 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using PhoenixEngine.EngineManagement;
+using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
+using PhoenixEngine.TranslateManagement;
 
 namespace PhoenixEngine.SSELexiconBridge
 {
@@ -81,6 +84,93 @@ namespace PhoenixEngine.SSELexiconBridge
                         Translator.TransData.Add(Key, Value);
                     }
                 }
+            }
+
+            public class QueryTransItem
+            {
+                public string Key = "";
+                public string TransText = "";
+                public bool FromCloud = false;
+                public int State = 0;
+            }
+
+            public static QueryTransItem QueryTransData(string Key, string SourceText)
+            {
+                string ModName = Engine.GetModName();
+
+                QueryTransItem NQueryTransItem = new QueryTransItem();
+
+                string TransText = "";
+
+                string GetRamSource = "";
+                if (Translator.TransData.ContainsKey(Key))
+                {
+                    GetRamSource = Translator.TransData[Key];
+                }
+
+                if (GetRamSource.Trim().Length == 0)
+                {
+                    TransText = LocalDBCache.GetCacheText(ModName, Key, Engine.To);
+
+                    if (TransText.Trim().Length > 0)
+                    {
+                        NQueryTransItem.FromCloud = false;
+                    }
+                    else
+                    {
+                        TransText = CloudDBCache.FindCache(ModName, Key, Engine.To);
+
+                        if (TransText.Trim().Length > 0)
+                        {
+                            NQueryTransItem.FromCloud = true;
+                        }
+                    }
+
+                   
+                    NQueryTransItem.State = 1;
+                }
+                else
+                {
+                    var GetStr = CloudDBCache.FindCache(ModName, Key, Engine.To);
+                    TransText = GetRamSource;
+
+                    if (GetStr.Equals(GetRamSource))
+                    {
+                        NQueryTransItem.FromCloud = true;
+                    }
+                    else
+                    {
+                        NQueryTransItem.FromCloud = false;
+                    }
+
+                    NQueryTransItem.State = 0;
+                }
+
+
+                NQueryTransItem.Key = Key;
+                NQueryTransItem.TransText = TransText;
+                return NQueryTransItem;
+            }
+
+            public static bool SetTransData(string Key, string SourceText,string TransText)
+            {
+                string ModName = Engine.GetModName();
+
+                if (TransText.Trim().Length > 0)
+                {
+                    Translator.TransData[Key] = TransText;
+                }
+                else
+                {
+                    if (Translator.TransData.ContainsKey(Key))
+                    {
+                        Translator.TransData.Remove(Key);
+                    }
+
+                    CloudDBCache.DeleteCache(ModName, Key, Engine.To);
+                }
+
+                return LocalDBCache.UPDateLocalTransItem(ModName, Key, (int)Engine.To, TransText, 0);
             }
         }
     }

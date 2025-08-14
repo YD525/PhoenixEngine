@@ -36,8 +36,10 @@ namespace PhoenixEngine.EngineManagement
             LocalDB.OpenSql(GetFilePath);
 
             AdvancedDictionary.Init();
+
             CloudDBCache.Init();
             LocalDBCache.Init();
+            FontColorFinder.Init();
 
             EngineConfig.Load();
         }

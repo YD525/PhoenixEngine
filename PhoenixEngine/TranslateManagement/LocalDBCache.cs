@@ -16,7 +16,6 @@ namespace PhoenixEngine.TranslateManagement
         public int To = 0;
         public string Result = "";
         public int Index = 0;
-        public int ColorSet = 0;
 
         public LocalTransItem(string ModName,string Key,Languages TargetLanguage, string Result)
         {
@@ -25,7 +24,6 @@ namespace PhoenixEngine.TranslateManagement
             this.To = (int)TargetLanguage;
             this.Result = Result;
             this.Index = 0;
-            this.ColorSet = ConvertHelper.ObjToInt(ColorSet);
         }
 
         public LocalTransItem(object ModName, object Key, object To, object Result)
@@ -35,7 +33,6 @@ namespace PhoenixEngine.TranslateManagement
             this.To = ConvertHelper.ObjToInt(To);
             this.Result = ConvertHelper.ObjToStr(Result);
             this.Index = 0; 
-            this.ColorSet = 0;
         }
     }
     public class LocalDBCache
@@ -53,8 +50,7 @@ CREATE TABLE [LocalTranslation](
   [Key] TEXT, 
   [To] INT, 
   [Result] TEXT, 
-  [Index] INT, 
-  [ColorSet] INT
+  [Index] INT
 );";
                 Engine.LocalDB.ExecuteNonQuery(CreateTableSql);
             }
@@ -155,53 +151,48 @@ CREATE TABLE [LocalTranslation](
             catch { return string.Empty; }
         }    
 
-        public static bool UPDateLocalTransItem(LocalTransItem Item)
+        public static bool UPDateLocalTransItem(string ModName,string Key,int To,string Result,int Index)
         {
-            if (Item.ModName.Trim().Length == 0)
+            if (ModName.Trim().Length == 0)
             {
                 return false;
             }
 
-            string FindCache = CloudDBCache.FindCache(Item.ModName, Item.Key, (Languages)Item.To);
-
-            if (FindCache.Trim().Length > 0)
+            if (Result.Length > 0)
             {
-                if (FindCache.Equals(Item.Result))
-                {
-                    DeleteCache(Item.ModName, Item.Key, (Languages)Item.To);
-                    return false;
-                }
-            }
+                int GetRowID = ConvertHelper.ObjToInt(Engine.LocalDB.ExecuteScalar(String.Format("Select Rowid From LocalTranslation Where [ModName] = '{0}' And [Key] = '{1}' And [To] = {2}", ModName, Key, To)));
 
-            int GetRowID = ConvertHelper.ObjToInt(Engine.LocalDB.ExecuteScalar(String.Format("Select Rowid From LocalTranslation Where [ModName] = '{0}' And [Key] = '{1}' And [To] = {2}", Item.ModName,Item.Key,Item.To)));
-
-            if (GetRowID < 0 && Item.Result.Trim().Length > 0)
-            {
-                string SqlOrder = "Insert Into LocalTranslation([ModName],[Key],[To],[Result],[Index],[ColorSet])Values('{0}','{1}',{2},'{3}',{4},{5})";
-                int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,
-                    Item.ModName,
-                    Item.Key,
-                    Item.To,
-                    System.Web.HttpUtility.HtmlEncode(Item.Result),
-                    Item.Index,
-                    Item.ColorSet
-                    ));
-                if (State != 0)
+                if (GetRowID < 0)
                 {
-                    return true;
+                    string SqlOrder = "Insert Into LocalTranslation([ModName],[Key],[To],[Result],[Index])Values('{0}','{1}',{2},'{3}',{4})";
+                    int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,
+                        ModName,
+                        Key,
+                        To,
+                        System.Web.HttpUtility.HtmlEncode(Result),
+                        Index
+                        ));
+                    if (State != 0)
+                    {
+                        return true;
+                    }
                 }
-                return false;
+                else
+                {
+                    string SqlOrder = "UPDate LocalTranslation Set [Result] = '{1}',[Index] = {2} Where Rowid = {0}";
+                    int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, GetRowID, System.Web.HttpUtility.HtmlEncode(Result), Index));
+                    if (State != 0)
+                    {
+                        return true;
+                    }
+                }
             }
             else
             {
-                string SqlOrder = "UPDate LocalTranslation Set [Result] = '{1}',[Index] = {2},[ColorSet] = {3} Where Rowid = {0}";
-                int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,GetRowID,System.Web.HttpUtility.HtmlEncode(Item.Result),Item.Index,Item.ColorSet));
-                if (State != 0)
-                {
-                    return true;
-                }
-                return false;
-            }  
+                DeleteCache(ModName, Key, (Languages)To);
+            }
+
+            return false;
         }
 
     }
