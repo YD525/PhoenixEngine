@@ -344,6 +344,8 @@ namespace PhoenixEngine.SSEATComBridge
             EngineConfig.ProxyIP = CurrentConfig.ProxyIP;
             EngineConfig.GlobalRequestTimeOut = CurrentConfig.GlobalRequestTimeOut;
 
+            EngineConfig.PreTranslateEnable = CurrentConfig.PreTranslateEnable;
+
             // Platform Enable State
             EngineConfig.ChatGptApiEnable = CurrentConfig.ChatGptApiEnable;
             EngineConfig.GeminiApiEnable = CurrentConfig.GeminiApiEnable;
@@ -351,8 +353,7 @@ namespace PhoenixEngine.SSEATComBridge
             EngineConfig.DeepSeekApiEnable = CurrentConfig.DeepSeekApiEnable;
             EngineConfig.BaichuanApiEnable = CurrentConfig.BaichuanApiEnable;
             EngineConfig.GoogleYunApiEnable = CurrentConfig.GoogleYunApiEnable;
-            EngineConfig.DivCacheEngineEnable = CurrentConfig.DivCacheEngineEnable;
-            EngineConfig.LMLocalAIEngineEnable = CurrentConfig.LMLocalAIEngineEnable;
+            EngineConfig.LMLocalAIEnable = CurrentConfig.LMLocalAIEnable;
             EngineConfig.DeepLApiEnable = CurrentConfig.DeepLApiEnable;
 
             // API Key / Model

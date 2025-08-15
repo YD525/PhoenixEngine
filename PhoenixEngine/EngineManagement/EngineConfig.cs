@@ -46,6 +46,10 @@ namespace PhoenixEngine.EngineManagement
 
         #endregion
 
+
+        public static bool PreTranslateEnable { get; set; } = true;
+
+
         #region Platform Enable State
 
         /// <summary>
@@ -59,8 +63,7 @@ namespace PhoenixEngine.EngineManagement
         public static bool DeepSeekApiEnable { get; set; } = false;
         public static bool BaichuanApiEnable { get; set; } = false;
         public static bool GoogleYunApiEnable { get; set; } = false;
-        public static bool DivCacheEngineEnable { get; set; } = false;
-        public static bool LMLocalAIEngineEnable { get; set; } = false;
+        public static bool LMLocalAIEnable { get; set; } = false;
         public static bool DeepLApiEnable { get; set; } = false;
 
         #endregion
@@ -185,7 +188,10 @@ namespace PhoenixEngine.EngineManagement
         /// </summary>
         public static string UserCustomAIPrompt { get; set; } = "";
 
-
+        /// <summary>
+        /// Automatically limit the number of concurrent threads
+        /// </summary>
+        /// <returns></returns>
         public static int AutoCalcThreadLimit()
         {
             return 2;
@@ -208,6 +214,7 @@ namespace PhoenixEngine.EngineManagement
             return XOREncrypt(data);
         }
 
+        //Use Xor to easily encrypt and store user API keys to ensure security
         public static void Save()
         {
             using (var Ms = new MemoryStream())
@@ -218,14 +225,15 @@ namespace PhoenixEngine.EngineManagement
 
                 Writer.Write(DefPageSize);
 
+                Writer.Write(PreTranslateEnable);
+
                 Writer.Write(ChatGptApiEnable);
                 Writer.Write(GeminiApiEnable);
                 Writer.Write(CohereApiEnable);
                 Writer.Write(DeepSeekApiEnable);
                 Writer.Write(BaichuanApiEnable);
                 Writer.Write(GoogleYunApiEnable);
-                Writer.Write(DivCacheEngineEnable);
-                Writer.Write(LMLocalAIEngineEnable);
+                Writer.Write(LMLocalAIEnable);
                 Writer.Write(DeepLApiEnable);
 
                 Writer.Write(GoogleApiKey ?? "");
@@ -289,14 +297,15 @@ namespace PhoenixEngine.EngineManagement
                         DefPageSize = 20;
                     }
 
+                    PreTranslateEnable = Reader.ReadBoolean();
+
                     ChatGptApiEnable = Reader.ReadBoolean();
                     GeminiApiEnable = Reader.ReadBoolean();
                     CohereApiEnable = Reader.ReadBoolean();
                     DeepSeekApiEnable = Reader.ReadBoolean();
                     BaichuanApiEnable = Reader.ReadBoolean();
                     GoogleYunApiEnable = Reader.ReadBoolean();
-                    DivCacheEngineEnable = Reader.ReadBoolean();
-                    LMLocalAIEngineEnable = Reader.ReadBoolean();
+                    LMLocalAIEnable = Reader.ReadBoolean();
                     DeepLApiEnable = Reader.ReadBoolean();
 
                     GoogleApiKey = Reader.ReadString();

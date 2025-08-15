@@ -56,6 +56,8 @@ namespace PhoenixEngine.SSEATComBridge
 
             #region Platform Enable State
 
+            public bool PreTranslateEnable { get; set; } = false;
+
             /// <summary>
             /// Flags indicating whether each AI or translation platform is enabled.
             /// Multiple platforms can be enabled simultaneously, and the system will perform load balancing among them.
@@ -67,8 +69,7 @@ namespace PhoenixEngine.SSEATComBridge
             public bool DeepSeekApiEnable { get; set; } = false;
             public bool BaichuanApiEnable { get; set; } = false;
             public bool GoogleYunApiEnable { get; set; } = false;
-            public bool DivCacheEngineEnable { get; set; } = false;
-            public bool LMLocalAIEngineEnable { get; set; } = false;
+            public bool LMLocalAIEnable { get; set; } = false;
             public bool DeepLApiEnable { get; set; } = false;
 
             #endregion
@@ -202,14 +203,16 @@ namespace PhoenixEngine.SSEATComBridge
                 CurrentConfig.ProxyIP = EngineConfig.ProxyIP;
                 CurrentConfig.GlobalRequestTimeOut = EngineConfig.GlobalRequestTimeOut;
 
+                CurrentConfig.PreTranslateEnable = EngineConfig.PreTranslateEnable;
+
                 CurrentConfig.ChatGptApiEnable = EngineConfig.ChatGptApiEnable;
                 CurrentConfig.GeminiApiEnable = EngineConfig.GeminiApiEnable;
                 CurrentConfig.CohereApiEnable = EngineConfig.CohereApiEnable;
                 CurrentConfig.DeepSeekApiEnable = EngineConfig.DeepSeekApiEnable;
                 CurrentConfig.BaichuanApiEnable = EngineConfig.BaichuanApiEnable;
                 CurrentConfig.GoogleYunApiEnable = EngineConfig.GoogleYunApiEnable;
-                CurrentConfig.DivCacheEngineEnable = EngineConfig.DivCacheEngineEnable;
-                CurrentConfig.LMLocalAIEngineEnable = EngineConfig.LMLocalAIEngineEnable;
+               
+                CurrentConfig.LMLocalAIEnable = EngineConfig.LMLocalAIEnable;
                 CurrentConfig.DeepLApiEnable = EngineConfig.DeepLApiEnable;
 
                 CurrentConfig.GoogleApiKey = EngineConfig.GoogleApiKey;

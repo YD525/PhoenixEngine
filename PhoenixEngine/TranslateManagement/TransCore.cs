@@ -89,7 +89,7 @@ namespace PhoenixEngine.TranslateManage
                 }
 
                 //LocalAI(LM) support
-                if (EngineConfig.LMLocalAIEngineEnable)
+                if (EngineConfig.LMLocalAIEnable)
                 {
                     EngineSelects.Add(new EngineSelect(new LMStudio(), 1,0));
                 }
@@ -228,8 +228,13 @@ namespace PhoenixEngine.TranslateManage
                     {
                         bool CanTrans = false;
 
-                        if (EngineConfig.DivCacheEngineEnable)
+                        if (EngineConfig.PreTranslateEnable)
                         {
+                            if (DelegateHelper.SetNodeCallCallback != null)
+                            {
+                                DelegateHelper.SetNodeCallCallback("PreTranslate", null);
+                            }
+
                             string GetDefSource = GetSource;
                             GetSource = NTranslationPreprocessor.GeneratePlaceholderText(ModName,From, To, GetSource, Type, out CanTrans);
 
@@ -256,6 +261,11 @@ namespace PhoenixEngine.TranslateManage
                             {
                                 if (EngineConfig.GoogleYunApiEnable)
                                 {
+                                    if (DelegateHelper.SetNodeCallCallback != null)
+                                    {
+                                        DelegateHelper.SetNodeCallCallback("Google", true);
+                                    }
+
                                     var GetData = ConvertHelper.ObjToStr(((GoogleTransApi)this.Engine).Translate(GetSource, From, To));
                                     TransText = GetData;
                                     Translator.SendTranslateMsg("Cloud Translation(GoogleApi)", GetSource, TransText);
@@ -266,6 +276,11 @@ namespace PhoenixEngine.TranslateManage
                                     if (GetData.Trim().Length == 0)
                                     {
                                         this.CallCountDown = 0;
+                                    }
+
+                                    if (DelegateHelper.SetNodeCallCallback != null)
+                                    {
+                                        DelegateHelper.SetNodeCallCallback("Google", false);
                                     }
                                 }
                                 else
@@ -279,6 +294,11 @@ namespace PhoenixEngine.TranslateManage
                             {
                                 if (EngineConfig.DeepLApiEnable)
                                 {
+                                    if (DelegateHelper.SetNodeCallCallback != null)
+                                    {
+                                        DelegateHelper.SetNodeCallCallback("DeepL", true);
+                                    }
+
                                     var GetData = ((DeepLApi)this.Engine).QuickTrans(GetSource, From, To).Trim();
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
@@ -296,6 +316,11 @@ namespace PhoenixEngine.TranslateManage
                                         {
                                             CanAddCache = false;
                                         }
+                                    }
+
+                                    if (DelegateHelper.SetNodeCallCallback != null)
+                                    {
+                                        DelegateHelper.SetNodeCallCallback("DeepL", false);
                                     }
                                 }
                                 else
@@ -319,8 +344,13 @@ namespace PhoenixEngine.TranslateManage
 
                         List<string> CustomWords = new List<string>();
 
-                        if (EngineConfig.DivCacheEngineEnable)
+                        if (EngineConfig.PreTranslateEnable)
                         {
+                            if (DelegateHelper.SetNodeCallCallback != null)
+                            {
+                                DelegateHelper.SetNodeCallCallback("PreTranslate", null);
+                            }
+
                             CustomWords = NTranslationPreprocessor.GeneratePlaceholderTextByAI(ModName,From, To, GetSource, Type, out CanTrans);
 
                             string GenParam = "";
@@ -350,8 +380,13 @@ namespace PhoenixEngine.TranslateManage
                         {
                             if (this.Engine is LMStudio)
                             {
-                                if (EngineConfig.LMLocalAIEngineEnable)
+                                if (EngineConfig.LMLocalAIEnable)
                                 {
+                                    if (DelegateHelper.SetNodeCallCallback != null)
+                                    {
+                                        DelegateHelper.SetNodeCallCallback("LMLocalAI", true);
+                                    }
+
                                     var GetData = ((LMStudio)this.Engine).QuickTrans(CustomWords, GetSource, From, To, UseAIMemory, AIMemoryCountLimit, Param).Trim();
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
@@ -370,6 +405,11 @@ namespace PhoenixEngine.TranslateManage
                                             CanAddCache = false;
                                         }
                                     }
+
+                                    if (DelegateHelper.SetNodeCallCallback != null)
+                                    {
+                                        DelegateHelper.SetNodeCallCallback("LMLocalAI", false);
+                                    }
                                 }
                                 else
                                 {
@@ -382,6 +422,11 @@ namespace PhoenixEngine.TranslateManage
                             {
                                 if (EngineConfig.CohereApiEnable)
                                 {
+                                    if (DelegateHelper.SetNodeCallCallback != null)
+                                    {
+                                        DelegateHelper.SetNodeCallCallback("Cohere", true);
+                                    }
+
                                     var GetData = ((CohereApi)this.Engine).QuickTrans(CustomWords, GetSource, From, To, UseAIMemory, AIMemoryCountLimit, Param).Trim();
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
@@ -400,6 +445,11 @@ namespace PhoenixEngine.TranslateManage
                                             CanAddCache = false;
                                         }
                                     }
+
+                                    if (DelegateHelper.SetNodeCallCallback != null)
+                                    {
+                                        DelegateHelper.SetNodeCallCallback("Cohere", false);
+                                    }
                                 }
                                 else
                                 {
@@ -412,6 +462,11 @@ namespace PhoenixEngine.TranslateManage
                             {
                                 if (EngineConfig.ChatGptApiEnable)
                                 {
+                                    if (DelegateHelper.SetNodeCallCallback != null)
+                                    {
+                                        DelegateHelper.SetNodeCallCallback("ChatGpt", true);
+                                    }
+
                                     var GetData = ((ChatGptApi)this.Engine).QuickTrans(CustomWords, GetSource, From, To, UseAIMemory, AIMemoryCountLimit, Param).Trim();
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
@@ -430,6 +485,11 @@ namespace PhoenixEngine.TranslateManage
                                             CanAddCache = false;
                                         }
                                     }
+
+                                    if (DelegateHelper.SetNodeCallCallback != null)
+                                    {
+                                        DelegateHelper.SetNodeCallCallback("ChatGpt", false);
+                                    }
                                 }
                                 else
                                 {
@@ -442,6 +502,11 @@ namespace PhoenixEngine.TranslateManage
                             {
                                 if (EngineConfig.GeminiApiEnable)
                                 {
+                                    if (DelegateHelper.SetNodeCallCallback != null)
+                                    {
+                                        DelegateHelper.SetNodeCallCallback("Gemini", true);
+                                    }
+
                                     var GetData = ((GeminiApi)this.Engine).QuickTrans(CustomWords, GetSource, From, To, UseAIMemory, AIMemoryCountLimit, Param).Trim();
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
@@ -460,6 +525,11 @@ namespace PhoenixEngine.TranslateManage
                                             CanAddCache = false;
                                         }
                                     }
+
+                                    if (DelegateHelper.SetNodeCallCallback != null)
+                                    {
+                                        DelegateHelper.SetNodeCallCallback("Gemini", false);
+                                    }
                                 }
                                 else
                                 {
@@ -472,6 +542,11 @@ namespace PhoenixEngine.TranslateManage
                             {
                                 if (EngineConfig.DeepSeekApiEnable)
                                 {
+                                    if (DelegateHelper.SetNodeCallCallback != null)
+                                    {
+                                        DelegateHelper.SetNodeCallCallback("DeepSeek", true);
+                                    }
+
                                     var GetData = ((DeepSeekApi)this.Engine).QuickTrans(CustomWords, GetSource, From, To, UseAIMemory, AIMemoryCountLimit, Param).Trim();
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
@@ -490,6 +565,11 @@ namespace PhoenixEngine.TranslateManage
                                             CanAddCache = false;
                                         }
                                     }
+
+                                    if (DelegateHelper.SetNodeCallCallback != null)
+                                    {
+                                        DelegateHelper.SetNodeCallCallback("DeepSeek", false);
+                                    }
                                 }
                                 else
                                 {
@@ -502,6 +582,11 @@ namespace PhoenixEngine.TranslateManage
                             {
                                 if (EngineConfig.BaichuanApiEnable)
                                 {
+                                    if (DelegateHelper.SetNodeCallCallback != null)
+                                    {
+                                        DelegateHelper.SetNodeCallCallback("Baichuan", true);
+                                    }
+
                                     var GetData = ((BaichuanApi)this.Engine).QuickTrans(CustomWords, GetSource, From, To, UseAIMemory, AIMemoryCountLimit, Param).Trim();
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
@@ -519,6 +604,11 @@ namespace PhoenixEngine.TranslateManage
                                         {
                                             CanAddCache = false;
                                         }
+                                    }
+
+                                    if (DelegateHelper.SetNodeCallCallback != null)
+                                    {
+                                        DelegateHelper.SetNodeCallCallback("Baichuan", false);
                                     }
                                 }
                                 else

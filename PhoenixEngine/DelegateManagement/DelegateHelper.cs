@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using PhoenixEngine.TranslateManage;
 
 namespace PhoenixEngine.DelegateManagement
@@ -25,6 +26,11 @@ namespace PhoenixEngine.DelegateManagement
         public static SetUsage? SetUsageCall = null;
 
         public delegate void SetUsage(PlatformType Type, int Count);
+
+        public static NodeCallCallback? SetNodeCallCallback = null;
+
+        public delegate void NodeCallCallback(string Node,bool ?Active);
+
         #endregion
 
     }
