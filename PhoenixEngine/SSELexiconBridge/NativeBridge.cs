@@ -54,7 +54,7 @@ namespace PhoenixEngine.SSELexiconBridge
                 }
             }
 
-            public static string GetTransData(string Key)
+            public static string GetTransCache(string Key)
             {
                 lock (Translator.TransDataLocker)
                 {
@@ -71,7 +71,7 @@ namespace PhoenixEngine.SSELexiconBridge
                 }  
             }
 
-            public static void SetTransData(string Key, string Value)
+            public static void SetTransCache(string Key, string Value)
             {
                 lock (Translator.TransDataLocker)
                 {
