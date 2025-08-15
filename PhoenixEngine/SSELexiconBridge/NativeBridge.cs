@@ -170,7 +170,11 @@ namespace PhoenixEngine.SSELexiconBridge
                     CloudDBCache.DeleteCache(ModName, Key, Engine.To);
                 }
 
-                return LocalDBCache.UPDateLocalTransItem(ModName, Key, (int)Engine.To, TransText, 0);
+                var GetState = LocalDBCache.UPDateLocalTransItem(ModName, Key, (int)Engine.To, TransText, 0);
+
+                Engine.GetTranslatedCount(Engine.GetModName());
+
+                return GetState;
             }
         }
     }

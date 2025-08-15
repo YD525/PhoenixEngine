@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using PhoenixEngine.ConvertManager;
 using PhoenixEngine.DataBaseManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
@@ -85,10 +86,33 @@ namespace PhoenixEngine.EngineManagement
         public static void ChangeModName(string SetModName)
         {
             ModName = SetModName;
+            GetTranslatedCount(ModName);
+        }
+
+        public static int TranslatedCount = 0;
+        public static int GetTranslatedCount(string ModName)
+        {
+            string SqlOrder = @"SELECT COUNT(*) AS TotalCount
+FROM (
+    SELECT Key
+    FROM LocalTranslation
+    WHERE ModName = '{0}'
+    
+    UNION  
+    SELECT Key
+    FROM CloudTranslation
+    WHERE ModName = '{0}'
+) AS Combined;";
+
+            int GetCount = ConvertHelper.ObjToInt(Engine.LocalDB.ExecuteScalar(string.Format(SqlOrder, ModName)));
+
+            TranslatedCount = GetCount;
+
+            return GetCount;
         }
         public static string GetModName()
-        { 
-           return Engine.ModName;
+        {
+            return Engine.ModName;
         }
 
         public static void Start()
