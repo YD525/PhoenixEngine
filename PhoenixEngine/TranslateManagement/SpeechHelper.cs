@@ -26,55 +26,68 @@ namespace PhoenixEngine.TranslateManagement
         { Languages.Indonesian, new[] { "Indonesian", "Id-id" } }
     };
 
-        public static void TryPlaySound(string Text)
+        public static void TryPlaySound(string Text,bool CanCreatTrd = false)
         {
-            try
-            {
-                Languages Lang = LanguageHelper.DetectLanguageByLine(Text);
-                lock (VoiceLock)
+            Action PlaySoundAction = new Action(() => {
+                try
                 {
-                    if (VoiceInstance == null)
+                    Languages Lang = LanguageHelper.DetectLanguageByLine(Text);
+                    lock (VoiceLock)
                     {
-                        Type VoiceType = Type.GetTypeFromProgID("SAPI.SpVoice");
-                        VoiceInstance = Activator.CreateInstance(VoiceType);
-                        VoiceInstance.Volume = 100;
-                        VoiceInstance.Rate = 0;
-                    }
-
-                    dynamic Voices = VoiceInstance.GetVoices();
-                    dynamic BestMatch = null;
-
-                    if (VoiceHints.TryGetValue(Lang, out var Hints))
-                    {
-                        foreach (dynamic Token in Voices)
+                        if (VoiceInstance == null)
                         {
-                            string Desc = Token.GetDescription().ToString();
-                            string LangAttr = Token.GetAttribute("Language")?.ToString() ?? "";
-
-                            foreach (var Hint in Hints)
-                            {
-                                if (Desc.Contains(Hint, StringComparison.OrdinalIgnoreCase) ||
-                                    LangAttr.Contains(Hint, StringComparison.OrdinalIgnoreCase))
-                                {
-                                    BestMatch = Token;
-                                    break;
-                                }
-                            }
-
-                            if (BestMatch != null)
-                                break;
+                            Type VoiceType = Type.GetTypeFromProgID("SAPI.SpVoice");
+                            VoiceInstance = Activator.CreateInstance(VoiceType);
+                            VoiceInstance.Volume = 100;
+                            VoiceInstance.Rate = 0;
                         }
+
+                        dynamic Voices = VoiceInstance.GetVoices();
+                        dynamic BestMatch = null;
+
+                        if (VoiceHints.TryGetValue(Lang, out var Hints))
+                        {
+                            foreach (dynamic Token in Voices)
+                            {
+                                string Desc = Token.GetDescription().ToString();
+                                string LangAttr = Token.GetAttribute("Language")?.ToString() ?? "";
+
+                                foreach (var Hint in Hints)
+                                {
+                                    if (Desc.Contains(Hint, StringComparison.OrdinalIgnoreCase) ||
+                                        LangAttr.Contains(Hint, StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        BestMatch = Token;
+                                        break;
+                                    }
+                                }
+
+                                if (BestMatch != null)
+                                    break;
+                            }
+                        }
+
+                        if (BestMatch != null)
+                            VoiceInstance.Voice = BestMatch;
+
+                        VoiceInstance.Speak("", 2); // Purge before speak
+                        VoiceInstance.Speak(Text, 1); // Async speak
                     }
-
-                    if (BestMatch != null)
-                        VoiceInstance.Voice = BestMatch;
-
-                    VoiceInstance.Speak("", 2); // Purge before speak
-                    VoiceInstance.Speak(Text, 1); // Async speak
                 }
-            }
-            catch
+                catch
+                {
+                }
+            });
+
+            if (!CanCreatTrd)
             {
+                PlaySoundAction.Invoke();
+            }
+            else
+            {
+                new Thread(() => {
+                    PlaySoundAction.Invoke();
+                }).Start();
             }
         }
     }
