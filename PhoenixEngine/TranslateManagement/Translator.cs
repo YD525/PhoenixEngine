@@ -54,6 +54,38 @@ namespace PhoenixEngine.TranslateManage
             return Regex.IsMatch(Input, @"^[\p{P}\p{S}\s]+$");
         }
 
+        public static string FormatStr(string Content)
+        {
+            string GetSourceStr = Content;
+
+            bool HasOuterQuotes = TranslationPreprocessor.HasOuterQuotes(GetSourceStr.Trim());
+
+            TranslationPreprocessor.ConditionalSplitCamelCase(ref Content);
+            TranslationPreprocessor.RemoveInvisibleCharacters(ref Content);
+
+            if (TranslationPreprocessor.IsNumeric(Content))
+            {
+                return GetSourceStr;
+            }
+
+            TranslationPreprocessor.NormalizePunctuation(ref Content);
+            TranslationPreprocessor.ProcessEmptyEndLine(ref Content);
+            TranslationPreprocessor.RemoveInvisibleCharacters(ref Content);
+
+            TranslationPreprocessor.StripOuterQuotes(ref Content);
+
+            Content = Content.Trim();
+
+            if (HasOuterQuotes)
+            {
+                Content = "\"" + HasOuterQuotes + "\"";
+            }
+
+            Content = ReturnStr(Content);
+
+            return Content;
+        }
+
         public static string QuickTrans(string ModName,string Type, string Key,string Content,Languages From, Languages To, ref bool CanSleep, bool IsBook = false)
         {
             string GetSourceStr = Content;
