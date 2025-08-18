@@ -25,7 +25,7 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
 
         public OpenAIResponse? CallAI(OpenAIItem Item)
         {
-            string GenUrl = EngineConfig.LMHost + ":" + EngineConfig.LMPort + EngineConfig.LMQueryParam;
+            string GenUrl = EngineConfig.LMHost + ":" + EngineConfig.LMPort + "/v1/chat/completions";
             string GetJson = JsonSerializer.Serialize(Item);
             WebHeaderCollection Headers = new WebHeaderCollection();
             //Headers.Add("Authorization", string.Format("Bearer {0}", DeFine.GlobalLocalSetting.LMKey));

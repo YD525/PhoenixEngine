@@ -144,7 +144,6 @@ namespace PhoenixEngine.SSEATComBridge
             /// </summary>
             public string LMHost { get; set; } = "http://localhost";
             public int LMPort { get; set; } = 1234;
-            public string LMQueryParam { get; set; } = "/v1/chat/completions";
             public string LMModel { get; set; } = "google/gemma-3-12b";
 
             #endregion
@@ -230,7 +229,6 @@ namespace PhoenixEngine.SSEATComBridge
 
                 CurrentConfig.LMHost = EngineConfig.LMHost;
                 CurrentConfig.LMPort = EngineConfig.LMPort;
-                CurrentConfig.LMQueryParam = EngineConfig.LMQueryParam;
                 CurrentConfig.LMModel = EngineConfig.LMModel;
 
                 CurrentConfig.ThrottleRatio = EngineConfig.ThrottleRatio;

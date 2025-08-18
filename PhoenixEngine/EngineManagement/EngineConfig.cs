@@ -138,7 +138,6 @@ namespace PhoenixEngine.EngineManagement
         /// </summary>
         public static string LMHost { get; set; } = "http://localhost";
         public static int LMPort { get; set; } = 1234;
-        public static string LMQueryParam { get; set; } = "/v1/chat/completions";
         public static string LMModel { get; set; } = "google/gemma-3-12b";
 
         #endregion
@@ -251,7 +250,6 @@ namespace PhoenixEngine.EngineManagement
 
                 Writer.Write(LMHost ?? "");
                 Writer.Write(LMPort);
-                Writer.Write(LMQueryParam ?? "");
                 Writer.Write(LMModel ?? "");
 
                 Writer.Write(ThrottleRatio);
@@ -323,7 +321,6 @@ namespace PhoenixEngine.EngineManagement
 
                     LMHost = Reader.ReadString();
                     LMPort = Reader.ReadInt32();
-                    LMQueryParam = Reader.ReadString();
                     LMModel = Reader.ReadString();
 
                     ThrottleRatio = Reader.ReadDouble();

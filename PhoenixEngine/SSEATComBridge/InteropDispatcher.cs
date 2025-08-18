@@ -373,7 +373,6 @@ namespace PhoenixEngine.SSEATComBridge
             // LM Studio
             EngineConfig.LMHost = CurrentConfig.LMHost;
             EngineConfig.LMPort = CurrentConfig.LMPort;
-            EngineConfig.LMQueryParam = CurrentConfig.LMQueryParam;
             EngineConfig.LMModel = CurrentConfig.LMModel;
 
             // Engine Setting
