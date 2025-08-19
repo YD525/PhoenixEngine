@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.DataBaseManagement;
+using PhoenixEngine.RequestManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
 using PhoenixEngine.TranslateManagement;
@@ -43,6 +44,7 @@ namespace PhoenixEngine.EngineManagement
             FontColorFinder.Init();
 
             EngineConfig.Load();
+            ProxyCenter.UsingProxy();
         }
 
         public static void Vacuum()
