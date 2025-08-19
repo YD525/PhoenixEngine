@@ -63,7 +63,7 @@ namespace PhoenixEngine.ConvertManager
 
         public static long ObjToLong(object Item)
         {
-            long Number = 0;
+            long Number = -1;
             if (Item == null == false)
             {
                 long.TryParse(Item.ToString(), out Number);
