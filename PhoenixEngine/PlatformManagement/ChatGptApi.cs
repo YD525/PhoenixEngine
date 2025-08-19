@@ -59,7 +59,7 @@ namespace PhoenixEngine.PlatformManagement
                 Cookie = "",
                 ContentType = "application/json",
                 Timeout = EngineConfig.GlobalRequestTimeOut,
-                ProxyIp = ProxyCenter.GlobalProxyIP
+                WebProxy = ProxyCenter.CurrentProxy
             };
             try
             {

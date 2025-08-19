@@ -10,14 +10,14 @@ namespace PhoenixEngine.PlatformManagement
 {
     public class GoogleTransApi
     {
-        private static readonly HttpClient _httpClient = CreateHttpClient();
+        private static readonly HttpClient _HttpClient = CreateHttpClient();
         private static HttpClient CreateHttpClient()
         {
             try
             {
-                if (ProxyCenter.GlobalProxyIP.Trim().Length > 0)
+                if (ProxyCenter.CurrentProxy!=null)
                 {
-                    var Proxy = new WebProxy(ProxyCenter.GlobalProxyIP, false);
+                    var Proxy = ProxyCenter.CurrentProxy;
 
                     var Handler = new HttpClientHandler
                     {
@@ -34,38 +34,38 @@ namespace PhoenixEngine.PlatformManagement
             }
             catch { return new HttpClient(); }
         }
-        public string Translate(string text, Languages targetLanguage, Languages? sourceLanguage = null)
+        public string Translate(string Text, Languages TargetLanguage, Languages? SourceLanguage = null)
         {
 
             try
             {
-                string targetCode = LanguageHelper.ToLanguageCode(targetLanguage);
-                string sourceCode = sourceLanguage.HasValue ? LanguageHelper.ToLanguageCode(sourceLanguage.Value) : "auto";
+                string TargetLang = LanguageHelper.ToLanguageCode(TargetLanguage);
+                string SourceLang = SourceLanguage.HasValue ? LanguageHelper.ToLanguageCode(SourceLanguage.Value) : "auto";
 
-                string url = $"https://translation.googleapis.com/language/translate/v2" +
+                string Url = $"https://translation.googleapis.com/language/translate/v2" +
                              $"?key={EngineConfig.GoogleApiKey}" +
-                             $"&q={HttpUtility.UrlEncode(text)}" +
-                             $"&target={targetCode}" +
-                             $"&source={sourceCode}";
+                             $"&q={HttpUtility.UrlEncode(Text)}" +
+                             $"&target={TargetLang}" +
+                             $"&source={SourceLang}";
 
-                HttpResponseMessage response = _httpClient.GetAsync(url).Result;
-                response.EnsureSuccessStatusCode();
+                HttpResponseMessage Response = _HttpClient.GetAsync(Url).Result;
+                Response.EnsureSuccessStatusCode();
 
-                string json = response.Content.ReadAsStringAsync().Result;
+                string Json = Response.Content.ReadAsStringAsync().Result;
 
                 if (DelegateHelper.SetLog != null)
                 {
-                    DelegateHelper.SetLog("GoogleApi:" + json,1);
+                    DelegateHelper.SetLog("GoogleApi:" + Json,1);
                 }
 
-                using JsonDocument doc = JsonDocument.Parse(json);
+                using JsonDocument Doc = JsonDocument.Parse(Json);
 
-                if (doc.RootElement.TryGetProperty("data", out JsonElement dataElem) &&
-                    dataElem.TryGetProperty("translations", out JsonElement translationsElem) &&
-                    translationsElem.GetArrayLength() > 0 &&
-                    translationsElem[0].TryGetProperty("translatedText", out JsonElement textElem))
+                if (Doc.RootElement.TryGetProperty("data", out JsonElement DataElem) &&
+                    DataElem.TryGetProperty("translations", out JsonElement TranslationsElem) &&
+                    TranslationsElem.GetArrayLength() > 0 &&
+                    TranslationsElem[0].TryGetProperty("translatedText", out JsonElement TextElem))
                 {
-                    return textElem.GetString() ?? string.Empty;
+                    return TextElem.GetString() ?? string.Empty;
                 }
 
                 return string.Empty;

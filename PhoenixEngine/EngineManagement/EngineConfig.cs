@@ -25,9 +25,13 @@ namespace PhoenixEngine.EngineManagement
         #region RequestConfig
 
         /// <summary>
-        /// Configured proxy IP address for network requests.
+        /// Configured http proxy or local proxy for network requests.
         /// </summary>
-        public static string ProxyIP { get; set; } = "";
+        public static string ProxyUrl { get; set; } = "";
+
+        public static string ProxyUserName { get; set; } = "";
+
+        public static string ProxyPassword { get; set; } = "";
 
         /// <summary>
         /// Global maximum timeout duration (in milliseconds) for network requests.
@@ -219,7 +223,10 @@ namespace PhoenixEngine.EngineManagement
             using (var Ms = new MemoryStream())
             using (var Writer = new BinaryWriter(Ms, Encoding.UTF8, true))
             {
-                Writer.Write(ProxyIP ?? "");
+                Writer.Write(ProxyUrl ?? "");
+                Writer.Write(ProxyUserName ?? "");
+                Writer.Write(ProxyPassword ?? "");
+
                 Writer.Write(GlobalRequestTimeOut);
 
                 Writer.Write(DefPageSize);
@@ -286,7 +293,10 @@ namespace PhoenixEngine.EngineManagement
                 using (var Ms = new MemoryStream(PlainBytes))
                 using (var Reader = new BinaryReader(Ms, Encoding.UTF8, true))
                 {
-                    ProxyIP = Reader.ReadString();
+                    ProxyUrl = Reader.ReadString();
+                    ProxyUserName = Reader.ReadString();
+                    ProxyPassword = Reader.ReadString();
+                    
                     GlobalRequestTimeOut = Reader.ReadInt32();
 
                     DefPageSize = Reader.ReadInt32();

@@ -31,7 +31,9 @@ namespace PhoenixEngine.SSEATComBridge
             /// <summary>
             /// Configured proxy IP address for network requests.
             /// </summary>
-            public string ProxyIP { get; set; } = "";
+            public string ProxyUrl { get; set; } = "";
+            public string ProxyUserName { get; set; } = "";
+            public string ProxyPassword { get; set; } = "";
 
             /// <summary>
             /// Global maximum timeout duration (in milliseconds) for network requests.
@@ -199,7 +201,10 @@ namespace PhoenixEngine.SSEATComBridge
         {
             if (CurrentConfig != null)
             {
-                CurrentConfig.ProxyIP = EngineConfig.ProxyIP;
+                CurrentConfig.ProxyUrl = EngineConfig.ProxyUrl;
+                CurrentConfig.ProxyUserName = EngineConfig.ProxyUserName;
+                CurrentConfig.ProxyPassword = EngineConfig.ProxyPassword;
+
                 CurrentConfig.GlobalRequestTimeOut = EngineConfig.GlobalRequestTimeOut;
 
                 CurrentConfig.PreTranslateEnable = EngineConfig.PreTranslateEnable;

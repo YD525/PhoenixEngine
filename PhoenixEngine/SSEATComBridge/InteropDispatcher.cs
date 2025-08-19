@@ -341,7 +341,10 @@ namespace PhoenixEngine.SSEATComBridge
             }
 
             // RequestConfig
-            EngineConfig.ProxyIP = CurrentConfig.ProxyIP;
+            EngineConfig.ProxyUrl = CurrentConfig.ProxyUrl;
+            EngineConfig.ProxyUserName = CurrentConfig.ProxyUserName;
+            EngineConfig.ProxyPassword = CurrentConfig.ProxyPassword;
+
             EngineConfig.GlobalRequestTimeOut = CurrentConfig.GlobalRequestTimeOut;
 
             EngineConfig.PreTranslateEnable = CurrentConfig.PreTranslateEnable;

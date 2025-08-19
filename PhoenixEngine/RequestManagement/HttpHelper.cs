@@ -315,34 +315,13 @@ namespace PhoenixEngine.RequestManagement
         /// <param name="Item"></param>  
         private void SetProxy(HttpItem Item)
         {
-            bool IsIeProxy = false;
-            if (!string.IsNullOrWhiteSpace(Item.ProxyIp))
+            if (Item.WebProxy != null)
             {
-                IsIeProxy = Item.ProxyIp.ToLower().Contains("ieproxy");
-            }
-            if (!string.IsNullOrWhiteSpace(Item.ProxyIp) && !IsIeProxy)
-            { 
-                if (Item.ProxyIp.Contains(":"))
-                {
-                    string[] ProxyList = Item.ProxyIp.Split(':');
-                    WebProxy MyProxy = new WebProxy(ProxyList[0].Trim(), Convert.ToInt32(ProxyList[1].Trim()));
-                    MyProxy.Credentials = new NetworkCredential(Item.ProxyUserName, Item.ProxyPwd);
-                    Request.Proxy = MyProxy;
-                }
-                else
-                {
-                    WebProxy MyProxy = new WebProxy(Item.ProxyIp, false);
-                    MyProxy.Credentials = new NetworkCredential(Item.ProxyUserName, Item.ProxyPwd);  
-                    Request.Proxy = MyProxy;
-                }
-            }
-            else if (IsIeProxy)
-            {
-                 
+                Request.Proxy = Item.WebProxy;
             }
             else
             {
-                Request.Proxy = Item.WebProxy;
+                Request.Proxy = null;
             }
         }
 
@@ -477,7 +456,6 @@ namespace PhoenixEngine.RequestManagement
 
         public string CerPath { get; set; }
 
-        public WebProxy WebProxy { get; set; }
         private bool isToLower = false;
 
         public bool IsToLower
@@ -502,11 +480,8 @@ namespace PhoenixEngine.RequestManagement
             set { connectionlimit = value; }
         }
 
-        public string ProxyUserName { get; set; }
+        public IWebProxy WebProxy { get; set; } = null;
 
-        public string ProxyPwd { get; set; }
- 
-        public string ProxyIp { get; set; }
         private ResultType resulttype = ResultType.String;
 
         public ResultType ResultType
