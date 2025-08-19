@@ -1,8 +1,10 @@
 ﻿
+using System.Net.Http;
 using Cohere;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.DelegateManagement;
 using PhoenixEngine.EngineManagement;
+using PhoenixEngine.RequestManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
 using static PhoenixEngine.TranslateManage.TransCore;
@@ -11,25 +13,36 @@ namespace PhoenixEngine.PlatformManagement
 {
     public class CohereHelper
     {
-        private readonly CohereClient _client;
+        private readonly CohereClient _Client;
 
-        public CohereHelper(string apiKey)
+        public CohereHelper(string ApiKey)
         {
-            _client = new CohereClient(apiKey);
+            var Handler = new HttpClientHandler
+            {
+                Proxy = ProxyCenter.CurrentProxy,
+                UseProxy = ProxyCenter.CurrentProxy != null,
+            };
+
+            var HttpClient = new HttpClient(Handler, true)
+            {
+                Timeout = TimeSpan.FromMilliseconds(EngineConfig.GlobalRequestTimeOut)
+            };
+
+            _Client = new CohereClient(ApiKey,HttpClient);
         }
 
         public string GenerateText(string prompt)
         {
-            var request = new GenerateRequest
+            var Request = new GenerateRequest
             {
                 Prompt = prompt
             };
 
-            var response = _client.GenerateAsync(request).GetAwaiter().GetResult();
+            var Response = _Client.GenerateAsync(Request).GetAwaiter().GetResult();
 
-            if (response?.Generations != null && response.Generations.Count > 0)
+            if (Response?.Generations != null && Response.Generations.Count > 0)
             {
-                return response.Generations[0].Text;
+                return Response.Generations[0].Text;
             }
             return string.Empty;
         }
