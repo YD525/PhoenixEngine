@@ -113,7 +113,9 @@ namespace PhoenixEngine.PlatformManagement
             }
 
             GetTransSource += $"\"\"\"\n{TransSource}\n\"\"\"\n\n";
-            GetTransSource += "Respond in JSON format: {\"translation\": \"<translated_text>\"}";
+
+            GetTransSource += "Respond strictly with: {\"translation\": \"....\"}\n";
+            GetTransSource += "The value must contain only translated text.\n";
 
             if (GetTransSource.EndsWith("\n"))
             {

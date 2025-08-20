@@ -96,6 +96,7 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
             }
 
             GetTransSource += $"\"\"\"\n{TransSource}\n\"\"\"\n\n";
+
             GetTransSource += "Respond strictly with: {\"translation\": \"....\"}\n";
             GetTransSource += "The value must contain only translated text.\n";
 
