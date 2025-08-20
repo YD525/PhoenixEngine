@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Linq;
+using System.Net;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -88,7 +89,7 @@ namespace PhoenixEngine.EngineManagement
 
         public static void ChangeModName(string SetModName)
         {
-            ModName = SetModName;
+            ModName = WebUtility.HtmlEncode(SetModName);
             GetTranslatedCount(ModName);
         }
 
