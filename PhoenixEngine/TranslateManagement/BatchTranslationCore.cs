@@ -532,7 +532,15 @@ namespace PhoenixEngine.TranslateManage
                                         }
                                     }
 
-                                    if (SucessCount == UnitsToTranslate.Count)
+                                    for (int i = 0; i < UnitsLeaderToTranslate.Count; i++)
+                                    {
+                                        if (UnitsLeaderToTranslate[i].WorkEnd == 2)
+                                        {
+                                            SucessCount++;
+                                        }
+                                    }
+
+                                    if (SucessCount == (UnitsToTranslate.Count + UnitsLeaderToTranslate.Count))
                                     {
                                         if (SameItems != null)
                                         {
@@ -653,7 +661,7 @@ namespace PhoenixEngine.TranslateManage
             {
                 if (UnitsTranslated.Count == 0)
                 {
-                    if (this.WorkState == 3)
+                    if (this.WorkState == 3 && GetWorkCount() == 0)
                     {
                         IsEnd = true;
                         return null;
