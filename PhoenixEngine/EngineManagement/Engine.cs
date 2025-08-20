@@ -17,6 +17,7 @@ namespace PhoenixEngine.EngineManagement
 {
     public class Engine
     {
+        public static string Version = "1.0.0";
         public static string CurrentPath = "";
         /// <summary>
         /// Instance of the local SQLite database helper.
