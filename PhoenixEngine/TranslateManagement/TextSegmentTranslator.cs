@@ -140,8 +140,10 @@ namespace PhoenixEngine.TranslateManagement
                             catch { return; }
 
                             bool CanSleep = false;
+                            bool CanAddCache = true;
+
                             LineID++;
-                            var GetTransLine = Translator.QuickTrans(this.ModName, "Book", Key + LineID.ToString(), GetSourceLine, SourceLanguage, TargetLanguage, ref CanSleep, true);
+                            var GetTransLine = Translator.QuickTrans(this.ModName, "Book", Key + LineID.ToString(), GetSourceLine, SourceLanguage, TargetLanguage, ref CanSleep,ref CanAddCache, true);
 
                             if (GetTransLine.Trim().Length > 0)
                             {

@@ -86,7 +86,7 @@ namespace PhoenixEngine.TranslateManage
             return Content;
         }
 
-        public static string QuickTrans(string ModName,string Type, string Key,string Content,Languages From, Languages To, ref bool CanSleep, bool IsBook = false)
+        public static string QuickTrans(string ModName,string Type, string Key,string Content,Languages From, Languages To, ref bool CanSleep, ref bool CanAddCache, bool IsBook = false)
         {
             string GetSourceStr = Content;
 
@@ -120,7 +120,6 @@ namespace PhoenixEngine.TranslateManage
                 return GetSourceStr;
             }
 
-            bool CanAddCache = true;
             Content = CurrentTransCore.TransAny(ModName,Type, Key,SourceLanguage, To, Content, IsBook, ref CanAddCache, ref CanSleep);
 
             TranslationPreprocessor.NormalizePunctuation(ref Content);

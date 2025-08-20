@@ -89,7 +89,8 @@ namespace PhoenixEngine.TranslateManage
                         if (WorkEnd != 2)
                         {
                             bool CanSleep = true;
-                            var GetResult = Translator.QuickTrans(this.ModName, this.Type, this.Key, this.SourceText, Source.From, Source.To, ref CanSleep);
+                            bool CanAddCache = true;
+                            var GetResult = Translator.QuickTrans(this.ModName, this.Type, this.Key, this.SourceText, Source.From, Source.To, ref CanSleep,ref CanAddCache);
                             if (GetResult.Trim().Length > 0)
                             {
                                 TransText = GetResult.Trim();
