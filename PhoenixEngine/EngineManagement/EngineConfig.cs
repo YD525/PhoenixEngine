@@ -92,7 +92,7 @@ namespace PhoenixEngine.EngineManagement
         /// <summary>
         /// Model name for ChatGPT (e.g., gpt-4o-mini).
         /// </summary>
-        public static string ChatGptModel { get; set; } = "GPT-5 nano";
+        public static string ChatGptModel { get; set; } = "gpt-4.1-nano";
 
         /// <summary>
         /// Google Gemini API key.

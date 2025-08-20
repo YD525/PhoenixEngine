@@ -42,9 +42,34 @@ namespace PhoenixEngine.PlatformManagement
             var GetResult = CallAI(NChatGptItem);
             return GetResult;
         }
+        public void GetModes()
+        {
+            WebHeaderCollection Headers = new WebHeaderCollection();
+            Headers.Add("Authorization", string.Format("Bearer {0}", EngineConfig.ChatGptKey));
+            HttpItem Http = new HttpItem()
+            {
+                URL = "https://api.openai.com/v1/models",
+                UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
+                Method = "Get",
+                Header = Headers,
+                Accept = "*/*",
+                Postdata = "",
+                Cookie = "",
+                ContentType = "application/json",
+                Timeout = EngineConfig.GlobalRequestTimeOut,
+                WebProxy = ProxyCenter.CurrentProxy
+            };
+            try
+            {
+                Http.Header.Add("Accept-Encoding", " gzip");
+            }
+            catch { }
 
+            string GetResult = new HttpHelper().GetHtml(Http).Html;
+        }
         public ChatGptRootobject? CallAI(ChatGptItem Item)
         {
+            //GetModes();
             string GetJson = JsonSerializer.Serialize(Item);
             WebHeaderCollection Headers = new WebHeaderCollection();
             Headers.Add("Authorization", string.Format("Bearer {0}", EngineConfig.ChatGptKey));
