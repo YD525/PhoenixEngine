@@ -15,7 +15,6 @@ namespace PhoenixEngine.SSEATComBridge
     {
         public Thread ?CurrentThread = null;
         public TextSegmentTranslator Translator = null;
-        public CancellationToken EndCall;
     }
     public class BridgeHelper
     {

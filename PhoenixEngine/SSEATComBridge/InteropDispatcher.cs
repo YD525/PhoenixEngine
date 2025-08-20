@@ -504,16 +504,15 @@ namespace PhoenixEngine.SSEATComBridge
             if (Item != null)
             {
                 TextSegmentTranslator NTextSegmentTranslator = new TextSegmentTranslator();
-                CancellationToken CreatEndCall = new CancellationToken();
+                
                 Thread CreatTrd = new Thread(() => 
                 { 
-                    NTextSegmentTranslator.TransBook(Item.Key,Item.Source, CreatEndCall);
+                    NTextSegmentTranslator.TransBook(Item.Key,Item.Source);
                 });
 
                 BookTransingItem NBookTransingItem = new BookTransingItem();
                 NBookTransingItem.Translator = NTextSegmentTranslator;
                 NBookTransingItem.CurrentThread = CreatTrd;
-                NBookTransingItem.EndCall = CreatEndCall;
 
                 BridgeHelper.BookTransTrds.Add(NBookTransingItem);
 
@@ -550,12 +549,15 @@ namespace PhoenixEngine.SSEATComBridge
                 {
                     if (BookTransTrds[i] != null && BookTransTrds[i].CurrentThread != null)
                     {
-                        if (BookTransTrds[i].CurrentThread.ManagedThreadId.Equals(Item.ThreadID))
+                        if (BookTransTrds[i].CurrentThread != null)
                         {
-                            BookTransTrds[i].EndCall.ThrowIfCancellationRequested();
+                            if (BookTransTrds[i].CurrentThread.ManagedThreadId.Equals(Item.ThreadID))
+                            {
+                                BookTransTrds[i].Translator.Cancel();
 
-                            BookTransTrds.RemoveAt(i);
-                            return true;
+                                BookTransTrds.RemoveAt(i);
+                                return true;
+                            }
                         }
                     }
                 }

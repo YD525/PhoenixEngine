@@ -27,11 +27,15 @@ namespace PhoenixEngine.DelegateManagement
 
         public delegate void SetUsage(PlatformType Type, int Count);
 
+        #endregion
+
         public static NodeCallCallback? SetNodeCallCallback = null;
 
-        public delegate void NodeCallCallback(string Node,bool ?Active);
+        public delegate void NodeCallCallback(string Node, bool? Active);
 
-        #endregion
+        public static BookTranslateCallback SetBookTranslateCallback = null;
+
+        public delegate void BookTranslateCallback(string Key,string CurrentText);
 
     }
 }

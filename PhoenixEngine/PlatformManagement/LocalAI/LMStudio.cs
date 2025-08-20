@@ -6,6 +6,8 @@ using PhoenixEngine.EngineManagement;
 using PhoenixEngine.RequestManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
+using static System.Net.Mime.MediaTypeNames;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 using static PhoenixEngine.PlatformManagement.LocalAI.LocalAIJson;
 using static PhoenixEngine.TranslateManage.TransCore;
 
@@ -94,7 +96,8 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
             }
 
             GetTransSource += $"\"\"\"\n{TransSource}\n\"\"\"\n\n";
-            GetTransSource += "Respond in JSON format: {\"translation\": \"<translated_text>\"}";
+            GetTransSource += "Respond strictly with: {\"translation\": \"....\"}\n";
+            GetTransSource += "The value must contain only translated text.\n";
 
             if (GetTransSource.EndsWith("\n"))
             {

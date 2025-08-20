@@ -106,7 +106,7 @@ namespace PhoenixEngine.TranslateManage
         public static object SwitchLocker = new object();
 
 
-        public static string AIParam = "Important: When translating, strictly keep any text inside angle brackets (< >) or square brackets ([ ]) unchanged. Do not modify, translate, or remove them.\n\n";
+        public static string AIParam = "";
         /// <summary>
         /// Multithreaded translation entry
         /// </summary>

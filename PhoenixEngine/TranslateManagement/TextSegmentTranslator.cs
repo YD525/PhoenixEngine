@@ -5,6 +5,7 @@ using System.Reflection.Emit;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using PhoenixEngine.DelegateManagement;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
@@ -26,7 +27,6 @@ namespace PhoenixEngine.TranslateManagement
         public string ModName = "";
         public string Key = "";
         public string Source = "";
-        public List<string> TransLines = new List<string>();
         public int TransCount = 0;
         public int CurrentTransCount = 0;
         public string CurrentText = "";
@@ -42,45 +42,47 @@ namespace PhoenixEngine.TranslateManagement
         {
             return Regex.Replace(input, "<.*?>", string.Empty);
         }
+
         public List<Segment> Load(string Input)
         {
             List<Segment> Segments = new List<Segment>();
 
             var Matches = Regex.Matches(Input,
-                @"(\[[^\]]+\])\s*([\s\S]*?)(?=(\[[^\]]+\])|<[^<>]+>|$)" +
-                @"|<([a-zA-Z0-9]+(?:\s[^<>]*?)?)>([\s\S]*?)</\4>" +
-                @"|^([\s\S]+?)(?=(\[[^\]]+\])|<[^<>]+>|$)",
-                RegexOptions.Compiled);
+                @"(\[[^\]]+\])" +                             
+                @"|(<[a-zA-Z0-9]+(?:\s[^<>]*?)?>.*?</[a-zA-Z0-9]+>)" +  
+                @"|(<[a-zA-Z0-9]+(?:\s[^<>]*/?)>)" +          
+                @"|([^<\[\r\n][^<\[]*)",                      
+                RegexOptions.Singleline | RegexOptions.Compiled);
 
-            foreach (Match Match in Matches)
+            foreach (Match m in Matches)
             {
                 string Tag = "";
                 string Content = "";
 
-                if (!string.IsNullOrEmpty(Match.Groups[1].Value))
+                if (m.Groups[1].Success) // [pagebreak]
                 {
-                    Tag = Match.Groups[1].Value.Trim();
-                    Content = Match.Groups[2].Value.Trim();
+                    Tag = m.Groups[1].Value;
+                    Content = "";
                 }
-                else if (!string.IsNullOrEmpty(Match.Groups[4].Value))
+                else if (m.Groups[2].Success) // 成对标签
                 {
-                    string tagFull = Match.Groups[4].Value.Trim();
-                    string inner = Match.Groups[5].Value;
-                    string tagName = tagFull.Split(' ')[0];
-                    string openTag = $"<{tagFull}>";
-                    string closeTag = $"</{tagName}>";
-
-                    Tag = openTag;
-                    Content = (openTag + inner + closeTag).Trim();
+                    string fullTag = m.Groups[2].Value;
+                    string tagName = Regex.Match(fullTag, @"<([a-zA-Z0-9]+)").Groups[1].Value;
+                    Tag = $"<{tagName}>";
+                    Content = fullTag;
                 }
-                else if (!string.IsNullOrEmpty(Match.Groups[6].Value))
+                else if (m.Groups[3].Success) // 自闭合标签
+                {
+                    Tag = m.Groups[3].Value;
+                    Content = Tag;
+                }
+                else if (m.Groups[4].Success) // 普通文本
                 {
                     Tag = "";
-                    Content = Match.Groups[6].Value.Trim();
+                    Content = m.Groups[4].Value.Trim();
                 }
 
                 string TextOnly = StripHtmlTags(Content).Trim();
-
                 Segments.Add(new Segment
                 {
                     Tag = Tag,
@@ -95,10 +97,21 @@ namespace PhoenixEngine.TranslateManagement
         public void ApplyAllLine(string Source)
         {
             this.CurrentText = Source;
+
+            if (DelegateHelper.SetBookTranslateCallback != null)
+            {
+                DelegateHelper.SetBookTranslateCallback(this.Key, this.CurrentText);
+            }
         }
+
+        private CancellationTokenSource CancelToken = new CancellationTokenSource();
+
         List<Segment> Content = new List<Segment>();
-        public void TransBook(string Key, string Source, CancellationToken Token)
+        public void TransBook(string Key, string Source)
         {
+            CancelToken = new CancellationTokenSource();
+            var Token = CancelToken.Token;
+
             this.ModName = Engine.GetModName();
 
             Languages SourceLanguage = Engine.From;
@@ -132,7 +145,7 @@ namespace PhoenixEngine.TranslateManagement
                     {
                         if (GetSourceLine.Trim().Length > 0)
                         {
-                        NextCall:
+                            NextCall:
                             try
                             {
                                 Token.ThrowIfCancellationRequested();
@@ -149,10 +162,23 @@ namespace PhoenixEngine.TranslateManagement
                             {
                                 Source = ReplaceFirst(Source, GetSourceLine, GetTransLine);
                                 CurrentTransCount++;
+
+                                try
+                                {
+                                    Token.ThrowIfCancellationRequested();
+                                }
+                                catch { return; }
+
                                 ApplyAllLine(Source);
                             }
                             else
                             {
+                                try
+                                {
+                                    Token.ThrowIfCancellationRequested();
+                                }
+                                catch { return; }
+
                                 goto NextCall;
                             }
                         }
@@ -162,11 +188,15 @@ namespace PhoenixEngine.TranslateManagement
             IsEnd = true;
         }
 
-        public static string ReplaceFirst(string text, string search, string replace)
+        public void Cancel()
         {
-            int pos = text.IndexOf(search);
-            if (pos < 0) return text;
-            return text.Substring(0, pos) + replace + text.Substring(pos + search.Length);
+            CancelToken.Cancel();
+        }
+        public static string ReplaceFirst(string Text, string Search, string Replace)
+        {
+            int Position = Text.IndexOf(Search);
+            if (Position < 0) return Text;
+            return Text.Substring(0, Position) + Replace + Text.Substring(Position + Search.Length);
         }
 
     }
