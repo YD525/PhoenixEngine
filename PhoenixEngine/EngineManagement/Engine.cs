@@ -157,7 +157,7 @@ FROM (
         {
             if (TranslationCore != null)
             {
-                return TranslationCore.CurrentTrdCount;
+                return TranslationCore.ThreadUsage.CurrentThreads;
             }
 
             return 0;

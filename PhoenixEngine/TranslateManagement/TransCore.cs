@@ -32,7 +32,7 @@ namespace PhoenixEngine.TranslateManage
         }
 
         private static readonly object _EngineLock = new object();
-        public static void RemoveEngine<T>() 
+        public static void RemoveEngine<T>()
         {
             lock (_EngineLock)
             {
@@ -91,7 +91,7 @@ namespace PhoenixEngine.TranslateManage
                 //LocalAI(LM) support
                 if (EngineConfig.LMLocalAIEnable)
                 {
-                    EngineSelects.Add(new EngineSelect(new LMStudio(), 1,0));
+                    EngineSelects.Add(new EngineSelect(new LMStudio(), 1, 0));
                 }
 
                 // DeepL support
@@ -114,7 +114,7 @@ namespace PhoenixEngine.TranslateManage
         /// <param name="Target"></param>
         /// <param name="SourceStr"></param>
         /// <returns></returns>
-        public string TransAny(string ModName,string Type, string Key, Languages Source, Languages Target, string SourceStr, bool IsBook, ref bool CanAddCache, ref bool CanSleep)
+        public string TransAny(string ModName, string Type, string Key, Languages Source, Languages Target, string SourceStr, bool IsBook, ref bool CanAddCache, ref bool CanSleep)
         {
             if (SourceStr == "")
             {
@@ -125,7 +125,7 @@ namespace PhoenixEngine.TranslateManage
                 return SourceStr;
             }
 
-            string GetCacheStr = CloudDBCache.FindCache(ModName,Key, Target);
+            string GetCacheStr = CloudDBCache.FindCache(ModName, Key, Target);
 
             if (GetCacheStr.Trim().Length > 0)
             {
@@ -133,7 +133,7 @@ namespace PhoenixEngine.TranslateManage
                 {
                     Translator.SendTranslateMsg("Cache From Database", SourceStr, GetCacheStr);
                 }
-                
+
                 CanSleep = false;
                 return GetCacheStr;
             }
@@ -144,17 +144,23 @@ namespace PhoenixEngine.TranslateManage
             {
                 lock (SwitchLocker)
                 {
-                    for (int i = 0; i < TransCore.EngineSelects.Count; i++)
+                    try
                     {
-                        if (TransCore.EngineSelects[i].CallCountDown > 0)
+                        for (int i = 0; i < TransCore.EngineSelects.Count; i++)
                         {
-                            TransCore.EngineSelects[i].CallCountDown--;
+                            if (TransCore.EngineSelects[i].CallCountDown > 0)
+                            {
+                                TransCore.EngineSelects[i].CallCountDown--;
 
-                            CurrentEngine = TransCore.EngineSelects[i];
+                                CurrentEngine = TransCore.EngineSelects[i];
 
-                            SortByCallCountDescending();
+                                SortByCallCountDescending();
+
+                                break;
+                            }
                         }
                     }
+                    catch { }
                 }
 
                 if (CurrentEngine != null)
@@ -162,11 +168,11 @@ namespace PhoenixEngine.TranslateManage
                     string GetTrans = "";
                     if (!IsBook)
                     {
-                        GetTrans = CurrentEngine.Call(ModName,Type, Source, Target, SourceStr, true, EngineConfig.ContextLimit, string.Empty, ref CanAddCache);
+                        GetTrans = CurrentEngine.Call(ModName, Type, Source, Target, SourceStr, true, EngineConfig.ContextLimit, string.Empty, ref CanAddCache);
                     }
                     else
                     {
-                        GetTrans = CurrentEngine.Call(ModName,Type, Source, Target, SourceStr, false, 1, AIParam, ref CanAddCache);
+                        GetTrans = CurrentEngine.Call(ModName, Type, Source, Target, SourceStr, false, 1, AIParam, ref CanAddCache);
                     }
 
                     if (CanSleep)
@@ -218,7 +224,7 @@ namespace PhoenixEngine.TranslateManage
                 }
             }
 
-            public string Call(string ModName,string Type, Languages From, Languages To, string SourceStr, bool UseAIMemory, int AIMemoryCountLimit, string Param, ref bool CanAddCache)
+            public string Call(string ModName, string Type, Languages From, Languages To, string SourceStr, bool UseAIMemory, int AIMemoryCountLimit, string Param, ref bool CanAddCache)
             {
                 TranslationPreprocessor NTranslationPreprocessor = new TranslationPreprocessor();
 
@@ -240,7 +246,7 @@ namespace PhoenixEngine.TranslateManage
                             }
 
                             string GetDefSource = GetSource;
-                            GetSource = NTranslationPreprocessor.GeneratePlaceholderText(ModName,From, To, GetSource, Type, out CanTrans);
+                            GetSource = NTranslationPreprocessor.GeneratePlaceholderText(ModName, From, To, GetSource, Type, out CanTrans);
 
                             if (DelegateHelper.SetOutputCall != null)
                             {
@@ -255,8 +261,8 @@ namespace PhoenixEngine.TranslateManage
                             Translator.SendTranslateMsg("Local Engine(SSELex)", GetDefSource, GetSource);
                         }
                         else
-                        { 
-                           CanTrans = true;
+                        {
+                            CanTrans = true;
                         }
 
                         if (CanTrans)
@@ -278,7 +284,7 @@ namespace PhoenixEngine.TranslateManage
                                     {
                                         Translator.SendTranslateMsg("Cloud Translation(GoogleApi)", GetSource, TransText);
                                     }
-                                        
+
                                     CurrentPlatform = PlatformType.GoogleApi;
 
                                     CanAddCache = false;
@@ -322,7 +328,7 @@ namespace PhoenixEngine.TranslateManage
                                     {
                                         Translator.SendTranslateMsg("Cloud Translation(DeepL)", GetSource, TransText);
                                     }
-                                        
+
                                     CurrentPlatform = PlatformType.DeepL;
 
                                     if (GetData.Trim().Length == 0)
@@ -367,7 +373,7 @@ namespace PhoenixEngine.TranslateManage
                                 DelegateHelper.SetNodeCallCallback("PreTranslate", null);
                             }
 
-                            CustomWords = NTranslationPreprocessor.GeneratePlaceholderTextByAI(ModName,From, To, GetSource, Type, out CanTrans);
+                            CustomWords = NTranslationPreprocessor.GeneratePlaceholderTextByAI(ModName, From, To, GetSource, Type, out CanTrans);
 
                             string GenParam = "";
 
@@ -419,7 +425,7 @@ namespace PhoenixEngine.TranslateManage
                                     {
                                         Translator.SendTranslateMsg("LocalAI(LM)", GetSource, TransText);
                                     }
-                                    
+
                                     CurrentPlatform = PlatformType.LMLocalAI;
 
                                     if (GetData.Trim().Length == 0)
@@ -463,7 +469,7 @@ namespace PhoenixEngine.TranslateManage
                                     if (Translator.SendTranslateMsg != null)
                                     {
                                         Translator.SendTranslateMsg("AI(CohereApi)", GetSource, TransText);
-                                    }  
+                                    }
 
                                     CurrentPlatform = PlatformType.Cohere;
 
@@ -554,7 +560,7 @@ namespace PhoenixEngine.TranslateManage
                                     {
                                         Translator.SendTranslateMsg("AI(GeminiApi)", GetSource, TransText);
                                     }
-                                        
+
                                     CurrentPlatform = PlatformType.Gemini;
 
                                     if (GetData.Trim().Length == 0)
@@ -599,7 +605,7 @@ namespace PhoenixEngine.TranslateManage
                                     {
                                         Translator.SendTranslateMsg("AI(DeepSeek)", GetSource, TransText);
                                     }
-                                        
+
                                     CurrentPlatform = PlatformType.DeepSeek;
 
                                     if (GetData.Trim().Length == 0)
@@ -644,7 +650,7 @@ namespace PhoenixEngine.TranslateManage
                                     {
                                         Translator.SendTranslateMsg("AI(Baichuan)", GetSource, TransText);
                                     }
-                                        
+
                                     CurrentPlatform = PlatformType.Baichuan;
 
                                     if (GetData.Trim().Length == 0)

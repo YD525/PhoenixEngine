@@ -28,7 +28,7 @@ namespace PhoenixEngine.DataBaseManagement
                 string str2 = "true";
                 if (str2 == "true")
                 {
-                    text = "Data Source=" + SqlPath + ";Pooling=true;FailIfMissing=false";
+                    text = "Data Source=" + SqlPath + ";Pooling=true;FailIfMissing=false;Journal Mode=WAL;Cache=Shared";
                 }
                 return text;
             }
@@ -39,23 +39,49 @@ namespace PhoenixEngine.DataBaseManagement
             return ExecuteDataTable(Sql);
         }
 
+        public object ExecuteDataTableLocker = new object();
         public DataTable ExecuteDataTable(string sql)
         {
-            SQLiteConnection conn = new SQLiteConnection(ConnectionString);
-
-            if (conn.State != System.Data.ConnectionState.Open)
+            lock (ExecuteDataTableLocker)
             {
-                conn.Open();
-                SQLiteCommand cmd = new SQLiteCommand(sql, conn);
-                cmd.CommandType = CommandType.Text;
-                SQLiteDataReader dbReader = cmd.ExecuteReader();
-                DataTable sqlcommand = new DataTable();
-                sqlcommand.Load(dbReader);
-                conn.Close();
-                return sqlcommand;
+                // Create a new DataTable
+                DataTable dt = new DataTable();
+
+                // Use 'using' to ensure proper disposal of resources
+                using (SQLiteConnection conn = new SQLiteConnection(ConnectionString))
+                {
+                    conn.Open();
+
+                    using (SQLiteCommand cmd = new SQLiteCommand(sql, conn))
+                    {
+                        cmd.CommandType = CommandType.Text;
+
+                        using (SQLiteDataReader reader = cmd.ExecuteReader())
+                        {
+                            // Manually create columns as object type to avoid type casting issues
+                            for (int i = 0; i < reader.FieldCount; i++)
+                            {
+                                dt.Columns.Add(reader.GetName(i), typeof(object));
+                            }
+
+                            // Read rows safely
+                            while (reader.Read())
+                            {
+                                DataRow row = dt.NewRow();
+                                for (int i = 0; i < reader.FieldCount; i++)
+                                {
+                                    row[i] = reader.IsDBNull(i) ? null : reader.GetValue(i);
+                                }
+                                dt.Rows.Add(row);
+                            }
+                        }
+                    }
+                }
+
+                return dt;
             }
-            else { return null; }
         }
+
         private SQLiteConnection _Conn = null;
 
         public SQLiteConnection Conn
@@ -215,19 +241,28 @@ namespace PhoenixEngine.DataBaseManagement
 
         #region ExecuteNonQuery(commandText,paramList)
 
-        public int ExecuteNonQuery(string commandText, params object[] paramList)
+        public object ExecuteNonQueryLocker = new object();
+        public int ExecuteNonQuery(string commandText, params SQLiteParameter[] parameters)
         {
+            lock (ExecuteNonQueryLocker)
+            {
+                using (var conn = new SQLiteConnection(ConnectionString))
+                {
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = commandText;
 
-            SQLiteCommand cmd = Conn.CreateCommand();
-            cmd.CommandText = commandText;
-            AttachParameters(cmd, commandText, paramList);
-            if (Conn.State == ConnectionState.Closed)
-                Conn.Open();
-            int result = cmd.ExecuteNonQuery();
-            cmd.Dispose();
-            Conn.Close();
-            return result;
+                        if (parameters != null)
+                            cmd.Parameters.AddRange(parameters);
+
+                        conn.Open();
+                        int result = cmd.ExecuteNonQuery();
+                        return result;
+                    }
+                }
+            }
         }
+
         #endregion
 
         #region ExecuteNonQuery(SQLiteTransaction,commandText,paramList)
@@ -264,19 +299,21 @@ namespace PhoenixEngine.DataBaseManagement
 
         #region ExecuteScalar(commandText,paramList)
 
-        public object ExecuteScalar(string commandText, params object[] paramList)
+        public object ExecuteScalar(string commandText, params SQLiteParameter[] parameters)
         {
-            SQLiteConnection cn = new SQLiteConnection(ConnectionString);
-            SQLiteCommand cmd = cn.CreateCommand();
-            cmd.CommandText = commandText;
-            AttachParameters(cmd, commandText, paramList);
-            if (cn.State == ConnectionState.Closed)
+            using (var cn = new SQLiteConnection(ConnectionString))
+            using (var cmd = cn.CreateCommand())
+            {
+                cmd.CommandText = commandText;
+
+                if (parameters != null)
+                    cmd.Parameters.AddRange(parameters);
+
                 cn.Open();
-            object result = cmd.ExecuteScalar();
-            cmd.Dispose();
-            cn.Close();
-            return result;
+                return cmd.ExecuteScalar();
+            }
         }
+
         #endregion
 
         #region ExecuteXmlReader(IDbCommand)

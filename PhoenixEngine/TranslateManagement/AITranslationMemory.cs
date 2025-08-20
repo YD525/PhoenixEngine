@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Runtime.InteropServices.ObjectiveC;
+using System.Text;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManagement;
 
@@ -49,27 +50,31 @@ namespace PhoenixEngine.TranslateManage
             _WordIndex.Clear();
         }
 
+        private object AddTranslationLocker = new object();
         /// <summary>
         /// Add translation and create index (filter out long text)
         /// </summary>
         public void AddTranslation(Languages SourceLang, string Original, string Translated)
         {
-            int ByteSize = Encoding.UTF8.GetByteCount(Original);
-            if (ByteSize > MAX_BYTE_COUNT)
-                return;
-
-            if (!_TranslationDictionary.ContainsKey(Original))
+            lock (AddTranslationLocker)
             {
-                _TranslationDictionary[Original] = Translated;
+                int ByteSize = Encoding.UTF8.GetByteCount(Original);
+                if (ByteSize > MAX_BYTE_COUNT)
+                    return;
 
-                string[] Tokens = Tokenize(SourceLang, Original);
-                foreach (string Word in Tokens)
+                if (!_TranslationDictionary.ContainsKey(Original))
                 {
-                    string Key = Word.ToLower();
-                    if (!_WordIndex.ContainsKey(Key))
-                        _WordIndex[Key] = new HashSet<string>();
+                    _TranslationDictionary[Original] = Translated;
 
-                    _WordIndex[Key].Add(Original);
+                    string[] Tokens = Tokenize(SourceLang, Original);
+                    foreach (string Word in Tokens)
+                    {
+                        string Key = Word.ToLower();
+                        if (!_WordIndex.ContainsKey(Key))
+                            _WordIndex[Key] = new HashSet<string>();
+
+                        _WordIndex[Key].Add(Original);
+                    }
                 }
             }
         }
@@ -79,44 +84,47 @@ namespace PhoenixEngine.TranslateManage
         /// </summary>
         public List<string> FindRelevantTranslations(Languages SourceLang, string Query, int MaxResults = 3)
         {
-            string[] Words = Tokenize(SourceLang, Query);
-            Dictionary<string, int> RelevanceMap = new Dictionary<string, int>();
-            HashSet<string> CandidateSentences = new HashSet<string>();
-
-            foreach (string Word in Words)
+            lock (AddTranslationLocker)
             {
-                string Key = Word.ToLower();
-                if (_WordIndex.ContainsKey(Key))
-                {
-                    foreach (var Sentence in _WordIndex[Key])
-                    {
-                        CandidateSentences.Add(Sentence);
-                    }
-                }
-            }
+                string[] Words = Tokenize(SourceLang, Query);
+                Dictionary<string, int> RelevanceMap = new Dictionary<string, int>();
+                HashSet<string> CandidateSentences = new HashSet<string>();
 
-            foreach (var Sentence in CandidateSentences)
-            {
-                int MatchCount = 0;
                 foreach (string Word in Words)
                 {
                     string Key = Word.ToLower();
-                    if (_WordIndex.TryGetValue(Key, out var SentencesForWord))
+                    if (_WordIndex.ContainsKey(Key))
                     {
-                        if (SentencesForWord.Contains(Sentence))
-                            MatchCount++;
+                        foreach (var Sentence in _WordIndex[Key])
+                        {
+                            CandidateSentences.Add(Sentence);
+                        }
                     }
                 }
-                if (MatchCount > 0)
-                {
-                    RelevanceMap[Sentence] = MatchCount;
-                }
-            }
 
-            return RelevanceMap.OrderByDescending(kvp => kvp.Value)
-                               .Take(MaxResults)
-                               .Select(kvp => $"{kvp.Key} -> {_TranslationDictionary[kvp.Key]}")
-                               .ToList();
+                foreach (var Sentence in CandidateSentences)
+                {
+                    int MatchCount = 0;
+                    foreach (string Word in Words)
+                    {
+                        string Key = Word.ToLower();
+                        if (_WordIndex.TryGetValue(Key, out var SentencesForWord))
+                        {
+                            if (SentencesForWord.Contains(Sentence))
+                                MatchCount++;
+                        }
+                    }
+                    if (MatchCount > 0)
+                    {
+                        RelevanceMap[Sentence] = MatchCount;
+                    }
+                }
+
+                return RelevanceMap.OrderByDescending(kvp => kvp.Value)
+                                   .Take(MaxResults)
+                                   .Select(kvp => $"{kvp.Key} -> {_TranslationDictionary[kvp.Key]}")
+                                   .ToList();
+            }
         }
 
         /// <summary>

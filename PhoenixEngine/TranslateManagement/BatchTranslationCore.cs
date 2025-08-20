@@ -1,9 +1,13 @@
 ﻿
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using Microsoft.VisualBasic;
 using PhoenixEngine.DelegateManagement;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManagement;
+using static PhoenixEngine.SSELexiconBridge.NativeBridge;
 using static PhoenixEngine.TranslateCore.LanguageHelper;
 
 namespace PhoenixEngine.TranslateManage
@@ -27,6 +31,8 @@ namespace PhoenixEngine.TranslateManage
         public bool Transing = false;
         public bool Leader = false;
         public bool Translated = false;
+        public double TempSim = 0;
+        public int MaxTry = 10;
 
         private CancellationTokenSource? TransThreadToken;
 
@@ -62,7 +68,8 @@ namespace PhoenixEngine.TranslateManage
                 var Token = TransThreadToken.Token;
                 try
                 {
-                NextGet:
+                    NextGet:
+
                     Token.ThrowIfCancellationRequested();
 
                     if (this.SourceText.Trim().Length > 0)
@@ -128,7 +135,17 @@ namespace PhoenixEngine.TranslateManage
                             }
                             else
                             {
-                                goto NextGet;
+                                if (this.MaxTry > 0)
+                                {
+                                    Thread.Sleep(500);
+                                    this.MaxTry--;
+
+                                    goto NextGet;
+                                }
+                                else
+                                {
+                                    WorkEnd = 2;
+                                }
                             }
                         }
 
@@ -207,11 +224,18 @@ namespace PhoenixEngine.TranslateManage
             Init();
         }
 
-        public static double TokenBasedSimilarity(string TextA, string TextB, Languages Lang)
+        public static double TokenBasedSimilarityR(string TextA, string TextB, Languages Lang, int MaxTokens = 3)
         {
-            // Tokenize
-            var TokensA = TextTokenizer.Tokenize(Lang, TextA).Select(t => t.ToLowerInvariant()).ToHashSet();
-            var TokensB = TextTokenizer.Tokenize(Lang, TextB).Select(t => t.ToLowerInvariant()).ToHashSet();
+            // Tokenize and limit number of tokens
+            var TokensA = TextTokenizer.Tokenize(Lang, TextA)
+                                       .Select(t => t.ToLowerInvariant())
+                                       .Take(MaxTokens)
+                                       .ToHashSet();
+
+            var TokensB = TextTokenizer.Tokenize(Lang, TextB)
+                                       .Select(t => t.ToLowerInvariant())
+                                       .Take(MaxTokens)
+                                       .ToHashSet();
 
             if (TokensA.Count == 0 && TokensB.Count == 0) return 1.0;
             if (TokensA.Count == 0 || TokensB.Count == 0) return 0.0;
@@ -222,56 +246,79 @@ namespace PhoenixEngine.TranslateManage
             return (double)Intersection / Union; // Jaccard similarity
         }
 
-        public void MarkLeadersAndSortWithTokenSimilarityAndSeparate(List<TranslationUnit> Items, Languages Lang)
+        public int MarkLeadersPercent = 0;
+        public void MarkLeadersAndSortWithTokenSimilarityAndSeparate(
+     List<TranslationUnit> SetItems, Languages Lang, int MaxLength = 200, double SimilarityThreshold = 0.2)
         {
-            Int32 N = Items.Count;
-            Double[,] SimMatrix = new Double[N, N];
+            MarkLeadersPercent = 0;
 
-            // Calculate token-based similarity matrix
-            for (Int32 I = 0; I < N; I++)
-            {
-                for (Int32 J = I; J < N; J++)
-                {
-                    Double Sim = TokenBasedSimilarity(Items[I].SourceText, Items[J].SourceText, Lang);
-                    SimMatrix[I, J] = Sim;
-                    SimMatrix[J, I] = Sim;
-                }
-            }
+            List<TranslationUnit> Items = new List<TranslationUnit>();
+            Items.AddRange(SetItems);
 
-            // Compute the sum of similarities for each item
-            Double[] SimSums = new Double[N];
-            for (Int32 I = 0; I < N; I++)
-            {
-                Double Sum = 0;
-                for (Int32 J = 0; J < N; J++)
-                {
-                    if (I != J) Sum += SimMatrix[I, J];
-                }
-                SimSums[I] = Sum;
-            }
+            if (Items == null || Items.Count == 0) return;
 
-            // Identify the leader with the highest total similarity
-            Double MaxSimSum = SimSums.Max();
-            Int32 LeaderIndex = Array.IndexOf(SimSums, MaxSimSum);
-
-            // Reset all leader flags
-            foreach (var Item in Items)
-                Item.Leader = false;
-
-            // Clear target lists
+            // Clear previous lists
             UnitsLeaderToTranslate.Clear();
             UnitsToTranslate.Clear();
 
-            // Assign the leader to its dedicated list
-            if (LeaderIndex >= 0 && LeaderIndex < N)
+            int N = Items.Count;
+            bool[] IsLeader = new bool[N];
+            bool[] IsCandidate = new bool[N];
+
+            // Determine candidate sentences (length filter)
+            for (int i = 0; i < N; i++)
+                IsCandidate[i] = (Items[i]?.SourceText?.Length ?? 0) <= MaxLength;
+
+            int NN = Items.Count;
+            int UpdateInterval = Math.Max(1, NN / 100);
+            int Processed = 0;
+
+            // For each candidate, find items that are most similar
+            for (int i = 0; i < N; i++)
             {
-                Items[LeaderIndex].Leader = true;
-                UnitsLeaderToTranslate.Add(Items[LeaderIndex]);
+                if (!IsCandidate[i] || IsLeader[i])
+                {
+                    Processed++;
+                    if (Processed % UpdateInterval == 0 || Processed == NN)
+                        MarkLeadersPercent = (int)(Processed * 100.0 / NN);
+                    continue;
+                }
+
+                if (ExitAny) return;
+
+                // Start a new leader group
+                List<(int Index, double Sim)> LeaderGroup = new List<(int, double)> { (i, 1.0) }; // self sim = 1
+
+                for (int j = 0; j < N; j++)
+                {
+                    if (i == j || !IsCandidate[j] || IsLeader[j]) continue;
+
+                    double sim = TokenBasedSimilarityR(Items[i].SourceText, Items[j].SourceText, Lang);
+                    if (sim >= SimilarityThreshold)
+                        LeaderGroup.Add((j, sim));
+                }
+
+                // Mark all in the group as leader and store sim in TranslationUnit
+                foreach (var (idx, sim) in LeaderGroup)
+                {
+                    IsLeader[idx] = true;
+                    Items[idx].TempSim = sim;
+                }
             }
 
-            // Add non-leader items to the main list, sorted by Key
-            var NonLeaders = Items.Where(X => !X.Leader).OrderBy(X => X.Key).ToList();
-            UnitsToTranslate.AddRange(NonLeaders);
+            // Fill UnitsLeaderToTranslate and UnitsToTranslate
+            for (int i = 0; i < N; i++)
+            {
+                if (IsLeader[i])
+                    UnitsLeaderToTranslate.Add(Items[i]);
+                else
+                    UnitsToTranslate.Add(Items[i]);
+            }
+
+            // Sort leaders by TempSim descending
+            UnitsLeaderToTranslate.Sort((a, b) => b.TempSim.CompareTo(a.TempSim));
+
+            GC.Collect();
         }
 
         public ThreadUsageInfo ThreadUsage = new ThreadUsageInfo();
@@ -283,6 +330,7 @@ namespace PhoenixEngine.TranslateManage
             lock (TranslatedAddLocker)
             {
                 UnitsTranslated.Enqueue(Item);
+                TranslatorBridge.SetCloudTransData(Item.Key,Item.SourceText,Item.TransText);
                 TranslatedKeys.Add(Item.Key);
             }
         }
@@ -290,6 +338,7 @@ namespace PhoenixEngine.TranslateManage
         public int GetWorkCount()
         {
             int WorkCount = 0;
+
             for (int i = 0; i < UnitsToTranslate.Count; i++)
             {
                 if (UnitsToTranslate[i].Transing)
@@ -297,6 +346,15 @@ namespace PhoenixEngine.TranslateManage
                     WorkCount++;
                 }
             }
+
+            for (int i = 0; i < UnitsLeaderToTranslate.Count; i++)
+            {
+                if (UnitsLeaderToTranslate[i].Transing)
+                {
+                    WorkCount++;
+                }
+            }
+
             return WorkCount;
         }
         public void MarkDuplicates(List<TranslationUnit> Items)
@@ -347,8 +405,6 @@ namespace PhoenixEngine.TranslateManage
         public CancellationTokenSource TransMainTrdCancel = null;
         public Thread? TransMainTrd = null;
 
-        public int CurrentTrdCount = 0;
-
         public void CancelMainTransThread()
         {
             TransMainTrdCancel?.Cancel();
@@ -359,10 +415,22 @@ namespace PhoenixEngine.TranslateManage
 
         public int WorkState = 0;
 
+        public void SetEndState()
+        {
+            IsWork = false;
+            TransMainTrd = null;
+
+            try
+            {
+                WorkState = -1;
+            }
+            catch { }
+        }
         public void Start()
         {
-            if (IsWork || TransMainTrd != null)
+            if (IsWork || TransMainTrd == null)
             {
+                ExitAny = false;
                 TransMainTrd = new Thread(() =>
                 {
                     IsWork = true;
@@ -388,6 +456,12 @@ namespace PhoenixEngine.TranslateManage
                     }
 
                     MarkLeadersAndSortWithTokenSimilarityAndSeparate(this.UnitsToTranslate, this.DetectSourceLang);
+
+                    if (ExitAny)
+                    {
+                        SetEndState();
+                        return;
+                    }
 
                     TransMainTrdCancel = new CancellationTokenSource();
                     var Token = TransMainTrdCancel.Token;
@@ -500,7 +574,10 @@ namespace PhoenixEngine.TranslateManage
                                 return;
                             }
                         }
-
+                        else
+                        {
+                            Thread.Sleep(500);
+                        }
                         Thread.Sleep(1);
                     }
 
@@ -510,8 +587,10 @@ namespace PhoenixEngine.TranslateManage
             }
         }
 
+        public bool ExitAny = false;
         public void Close()
         {
+            ExitAny = true;
             try
             {
                 CancelMainTransThread();
@@ -587,7 +666,17 @@ namespace PhoenixEngine.TranslateManage
                 }
 
                 IsEnd = false;
-                return UnitsTranslated.Dequeue();
+
+                var GetResult = UnitsTranslated.Dequeue();
+
+                if (GetResult.TransText.Trim().Length > 0)
+                {
+                    return GetResult;
+                }
+                else
+                {
+                    return null;
+                }
             }
         }
     }

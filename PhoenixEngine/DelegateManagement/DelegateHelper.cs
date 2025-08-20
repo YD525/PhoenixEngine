@@ -11,7 +11,7 @@ namespace PhoenixEngine.DelegateManagement
     public class DelegateHelper
     {
         public static LogCall ?SetLog = null;
-        public delegate bool LogCall(string Log,int LogViewType);
+        public delegate void LogCall(string Log,int LogViewType);
 
         #region DashBoard
 

@@ -168,9 +168,32 @@ namespace PhoenixEngine.SSELexiconBridge
                     }
 
                     CloudDBCache.DeleteCache(ModName, Key, Engine.To);
+                    LocalDBCache.DeleteCache(ModName, Key, Engine.To);
                 }
 
                 var GetState = LocalDBCache.UPDateLocalTransItem(ModName, Key, (int)Engine.To, TransText, 0);
+
+                Engine.GetTranslatedCount(Engine.GetModName());
+
+                return GetState;
+            }
+
+            public static bool SetCloudTransData(string Key, string SourceText, string TransText)
+            {
+                string ModName = Engine.GetModName();
+
+                if (TransText.Trim().Length <= 0)
+                {
+                    if (Translator.TransData.ContainsKey(Key))
+                    {
+                        Translator.TransData.Remove(Key);
+                    }
+
+                    CloudDBCache.DeleteCache(ModName, Key, Engine.To);
+                    LocalDBCache.DeleteCache(ModName, Key, Engine.To);
+                }
+
+                var GetState = CloudDBCache.AddCache(ModName, Key, (int)Engine.To, TransText);
 
                 Engine.GetTranslatedCount(Engine.GetModName());
 
