@@ -106,7 +106,7 @@ namespace PhoenixEngine.PlatformManagement
             string Recv = "";
             var GetResult = CallAI(Send, ref Recv);
 
-            Call = new AICall("Cohere", Send, Recv);
+            Call = new AICall(PlatformType.Cohere, Send, Recv);
 
             if (GetResult != null)
             {

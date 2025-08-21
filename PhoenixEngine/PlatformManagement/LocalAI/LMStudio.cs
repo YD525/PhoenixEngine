@@ -110,7 +110,7 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
             string Recv = "";
             var GetResult = CallAI(Send,ref Recv);
 
-            Call = new AICall("LMLocalAI", Send,Recv);
+            Call = new AICall(PlatformType.LMLocalAI, Send,Recv);
 
             if (GetResult != null)
             {

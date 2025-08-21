@@ -123,7 +123,7 @@ namespace PhoenixEngine.PlatformManagement
             string Recv = "";
             var GetResult = CallAI(Send, ref Recv);
 
-            Call = new AICall("DeepSeek", Send, Recv);
+            Call = new AICall(PlatformType.DeepSeek, Send, Recv);
 
             if (GetResult != null)
             {

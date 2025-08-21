@@ -4,6 +4,7 @@ using PhoenixEngine.DelegateManagement;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.RequestManagement;
 using PhoenixEngine.TranslateCore;
+using PhoenixEngine.TranslateManage;
 using static PhoenixEngine.EngineManagement.DataTransmission;
 
 namespace PhoenixEngine.PlatformManagement
@@ -45,7 +46,7 @@ namespace PhoenixEngine.PlatformManagement
 
                 var GetResult = CallPlatform(NDeepLItem, ref Recv);
 
-                Call = new PlatformCall("DeepLApi", FromLang,ToLang,Send,Recv);
+                Call = new PlatformCall(PlatformType.DeepL, FromLang,ToLang,Send,Recv);
 
                 if (GetResult == null)
                 {

@@ -154,7 +154,7 @@ namespace PhoenixEngine.PlatformManagement
             string Recv = "";
             var GetResult = CallAI(Send, ref Recv);
 
-            Call = new AICall("ChatGpt", Send, Recv);
+            Call = new AICall(PlatformType.ChatGpt, Send, Recv);
 
             if (GetResult != null)
             {

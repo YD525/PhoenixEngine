@@ -125,7 +125,7 @@ namespace PhoenixEngine.PlatformManagement
             string Recv = "";
             var GetResult = CallAI(Send, ref Recv);
 
-            Call = new AICall("Gemini", Send, Recv);
+            Call = new AICall(PlatformType.Gemini, Send, Recv);
 
             if (GetResult != null)
             {

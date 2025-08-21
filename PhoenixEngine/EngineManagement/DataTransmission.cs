@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using PhoenixEngine.DelegateManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
 
@@ -20,7 +21,10 @@ namespace PhoenixEngine.EngineManagement
         }
         public static void Recv(int Type, object Any)
         {
-
+            if (DelegateHelper.SetDataCall != null)
+            {
+                DelegateHelper.SetDataCall(Type, Any);
+            }
         }
 
         public class CacheCall
@@ -41,7 +45,7 @@ namespace PhoenixEngine.EngineManagement
         }
         public class PreTranslateCall
         {
-            public string PlatformName = "";
+            public PlatformType Platform = PlatformType.Null;
             public string SendString = "";
             public string ReceiveString = "";
             public List<ReplaceTag> ReplaceTags = new List<ReplaceTag>();
@@ -59,7 +63,7 @@ namespace PhoenixEngine.EngineManagement
         }
         public class PlatformCall
         {
-            public string PlatformName = "";
+            public PlatformType Platform = PlatformType.Null;
             public Languages From = Languages.Null;
             public Languages To = Languages.Null;
             public string SendString = "";
@@ -71,9 +75,9 @@ namespace PhoenixEngine.EngineManagement
                
             }
 
-            public PlatformCall(string PlatformName,Languages From,Languages To,string Send, string Recv)
+            public PlatformCall(PlatformType Platform,Languages From,Languages To,string Send, string Recv)
             {
-                this.PlatformName = PlatformName;
+                this.Platform = Platform;
                 this.From = From;
                 this.To = To;
                 SendString = Send;
@@ -87,7 +91,7 @@ namespace PhoenixEngine.EngineManagement
         }
         public class AICall
         {
-            public string PlatformName = "";
+            public PlatformType Platform = PlatformType.Null;
             public string SendString = "";
             public string ReceiveString = "";
             public bool Success = false;
@@ -96,9 +100,9 @@ namespace PhoenixEngine.EngineManagement
             { 
             }
 
-            public AICall(string PlatformName,string Send, string Recv)
+            public AICall(PlatformType Platform, string Send, string Recv)
             { 
-               this.PlatformName = PlatformName;
+               this.Platform = Platform;
                SendString = Send;
                ReceiveString = Recv;
             }

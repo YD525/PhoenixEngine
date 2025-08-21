@@ -10,16 +10,11 @@ namespace PhoenixEngine.DelegateManagement
 {
     public class DelegateHelper
     {
-        public static AICallBack? SetAICallBack = null;
-        public delegate void AICallBack(string Send,string Recv,bool Sucess);
+        public static SetData? SetDataCall = null;
+        public delegate void SetData(int Sign,object Any);
 
-        #region DashBoard
-        
-        public static SetUsage? SetUsageCall = null;
-
-        public delegate void SetUsage(PlatformType Type, int Count);
-
-        #endregion
+        public static TranslationUnitCallBack? SetTranslationUnitCallBack = null;
+        public delegate bool TranslationUnitCallBack(TranslationUnit Item);
 
         public static BookTranslateCallback SetBookTranslateCallback = null;
 

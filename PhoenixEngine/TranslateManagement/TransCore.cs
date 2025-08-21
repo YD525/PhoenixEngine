@@ -245,7 +245,7 @@ namespace PhoenixEngine.TranslateManage
                         if (EngineConfig.PreTranslateEnable)
                         {
                             PreTranslateCall NPreTranslateCall = new PreTranslateCall();
-                            NPreTranslateCall.PlatformName = "PhoenixEngine";
+                            NPreTranslateCall.Platform = PlatformType.PhoenixEngine;
                             NPreTranslateCall.FromAI = false;
 
                             string GetDefSource = GetSource;
@@ -347,7 +347,7 @@ namespace PhoenixEngine.TranslateManage
                         if (EngineConfig.PreTranslateEnable)
                         {
                             PreTranslateCall NPreTranslateCall = new PreTranslateCall();
-                            NPreTranslateCall.PlatformName = "PhoenixEngine";
+                            NPreTranslateCall.Platform = PlatformType.PhoenixEngine;
                             NPreTranslateCall.FromAI = true;
 
                             NPreTranslateCall.SendString = GetSource;
@@ -581,14 +581,6 @@ namespace PhoenixEngine.TranslateManage
                     }
 
                     TransText = TransText.Trim();
-
-                    if (TransText.Length > 0)
-                    {
-                        if (DelegateHelper.SetUsageCall != null)
-                        {
-                            DelegateHelper.SetUsageCall(CurrentPlatform, GetSource.Length);
-                        }
-                    }
 
                     return TransText;
                 }

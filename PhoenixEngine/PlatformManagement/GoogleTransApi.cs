@@ -3,6 +3,7 @@ using System.Web;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.RequestManagement;
 using PhoenixEngine.TranslateCore;
+using PhoenixEngine.TranslateManage;
 using static PhoenixEngine.EngineManagement.DataTransmission;
 
 namespace PhoenixEngine.PlatformManagement
@@ -47,7 +48,7 @@ namespace PhoenixEngine.PlatformManagement
                              $"&target={TargetLang}" +
                              $"&source={SourceLang}";
 
-                Call.PlatformName = "GoogleApi";
+                Call.Platform = PlatformType.GoogleApi;
                 Call.SendString = Url;
 
                 HttpResponseMessage Response = _HttpClient.GetAsync(Url).Result;

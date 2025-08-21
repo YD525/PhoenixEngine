@@ -110,7 +110,7 @@ namespace PhoenixEngine.PlatformManagement
             string Recv = "";
             var GetResult = CallAI(Send, ref Recv);
 
-            Call = new AICall("Baichuan", Send, Recv);
+            Call = new AICall(PlatformType.Baichuan, Send, Recv);
 
             if (GetResult != null)
             {

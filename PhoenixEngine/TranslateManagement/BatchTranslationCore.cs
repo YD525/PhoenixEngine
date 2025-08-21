@@ -39,8 +39,24 @@ namespace PhoenixEngine.TranslateManage
 
         private CancellationTokenSource? TransThreadToken;
 
+        public bool CanTrans()
+        {
+            if (DelegateHelper.SetTranslationUnitCallBack != null)
+            {
+                return DelegateHelper.SetTranslationUnitCallBack(this);
+            }
+
+            return true;
+        }
+
         public void StartWork(BatchTranslationCore Source)
         {
+            if (!CanTrans())
+            {
+                WorkEnd = 2;
+                return;
+            }
+
             if (this.TransText.Trim().Length > 0)
             {
                 WorkEnd = 2;
@@ -79,9 +95,22 @@ namespace PhoenixEngine.TranslateManage
                     {
                         bool CanSleep = true;
                         bool CanAddCache = true;
+
+                        if (!CanTrans())
+                        {
+                            WorkEnd = 2;
+                            return;
+                        }
+
                         var GetResult = Translator.QuickTrans(this, ref CanSleep, ref CanAddCache);
                         if (GetResult.Trim().Length > 0)
                         {
+                            if (!CanTrans())
+                            {
+                                WorkEnd = 2;
+                                return;
+                            }
+
                             TransText = GetResult.Trim();
 
                             lock (Translator.TransDataLocker)
