@@ -9,7 +9,7 @@ using PhoenixEngine.EngineManagement;
 using PhoenixEngine.RequestManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
-using static PhoenixEngine.PlatformManagement.RequestClass;
+using static PhoenixEngine.EngineManagement.DataTransmission;
 using static PhoenixEngine.TranslateManage.TransCore;
 
 namespace PhoenixEngine.PlatformManagement

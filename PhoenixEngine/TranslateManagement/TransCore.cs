@@ -1,12 +1,11 @@
 ﻿
-using System.Data.Entity.Core.Objects.DataClasses;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.DelegateManagement;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.PlatformManagement;
 using PhoenixEngine.PlatformManagement.LocalAI;
 using PhoenixEngine.TranslateCore;
-using static PhoenixEngine.PlatformManagement.RequestClass;
+using static PhoenixEngine.EngineManagement.DataTransmission;
 
 namespace PhoenixEngine.TranslateManage
 {

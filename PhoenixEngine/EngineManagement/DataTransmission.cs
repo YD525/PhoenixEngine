@@ -6,19 +6,37 @@ using System.Threading.Tasks;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
 
-namespace PhoenixEngine.PlatformManagement
+namespace PhoenixEngine.EngineManagement
 {
-    public class RequestClass
+    public class DataTransmission
     {
+        public enum CallType
+        { 
+            Null = 0, CacheCall = 1, PreTranslateCall = 2, PlatformCall = 3, AICall = 5
+        }
+        public static void Recv(CallType Type, object Any)
+        {
+            Recv((int)Type, Any);
+        }
+        public static void Recv(int Type, object Any)
+        {
+
+        }
+
         public class CacheCall
         {
             public string SendString = "";
             public string ReceiveString = "";
             public string Log = "";
 
+            public CacheCall()
+            { 
+            
+            }
+
             public void Output()
             {
-
+                Recv(CallType.CacheCall,this);
             }
         }
         public class PreTranslateCall
@@ -30,9 +48,13 @@ namespace PhoenixEngine.PlatformManagement
 
             public bool FromAI = false;
 
+            public PreTranslateCall() 
+            {
+            }
+
             public void Output()
             {
-
+                Recv(CallType.PreTranslateCall, this);
             }
         }
         public class PlatformCall
@@ -45,8 +67,8 @@ namespace PhoenixEngine.PlatformManagement
             public bool Success = false;
 
             public PlatformCall()
-            { 
-            
+            {
+               
             }
 
             public PlatformCall(string PlatformName,Languages From,Languages To,string Send, string Recv)
@@ -54,13 +76,13 @@ namespace PhoenixEngine.PlatformManagement
                 this.PlatformName = PlatformName;
                 this.From = From;
                 this.To = To;
-                this.SendString = Send;
-                this.ReceiveString = Recv;
+                SendString = Send;
+                ReceiveString = Recv;
             }
 
             public void Output()
-            { 
-            
+            {
+                Recv(CallType.PlatformCall, this);
             }
         }
         public class AICall
@@ -77,13 +99,13 @@ namespace PhoenixEngine.PlatformManagement
             public AICall(string PlatformName,string Send, string Recv)
             { 
                this.PlatformName = PlatformName;
-               this.SendString = Send;
-               this.ReceiveString = Recv;
+               SendString = Send;
+               ReceiveString = Recv;
             }
 
             public void Output()
             {
-
+                Recv(CallType.AICall, this);
             }
         }
     }
