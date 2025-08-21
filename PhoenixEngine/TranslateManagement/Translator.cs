@@ -79,6 +79,8 @@ namespace PhoenixEngine.TranslateManage
 
             Content = ReturnStr(Content);
 
+            TranslationPreprocessor.ProcessEscapeCharacters(ref Content);
+
             return Content;
         }
 
@@ -139,6 +141,8 @@ namespace PhoenixEngine.TranslateManage
             }
 
             Content = ReturnStr(Content);
+
+            TranslationPreprocessor.ProcessEscapeCharacters(ref Content);
 
             return Content;
         }

@@ -148,5 +148,17 @@ namespace PhoenixEngine.TranslateManagement
 
             return;
         }
+
+        public static void ProcessEscapeCharacters(ref string Input)
+        {
+            Input = Regex.Replace(Input, @"\\n", "\n");
+            Input = Regex.Replace(Input, @"\\t", "\t");
+            Input = Regex.Replace(Input, @"\\r", "\r");
+            Input = Regex.Replace(Input, @"\\b", "\b");
+            Input = Regex.Replace(Input, @"\\f", "\f");
+            Input = Regex.Replace(Input, @"\\""", "\"");
+            Input = Regex.Replace(Input, @"\\'", "'");
+            Input = Regex.Replace(Input, @"\\\\", "\\");       
+        }
     }
 }
