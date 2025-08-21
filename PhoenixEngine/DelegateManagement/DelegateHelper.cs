@@ -10,28 +10,16 @@ namespace PhoenixEngine.DelegateManagement
 {
     public class DelegateHelper
     {
-        public static LogCall ?SetLog = null;
-        public delegate void LogCall(string Log,int LogViewType);
+        public static AICallBack? SetAICallBack = null;
+        public delegate void AICallBack(string Send,string Recv,bool Sucess);
 
         #region DashBoard
-
-        public static SetOutput? SetOutputCall = null;
-
-        public delegate void SetOutput(string Str);
-
-        public static SetKeyWords? SetKeyWordsCall = null;
-
-        public delegate void SetKeyWords(List<ReplaceTag> KeyWords);
         
         public static SetUsage? SetUsageCall = null;
 
         public delegate void SetUsage(PlatformType Type, int Count);
 
         #endregion
-
-        public static NodeCallCallback? SetNodeCallCallback = null;
-
-        public delegate void NodeCallCallback(string Node, bool? Active);
 
         public static BookTranslateCallback SetBookTranslateCallback = null;
 

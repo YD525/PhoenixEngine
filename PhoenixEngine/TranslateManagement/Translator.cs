@@ -17,10 +17,6 @@ namespace PhoenixEngine.TranslateManage
     }
     public class Translator
     {
-        public delegate void TranslateMsg(string EngineName, string Text, string Result);
-
-        public static TranslateMsg SendTranslateMsg;
-
         public static readonly object TransDataLocker = new object();
 
         public static Dictionary<string, string> TransData = new Dictionary<string, string>();
@@ -86,16 +82,17 @@ namespace PhoenixEngine.TranslateManage
             return Content;
         }
 
-        public static string QuickTrans(string ModName,string Type, string Key,string Content,Languages From, Languages To, ref bool CanSleep, ref bool CanAddCache, bool IsBook = false)
+        public static string QuickTrans(TranslationUnit Item, ref bool CanSleep, ref bool CanAddCache, bool IsBook = false)
         {
-            string GetSourceStr = Content;
+            string GetSourceStr = Item.SourceText;
+            string Content = Item.SourceText;
 
             if (IsOnlySymbolsAndSpaces(GetSourceStr))
             {
                 return GetSourceStr;
             }
 
-            if (GetSourceStr.Trim().Length == 0)
+            if (string.IsNullOrEmpty(GetSourceStr))
             {
                 return GetSourceStr;
             }
@@ -105,12 +102,14 @@ namespace PhoenixEngine.TranslateManage
             TranslationPreprocessor.ConditionalSplitCamelCase(ref Content);
             TranslationPreprocessor.RemoveInvisibleCharacters(ref Content);
 
-            Languages SourceLanguage = From;
+            Languages SourceLanguage = Item.From;
+
             if (SourceLanguage == Languages.Auto)
             {
                 SourceLanguage = LanguageHelper.DetectLanguageByLine(Content);
             }  
-            if (SourceLanguage == To)
+
+            if (SourceLanguage == Item.To)
             {
                 return GetSourceStr;
             }
@@ -120,7 +119,11 @@ namespace PhoenixEngine.TranslateManage
                 return GetSourceStr;
             }
 
-            Content = CurrentTransCore.TransAny(ModName,Type, Key,SourceLanguage, To, Content, IsBook, ref CanAddCache, ref CanSleep);
+            Item.From = SourceLanguage;
+
+            Item.SourceText = Content;
+
+            Content = CurrentTransCore.TransAny(Item,ref CanSleep, ref CanAddCache, IsBook);
 
             TranslationPreprocessor.NormalizePunctuation(ref Content);
             TranslationPreprocessor.ProcessEmptyEndLine(ref Content);
@@ -139,7 +142,7 @@ namespace PhoenixEngine.TranslateManage
 
             if (CanAddCache && Content.Trim().Length > 0)
             {
-                CloudDBCache.AddCache(ModName, Key, (int)To, Content);
+                CloudDBCache.AddCache(Engine.GetModName(), Item.Key, (int)Engine.To, Content);
             }
 
             return Content;

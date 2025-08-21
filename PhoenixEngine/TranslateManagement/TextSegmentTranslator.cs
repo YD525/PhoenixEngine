@@ -107,7 +107,7 @@ namespace PhoenixEngine.TranslateManagement
         private CancellationTokenSource CancelToken = new CancellationTokenSource();
 
         List<Segment> Content = new List<Segment>();
-        public void TransBook(string Key, string Source)
+        public void TransBook(TranslationUnit Item)
         {
             CancelToken = new CancellationTokenSource();
             var Token = CancelToken.Token;
@@ -117,10 +117,11 @@ namespace PhoenixEngine.TranslateManagement
             Languages SourceLanguage = Engine.From;
             Languages TargetLanguage = Engine.To;
 
-            this.Key = Key;
+            this.Key = Item.Key;
+
             Content.Clear();
-            this.Source = Source;
-            Content = Load(Source);
+            this.Source = Item.SourceText;
+            Content = Load(this.Source);
             List<Segment> GetSegments = new List<Segment>();
 
             GetSegments.AddRange(Content);
@@ -156,7 +157,10 @@ namespace PhoenixEngine.TranslateManagement
                             bool CanAddCache = true;
 
                             LineID++;
-                            var GetTransLine = Translator.QuickTrans(this.ModName, "Book", Key + LineID.ToString(), GetSourceLine, SourceLanguage, TargetLanguage, ref CanSleep,ref CanAddCache, true);
+
+                            Item.Key = this.Key + LineID.ToString();
+
+                            var GetTransLine = Translator.QuickTrans(Item, ref CanSleep,ref CanAddCache, true);
 
                             if (GetTransLine.Trim().Length > 0)
                             {

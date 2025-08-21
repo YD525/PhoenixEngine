@@ -4,6 +4,7 @@ using PhoenixEngine.DelegateManagement;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.RequestManagement;
 using PhoenixEngine.TranslateCore;
+using static PhoenixEngine.PlatformManagement.RequestClass;
 
 namespace PhoenixEngine.PlatformManagement
 {
@@ -31,14 +32,21 @@ namespace PhoenixEngine.PlatformManagement
         private static string DeepLFreeHost = "https://api-free.deepl.com/v2/translate";
         private static string DeepLHost = "https://api.deepl.com/v2/translate";
        
-        public string QuickTrans(string TransSource, Languages FromLang, Languages ToLang)
+        public string QuickTrans(string TransSource, Languages FromLang, Languages ToLang,ref PlatformCall Call)
         {
             try
             {
                 DeepLItem NDeepLItem = new DeepLItem();
                 NDeepLItem.target_lang = LanguageHelper.ToLanguageCode(ToLang).ToUpper();
                 NDeepLItem.text = new List<string>() { TransSource };
-                var GetResult = CallAI(NDeepLItem);
+
+                string Send = JsonSerializer.Serialize(NDeepLItem);
+                string Recv = "";
+
+                var GetResult = CallPlatform(NDeepLItem, ref Recv);
+
+                Call = new PlatformCall("DeepLApi", FromLang,ToLang,Send,Recv);
+
                 if (GetResult == null)
                 {
                     return string.Empty;
@@ -47,6 +55,7 @@ namespace PhoenixEngine.PlatformManagement
                 {
                     if (GetResult.translations.Length > 0)
                     {
+                        Call.Success = true;
                         return GetResult.translations[0].text;
                     }
                 }
@@ -58,7 +67,7 @@ namespace PhoenixEngine.PlatformManagement
                 return string.Empty;
             }
         }
-        public DeepLResult? CallAI(DeepLItem Item)
+        public DeepLResult? CallPlatform(DeepLItem Item,ref string Recv)
         {
             string GetJson = JsonSerializer.Serialize(Item);
             WebHeaderCollection Headers = new WebHeaderCollection();
@@ -94,12 +103,9 @@ namespace PhoenixEngine.PlatformManagement
             catch { }
 
             string GetResult = new HttpHelper().GetHtml(Http).Html;
+            Recv = GetResult;
             try
             {
-                if (DelegateHelper.SetLog != null)
-                {
-                    DelegateHelper.SetLog("DeepL:" + GetResult, 1);
-                }
                 return JsonSerializer.Deserialize<DeepLResult>(GetResult);
             }
             catch

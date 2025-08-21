@@ -480,7 +480,7 @@ namespace PhoenixEngine.RequestManagement
             set { connectionlimit = value; }
         }
 
-        public IWebProxy WebProxy { get; set; } = null;
+        public IWebProxy? WebProxy { get; set; } = null;
 
         private ResultType resulttype = ResultType.String;
 

@@ -6,6 +6,7 @@ using PhoenixEngine.EngineManagement;
 using PhoenixEngine.RequestManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
+using static PhoenixEngine.PlatformManagement.RequestClass;
 using static PhoenixEngine.TranslateManage.TransCore;
 
 namespace PhoenixEngine.PlatformManagement
@@ -76,7 +77,7 @@ namespace PhoenixEngine.PlatformManagement
     public class GeminiApi
     {
         //"Important: When translating, strictly keep any text inside angle brackets (< >) or square brackets ([ ]) unchanged. Do not modify, translate, or remove them.\n\n"
-        public string QuickTrans(List<string> CustomWords,string TransSource, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string Param)
+        public string QuickTrans(List<string> CustomWords,string TransSource, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam, ref AICall Call)
         {
             List<string> Related = new List<string>();
             if (EngineConfig.ContextEnable && UseAIMemory)
@@ -86,9 +87,9 @@ namespace PhoenixEngine.PlatformManagement
 
             var GetTransSource = $"Translate the following text from {LanguageHelper.ToLanguageCode(FromLang)} to {LanguageHelper.ToLanguageCode(ToLang)}:\n\n";
 
-            if (Param.Trim().Length > 0)
+            if (AIParam.Trim().Length > 0)
             {
-                GetTransSource += Param;
+                GetTransSource += AIParam;
             }
 
             if (ConvertHelper.ObjToStr(EngineConfig.UserCustomAIPrompt).Trim().Length > 0)
@@ -120,7 +121,12 @@ namespace PhoenixEngine.PlatformManagement
                 GetTransSource = GetTransSource.Substring(0, GetTransSource.Length - 1);
             }
 
-            var GetResult = CallAI(GetTransSource);
+            string Send = GetTransSource;
+            string Recv = "";
+            var GetResult = CallAI(Send, ref Recv);
+
+            Call = new AICall("Gemini", Send, Recv);
+
             if (GetResult != null)
             {
                 try
@@ -146,15 +152,12 @@ namespace PhoenixEngine.PlatformManagement
                                 return string.Empty;
                             }
 
-                            if (DelegateHelper.SetLog != null)
-                            {
-                                DelegateHelper.SetLog(GetTransSource + "\r\n\r\n AI(Gemini):\r\n" + GetStr,1);
-                            }
-
                             if (GetStr.Trim().Equals("<translated_text>"))
                             {
                                 return string.Empty;
                             }
+
+                            Call.Success = true;
 
                             return GetStr;
                         }
@@ -169,18 +172,18 @@ namespace PhoenixEngine.PlatformManagement
             return string.Empty;
         }
 
-        public GeminiRootobject? CallAI(string Msg)
+        public GeminiRootobject? CallAI(string Msg, ref string Recv)
         {
             int GetCount = Msg.Length;
             GeminiItem NGeminiItem = new GeminiItem();
             NGeminiItem.contents.Add(new GeminiContent());
             NGeminiItem.contents[0].parts.Add(new GeminiPart());
             NGeminiItem.contents[0].parts[0].text = Msg;
-            var GetResult = CallAI(NGeminiItem);
+            var GetResult = CallAI(NGeminiItem,ref Recv);
             return GetResult;
         }
 
-        public GeminiRootobject? CallAI(GeminiItem Item)
+        public GeminiRootobject? CallAI(GeminiItem Item, ref string Recv)
         {
             string GetJson = JsonSerializer.Serialize(Item);
             WebHeaderCollection Headers = new WebHeaderCollection();
@@ -204,6 +207,8 @@ namespace PhoenixEngine.PlatformManagement
             catch { }
 
             string GetResult = new HttpHelper().GetHtml(Http).Html;
+
+            Recv = GetResult;
             try
             {
                 return JsonSerializer.Deserialize<GeminiRootobject>(GetResult);

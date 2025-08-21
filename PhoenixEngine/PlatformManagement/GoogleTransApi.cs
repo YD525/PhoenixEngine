@@ -5,6 +5,7 @@ using PhoenixEngine.DelegateManagement;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.RequestManagement;
 using PhoenixEngine.TranslateCore;
+using static PhoenixEngine.PlatformManagement.RequestClass;
 
 namespace PhoenixEngine.PlatformManagement
 {
@@ -34,7 +35,7 @@ namespace PhoenixEngine.PlatformManagement
             }
             catch { return new HttpClient(); }
         }
-        public string Translate(string Text, Languages TargetLanguage, Languages? SourceLanguage = null)
+        public string Translate(string Text, Languages TargetLanguage, Languages? SourceLanguage,ref PlatformCall Call)
         {
 
             try
@@ -48,15 +49,15 @@ namespace PhoenixEngine.PlatformManagement
                              $"&target={TargetLang}" +
                              $"&source={SourceLang}";
 
+                Call.PlatformName = "GoogleApi";
+                Call.SendString = Url;
+
                 HttpResponseMessage Response = _HttpClient.GetAsync(Url).Result;
                 Response.EnsureSuccessStatusCode();
 
                 string Json = Response.Content.ReadAsStringAsync().Result;
 
-                if (DelegateHelper.SetLog != null)
-                {
-                    DelegateHelper.SetLog("GoogleApi:" + Json,1);
-                }
+                Call.ReceiveString = Json;
 
                 using JsonDocument Doc = JsonDocument.Parse(Json);
 
@@ -65,6 +66,7 @@ namespace PhoenixEngine.PlatformManagement
                     TranslationsElem.GetArrayLength() > 0 &&
                     TranslationsElem[0].TryGetProperty("translatedText", out JsonElement TextElem))
                 {
+                    Call.Success = true;
                     return TextElem.GetString() ?? string.Empty;
                 }
 

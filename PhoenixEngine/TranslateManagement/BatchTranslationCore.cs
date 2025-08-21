@@ -33,6 +33,9 @@ namespace PhoenixEngine.TranslateManage
         public bool Translated = false;
         public double TempSim = 0;
         public int MaxTry = 10;
+        public string AIParam = "";
+        public Languages From = Languages.Auto;
+        public Languages To = Languages.Auto;
 
         private CancellationTokenSource? TransThreadToken;
 
@@ -74,81 +77,58 @@ namespace PhoenixEngine.TranslateManage
 
                     if (this.SourceText.Trim().Length > 0)
                     {
-                        if (this.Type.Equals("Book") && (!Key.EndsWith("(Description)") && !Key.EndsWith("(Name)")))
+                        bool CanSleep = true;
+                        bool CanAddCache = true;
+                        var GetResult = Translator.QuickTrans(this, ref CanSleep, ref CanAddCache);
+                        if (GetResult.Trim().Length > 0)
                         {
-                            if (DelegateHelper.SetLog != null)
-                            {
-                                DelegateHelper.SetLog("Skip Book fields:" + this.Key, 0);
-                            }
+                            TransText = GetResult.Trim();
 
-                            WorkEnd = 2;
-                        }
-                        else
-                        if (this.Score < 5)
-                        {
-                            if (DelegateHelper.SetLog != null)
+                            lock (Translator.TransDataLocker)
                             {
-                                DelegateHelper.SetLog("Skip dangerous fields:" + this.Key, 0);
-                            }
-                            WorkEnd = 2;
-                        }
-
-                        if (WorkEnd != 2)
-                        {
-                            bool CanSleep = true;
-                            bool CanAddCache = true;
-                            var GetResult = Translator.QuickTrans(this.ModName, this.Type, this.Key, this.SourceText, Source.From, Source.To, ref CanSleep,ref CanAddCache);
-                            if (GetResult.Trim().Length > 0)
-                            {
-                                TransText = GetResult.Trim();
-
-                                lock (Translator.TransDataLocker)
+                                if (Translator.TransData.ContainsKey(this.Key))
                                 {
-                                    if (Translator.TransData.ContainsKey(this.Key))
-                                    {
-                                        Translator.TransData[this.Key] = GetResult;
-                                    }
-                                    else
-                                    {
-                                        Translator.TransData.Add(this.Key, GetResult);
-                                    }
-                                }
-
-                                if (this.IsDuplicateSource)
-                                {
-                                    lock (Source.SameItemsLocker)
-                                    {
-                                        if (Source.SameItems.ContainsKey(this.SourceText))
-                                        {
-                                            Source.SameItems[this.SourceText] = GetResult;
-                                        }
-                                    }
-                                }
-
-                                WorkEnd = 2;
-
-                                this.Translated = true;
-
-                                Source.AddTranslated(this);
-
-                                Token.ThrowIfCancellationRequested();
-                            }
-                            else
-                            {
-                                if (this.MaxTry > 0)
-                                {
-                                    Thread.Sleep(500);
-                                    this.MaxTry--;
-
-                                    goto NextGet;
+                                    Translator.TransData[this.Key] = GetResult;
                                 }
                                 else
                                 {
-                                    WorkEnd = 2;
+                                    Translator.TransData.Add(this.Key, GetResult);
                                 }
                             }
-                        }
 
+                            if (this.IsDuplicateSource)
+                            {
+                                lock (Source.SameItemsLocker)
+                                {
+                                    if (Source.SameItems.ContainsKey(this.SourceText))
+                                    {
+                                        Source.SameItems[this.SourceText] = GetResult;
+                                    }
+                                }
+                            }
+
+                            WorkEnd = 2;
+
+                            this.Translated = true;
+
+                            Source.AddTranslated(this);
+
+                            Token.ThrowIfCancellationRequested();
+                        }
+                        else
+                        {
+                            if (this.MaxTry > 0)
+                            {
+                                Thread.Sleep(500);
+                                this.MaxTry--;
+
+                                goto NextGet;
+                            }
+                            else
+                            {
+                                WorkEnd = 2;
+                            }
+                        }
                     }
                     else
                     {
@@ -176,13 +156,16 @@ namespace PhoenixEngine.TranslateManage
             TransThreadToken?.Cancel();
         }
 
-        public TranslationUnit(string ModName, string Key, string Type, string SourceText, string TransText)
+        public TranslationUnit(string ModName, string Key, string Type, string SourceText, string TransText,string AIParam,Languages From,Languages To)
         {
             this.ModName = ModName;
             this.Key = Key;
             this.Type = Type;
             this.SourceText = SourceText;
             this.TransText = TransText;
+            this.AIParam = AIParam;
+            this.From = From;
+            this.To = To;
         }
     }
     public class BatchTranslationCore

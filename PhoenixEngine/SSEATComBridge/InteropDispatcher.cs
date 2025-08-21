@@ -171,7 +171,7 @@ namespace PhoenixEngine.SSEATComBridge
 
             if (GetItem != null)
             {
-                Engine.AddTranslationUnit(new TranslationUnit(GetItem.ModName, GetItem.Key, GetItem.Type, GetItem.SourceText, GetItem.TransText));
+                Engine.AddTranslationUnit(new TranslationUnit(GetItem.ModName, GetItem.Key, GetItem.Type, GetItem.SourceText, GetItem.TransText,"",Engine.From,Engine.To));
                 return true;
             }
 
@@ -506,8 +506,9 @@ namespace PhoenixEngine.SSEATComBridge
                 TextSegmentTranslator NTextSegmentTranslator = new TextSegmentTranslator();
                 
                 Thread CreatTrd = new Thread(() => 
-                { 
-                    NTextSegmentTranslator.TransBook(Item.Key,Item.Source);
+                {
+                    TranslationUnit NewUnit = new TranslationUnit(Engine.GetModName(),Item.Key,"Book",Item.Source,"","",Engine.From,Engine.To);
+                    NTextSegmentTranslator.TransBook(NewUnit);
                 });
 
                 BookTransingItem NBookTransingItem = new BookTransingItem();
