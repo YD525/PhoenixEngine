@@ -180,10 +180,10 @@ namespace PhoenixEngine.EngineManagement
         public static bool ContextEnable { get; set; } = true;
 
         /// <summary>
-        /// Specifies the maximum number of context entries to include during generation.
-        /// For example, if set to 3, up to 3 context lines will be used.
+        /// Specifies the maximum number of context characters to include during generation.
+        /// For example, if set to 300, the total character count of all context lines will not exceed 300.
         /// </summary>
-        public static int ContextLimit { get; set; } = 8;
+        public static int ContextLimit { get; set; } = 200;
 
         /// <summary>
         /// User-defined custom prompt sent to the AI model.

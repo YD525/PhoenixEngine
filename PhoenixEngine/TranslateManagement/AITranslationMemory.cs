@@ -76,7 +76,7 @@ namespace PhoenixEngine.TranslateManage
         /// <summary>
         /// Find the most relevant translations
         /// </summary>
-        public List<string> FindRelevantTranslations(Languages SourceLang, string Query, int MaxResults = 3)
+        public List<string> FindRelevantTranslations(Languages SourceLang, string Query,int ContextLength)
         {
             lock (AddTranslationLocker)
             {
@@ -114,10 +114,13 @@ namespace PhoenixEngine.TranslateManage
                     }
                 }
 
-                return RelevanceMap.OrderByDescending(kvp => kvp.Value)
-                                   .Take(MaxResults)
-                                   .Select(kvp => $"{kvp.Key} -> {_TranslationDictionary[kvp.Key]}")
-                                   .ToList();
+                List<string> GetContexts = RelevanceMap.OrderByDescending(kvp => kvp.Value)
+                    .Select(kvp => $"{kvp.Key} -> {_TranslationDictionary[kvp.Key]}")
+                    .ToList();
+
+                TrimListByCharCount(ref GetContexts, ContextLength);
+
+                return GetContexts;
             }
         }
 
@@ -127,6 +130,30 @@ namespace PhoenixEngine.TranslateManage
         private string[] Tokenize(Languages Lang, string Text)
         {
             return TextTokenizer.Tokenize(Lang, Text);
+        }
+
+        public void TrimListByCharCount(ref List<string> ListToTrim, int MaxChars)
+        {
+            if (ListToTrim == null || ListToTrim.Count == 0 || MaxChars <= 0)
+            {
+                return;
+            }
+
+            int CurrentLength = 0;
+            var TrimmedList = new List<string>();
+
+            foreach (var item in ListToTrim)
+            {
+                if (CurrentLength + item.Length > MaxChars)
+                {
+                    break;
+                }
+
+                TrimmedList.Add(item);
+                CurrentLength += item.Length;
+            }
+
+            ListToTrim = TrimmedList;
         }
     }
 }

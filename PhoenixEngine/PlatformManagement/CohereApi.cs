@@ -58,49 +58,21 @@ namespace PhoenixEngine.PlatformManagement
     public class CohereApi
     {
         //"Important: When translating, strictly keep any text inside angle brackets (< >) or square brackets ([ ]) unchanged. Do not modify, translate, or remove them.\n\n"
-        public string QuickTrans(List<string> CustomWords,string TransSource, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam, ref AICall Call)
+        public string QuickTrans(List<string> CustomWords,string TransSource, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam, ref AICall Call,string Type)
         {
             List<string> Related = new List<string>();
+
             if (EngineConfig.ContextEnable && UseAIMemory)
             {
                 Related = EngineSelect.AIMemory.FindRelevantTranslations(FromLang, TransSource, AIMemoryCountLimit);
             }
 
-            var GetTransSource = $"Translate the following text from {LanguageHelper.ToLanguageCode(FromLang)} to {LanguageHelper.ToLanguageCode(ToLang)}:\n\n";
-
-            if (AIParam.Trim().Length > 0)
+            if (EngineConfig.UserCustomAIPrompt.Trim().Length > 0)
             {
-                GetTransSource += AIParam;
+                AIParam = AIParam + "\n" + EngineConfig.UserCustomAIPrompt;
             }
 
-            if (ConvertHelper.ObjToStr(EngineConfig.UserCustomAIPrompt).Trim().Length > 0)
-            {
-                GetTransSource += EngineConfig.UserCustomAIPrompt + "\n\n";
-            }
-
-            if (Related.Count > 0 || CustomWords.Count > 0)
-            {
-                GetTransSource += "Use the following terminology references to help you translate the text consistently:\n";
-                foreach (var related in Related)
-                {
-                    GetTransSource += $"- {related}\n";
-                }
-                foreach (var Word in CustomWords)
-                {
-                    GetTransSource += $"- {Word}\n";
-                }
-                GetTransSource += "\n";
-            }
-
-            GetTransSource += $"\"\"\"\n{TransSource}\n\"\"\"\n\n";
-
-            GetTransSource += "Respond strictly with: {\"translation\": \"....\"}\n";
-            GetTransSource += "The value must contain only translated text.\n";
-
-            if (GetTransSource.EndsWith("\n"))
-            {
-                GetTransSource = GetTransSource.Substring(0, GetTransSource.Length - 1);
-            }
+            var GetTransSource = AIPrompt.GenerateTranslationPrompt(FromLang, ToLang, TransSource, Type, Related, CustomWords, AIParam);
 
             string Send = GetTransSource;
             string Recv = "";

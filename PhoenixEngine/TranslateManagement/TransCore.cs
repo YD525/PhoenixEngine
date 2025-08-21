@@ -362,7 +362,7 @@ namespace PhoenixEngine.TranslateManage
                                 if (EngineConfig.LMLocalAIEnable)
                                 {
                                     AICall Call = new AICall();
-                                    var GetData = ((LMStudio)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam,ref Call).Trim();
+                                    var GetData = ((LMStudio)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam,ref Call,Item.Type).Trim();
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
@@ -390,7 +390,7 @@ namespace PhoenixEngine.TranslateManage
                                 {
                                     AICall Call = new AICall();
 
-                                    var GetData = ((CohereApi)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam,ref Call).Trim();
+                                    var GetData = ((CohereApi)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam,ref Call,Item.Type).Trim();
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
@@ -419,7 +419,7 @@ namespace PhoenixEngine.TranslateManage
                                 {
                                     AICall Call = new AICall();
 
-                                    var GetData = ((ChatGptApi)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam,ref Call).Trim();
+                                    var GetData = ((ChatGptApi)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam,ref Call,Item.Type).Trim();
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
@@ -448,7 +448,7 @@ namespace PhoenixEngine.TranslateManage
                                 {
                                     AICall Call = new AICall();
 
-                                    var GetData = ((GeminiApi)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam,ref Call).Trim();
+                                    var GetData = ((GeminiApi)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam,ref Call,Item.Type).Trim();
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
@@ -477,7 +477,7 @@ namespace PhoenixEngine.TranslateManage
                                 {
                                     AICall Call = new AICall();
 
-                                    var GetData = ((DeepSeekApi)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call).Trim();
+                                    var GetData = ((DeepSeekApi)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call,Item.Type).Trim();
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
@@ -506,7 +506,7 @@ namespace PhoenixEngine.TranslateManage
                                 {
                                     AICall Call = new AICall();
 
-                                    var GetData = ((BaichuanApi)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam,ref Call).Trim();
+                                    var GetData = ((BaichuanApi)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam,ref Call,Item.Type).Trim();
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
