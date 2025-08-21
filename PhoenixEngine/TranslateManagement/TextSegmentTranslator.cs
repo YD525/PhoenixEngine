@@ -154,13 +154,12 @@ namespace PhoenixEngine.TranslateManagement
                             catch { return; }
 
                             bool CanSleep = false;
-                            bool CanAddCache = true;
 
                             LineID++;
 
                             Item.Key = this.Key + LineID.ToString();
 
-                            var GetTransLine = Translator.QuickTrans(Item, ref CanSleep,ref CanAddCache, true);
+                            var GetTransLine = Translator.QuickTrans(Item, ref CanSleep, true);
 
                             if (GetTransLine.Trim().Length > 0)
                             {

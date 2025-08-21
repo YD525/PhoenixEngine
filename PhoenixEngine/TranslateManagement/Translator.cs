@@ -82,7 +82,7 @@ namespace PhoenixEngine.TranslateManage
             return Content;
         }
 
-        public static string QuickTrans(TranslationUnit Item, ref bool CanSleep, ref bool CanAddCache, bool IsBook = false)
+        public static string QuickTrans(TranslationUnit Item, ref bool CanSleep,bool IsBook = false)
         {
             string GetSourceStr = Item.SourceText;
             string Content = Item.SourceText;
@@ -123,7 +123,7 @@ namespace PhoenixEngine.TranslateManage
 
             Item.SourceText = Content;
 
-            Content = CurrentTransCore.TransAny(Item,ref CanSleep, ref CanAddCache, IsBook);
+            Content = CurrentTransCore.TransAny(Item,ref CanSleep, IsBook);
 
             TranslationPreprocessor.NormalizePunctuation(ref Content);
             TranslationPreprocessor.ProcessEmptyEndLine(ref Content);
@@ -139,11 +139,6 @@ namespace PhoenixEngine.TranslateManage
             }
 
             Content = ReturnStr(Content);
-
-            if (CanAddCache && Content.Trim().Length > 0)
-            {
-                CloudDBCache.AddCache(Engine.GetModName(), Item.Key, (int)Engine.To, Content);
-            }
 
             return Content;
         }

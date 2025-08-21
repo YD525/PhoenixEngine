@@ -96,19 +96,19 @@ namespace PhoenixEngine.EngineManagement
         public static int TranslatedCount = 0;
         public static int GetTranslatedCount(string ModName)
         {
-            string SqlOrder = @"SELECT COUNT(*) AS TotalCount
+            string SqlOrder = $@"SELECT COUNT(*) AS TotalCount
 FROM (
     SELECT Key
     FROM LocalTranslation
-    WHERE ModName = '{0}'
+    WHERE ModName = '{ModName}' And [To] = '{(int)Engine.To}'
     
     UNION  
     SELECT Key
     FROM CloudTranslation
-    WHERE ModName = '{0}'
+    WHERE ModName = '{ModName}' And [To] = '{(int)Engine.To}'
 ) AS Combined;";
 
-            int GetCount = ConvertHelper.ObjToInt(Engine.LocalDB.ExecuteScalar(string.Format(SqlOrder, ModName)));
+            int GetCount = ConvertHelper.ObjToInt(Engine.LocalDB.ExecuteScalar(SqlOrder));
 
             TranslatedCount = GetCount;
 

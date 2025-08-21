@@ -94,7 +94,6 @@ namespace PhoenixEngine.TranslateManage
                     if (this.SourceText.Trim().Length > 0)
                     {
                         bool CanSleep = true;
-                        bool CanAddCache = true;
 
                         if (!CanTrans())
                         {
@@ -102,7 +101,7 @@ namespace PhoenixEngine.TranslateManage
                             return;
                         }
 
-                        var GetResult = Translator.QuickTrans(this, ref CanSleep, ref CanAddCache);
+                        var GetResult = Translator.QuickTrans(this, ref CanSleep);
                         if (GetResult.Trim().Length > 0)
                         {
                             if (!CanTrans())
