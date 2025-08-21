@@ -235,99 +235,86 @@ namespace PhoenixEngine.TranslateManage
             Init();
         }
 
-        public static double TokenBasedSimilarityR(string TextA, string TextB, Languages Lang, int MaxTokens = 3)
-        {
-            // Tokenize and limit number of tokens
-            var TokensA = TextTokenizer.Tokenize(Lang, TextA)
-                                       .Select(t => t.ToLowerInvariant())
-                                       .Take(MaxTokens)
-                                       .ToHashSet();
+        public double MarkLeadersPercent = 0;
 
-            var TokensB = TextTokenizer.Tokenize(Lang, TextB)
-                                       .Select(t => t.ToLowerInvariant())
-                                       .Take(MaxTokens)
-                                       .ToHashSet();
-
-            if (TokensA.Count == 0 && TokensB.Count == 0) return 1.0;
-            if (TokensA.Count == 0 || TokensB.Count == 0) return 0.0;
-
-            var Intersection = TokensA.Intersect(TokensB).Count();
-            var Union = TokensA.Union(TokensB).Count();
-
-            return (double)Intersection / Union; // Jaccard similarity
-        }
-
-        public int MarkLeadersPercent = 0;
-        public void MarkLeadersAndSortWithTokenSimilarityAndSeparate(
-     List<TranslationUnit> SetItems, Languages Lang, int MaxLength = 200, double SimilarityThreshold = 0.2)
+        /// <summary>
+        /// High-performance leader marking with token-based similarity
+        /// </summary>
+        /// <param name="SetItems">List of translation units</param>
+        /// <param name="Lang">Language for tokenization</param>
+        /// <param name="SimilarityThreshold">Minimum similarity to group as leader</param>
+        public void MarkLeadersAndSortHighPerfAccumulate(List<TranslationUnit> SetItems, Languages Lang)
         {
             MarkLeadersPercent = 0;
+            int N = SetItems.Count;
+            if (N == 0) return;
 
-            List<TranslationUnit> Items = new List<TranslationUnit>();
-            Items.AddRange(SetItems);
-
-            if (Items == null || Items.Count == 0) return;
-
-            // Clear previous lists
             UnitsLeaderToTranslate.Clear();
             UnitsToTranslate.Clear();
 
-            int N = Items.Count;
-            bool[] IsLeader = new bool[N];
-            bool[] IsCandidate = new bool[N];
+            // Initialize TempSim For All Items
+            foreach (var Item in SetItems)
+                Item.TempSim = 0;
 
-            // Determine candidate sentences (length filter)
-            for (int i = 0; i < N; i++)
-                IsCandidate[i] = (Items[i]?.SourceText?.Length ?? 0) <= MaxLength;
+            // Precompute Tokens For All Items
+            var TokensCache = new string[N][];
+            for (int I = 0; I < N; I++)
+                TokensCache[I] = TextTokenizer.Tokenize(Lang, SetItems[I].SourceText)
+                                              .Select(T => T.ToLowerInvariant())
+                                              .Take(10)
+                                              .ToArray();
 
-            int NN = Items.Count;
-            int UpdateInterval = Math.Max(1, NN / 100);
-            int Processed = 0;
-
-            // For each candidate, find items that are most similar
-            for (int i = 0; i < N; i++)
+            // Build Inverted Index For Fast Token Lookup
+            var TokenIndex = new Dictionary<string, List<int>>(StringComparer.OrdinalIgnoreCase);
+            for (int I = 0; I < N; I++)
             {
-                if (!IsCandidate[i] || IsLeader[i])
+                foreach (var Token in TokensCache[I])
                 {
-                    Processed++;
-                    if (Processed % UpdateInterval == 0 || Processed == NN)
-                        MarkLeadersPercent = (int)(Processed * 100.0 / NN);
-                    continue;
-                }
-
-                if (ExitAny) return;
-
-                // Start a new leader group
-                List<(int Index, double Sim)> LeaderGroup = new List<(int, double)> { (i, 1.0) }; // self sim = 1
-
-                for (int j = 0; j < N; j++)
-                {
-                    if (i == j || !IsCandidate[j] || IsLeader[j]) continue;
-
-                    double sim = TokenBasedSimilarityR(Items[i].SourceText, Items[j].SourceText, Lang);
-                    if (sim >= SimilarityThreshold)
-                        LeaderGroup.Add((j, sim));
-                }
-
-                // Mark all in the group as leader and store sim in TranslationUnit
-                foreach (var (idx, sim) in LeaderGroup)
-                {
-                    IsLeader[idx] = true;
-                    Items[idx].TempSim = sim;
+                    if (!TokenIndex.TryGetValue(Token, out var List))
+                    {
+                        List = new List<int>();
+                        TokenIndex[Token] = List;
+                    }
+                    List.Add(I);
                 }
             }
 
-            // Fill UnitsLeaderToTranslate and UnitsToTranslate
-            for (int i = 0; i < N; i++)
+            // Compute Cumulative Similarity
+            for (int I = 0; I < N; I++)
             {
-                if (IsLeader[i])
-                    UnitsLeaderToTranslate.Add(Items[i]);
-                else
-                    UnitsToTranslate.Add(Items[i]);
+                var TokenSetA = TokensCache[I].ToHashSet();
+                var RelatedIndices = new HashSet<int>();
+                foreach (var Token in TokenSetA)
+                {
+                    if (TokenIndex.TryGetValue(Token, out var Indices))
+                        RelatedIndices.UnionWith(Indices);
+                }
+
+                foreach (var J in RelatedIndices)
+                {
+                    if (I == J) continue;
+
+                    int Intersection = TokenSetA.Intersect(TokensCache[J]).Count();
+                    int Union = TokenSetA.Union(TokensCache[J]).Count();
+                    double Sim = Union > 0 ? (double)Intersection / Union : 0;
+
+                    // Accumulate Similarity Score
+                    SetItems[I].TempSim += Sim;
+                }
+
+                MarkLeadersPercent = Math.Round(((double)(I + 1) * 100 / N), 2);
             }
 
-            // Sort leaders by TempSim descending
-            UnitsLeaderToTranslate.Sort((a, b) => b.TempSim.CompareTo(a.TempSim));
+            // Sort By TempSim Descending
+            UnitsLeaderToTranslate.AddRange(SetItems.OrderByDescending(X => X.TempSim));
+
+            // Move Items With TempSim == 0 To UnitsToTranslate
+            var ToMove = UnitsLeaderToTranslate.Where(X => X.TempSim == 0).ToList();
+            foreach (var Item in ToMove)
+            {
+                UnitsLeaderToTranslate.Remove(Item);
+                UnitsToTranslate.Add(Item);
+            }
 
             GC.Collect();
         }
@@ -466,7 +453,7 @@ namespace PhoenixEngine.TranslateManage
                         LangDetecter = null;
                     }
 
-                    MarkLeadersAndSortWithTokenSimilarityAndSeparate(this.UnitsToTranslate, this.DetectSourceLang);
+                    MarkLeadersAndSortHighPerfAccumulate(new List<TranslationUnit>(this.UnitsToTranslate), this.DetectSourceLang);
 
                     if (ExitAny)
                     {

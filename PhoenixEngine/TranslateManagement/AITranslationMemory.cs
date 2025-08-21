@@ -39,8 +39,6 @@ namespace PhoenixEngine.TranslateManage
 
     public class AITranslationMemory
     {
-        private const int MAX_BYTE_COUNT = 125;
-
         private readonly Dictionary<string, string> _TranslationDictionary = new Dictionary<string, string>();
         private readonly Dictionary<string, HashSet<string>> _WordIndex = new Dictionary<string, HashSet<string>>();
 
@@ -58,10 +56,6 @@ namespace PhoenixEngine.TranslateManage
         {
             lock (AddTranslationLocker)
             {
-                int ByteSize = Encoding.UTF8.GetByteCount(Original);
-                if (ByteSize > MAX_BYTE_COUNT)
-                    return;
-
                 if (!_TranslationDictionary.ContainsKey(Original))
                 {
                     _TranslationDictionary[Original] = Translated;

@@ -183,7 +183,7 @@ namespace PhoenixEngine.EngineManagement
         /// Specifies the maximum number of context entries to include during generation.
         /// For example, if set to 3, up to 3 context lines will be used.
         /// </summary>
-        public static int ContextLimit { get; set; } = 3;
+        public static int ContextLimit { get; set; } = 8;
 
         /// <summary>
         /// User-defined custom prompt sent to the AI model.
