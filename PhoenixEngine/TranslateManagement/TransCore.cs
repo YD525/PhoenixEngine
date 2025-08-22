@@ -58,48 +58,48 @@ namespace PhoenixEngine.TranslateManage
                 if (EngineConfig.ChatGptApiEnable &&
                     !string.IsNullOrWhiteSpace(EngineConfig.ChatGptKey))
                 {
-                    EngineSelects.Add(new EngineSelect(new ChatGptApi(), 6));
+                    EngineSelects.Add(new EngineSelect(new ChatGptApi(), 1));
                 }
 
                 // Gemini support
                 if (EngineConfig.GeminiApiEnable &&
                     !string.IsNullOrWhiteSpace(EngineConfig.GeminiKey))
                 {
-                    EngineSelects.Add(new EngineSelect(new GeminiApi(), 6));
+                    EngineSelects.Add(new EngineSelect(new GeminiApi(), 1));
                 }
 
                 // DeepSeek support
                 if (EngineConfig.DeepSeekApiEnable &&
                     !string.IsNullOrWhiteSpace(EngineConfig.DeepSeekKey))
                 {
-                    EngineSelects.Add(new EngineSelect(new DeepSeekApi(), 6));
+                    EngineSelects.Add(new EngineSelect(new DeepSeekApi(), 1));
                 }
 
                 // Cohere support
                 if (EngineConfig.CohereApiEnable &&
                     !string.IsNullOrWhiteSpace(EngineConfig.CohereKey))
                 {
-                    EngineSelects.Add(new EngineSelect(new CohereApi(), 6));
+                    EngineSelects.Add(new EngineSelect(new CohereApi(), 1));
                 }
 
                 // Baichuan support
                 if (EngineConfig.BaichuanApiEnable &&
                     !string.IsNullOrWhiteSpace(EngineConfig.BaichuanKey))
                 {
-                    EngineSelects.Add(new EngineSelect(new BaichuanApi(), 6));
+                    EngineSelects.Add(new EngineSelect(new BaichuanApi(), 1));
                 }
 
                 //LocalAI(LM) support
                 if (EngineConfig.LMLocalAIEnable)
                 {
-                    EngineSelects.Add(new EngineSelect(new LMStudio(), 1, 0));
+                    EngineSelects.Add(new EngineSelect(new LMStudio(), 1));
                 }
 
                 // DeepL support
                 if (EngineConfig.DeepLApiEnable &&
                     !string.IsNullOrWhiteSpace(EngineConfig.DeepLKey))
                 {
-                    EngineSelects.Add(new EngineSelect(new DeepLApi(), 6));
+                    EngineSelects.Add(new EngineSelect(new DeepLApi(), 1));
                 }
             }
         }

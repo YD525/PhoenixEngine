@@ -181,9 +181,9 @@ namespace PhoenixEngine.EngineManagement
 
         /// <summary>
         /// Specifies the maximum number of context characters to include during generation.
-        /// For example, if set to 300, the total character count of all context lines will not exceed 300.
+        /// For example, if set to 200, the total character count of all context lines will not exceed 200.
         /// </summary>
-        public static int ContextLimit { get; set; } = 200;
+        public static int ContextLimit { get; set; } = 150;
 
         /// <summary>
         /// User-defined custom prompt sent to the AI model.
@@ -197,7 +197,33 @@ namespace PhoenixEngine.EngineManagement
         /// <returns></returns>
         public static int AutoCalcThreadLimit()
         {
-            return 2;
+            int AutoThread = 0;
+
+            AutoThread += EngineConfig.ChatGptApiEnable && !string.IsNullOrWhiteSpace(EngineConfig.ChatGptKey) ? 2 : 0;
+
+            AutoThread += EngineConfig.GeminiApiEnable && !string.IsNullOrWhiteSpace(EngineConfig.GeminiKey) ? 2 : 0;
+
+            AutoThread += EngineConfig.CohereApiEnable && !string.IsNullOrWhiteSpace(EngineConfig.CohereKey) ? 2 : 0;
+
+            AutoThread += EngineConfig.DeepSeekApiEnable && !string.IsNullOrWhiteSpace(EngineConfig.DeepSeekKey) ? 2 : 0;
+
+            AutoThread += EngineConfig.BaichuanApiEnable && !string.IsNullOrWhiteSpace(EngineConfig.BaichuanKey) ? 2 : 0;
+
+            AutoThread += EngineConfig.LMLocalAIEnable ? 2 : 0;
+
+            AutoThread += EngineConfig.DeepLApiEnable && !string.IsNullOrWhiteSpace(EngineConfig.DeepLKey) ? 2 : 0;
+
+            AutoThread += EngineConfig.GoogleYunApiEnable && !string.IsNullOrWhiteSpace(EngineConfig.GoogleApiKey) ? 2 : 0;
+
+            if (AutoThread == 2)
+            {
+                if (EngineConfig.LMLocalAIEnable)
+                {
+                    AutoThread = 15;
+                }
+            }
+
+            return AutoThread;
         }
 
         private static readonly byte[] XorKey = Encoding.UTF8.GetBytes("PhoenixEngine");
