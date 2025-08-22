@@ -184,7 +184,7 @@ namespace PhoenixEngine.TranslateManage
             TransThreadToken?.Cancel();
         }
 
-        public TranslationUnit(string ModName, string Key, string Type, string SourceText, string TransText,string AIParam,Languages From,Languages To)
+        public TranslationUnit(string ModName, string Key, string Type, string SourceText, string TransText,string AIParam,Languages From,Languages To,double Score)
         {
             this.ModName = ModName;
             this.Key = Key;
@@ -194,6 +194,7 @@ namespace PhoenixEngine.TranslateManage
             this.AIParam = AIParam;
             this.From = From;
             this.To = To;
+            this.Score = Score;
         }
     }
     public class BatchTranslationCore

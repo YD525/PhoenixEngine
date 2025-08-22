@@ -45,6 +45,7 @@ namespace PhoenixEngine.EngineManagement
         }
         public class PreTranslateCall
         {
+            public string Key = "";
             public PlatformType Platform = PlatformType.Null;
             public string SendString = "";
             public string ReceiveString = "";

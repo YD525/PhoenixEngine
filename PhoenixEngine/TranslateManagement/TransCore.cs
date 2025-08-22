@@ -247,6 +247,7 @@ namespace PhoenixEngine.TranslateManage
                             PreTranslateCall NPreTranslateCall = new PreTranslateCall();
                             NPreTranslateCall.Platform = PlatformType.PhoenixEngine;
                             NPreTranslateCall.FromAI = false;
+                            NPreTranslateCall.Key = Item.Key;
 
                             string GetDefSource = GetSource;
 
@@ -341,6 +342,7 @@ namespace PhoenixEngine.TranslateManage
                             PreTranslateCall NPreTranslateCall = new PreTranslateCall();
                             NPreTranslateCall.Platform = PlatformType.PhoenixEngine;
                             NPreTranslateCall.FromAI = true;
+                            NPreTranslateCall.Key = Item.Key;
 
                             NPreTranslateCall.SendString = GetSource;
 
