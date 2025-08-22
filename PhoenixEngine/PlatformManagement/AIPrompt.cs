@@ -11,6 +11,11 @@ namespace PhoenixEngine.PlatformManagement
     {
         public static string GenerateTranslationPrompt(Languages From,Languages To,string TextToTranslate,string CategoryType,List<string> TerminologyReferences, List<string> CustomWords,string AdditionalInstructions)
         {
+            if (CategoryType == "Papyrus" || CategoryType == "MCM")
+            {
+                CategoryType = string.Empty;
+            }
+
             var Prompt = new System.Text.StringBuilder();
 
             // Main Role and Instructions
