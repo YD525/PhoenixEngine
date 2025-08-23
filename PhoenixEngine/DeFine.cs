@@ -8,6 +8,6 @@ namespace PhoenixEngine
 {
     public class DeFine
     {
-        public static string Version = "1.0";
+      
     }
 }

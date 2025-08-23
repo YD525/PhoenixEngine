@@ -21,7 +21,7 @@ namespace PhoenixEngine.SSELexiconBridge
         {
             public static string GetVersion()
             {
-                return DeFine.Version;
+                return Engine.Version;
             }
             public static void FormatData()
             {
@@ -169,6 +169,8 @@ namespace PhoenixEngine.SSELexiconBridge
 
                     CloudDBCache.DeleteCache(ModName, Key, Engine.To);
                     LocalDBCache.DeleteCache(ModName, Key, Engine.To);
+
+                    return true;
                 }
 
                 var GetState = LocalDBCache.UPDateLocalTransItem(ModName, Key, (int)Engine.To, TransText, 0);
@@ -191,6 +193,8 @@ namespace PhoenixEngine.SSELexiconBridge
 
                     CloudDBCache.DeleteCache(ModName, Key, Engine.To);
                     LocalDBCache.DeleteCache(ModName, Key, Engine.To);
+
+                    return true;
                 }
 
                 var GetState = CloudDBCache.AddCache(ModName, Key, (int)Engine.To, TransText);

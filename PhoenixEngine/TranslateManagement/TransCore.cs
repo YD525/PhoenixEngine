@@ -188,8 +188,14 @@ namespace PhoenixEngine.TranslateManage
                 }
 
                 ReloadEngine();
+
+                if (TransCore.EngineSelects.Count == 0)
+                { 
+                   return Item.SourceText;
+                }
             }
-            return string.Empty;
+
+            return Item.SourceText;
         }
 
         public class EngineSelect

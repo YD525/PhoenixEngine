@@ -50,7 +50,7 @@ namespace PhoenixEngine.SSEATComBridge
 
         public static string get_version()
         {
-            return JsonSerializer.Serialize(new VersionItem(DeFine.Version));
+            return JsonSerializer.Serialize(new VersionItem(Engine.Version));
         }
 
         public static void set_modname(string modname)
