@@ -26,8 +26,6 @@ Please note that this change only affects the licensing model — the software i
 **PhoenixEngine** is a high-performance, multi-threaded language translation engine.  
 It combines **AI-powered translation** with **context generation**, and features **text segmentation** and **priority-based ordering** to deliver more natural and context-aware results.  
 
-With its flexible architecture and efficient processing capabilities, PhoenixEngine provides developers and users with a smooth, intelligent, and reliable translation experience.  
-
 ---
 
 ## 💬 Community & Contribution
