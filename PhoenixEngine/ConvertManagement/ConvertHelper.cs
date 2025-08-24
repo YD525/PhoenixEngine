@@ -1,9 +1,9 @@
 ﻿using System.Drawing;
 using System.Web;
 
-// Copyright (C) 2025 YD525
-// Licensed under the GNU GPLv3
-// See LICENSE for details
+// Copyright (c) 2025 YD525
+// Licensed under the MIT License.
+// See LICENSE file in the project root for full license information.
 //https://github.com/YD525/PhoenixEngine
 
 namespace PhoenixEngine.ConvertManager

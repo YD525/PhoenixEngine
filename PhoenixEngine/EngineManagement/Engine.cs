@@ -16,6 +16,10 @@ using PhoenixEngine.TranslateManagement;
 
 namespace PhoenixEngine.EngineManagement
 {
+    // Copyright (c) 2025 YD525
+    // Licensed under the MIT License.
+    // See LICENSE file in the project root for full license information.
+    //https://github.com/YD525/PhoenixEngine
     public class Engine
     {
         public static string Version = "1.0.1";
