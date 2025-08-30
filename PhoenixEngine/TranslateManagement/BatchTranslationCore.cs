@@ -643,6 +643,7 @@ namespace PhoenixEngine.TranslateManage
                     lock (Translator.TransDataLocker)
                     {
                         Translator.TransData[Unit.Key] = SameItems[Source];
+                        TranslatorBridge.SetCloudTransData(Unit.Key, Source, SameItems[Source]);
                     }
 
                     lock (TranslatedAddLocker)
