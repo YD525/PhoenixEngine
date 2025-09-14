@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.EngineManagement;
+using PhoenixEngine.FileManagement;
 
 namespace PhoenixEngine.TranslateManagement
 {
@@ -43,7 +44,7 @@ namespace PhoenixEngine.TranslateManagement
         }
     }
 
-    public class UniqueKeyGenerator
+    public class UniqueKeyHelper
     {
         public static void Init()
         {
@@ -63,5 +64,33 @@ CREATE TABLE [UniqueKeys](
                 Engine.LocalDB.ExecuteNonQuery(CreateTableSql);
             }
         }
+
+        /// <summary>
+        /// Generate a block-based MD5 key string for a file.
+        /// If failed, returns the file name.
+        /// </summary>
+        /// <param name="filePath">Full path to the file</param>
+        /// <returns>Joined MD5 hash string or file name if failed</returns>
+        public static string GenOriginalKeyByFile(string FilePath)
+        {
+            string Key = "";
+
+            try 
+            { 
+                Key = BlockHashComparer.JoinHashes(
+                BlockHashComparer.GetBlockMD5(FilePath));
+            }
+            catch 
+            {
+                string GetFileName = FilePath.Substring(FilePath.LastIndexOf(@"\") + @"\".Length);
+                return GetFileName;
+            }
+
+            return Key;
+        }
+    
+
+        
+    
     }
 }

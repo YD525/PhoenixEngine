@@ -11,7 +11,7 @@ namespace PhoenixEngine.FileManagement
     // Licensed under the MIT License.
     // See LICENSE file in the project root for full license information.
     //https://github.com/YD525/PhoenixEngine
-    public class BlockHashComparer
+    internal class BlockHashComparer
     {
         /// <summary>
         /// Compute block-based MD5 hashes of a file.
