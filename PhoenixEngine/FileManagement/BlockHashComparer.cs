@@ -51,20 +51,31 @@ namespace PhoenixEngine.FileManagement
         /// <summary>
         /// Compare two block MD5 arrays and return similarity ratio (0~1).
         /// </summary>
-        public static double CompareHashes(string[] H1, string[] H2)
+        public static double CompareBlockHashesFlexible(string[] H1, string[] H2, int Window = 2)
         {
-            if (H1.Length == 0 || H2.Length == 0) return 0;
+            int Matches = 0;
+            int Total = Math.Max(H1.Length, H2.Length);
 
-            int Min = Math.Min(H1.Length, H2.Length);
-            int Max = Math.Max(H1.Length, H2.Length);
-
-            int Same = 0;
-            for (int I = 0; I < Min; I++)
+            for (int i = 0; i < H1.Length; i++)
             {
-                if (H1[I] == H2[I]) Same++;
+                bool Found = false;
+
+                int Start = Math.Max(0, i - Window);
+                int End = Math.Min(H2.Length - 1, i + Window);
+
+                for (int j = Start; j <= End; j++)
+                {
+                    if (H1[i] == H2[j])
+                    {
+                        Found = true;
+                        break;
+                    }
+                }
+
+                if (Found) Matches++;
             }
 
-            return (double)Same / Max;
+            return (double)Matches / Total;
         }
 
         /// <summary>
@@ -81,7 +92,7 @@ namespace PhoenixEngine.FileManagement
 
         public static bool MatchFile(string Key1, string Key2)
         {
-            if (CompareHashes(SplitHashes(Key1), SplitHashes(Key2))>=0.8)
+            if (CompareBlockHashesFlexible(SplitHashes(Key1), SplitHashes(Key2))>=0.8)
             {
                 return true;
             }
