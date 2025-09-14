@@ -7,6 +7,10 @@ using System.Threading.Tasks;
 
 namespace PhoenixEngine.FileManagement
 {
+    // Copyright (c) 2025 YD525
+    // Licensed under the MIT License.
+    // See LICENSE file in the project root for full license information.
+    //https://github.com/YD525/PhoenixEngine
     public class BlockHashComparer
     {
         /// <summary>
@@ -16,7 +20,7 @@ namespace PhoenixEngine.FileManagement
         /// <param name="TargetBlockCount">Number of blocks to divide the file into</param>
         /// <param name="BufferSize">Buffer size per read (default 4MB)</param>
         /// <returns>Array of MD5 hashes (hex string) for each block</returns>
-        public static string[] GetBlockMD5(string FilePath, int TargetBlockCount = 100, int BufferSize = 4 * 1024 * 1024)
+        public static string[] GetBlockMD5(string FilePath, int TargetBlockCount = 500, int BufferSize = 4 * 1024 * 1024)
         {
             using var Stream = File.OpenRead(FilePath);
             long FileSize = Stream.Length;

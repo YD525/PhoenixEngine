@@ -10,6 +10,11 @@ namespace PhoenixEngine.ConvertManager
 {
     public class ConvertHelper
     {
+        public static string DateTimeToStr(DateTime Time)
+        {
+            return Time.ToString("yyyy-MM-dd HH:mm:ss");
+        }
+
         public static string StringDivision(string Message, string Left, string Right)
         {
             if (Message.Contains(Left) && Message.Contains(Right))
@@ -26,17 +31,19 @@ namespace PhoenixEngine.ConvertManager
       
         public static string ObjToStr(object? Item)
         {
-            string GetConvertStr = string.Empty;
-            if (Item == null == false)
+            string GetConvertStr = "";
+
+            if (Item != null)
             {
                 GetConvertStr = Item.ToString();
             }
+
             return GetConvertStr;
         }
         public static int ObjToInt(object Item)
         {
             int Number = -1;
-            if (Item == null == false)
+            if (Item != null)
             {
                 int.TryParse(Item.ToString(), out Number);
             }
@@ -45,7 +52,7 @@ namespace PhoenixEngine.ConvertManager
         public static double ObjToDouble(object Item)
         {
             double Number = -1;
-            if (Item == null == false)
+            if (Item != null)
             {
                 double.TryParse(Item.ToString(), out Number);
             }
@@ -54,7 +61,7 @@ namespace PhoenixEngine.ConvertManager
         public static bool ObjToBool(object Item)
         {
             bool Check = false;
-            if (Item == null == false)
+            if (Item != null)
             {
                 Boolean.TryParse(Item.ToString(), out Check);
             }
@@ -64,7 +71,7 @@ namespace PhoenixEngine.ConvertManager
         public static long ObjToLong(object Item)
         {
             long Number = -1;
-            if (Item == null == false)
+            if (Item != null)
             {
                 long.TryParse(Item.ToString(), out Number);
             }
