@@ -13,14 +13,40 @@ namespace PhoenixEngine.FileManagement
     //https://github.com/YD525/PhoenixEngine
     internal class BlockHashComparer
     {
+        private static readonly uint[] Crc32Table = GenerateCrc32Table();
+
+        private static uint[] GenerateCrc32Table()
+        {
+            uint[] Table = new uint[256];
+            const uint Polynomial = 0xEDB88320;
+
+            for (uint i = 0; i < 256; i++)
+            {
+                uint CRC = i;
+                for (int j = 0; j < 8; j++)
+                    CRC = (CRC & 1) != 0 ? (CRC >> 1) ^ Polynomial : (CRC >> 1);
+                Table[i] = CRC;
+            }
+
+            return Table;
+        }
+
+        private static uint ComputeCrc32(byte[] Buffer, int Offset, int Count, uint Previous = 0xFFFFFFFF)
+        {
+            uint CRC = Previous;
+            for (int i = Offset; i < Offset + Count; i++)
+                CRC = (CRC >> 8) ^ Crc32Table[(CRC & 0xFF) ^ Buffer[i]];
+            return CRC;
+        }
+
         /// <summary>
-        /// Compute block-based MD5 hashes of a file.
+        /// Compute block-based CRC32 hashes of a file.
         /// </summary>
         /// <param name="FilePath">File path</param>
         /// <param name="TargetBlockCount">Number of blocks to divide the file into</param>
         /// <param name="BufferSize">Buffer size per read (default 4MB)</param>
-        /// <returns>Array of MD5 hashes (hex string) for each block</returns>
-        public static string[] GetBlockMD5(string FilePath, int TargetBlockCount = 500, int BufferSize = 4 * 1024 * 1024)
+        /// <returns>Array of CRC32 hashes (hex string) for each block</returns>
+        public static string[] GetBlockCRC32(string FilePath, int TargetBlockCount = 500, int BufferSize = 4 * 1024 * 1024)
         {
             using var Stream = File.OpenRead(FilePath);
             long FileSize = Stream.Length;
@@ -32,8 +58,8 @@ namespace PhoenixEngine.FileManagement
 
             while (BlockIndex < TargetBlockCount && Stream.Position < FileSize)
             {
-                using var BlockMd5 = MD5.Create();
                 long BytesToRead = BlockSize;
+                uint Crc = 0xFFFFFFFF;
 
                 while (BytesToRead > 0)
                 {
@@ -41,12 +67,12 @@ namespace PhoenixEngine.FileManagement
                     int BytesRead = Stream.Read(Buffer, 0, ReadSize);
                     if (BytesRead == 0) break;
 
-                    BlockMd5.TransformBlock(Buffer, 0, BytesRead, null, 0);
+                    Crc = ComputeCrc32(Buffer, 0, BytesRead, Crc);
                     BytesToRead -= BytesRead;
                 }
 
-                BlockMd5.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
-                Hashes[BlockIndex++] = BitConverter.ToString(BlockMd5.Hash!).Replace("-", "").ToLowerInvariant();
+                Crc ^= 0xFFFFFFFF;
+                Hashes[BlockIndex++] = Crc.ToString("X8"); // 8 位十六进制
             }
 
             return Hashes;
