@@ -49,6 +49,8 @@ namespace PhoenixEngine.EngineManagement
             LocalDBCache.Init();
             FontColorFinder.Init();
 
+            UniqueKeyHelper.Init();
+
             EngineConfig.Load();
             ProxyCenter.UsingProxy();
         }
