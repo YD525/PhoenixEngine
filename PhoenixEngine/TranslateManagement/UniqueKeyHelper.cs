@@ -300,6 +300,39 @@ CREATE TABLE [UniqueKeys](
         }
 
         /// <summary>
+        /// Query the 10 most recent UniqueKeyItem records from the UniqueKeys table.
+        /// </summary>
+        /// <remarks>
+        /// Records are sorted by Rowid in descending order, so the latest entries appear first.
+        /// </remarks>
+        /// <returns>List of up to 10 UniqueKeyItem objects representing the newest records.</returns>
+        public List<UniqueKeyItem> QueryHotUniqueKeys(int Limit = 10)
+        {
+            List<UniqueKeyItem> UniqueKeyItems = new List<UniqueKeyItem>();
+
+            string SqlOrder = "SELECT Rowid, * FROM UniqueKeys ORDER BY Rowid DESC LIMIT " + Limit.ToString() + ";";
+
+            DataTable NTable = Engine.LocalDB.ExecuteDataTable(SqlOrder);
+
+            if (NTable.Rows.Count > 0)
+            {
+                for (int i = 0; i < NTable.Rows.Count; i++)
+                {
+                    UniqueKeyItems.Add(new UniqueKeyItem(
+                        NTable.Rows[i]["Rowid"],
+                        NTable.Rows[i]["OriginalKey"],
+                        NTable.Rows[i]["FileName"],
+                        NTable.Rows[i]["FileExtension"],
+                        NTable.Rows[i]["UpdateTime"],
+                        NTable.Rows[i]["CreatTime"]
+                    ));
+                }
+            }
+
+            return UniqueKeyItems;
+        }
+
+        /// <summary>
         /// Query all UniqueKeyItem records from the UniqueKeys table.
         /// </summary>
         /// <returns>List of all UniqueKeyItem objects in the table.</returns>
