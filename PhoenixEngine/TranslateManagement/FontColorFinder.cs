@@ -12,24 +12,24 @@ namespace PhoenixEngine.TranslateManagement
     {
         public class FontColor
         {
-            public string ModName = "";
+            public int FileUniqueKey = 0;
             public string Key = "";
             public int R = 0;
             public int G = 0;
             public int B = 0;
 
-            public FontColor(string ModName, string Key, int R, int G, int B)
+            public FontColor(int FileUniqueKey, string Key, int R, int G, int B)
             { 
-               this.ModName = ModName;
+               this.FileUniqueKey = FileUniqueKey;
                this.Key = Key;
                this.R = R;
                this.G = G;
                this.B = B;
             }
 
-            public FontColor(object ModName, object Key, object R, object G, object B)
+            public FontColor(object FileUniqueKey, object Key, object R, object G, object B)
             {
-                this.ModName = ConvertHelper.ObjToStr(ModName);
+                this.FileUniqueKey = ConvertHelper.ObjToInt(FileUniqueKey);
                 this.Key = ConvertHelper.ObjToStr(Key);
                 this.R = ConvertHelper.ObjToInt(R);
                 this.G = ConvertHelper.ObjToInt(G);
@@ -45,7 +45,7 @@ namespace PhoenixEngine.TranslateManagement
             {
                 string CreateTableSql = @"
 CREATE TABLE [FontColors](
-  [ModName] TEXT, 
+  [FileUniqueKey] INT, 
   [Key] TEXT, 
   [R] INT, 
   [G] INT, 
@@ -55,14 +55,14 @@ CREATE TABLE [FontColors](
             }
         }
 
-        public static FontColor? FindColor(string ModName, string Key)
+        public static FontColor? FindColor(int FileUniqueKey, string Key)
         {
-            string SqlOrder = "Select * From FontColors Where ModName = '{0}' And Key = '{1}'";
-            DataTable NTable = Engine.LocalDB.ExecuteQuery(string.Format(SqlOrder,ModName,Key));
+            string SqlOrder = "Select * From FontColors Where FileUniqueKey = {0} And Key = '{1}'";
+            DataTable NTable = Engine.LocalDB.ExecuteQuery(string.Format(SqlOrder,FileUniqueKey, Key));
             if (NTable.Rows.Count > 0)
             {
                 return new FontColor(
-                    NTable.Rows[0]["ModName"],
+                    NTable.Rows[0]["FileUniqueKey"],
                     NTable.Rows[0]["Key"],
                     NTable.Rows[0]["R"],
                     NTable.Rows[0]["G"],
@@ -73,10 +73,10 @@ CREATE TABLE [FontColors](
             return null;
         }
 
-        public static bool DeleteColor(string ModName, string Key)
+        public static bool DeleteColor(int FileUniqueKey, string Key)
         {
-            string SqlOrder = "Delete From FontColors Where ModName = '{0}' And Key = '{1}'";
-            int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,ModName,Key));
+            string SqlOrder = "Delete From FontColors Where FileUniqueKey = {0} And Key = '{1}'";
+            int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, Key));
             if (State != 0)
             {
                 return true;
@@ -85,21 +85,16 @@ CREATE TABLE [FontColors](
             return false;
         }
 
-        public static bool SetColor(string ModName,string Key,int R,int G,int B)
+        public static bool SetColor(int FileUniqueKey, string Key,int R,int G,int B)
         {
-            if (ModName.Trim().Length == 0)
-            {
-                return false;
-            }
-
             if ((R == 255 && G == 255 && B == 255) == false)
             {
-                int GetRowID = ConvertHelper.ObjToInt(Engine.LocalDB.ExecuteScalar(String.Format("Select Rowid From FontColors Where [ModName] = '{0}' And [Key] = '{1}'", ModName, Key)));
+                int GetRowID = ConvertHelper.ObjToInt(Engine.LocalDB.ExecuteScalar(String.Format("Select Rowid From FontColors Where [FileUniqueKey] = {0} And [Key] = '{1}'", FileUniqueKey, Key)));
 
                 if (GetRowID < 0)
                 {
-                    string SqlOrder = "Insert Into FontColors([ModName],[Key],[R],[G],[B])Values('{0}','{1}',{2},{3},{4})";
-                    int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, ModName, Key, R, G, B));
+                    string SqlOrder = "Insert Into FontColors([FileUniqueKey],[Key],[R],[G],[B])Values({0},'{1}',{2},{3},{4})";
+                    int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, Key, R, G, B));
                     if (State != 0)
                     {
                         return true;
@@ -117,7 +112,7 @@ CREATE TABLE [FontColors](
             }
             else
             {
-                DeleteColor(ModName,Key);
+                DeleteColor(FileUniqueKey, Key);
             }
 
             return false;

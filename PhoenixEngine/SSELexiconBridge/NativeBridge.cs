@@ -96,7 +96,7 @@ namespace PhoenixEngine.SSELexiconBridge
 
             public static QueryTransItem QueryTransData(string Key, string SourceText)
             {
-                string ModName = Engine.GetModName();
+                int FileUniqueKey = Engine.GetFileUniqueKey();
 
                 QueryTransItem NQueryTransItem = new QueryTransItem();
 
@@ -110,7 +110,7 @@ namespace PhoenixEngine.SSELexiconBridge
 
                 if (GetRamSource.Trim().Length == 0)
                 {
-                    TransText = LocalDBCache.GetCacheText(ModName, Key, Engine.To);
+                    TransText = LocalDBCache.GetCacheText(FileUniqueKey, Key, Engine.To);
 
                     if (TransText.Trim().Length > 0)
                     {
@@ -118,7 +118,7 @@ namespace PhoenixEngine.SSELexiconBridge
                     }
                     else
                     {
-                        TransText = CloudDBCache.FindCache(ModName, Key, Engine.To);
+                        TransText = CloudDBCache.FindCache(FileUniqueKey, Key, Engine.To);
 
                         if (TransText.Trim().Length > 0)
                         {
@@ -131,7 +131,7 @@ namespace PhoenixEngine.SSELexiconBridge
                 }
                 else
                 {
-                    var GetStr = CloudDBCache.FindCache(ModName, Key, Engine.To);
+                    var GetStr = CloudDBCache.FindCache(FileUniqueKey, Key, Engine.To);
                     TransText = GetRamSource;
 
                     if (GetStr.Equals(GetRamSource))
@@ -154,7 +154,7 @@ namespace PhoenixEngine.SSELexiconBridge
 
             public static bool SetTransData(string Key, string SourceText,string TransText)
             {
-                string ModName = Engine.GetModName();
+                int FileUniqueKey = Engine.GetFileUniqueKey();
 
                 if (TransText.Trim().Length > 0)
                 {
@@ -167,22 +167,22 @@ namespace PhoenixEngine.SSELexiconBridge
                         Translator.TransData.Remove(Key);
                     }
 
-                    CloudDBCache.DeleteCache(ModName, Key, Engine.To);
-                    LocalDBCache.DeleteCache(ModName, Key, Engine.To);
+                    CloudDBCache.DeleteCache(FileUniqueKey, Key, Engine.To);
+                    LocalDBCache.DeleteCache(FileUniqueKey, Key, Engine.To);
 
                     return true;
                 }
 
-                var GetState = LocalDBCache.UPDateLocalTransItem(ModName, Key, (int)Engine.To, TransText, 0);
+                var GetState = LocalDBCache.UPDateLocalTransItem(FileUniqueKey, Key, (int)Engine.To, TransText, 0);
 
-                Engine.GetTranslatedCount(Engine.GetModName());
+                Engine.GetTranslatedCount(Engine.GetFileUniqueKey());
 
                 return GetState;
             }
 
             public static bool SetCloudTransData(string Key, string SourceText, string TransText)
             {
-                string ModName = Engine.GetModName();
+                int FileUniqueKey = Engine.GetFileUniqueKey();
 
                 if (TransText.Trim().Length <= 0)
                 {
@@ -191,15 +191,15 @@ namespace PhoenixEngine.SSELexiconBridge
                         Translator.TransData.Remove(Key);
                     }
 
-                    CloudDBCache.DeleteCache(ModName, Key, Engine.To);
-                    LocalDBCache.DeleteCache(ModName, Key, Engine.To);
+                    CloudDBCache.DeleteCache(FileUniqueKey, Key, Engine.To);
+                    LocalDBCache.DeleteCache(FileUniqueKey, Key, Engine.To);
 
                     return true;
                 }
 
-                var GetState = CloudDBCache.AddCache(ModName, Key, (int)Engine.To, TransText);
+                var GetState = CloudDBCache.AddCache(FileUniqueKey, Key, (int)Engine.To, TransText);
 
-                Engine.GetTranslatedCount(Engine.GetModName());
+                Engine.GetTranslatedCount(Engine.GetFileUniqueKey());
 
                 return GetState;
             }

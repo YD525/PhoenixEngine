@@ -53,9 +53,9 @@ namespace PhoenixEngine.SSEATComBridge
             return JsonSerializer.Serialize(new VersionItem(Engine.Version));
         }
 
-        public static void set_modname(string modname)
+        public static void set_uniquekey(int uniquekey)
         {
-            Engine.ChangeModName(modname);
+            Engine.ChangeUniqueKey(uniquekey);
         }
 
         /// <summary>
@@ -171,7 +171,7 @@ namespace PhoenixEngine.SSEATComBridge
 
             if (GetItem != null)
             {
-                Engine.AddTranslationUnit(new TranslationUnit(GetItem.ModName, GetItem.Key, GetItem.Type, GetItem.SourceText, GetItem.TransText,"",Engine.From,Engine.To,100));
+                Engine.AddTranslationUnit(new TranslationUnit(GetItem.FileUniqueKey, GetItem.Key, GetItem.Type, GetItem.SourceText, GetItem.TransText,"",Engine.From,Engine.To,100));
                 return true;
             }
 
@@ -198,7 +198,7 @@ namespace PhoenixEngine.SSEATComBridge
             {
                 NTranslatedResult.Item = new TranslationUnitJson();
 
-                NTranslatedResult.Item.ModName = GetItem.ModName;
+                NTranslatedResult.Item.FileUniqueKey = GetItem.FileUniqueKey;
                 NTranslatedResult.Item.Score = GetItem.Score;
 
                 NTranslatedResult.Item.Key = GetItem.Key;
@@ -415,7 +415,7 @@ namespace PhoenixEngine.SSEATComBridge
             {
                 AdvancedDictionaryItem NAdvancedDictionaryItem = new AdvancedDictionaryItem();
 
-                NAdvancedDictionaryItem.TargetModName = Item.TargetModName;
+                NAdvancedDictionaryItem.TargetFileName = Item.TargetFileName;
                 NAdvancedDictionaryItem.Type = Item.Type;
                 NAdvancedDictionaryItem.From = Item.From;
                 NAdvancedDictionaryItem.To = Item.To;
@@ -477,19 +477,6 @@ namespace PhoenixEngine.SSEATComBridge
             return JsonSerializer.Serialize(new PageItem<List<AdvancedDictionaryItem>>(new List<AdvancedDictionaryItem>(),-1,-1));
         }
 
-        /// <summary>
-        /// Starts a background thread to translate a book's text content.
-        /// </summary>
-        /// <param name="Json">
-        /// A JSON string containing the following fields:
-        /// - ModName: The name of the mod (used to identify the source of the book)
-        /// - Key: A unique key for the book entry
-        /// - Source: The full text content of the book that needs to be translated
-        /// </param>
-        /// <returns>
-        /// Returns the managed thread ID of the created translation thread.
-        /// If JSON deserialization fails or an exception occurs, returns -1.
-        /// </returns>
         public static int translate_book_text(string Json)
         {
             int ThreadID = -1;
@@ -507,7 +494,7 @@ namespace PhoenixEngine.SSEATComBridge
                 
                 Thread CreatTrd = new Thread(() => 
                 {
-                    TranslationUnit NewUnit = new TranslationUnit(Engine.GetModName(),Item.Key,"Book",Item.Source,"","",Engine.From,Engine.To,100);
+                    TranslationUnit NewUnit = new TranslationUnit(Engine.GetFileUniqueKey(),Item.Key,"Book",Item.Source,"","",Engine.From,Engine.To,100);
                     NTextSegmentTranslator.TransBook(NewUnit);
                 });
 
@@ -566,20 +553,6 @@ namespace PhoenixEngine.SSEATComBridge
             return false;
         }
 
-        /// <summary>
-        /// Dequeues the first completed book translation result from the active translation tasks.
-        /// </summary>
-        /// <returns>
-        /// A JSON string representing the first completed book translation with the following fields:
-        /// - ModName: The mod name
-        /// - Key: The unique key identifying the book entry
-        /// - Text: The translated text content
-        /// - IsEnd: Whether the translation task is finished for this item
-        /// - State: The state of the queue after dequeue operation:
-        ///     0 = There are still more translation results waiting to be dequeued
-        ///     1 = All translation results have been dequeued (queue is empty)
-        ///    -1 = No completed translation results available currently
-        /// </returns>
         public static string dequeue_book_translated()
         {
             BookTransListJson GetFristBook = new BookTransListJson();
@@ -589,7 +562,7 @@ namespace PhoenixEngine.SSEATComBridge
             {
                 if (BridgeHelper.BookTransTrds[i].Translator.IsEnd)
                 {
-                    GetFristBook.ModName = BridgeHelper.BookTransTrds[i].Translator.ModName;
+                    GetFristBook.FileUniqueKey = BridgeHelper.BookTransTrds[i].Translator.FileUniqueKey;
                     GetFristBook.Key = BridgeHelper.BookTransTrds[i].Translator.Key;
                     GetFristBook.Text = BridgeHelper.BookTransTrds[i].Translator.CurrentText;
                     GetFristBook.IsEnd = BridgeHelper.BookTransTrds[i].Translator.IsEnd;

@@ -14,7 +14,7 @@ namespace PhoenixEngine.TranslateManagement
     public class AdvancedDictionaryItem
     {
         public int Rowid = 0;
-        public string TargetModName = "";
+        public string TargetFileName = "";
         public string Type = "";
         public string Source = "";
         public string Result = "";
@@ -28,9 +28,9 @@ namespace PhoenixEngine.TranslateManagement
         {
 
         }
-        public AdvancedDictionaryItem(object TargetModName, object Type, object Source, object Result, object From, object To, object ExactMatch, object IgnoreCase, object Regex)
+        public AdvancedDictionaryItem(object TargetFileName, object Type, object Source, object Result, object From, object To, object ExactMatch, object IgnoreCase, object Regex)
         {
-            this.TargetModName = ConvertHelper.ObjToStr(TargetModName);
+            this.TargetFileName = ConvertHelper.ObjToStr(TargetFileName);
             this.Type = ConvertHelper.ObjToStr(Type);
             this.Source = ConvertHelper.ObjToStr(Source);
             this.Result = ConvertHelper.ObjToStr(Result);
@@ -40,10 +40,10 @@ namespace PhoenixEngine.TranslateManagement
             this.IgnoreCase = ConvertHelper.ObjToInt(IgnoreCase);
             this.Regex = ConvertHelper.ObjToStr(Regex);
         }
-        public AdvancedDictionaryItem(object Rowid,object TargetModName, object Type, object Source, object Result, object From, object To, object ExactMatch, object IgnoreCase, object Regex)
+        public AdvancedDictionaryItem(object Rowid,object TargetFileName, object Type, object Source, object Result, object From, object To, object ExactMatch, object IgnoreCase, object Regex)
         {
             this.Rowid = ConvertHelper.ObjToInt(Rowid);
-            this.TargetModName = ConvertHelper.ObjToStr(TargetModName);
+            this.TargetFileName = ConvertHelper.ObjToStr(TargetFileName);
             this.Type = ConvertHelper.ObjToStr(Type);
             this.Source = ConvertHelper.ObjToStr(Source);
             this.Result = ConvertHelper.ObjToStr(Result);
@@ -65,7 +65,7 @@ namespace PhoenixEngine.TranslateManagement
             if (Result == null || Result == DBNull.Value)
             {
                 string CreateTableSql = @"CREATE TABLE [AdvancedDictionary](
-  [TargetModName] TEXT, 
+  [TargetFileName] TEXT, 
   [Type] TEXT, 
   [Source] TEXT, 
   [Result] TEXT, 
@@ -107,16 +107,16 @@ namespace PhoenixEngine.TranslateManagement
             return S;
         }
 
-        public static List<AdvancedDictionaryItem> Query(string ModName, string Type, Languages From, Languages To, string SourceText)
+        public static List<AdvancedDictionaryItem> Query(string FileName, string Type, Languages From, Languages To, string SourceText)
         {
             List<AdvancedDictionaryItem> AdvancedDictionaryItems = new List<AdvancedDictionaryItem>();
             string SqlOrder = @"
 SELECT Rowid,* FROM AdvancedDictionary
 WHERE 
   (
-    TargetModName IS NULL
-    OR TargetModName = ''
-    OR TargetModName = '{0}'
+    TargetFileName IS NULL
+    OR TargetFileName = ''
+    OR TargetFileName = '{0}'
   )
   AND (
     [Type] IS NULL
@@ -139,7 +139,7 @@ WHERE
 ";
             DataTable NTable = Engine.LocalDB.ExecuteQuery(string.Format(
                 SqlOrder,
-                EscapeSqlString(ModName),
+                EscapeSqlString(FileName),
                 EscapeSqlString(Type),
                 (int)From,
                 (int)To,
@@ -150,7 +150,7 @@ WHERE
             {
                 var Get = new AdvancedDictionaryItem(
                     NTable.Rows[i]["Rowid"],
-                    NTable.Rows[i]["TargetModName"],
+                    NTable.Rows[i]["TargetFileName"],
                     NTable.Rows[i]["Type"],
                     NTable.Rows[i]["Source"],
                     NTable.Rows[i]["Result"],
@@ -181,7 +181,7 @@ WHERE
             string CheckSql = $@"
 SELECT COUNT(*) FROM AdvancedDictionary 
 WHERE 
-[TargetModName] = '{EscapeSqlString(item.TargetModName)}' AND
+[TargetFileName] = '{EscapeSqlString(item.TargetFileName)}' AND
 [Type] = '{EscapeSqlString(item.Type)}' AND
 [Source] = '{EscapeSqlString(item.Source)}' AND
 [Result] = '{EscapeSqlString(item.Result)}' AND
@@ -198,9 +198,9 @@ WHERE
             if (!CheckSame(Item))
             {
                 string sql = $@"INSERT INTO AdvancedDictionary 
-([TargetModName], [Type], [Source], [Result], [From], [To], [ExactMatch], [IgnoreCase], [Regex])
+([TargetFileName], [Type], [Source], [Result], [From], [To], [ExactMatch], [IgnoreCase], [Regex])
 VALUES (
-'{EscapeSqlString(Item.TargetModName)}',
+'{EscapeSqlString(Item.TargetFileName)}',
 '{EscapeSqlString(Item.Type)}',
 '{EscapeSqlString(Item.Source)}',
 '{EscapeSqlString(Item.Result)}',
@@ -226,7 +226,7 @@ VALUES (
         public static void DeleteItem(AdvancedDictionaryItem item)
         {
             string sql = $@"DELETE FROM AdvancedDictionary WHERE 
-TargetModName = '{EscapeSqlString(item.TargetModName)}' AND
+TargetFileName = '{EscapeSqlString(item.TargetFileName)}' AND
 Type = '{EscapeSqlString(item.Type)}' AND
 Source = '{EscapeSqlString(item.Source)}' AND
 Result = '{EscapeSqlString(item.Result)}' AND
@@ -252,7 +252,7 @@ Regex = '{System.Web.HttpUtility.HtmlEncode(item.Regex)}'";
                 DataRow Row = NTable.Rows[i];
                 Items.Add(new AdvancedDictionaryItem(
                     Row["Rowid"],
-                    Row["TargetModName"],
+                    Row["TargetFileName"],
                     Row["Type"],
                     Row["Source"],
                     Row["Result"],
@@ -280,7 +280,7 @@ Regex = '{System.Web.HttpUtility.HtmlEncode(item.Regex)}'";
             {
                 DataRow Row = NTable.Rows[i];
                 Items.Add(new AdvancedDictionaryItem(
-                    Row["TargetModName"],
+                    Row["TargetFileName"],
                     Row["Type"],
                     Row["Source"],
                     Row["Result"],

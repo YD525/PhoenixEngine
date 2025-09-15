@@ -128,7 +128,7 @@ namespace PhoenixEngine.TranslateManage
             }
 
             Call.SendString = Item.SourceText;
-            string GetCacheStr = CloudDBCache.FindCache(Engine.GetModName(), Item.Key, Item.To);
+            string GetCacheStr = CloudDBCache.FindCache(Engine.GetFileUniqueKey(), Item.Key, Item.To);
 
             if (GetCacheStr.Trim().Length > 0)
             {
@@ -259,7 +259,7 @@ namespace PhoenixEngine.TranslateManage
 
                             NPreTranslateCall.SendString = GetDefSource;
 
-                            GetSource = NTranslationPreprocessor.GeneratePlaceholderText(Engine.GetModName(),Item.From,Item.To, GetDefSource, Item.Type, out CanTrans);
+                            GetSource = NTranslationPreprocessor.GeneratePlaceholderText(Engine.LastLoadFileName,Item.From,Item.To, GetDefSource, Item.Type, out CanTrans);
 
                             NPreTranslateCall.ReceiveString = GetSource;
 
@@ -352,7 +352,7 @@ namespace PhoenixEngine.TranslateManage
 
                             NPreTranslateCall.SendString = GetSource;
 
-                            CustomWords = NTranslationPreprocessor.GeneratePlaceholderTextByAI(Engine.GetModName(), Item.From, Item.To, GetSource, Item.Type, out CanTrans);
+                            CustomWords = NTranslationPreprocessor.GeneratePlaceholderTextByAI(Engine.LastLoadFileName, Item.From, Item.To, GetSource, Item.Type, out CanTrans);
 
                             NPreTranslateCall.ReplaceTags = NTranslationPreprocessor.ReplaceTags;
 

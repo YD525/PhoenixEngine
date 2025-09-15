@@ -11,24 +11,24 @@ namespace PhoenixEngine.TranslateManagement
     //https://github.com/YD525/PhoenixEngine
     public class LocalTransItem
     {
-        public string ModName = "";
+        public int FileUniqueKey = 0;
         public string Key = "";
         public int To = 0;
         public string Result = "";
         public int Index = 0;
 
-        public LocalTransItem(string ModName,string Key,Languages TargetLanguage, string Result)
+        public LocalTransItem(int FileUniqueKey, string Key,Languages TargetLanguage, string Result)
         {
-            this.ModName = ModName;
+            this.FileUniqueKey = FileUniqueKey;
             this.Key = Key;
             this.To = (int)TargetLanguage;
             this.Result = Result;
             this.Index = 0;
         }
 
-        public LocalTransItem(object ModName, object Key, object To, object Result)
+        public LocalTransItem(object FileUniqueKey, object Key, object To, object Result)
         {
-            this.ModName = ConvertHelper.ObjToStr(ModName);
+            this.FileUniqueKey = ConvertHelper.ObjToInt(FileUniqueKey);
             this.Key = ConvertHelper.ObjToStr(Key);
             this.To = ConvertHelper.ObjToInt(To);
             this.Result = ConvertHelper.ObjToStr(Result);
@@ -46,7 +46,7 @@ namespace PhoenixEngine.TranslateManagement
             {
                 string CreateTableSql = @"
 CREATE TABLE [LocalTranslation](
-  [ModName] TEXT, 
+  [FileUniqueKey] INT, 
   [Key] TEXT, 
   [To] INT, 
   [Result] TEXT, 
@@ -55,13 +55,13 @@ CREATE TABLE [LocalTranslation](
                 Engine.LocalDB.ExecuteNonQuery(CreateTableSql);
             }
         }
-        public static bool DeleteCacheByModName(string ModName,Languages TargetLanguage)
+        public static bool DeleteCacheByFileUniqueKey(string FileUniqueKey, Languages TargetLanguage)
         {
             try
             {
-                string SqlOrder = "Delete From LocalTranslation Where [ModName] = '{0}' And [To] = {1}";
+                string SqlOrder = "Delete From LocalTranslation Where [FileUniqueKey] = {0} And [To] = {1}";
 
-                int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, ModName, (int)TargetLanguage));
+                int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, (int)TargetLanguage));
 
                 if (State != 0)
                 {
@@ -73,13 +73,13 @@ CREATE TABLE [LocalTranslation](
             catch { return false; }
         }
 
-        public static bool DeleteCacheByResult(string ModName,string ResultText,Languages TargetLanguage)
+        public static bool DeleteCacheByResult(string FileUniqueKey, string ResultText,Languages TargetLanguage)
         {
             try
             {
-                string SqlOrder = "Delete From LocalTranslation Where [ModName] = '{0}' And [Result] = '{1}' And [To] = {2}";
+                string SqlOrder = "Delete From LocalTranslation Where [FileUniqueKey] = {0} And [Result] = '{1}' And [To] = {2}";
 
-                int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, ModName, System.Web.HttpUtility.HtmlEncode(ResultText),(int)TargetLanguage));
+                int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, System.Web.HttpUtility.HtmlEncode(ResultText),(int)TargetLanguage));
 
                 if (State != 0)
                 {
@@ -91,13 +91,13 @@ CREATE TABLE [LocalTranslation](
             catch { return false; }
         }
 
-        public static bool DeleteCache(string ModName,string Key,Languages TargetLanguage)
+        public static bool DeleteCache(int FileUniqueKey, string Key,Languages TargetLanguage)
         {
             try
             {
-                string SqlOrder = "Delete From LocalTranslation Where [ModName] = '{0}' And [Key] = '{1}' And [To] = {2}";
+                string SqlOrder = "Delete From LocalTranslation Where [FileUniqueKey] = {0} And [Key] = '{1}' And [To] = {2}";
 
-                int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, ModName, Key,(int)TargetLanguage));
+                int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, Key,(int)TargetLanguage));
 
                 if (State!=0)
                 {
@@ -109,13 +109,13 @@ CREATE TABLE [LocalTranslation](
             catch { return false; }
         }
 
-        public static string GetCacheText(string ModName,string Key,Languages TargetLanguage)
+        public static string GetCacheText(int FileUniqueKey, string Key,Languages TargetLanguage)
         {
             try
             {
-                string SqlOrder = "Select Result From LocalTranslation Where [ModName] = '{0}' And[Key] = '{1}' And [To] = {2}";
+                string SqlOrder = "Select Result From LocalTranslation Where [FileUniqueKey] = {0} And [Key] = '{1}' And [To] = {2}";
 
-                string GetText = ConvertHelper.ObjToStr(Engine.LocalDB.ExecuteScalar(string.Format(SqlOrder, ModName, Key,(int)TargetLanguage)));
+                string GetText = ConvertHelper.ObjToStr(Engine.LocalDB.ExecuteScalar(string.Format(SqlOrder, FileUniqueKey, Key,(int)TargetLanguage)));
 
                 if (GetText.Trim().Length > 0)
                 {
@@ -127,19 +127,19 @@ CREATE TABLE [LocalTranslation](
             catch { return string.Empty; }
         }
 
-        public static string FindCache(string ModName,string Key,Languages TargetLanguage)
+        public static string FindCache(int FileUniqueKey, string Key,Languages TargetLanguage)
         {
-            return FindCache(ModName, Key, (int)TargetLanguage);
+            return FindCache(FileUniqueKey, Key, (int)TargetLanguage);
         }
 
 
-        public static string FindCache(string ModName,string Key,int To)
+        public static string FindCache(int FileUniqueKey, string Key,int To)
         {
             try
             {
-                string SqlOrder = "Select Result From LocalTranslation Where [ModName] = '{0}' And [Key] = '{1}' And [To] = {2}";
+                string SqlOrder = "Select Result From LocalTranslation Where [FileUniqueKey] = {0} And [Key] = '{1}' And [To] = {2}";
 
-                string GetResult = ConvertHelper.ObjToStr(Engine.LocalDB.ExecuteScalar(string.Format(SqlOrder,ModName,Key,To)));
+                string GetResult = ConvertHelper.ObjToStr(Engine.LocalDB.ExecuteScalar(string.Format(SqlOrder,FileUniqueKey,Key,To)));
 
                 if (GetResult.Trim().Length > 0)
                 {
@@ -151,22 +151,17 @@ CREATE TABLE [LocalTranslation](
             catch { return string.Empty; }
         }    
 
-        public static bool UPDateLocalTransItem(string ModName,string Key,int To,string Result,int Index)
+        public static bool UPDateLocalTransItem(int FileUniqueKey, string Key,int To,string Result,int Index)
         {
-            if (ModName.Trim().Length == 0)
-            {
-                return false;
-            }
-
             if (Result.Length > 0)
             {
-                int GetRowID = ConvertHelper.ObjToInt(Engine.LocalDB.ExecuteScalar(String.Format("Select Rowid From LocalTranslation Where [ModName] = '{0}' And [Key] = '{1}' And [To] = {2}", ModName, Key, To)));
+                int GetRowID = ConvertHelper.ObjToInt(Engine.LocalDB.ExecuteScalar(String.Format("Select Rowid From LocalTranslation Where [FileUniqueKey] = '{0}' And [Key] = '{1}' And [To] = {2}", FileUniqueKey, Key, To)));
 
                 if (GetRowID < 0)
                 {
-                    string SqlOrder = "Insert Into LocalTranslation([ModName],[Key],[To],[Result],[Index])Values('{0}','{1}',{2},'{3}',{4})";
+                    string SqlOrder = "Insert Into LocalTranslation([FileUniqueKey],[Key],[To],[Result],[Index])Values('{0}','{1}',{2},'{3}',{4})";
                     int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,
-                        ModName,
+                        FileUniqueKey,
                         Key,
                         To,
                         System.Web.HttpUtility.HtmlEncode(Result),
@@ -189,7 +184,7 @@ CREATE TABLE [LocalTranslation](
             }
             else
             {
-                DeleteCache(ModName, Key, (Languages)To);
+                DeleteCache(FileUniqueKey, Key, (Languages)To);
             }
 
             return false;

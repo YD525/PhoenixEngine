@@ -24,7 +24,7 @@ namespace PhoenixEngine.TranslateManagement
     }
     public class TextSegmentTranslator
     {
-        public string ModName = "";
+        public int FileUniqueKey = 0;
         public string Key = "";
         public string Source = "";
         public int TransCount = 0;
@@ -112,7 +112,7 @@ namespace PhoenixEngine.TranslateManagement
             CancelToken = new CancellationTokenSource();
             var Token = CancelToken.Token;
 
-            this.ModName = Engine.GetModName();
+            this.FileUniqueKey = Engine.GetFileUniqueKey();
 
             Languages SourceLanguage = Engine.From;
             Languages TargetLanguage = Engine.To;

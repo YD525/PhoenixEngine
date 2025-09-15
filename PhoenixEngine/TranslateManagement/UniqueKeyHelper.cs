@@ -120,7 +120,7 @@ CREATE TABLE [UniqueKeys](
             try
             {
                 Key = BlockHashComparer.JoinHashes(
-                BlockHashComparer.GetBlockMD5(FilePath)
+                BlockHashComparer.GetBlockCRC32(FilePath)
                 );
             }
             catch
@@ -149,11 +149,11 @@ CREATE TABLE [UniqueKeys](
         /// <param name="FilePath">Full path to the file</param>
         /// <param name="CanSkipFuzzyMatching">Whether to skip fuzzy matching</param>
         /// <returns>Rowid of the added or matched record. -1 if nothing added.</returns>
-        public static int AddItemByReturn(string FilePath,bool CanSkipFuzzyMatching = false)
+        public static int AddItemByReturn(ref UniqueKeyItem GenUniqueKeyItem, string FilePath,bool CanSkipFuzzyMatching = false)
         {
             string SourceOriginalKey = GenOriginalKeyByFile(FilePath);
 
-            UniqueKeyItem GenUniqueKeyItem = new UniqueKeyItem(
+            GenUniqueKeyItem = new UniqueKeyItem(
                SourceOriginalKey,
                GetFileName(FilePath),
                GetFileExtension(FilePath),

@@ -60,6 +60,15 @@ namespace PhoenixEngine.EngineManagement
             LocalDB.ExecuteNonQuery("vacuum");
         }
 
+        public static string LastLoadFileName = "";
+
+        public static void LoadFile(string FilePath,bool CanSkipFuzzyMatching = false)
+        {
+            UniqueKeyItem NewKey = new UniqueKeyItem();
+            FileUniqueKey = UniqueKeyHelper.AddItemByReturn(ref NewKey,FilePath,CanSkipFuzzyMatching);
+            LastLoadFileName = NewKey.FileName;
+        }
+
         public static string GetFullPath(string Path)
         {
             string GetShellPath = System.AppContext.BaseDirectory;
@@ -91,27 +100,27 @@ namespace PhoenixEngine.EngineManagement
             return false;
         }
 
-        private static string ModName = "";
+        private static int FileUniqueKey = 0;
 
-        public static void ChangeModName(string SetModName)
+        public static void ChangeUniqueKey(int Rowid)
         {
-            ModName = WebUtility.HtmlEncode(SetModName);
-            GetTranslatedCount(ModName);
+            FileUniqueKey = Rowid;
+            GetTranslatedCount(FileUniqueKey);
         }
 
         public static int TranslatedCount = 0;
-        public static int GetTranslatedCount(string ModName)
+        public static int GetTranslatedCount(int FileUniqueKey)
         {
             string SqlOrder = $@"SELECT COUNT(*) AS TotalCount
 FROM (
     SELECT Key
     FROM LocalTranslation
-    WHERE ModName = '{ModName}' And [To] = '{(int)Engine.To}'
+    WHERE FileUniqueKey = '{FileUniqueKey}' And [To] = '{(int)Engine.To}'
     
     UNION  
     SELECT Key
     FROM CloudTranslation
-    WHERE ModName = '{ModName}' And [To] = '{(int)Engine.To}'
+    WHERE FileUniqueKey = '{FileUniqueKey}' And [To] = '{(int)Engine.To}'
 ) AS Combined;";
 
             int GetCount = ConvertHelper.ObjToInt(Engine.LocalDB.ExecuteScalar(SqlOrder));
@@ -120,9 +129,9 @@ FROM (
 
             return GetCount;
         }
-        public static string GetModName()
+        public static int GetFileUniqueKey()
         {
-            return Engine.ModName;
+            return Engine.FileUniqueKey;
         }
 
         public static void Start()

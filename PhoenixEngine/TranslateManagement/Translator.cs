@@ -146,9 +146,9 @@ namespace PhoenixEngine.TranslateManage
 
             return Content;
         }
-        public static bool ClearCloudCache(string ModName)
+        public static bool ClearCloudCache(int FileUniqueKey)
         {
-            string SqlOrder = "Delete From CloudTranslation Where ModName = '" + ModName + "'";
+            string SqlOrder = "Delete From CloudTranslation Where FileUniqueKey = " + FileUniqueKey + "";
             int State = Engine.LocalDB.ExecuteNonQuery(SqlOrder);
             if (State != 0)
             {

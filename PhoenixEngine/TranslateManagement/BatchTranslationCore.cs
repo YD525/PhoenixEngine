@@ -19,7 +19,7 @@ namespace PhoenixEngine.TranslateManage
 
     public class TranslationUnit
     {
-        public string ModName = "";
+        public int FileUniqueKey = 0;
         public int WorkEnd = 0;
         public Thread? CurrentTrd;
         public double Score = 100;
@@ -184,9 +184,9 @@ namespace PhoenixEngine.TranslateManage
             TransThreadToken?.Cancel();
         }
 
-        public TranslationUnit(string ModName, string Key, string Type, string SourceText, string TransText,string AIParam,Languages From,Languages To,double Score)
+        public TranslationUnit(int FileUniqueKey, string Key, string Type, string SourceText, string TransText,string AIParam,Languages From,Languages To,double Score)
         {
-            this.ModName = ModName;
+            this.FileUniqueKey = FileUniqueKey;
             this.Key = Key;
             this.Type = Type;
             this.SourceText = SourceText;

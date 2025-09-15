@@ -247,7 +247,7 @@ namespace PhoenixEngine.SSEATComBridge
     }
     public class BookTransListJson
     {
-        public string ModName = "";
+        public int FileUniqueKey = 0;
         public string Key = "";
         public int CurrentThreadCount = 0;
         public string Text = "";
@@ -279,7 +279,7 @@ namespace PhoenixEngine.SSEATComBridge
 
     public class TranslationUnitJson
     {
-        public string ModName { get; set; } = "";
+        public int FileUniqueKey { get; set; } = 0;
         public double Score { get; set; } = 100;
         public string Key { get; set; } = "";
         public string Type { get; set; } = "";
@@ -298,7 +298,7 @@ namespace PhoenixEngine.SSEATComBridge
 
     public class AdvancedDictionaryJson
     {
-        public string TargetModName { get; set; } = "";  // Optional: Target mod name, empty means no restriction
+        public string TargetFileName { get; set; } = "";  // Optional: Target mod name, empty means no restriction
         public string Type { get; set; } = "";           // Optional: Type filter, empty means no restriction
 
         /// <summary>
