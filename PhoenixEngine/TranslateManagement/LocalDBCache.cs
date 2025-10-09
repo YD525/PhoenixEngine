@@ -55,7 +55,7 @@ CREATE TABLE [LocalTranslation](
                 Engine.LocalDB.ExecuteNonQuery(CreateTableSql);
             }
         }
-        public static bool DeleteCacheByFileUniqueKey(string FileUniqueKey, Languages TargetLanguage)
+        public static bool DeleteCacheByFileUniqueKey(int FileUniqueKey, Languages TargetLanguage)
         {
             try
             {

@@ -23,27 +23,27 @@ namespace PhoenixEngine.TranslateManagement
         public string FileName = "";
         public string FileExtension = "";
         public string UpdateTime = "";
-        public string CreateTime = "";
+        public string CreatTime = "";
 
         public UniqueKeyItem() { }
 
-        public UniqueKeyItem(object Rowid,object OriginalKey, object FileName, object FileExtension, object UpdateTime, object CreateTime)
+        public UniqueKeyItem(object Rowid,object OriginalKey, object FileName, object FileExtension, object UpdateTime, object CreatTime)
         {
             this.Rowid = ConvertHelper.ObjToInt(Rowid);
             this.OriginalKey = ConvertHelper.ObjToStr(OriginalKey);
             this.FileName = ConvertHelper.ObjToStr(FileName);
             this.FileExtension = ConvertHelper.ObjToStr(FileExtension);
             this.UpdateTime = ConvertHelper.ObjToStr(UpdateTime);
-            this.CreateTime = ConvertHelper.ObjToStr(CreateTime);
+            this.CreatTime = ConvertHelper.ObjToStr(CreatTime);
         }
 
-        public UniqueKeyItem(string OriginalKey, string FileName, string FileExtension, DateTime UpdateTime, DateTime CreateTime)
+        public UniqueKeyItem(string OriginalKey, string FileName, string FileExtension, DateTime UpdateTime, DateTime CreatTime)
         {
             this.OriginalKey = ConvertHelper.ObjToStr(OriginalKey);
             this.FileName = ConvertHelper.ObjToStr(FileName);
             this.FileExtension = ConvertHelper.ObjToStr(FileExtension);
             this.UpdateTime = ConvertHelper.DateTimeToStr(UpdateTime);
-            this.CreateTime = ConvertHelper.DateTimeToStr(CreateTime);
+            this.CreatTime = ConvertHelper.DateTimeToStr(CreatTime);
         }
     }
 
@@ -62,7 +62,7 @@ CREATE TABLE [UniqueKeys](
     [FileName] TEXT,
     [FileExtension] TEXT,
     [UpdateTime] TEXT,
-    [CreateTime] TEXT
+    [CreatTime] TEXT
 );";
                 Engine.LocalDB.ExecuteNonQuery(CreateTableSql);
             }
@@ -197,7 +197,7 @@ CREATE TABLE [UniqueKeys](
                     GenUniqueKeyItem.FileName,
                     GenUniqueKeyItem.FileExtension,
                     GenUniqueKeyItem.UpdateTime,
-                    GenUniqueKeyItem.CreateTime
+                    GenUniqueKeyItem.CreatTime
                     )));
 
                 if (State != 0)
@@ -262,7 +262,7 @@ CREATE TABLE [UniqueKeys](
                     GenUniqueKeyItem.FileName,
                     GenUniqueKeyItem.FileExtension,
                     GenUniqueKeyItem.UpdateTime,
-                    GenUniqueKeyItem.CreateTime
+                    GenUniqueKeyItem.CreatTime
                     ));
 
                 return true;

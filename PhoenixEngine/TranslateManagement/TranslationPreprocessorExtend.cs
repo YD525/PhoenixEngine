@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System;
+using System.Text.RegularExpressions;
 
 namespace PhoenixEngine.TranslateManagement
 {
@@ -47,6 +48,8 @@ namespace PhoenixEngine.TranslateManagement
             {
                 Input = Input.Replace(Char.ToString(), "");
             }
+
+            Input = Input.Replace(@"\t", "");
         }
 
         /// <summary>

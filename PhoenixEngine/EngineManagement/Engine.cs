@@ -65,8 +65,10 @@ namespace PhoenixEngine.EngineManagement
         public static void LoadFile(string FilePath,bool CanSkipFuzzyMatching = false)
         {
             UniqueKeyItem NewKey = new UniqueKeyItem();
-            FileUniqueKey = UniqueKeyHelper.AddItemByReturn(ref NewKey,FilePath,CanSkipFuzzyMatching);
+            var UniqueKey = UniqueKeyHelper.AddItemByReturn(ref NewKey,FilePath,CanSkipFuzzyMatching);
             LastLoadFileName = NewKey.FileName;
+
+            ChangeUniqueKey(UniqueKey);
         }
 
         public static string GetFullPath(string Path)
