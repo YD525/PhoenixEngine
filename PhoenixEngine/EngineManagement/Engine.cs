@@ -13,6 +13,7 @@ using PhoenixEngine.RequestManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
 using PhoenixEngine.TranslateManagement;
+using static PhoenixEngine.TranslateManage.TransCore;
 
 namespace PhoenixEngine.EngineManagement
 {
@@ -210,6 +211,11 @@ FROM (
             }
 
             return null;
+        }
+
+        public static void AddAIMemory(string Original, string Translated)
+        {
+            EngineSelect.AIMemory.AddTranslation(Engine.From, Original, Translated);
         }
     }
 }
