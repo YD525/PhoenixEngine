@@ -21,7 +21,7 @@ namespace PhoenixEngine.PlatformManagement
             // Main Role and Instructions
             Prompt.AppendLine("You are a professional translation AI.");
 
-            if (To == Languages.Auto)
+            if (From == Languages.Auto)
             {
                 Prompt.AppendLine("Translate the following text to " + LanguageHelper.ToLanguageCode(To) + ". The source language will be automatically detected.");
             }
