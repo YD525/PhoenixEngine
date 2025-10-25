@@ -280,6 +280,11 @@ namespace PhoenixEngine.TranslateManage
                                 {
                                     PlatformCall Call = new PlatformCall();
 
+                                    if (Item.From == Languages.Auto)
+                                    {
+                                        Item.From = LanguageHelper.DetectLanguageByLine(GetSource);
+                                    }
+
                                     var GetData = ConvertHelper.ObjToStr(((GoogleTransApi)this.TransEngine).Translate(GetSource, Item.From, Item.To,ref Call));
 
                                     TransText = GetData;
@@ -304,6 +309,11 @@ namespace PhoenixEngine.TranslateManage
                                 if (EngineConfig.DeepLApiEnable)
                                 {
                                     PlatformCall Call = new PlatformCall();
+
+                                    if (Item.From == Languages.Auto)
+                                    {
+                                        Item.From = LanguageHelper.DetectLanguageByLine(GetSource);
+                                    }
 
                                     var GetData = ((DeepLApi)this.TransEngine).QuickTrans(GetSource, Item.From, Item.To,ref Call).Trim();
 

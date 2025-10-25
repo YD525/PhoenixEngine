@@ -20,7 +20,16 @@ namespace PhoenixEngine.PlatformManagement
 
             // Main Role and Instructions
             Prompt.AppendLine("You are a professional translation AI.");
-            Prompt.AppendLine($"Translate the following text from {LanguageHelper.ToLanguageCode(From)} to {LanguageHelper.ToLanguageCode(To)}.");
+
+            if (To == Languages.Auto)
+            {
+                Prompt.AppendLine("Translate the following text to " + LanguageHelper.ToLanguageCode(To) + ". The source language will be automatically detected.");
+            }
+            else
+            {
+                Prompt.AppendLine($"Translate the following text from {LanguageHelper.ToLanguageCode(From)} to {LanguageHelper.ToLanguageCode(To)}.");
+            }
+
             Prompt.AppendLine("Respond ONLY with the translated content. Do not include any explanations or comments.");
             Prompt.AppendLine("The category is a broad context type (e.g., related to NPCs, weapons, etc.), not a specific entity label.");
 
