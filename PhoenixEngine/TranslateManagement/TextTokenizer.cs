@@ -26,6 +26,11 @@ namespace PhoenixEngine.TranslateManagement
 
         public static string[] Tokenize(Languages Lang, string Text)
         {
+            if (Lang == Languages.Auto)
+            {
+                Lang = LanguageHelper.DetectLanguageByLine(Text);
+            }
+
             Text = Text.Replace('_', ' ').Replace('-', ' ');
 
             if (Lang.IsSpaceDelimitedLanguage())

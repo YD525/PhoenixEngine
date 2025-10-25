@@ -54,6 +54,11 @@ namespace PhoenixEngine.TranslateManage
         /// </summary>
         public void AddTranslation(Languages SourceLang, string Original, string Translated)
         {
+            if (SourceLang == Languages.Auto)
+            {
+                SourceLang = LanguageHelper.DetectLanguageByLine(Original);
+            }
+
             lock (AddTranslationLocker)
             {
                 if (!_TranslationDictionary.ContainsKey(Original))
@@ -78,6 +83,11 @@ namespace PhoenixEngine.TranslateManage
         /// </summary>
         public List<string> FindRelevantTranslations(Languages SourceLang, string Query,int ContextLength)
         {
+            if (SourceLang == Languages.Auto)
+            {
+                SourceLang = LanguageHelper.DetectLanguageByLine(Query);
+            }
+
             lock (AddTranslationLocker)
             {
                 string[] Words = Tokenize(SourceLang, Query);
@@ -129,6 +139,11 @@ namespace PhoenixEngine.TranslateManage
         /// </summary>
         private string[] Tokenize(Languages Lang, string Text)
         {
+            if (Lang == Languages.Auto)
+            {
+                Lang = LanguageHelper.DetectLanguageByLine(Text);
+            }
+
             return TextTokenizer.Tokenize(Lang, Text);
         }
 
