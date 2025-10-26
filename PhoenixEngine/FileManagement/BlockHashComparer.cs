@@ -122,7 +122,7 @@ namespace PhoenixEngine.FileManagement
 
         public static bool MatchFile(string Key1, string Key2)
         {
-            if (CompareBlockHashesFlexible(SplitHashes(Key1), SplitHashes(Key2))>=0.8)
+            if (CompareBlockHashesFlexible(SplitHashes(Key1), SplitHashes(Key2))>=0.5)
             {
                 return true;
             }

@@ -151,7 +151,7 @@ CREATE TABLE [UniqueKeys](
         /// <returns>Rowid of the added or matched record. -1 if nothing added.</returns>
         public static int AddItemByReturn(ref UniqueKeyItem GenUniqueKeyItem, string FilePath,bool CanSkipFuzzyMatching = false)
         {
-            string SourceOriginalKey = GenOriginalKeyByFile(FilePath);
+            string SourceOriginalKey = GetFileName(FilePath);
 
             GenUniqueKeyItem = new UniqueKeyItem(
                SourceOriginalKey,
@@ -165,28 +165,28 @@ CREATE TABLE [UniqueKeys](
             {
                 string SqlOrder = "";
 
-                //Scan history files Fuzzy matching Key
+                ////Scan history files Fuzzy matching Key
 
-                if (!CanSkipFuzzyMatching)
-                {
-                    SqlOrder = "Select Rowid,OriginalKey From UniqueKeys Where 1 = 1;";
-                    DataTable NTable = Engine.LocalDB.ExecuteDataTable(
-                        SqlOrder
-                    );
+                //if (!CanSkipFuzzyMatching)
+                //{
+                //    SqlOrder = "Select Rowid,OriginalKey From UniqueKeys Where 1 = 1;";
+                //    DataTable NTable = Engine.LocalDB.ExecuteDataTable(
+                //        SqlOrder
+                //    );
 
-                    for (int i = 0; i < NTable.Rows.Count; i++)
-                    {
-                        string OriginalKey = ConvertHelper.ObjToStr(NTable.Rows[i]["OriginalKey"]);
-                        if (BlockHashComparer.MatchFile(OriginalKey, SourceOriginalKey))
-                        {
-                            int Rowid = ConvertHelper.ObjToInt(NTable.Rows[i]["Rowid"]);
+                //    for (int i = 0; i < NTable.Rows.Count; i++)
+                //    {
+                //        string OriginalKey = ConvertHelper.ObjToStr(NTable.Rows[i]["OriginalKey"]);
+                //        if (BlockHashComparer.MatchFile(OriginalKey, SourceOriginalKey))
+                //        {
+                //            int Rowid = ConvertHelper.ObjToInt(NTable.Rows[i]["Rowid"]);
 
-                            UpdateOldFiles(OriginalKey, GenUniqueKeyItem);
+                //            UpdateOldFiles(OriginalKey, GenUniqueKeyItem);
 
-                            return Rowid;
-                        }
-                    }
-                }
+                //            return Rowid;
+                //        }
+                //    }
+                //}
 
                 //This is the new file
 

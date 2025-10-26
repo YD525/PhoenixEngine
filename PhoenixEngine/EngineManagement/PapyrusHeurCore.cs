@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 
 namespace SSELex.SkyrimManage
 {
@@ -674,7 +675,8 @@ namespace SSELex.SkyrimManage
                     DStringItems[i].TranslationSafetyScore += GetValue.Value;
                 }
 
-                DStringItems[i].Key = Crc32Helper.ComputeCrc32(DStringItems[i].Feature);
+                DStringItems[i].Key = Crc32Helper.ComputeCrc32(DStringItems[i].Feature + ","+ DStringItems[i].TranslationSafetyScore);
+                DStringItems[i].FromIDELineID = i;
             }
 
             this.DStringItems = DStringItems.OrderByDescending(Item => Item.TranslationSafetyScore).ToList();
@@ -932,6 +934,7 @@ namespace SSELex.SkyrimManage
         public DStringItemType ItemType = DStringItemType.Unknown;
         public List<TranslationScoreDetail> TranslationScoreDetails = new List<TranslationScoreDetail>();
         public string Feature = "";
+        public int FromIDELineID = 0;
     }
     public class MethodParam
     {

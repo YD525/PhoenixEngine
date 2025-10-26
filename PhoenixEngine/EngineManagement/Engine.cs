@@ -66,7 +66,7 @@ namespace PhoenixEngine.EngineManagement
         public static void LoadFile(string FilePath,bool CanSkipFuzzyMatching = false)
         {
             UniqueKeyItem NewKey = new UniqueKeyItem();
-            var UniqueKey = UniqueKeyHelper.AddItemByReturn(ref NewKey,FilePath,CanSkipFuzzyMatching);
+            var UniqueKey = UniqueKeyHelper.AddItemByReturn(ref NewKey, FilePath, CanSkipFuzzyMatching);
             LastLoadFileName = NewKey.FileName;
 
             ChangeUniqueKey(UniqueKey);
@@ -105,9 +105,8 @@ namespace PhoenixEngine.EngineManagement
 
         private static int FileUniqueKey = 0;
 
-        public static void ChangeUniqueKey(int Rowid)
+        public static void ChangeUniqueKey(int FileUniqueKey)
         {
-            FileUniqueKey = Rowid;
             GetTranslatedCount(FileUniqueKey);
         }
 
