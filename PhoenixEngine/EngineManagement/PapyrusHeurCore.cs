@@ -674,7 +674,7 @@ namespace SSELex.SkyrimManage
                     DStringItems[i].TranslationSafetyScore += GetValue.Value;
                 }
 
-                DStringItems[i].Key = Crc32Helper.ComputeCrc32(DStringItems[i].Feature) + "," + i.ToString();
+                DStringItems[i].Key = Crc32Helper.ComputeCrc32(DStringItems[i].Feature);
             }
 
             this.DStringItems = DStringItems.OrderByDescending(Item => Item.TranslationSafetyScore).ToList();
