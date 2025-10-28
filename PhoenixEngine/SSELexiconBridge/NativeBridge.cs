@@ -173,7 +173,7 @@ namespace PhoenixEngine.SSELexiconBridge
                     return true;
                 }
 
-                var GetState = LocalDBCache.UPDateLocalTransItem(FileUniqueKey, Key, (int)Engine.To, TransText, 0);
+                var GetState = LocalDBCache.UPDateLocalTransItem(FileUniqueKey, Key, (int)Engine.To, SourceText,TransText, 0);
 
                 Engine.GetTranslatedCount(Engine.GetFileUniqueKey());
 
@@ -197,7 +197,7 @@ namespace PhoenixEngine.SSELexiconBridge
                     return true;
                 }
 
-                var GetState = CloudDBCache.AddCache(FileUniqueKey, Key, (int)Engine.To, TransText);
+                var GetState = CloudDBCache.AddCache(FileUniqueKey, Key, (int)Engine.To,SourceText, TransText);
 
                 Engine.GetTranslatedCount(Engine.GetFileUniqueKey());
 

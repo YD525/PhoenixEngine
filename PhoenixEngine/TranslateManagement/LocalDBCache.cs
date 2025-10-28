@@ -1,4 +1,5 @@
 ﻿
+using System.Data;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
@@ -49,12 +50,37 @@ CREATE TABLE [LocalTranslation](
   [FileUniqueKey] INT, 
   [Key] TEXT, 
   [To] INT, 
+  [Source] TEXT, 
   [Result] TEXT, 
   [Index] INT
 );";
                 Engine.LocalDB.ExecuteNonQuery(CreateTableSql);
             }
         }
+
+        public static List<CloudTranslationItem> MatchLocalItem(int To, string Source, int Limit = 5)
+        {
+            List<CloudTranslationItem> CloudTranslationItems = new List<CloudTranslationItem>();
+
+            string SqlOrder = "Select * From LocalTranslation Where [To] = {0} And [Source] = '{1}' Limit 5";
+            DataTable NTable = Engine.LocalDB.ExecuteDataTable(string.Format(SqlOrder, To, System.Web.HttpUtility.UrlEncode(Source)));
+            if (NTable.Rows.Count > 0)
+            {
+                for (int i = 0; i < NTable.Rows.Count; i++)
+                {
+                    CloudTranslationItems.Add(new CloudTranslationItem(
+                        NTable.Rows[i]["FileUniqueKey"],
+                        NTable.Rows[i]["Key"],
+                        NTable.Rows[i]["To"],
+                        NTable.Rows[i]["Source"],
+                        NTable.Rows[i]["Result"]
+                       ));
+                }
+            }
+
+            return CloudTranslationItems;
+        }
+
         public static bool DeleteCacheByFileUniqueKey(int FileUniqueKey, Languages TargetLanguage)
         {
             try
@@ -151,7 +177,7 @@ CREATE TABLE [LocalTranslation](
             catch { return string.Empty; }
         }    
 
-        public static bool UPDateLocalTransItem(int FileUniqueKey, string Key,int To,string Result,int Index)
+        public static bool UPDateLocalTransItem(int FileUniqueKey, string Key,int To,string Source,string Result,int Index)
         {
             if (Result.Length > 0)
             {
@@ -159,11 +185,21 @@ CREATE TABLE [LocalTranslation](
 
                 if (GetRowID < 0)
                 {
-                    string SqlOrder = "Insert Into LocalTranslation([FileUniqueKey],[Key],[To],[Result],[Index])Values('{0}','{1}',{2},'{3}',{4})";
+                    var GetStr = CloudDBCache.FindCache(FileUniqueKey, Key, (Languages)To);
+                    if (GetStr.Length > 0)
+                    {
+                        if (GetStr.Equals(Result))
+                        {
+                            return true;
+                        }
+                    }
+
+                    string SqlOrder = "Insert Into LocalTranslation([FileUniqueKey],[Key],[To],[Source],[Result],[Index])Values('{0}','{1}',{2},'{3}','{4}',{5})";
                     int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,
                         FileUniqueKey,
                         Key,
                         To,
+                        System.Web.HttpUtility.HtmlEncode(Source),
                         System.Web.HttpUtility.HtmlEncode(Result),
                         Index
                         ));

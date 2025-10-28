@@ -9,6 +9,24 @@ namespace PhoenixEngine.TranslateCore
     // See LICENSE file in the project root for full license information.
     //https://github.com/YD525/PhoenixEngine
 
+    public class CloudTranslationItem
+    {
+        public int FileUniqueKey = 0;
+        public string Key = "";
+        public int To = 0;
+        public string Source = "";
+        public string Result = "";
+
+        public CloudTranslationItem(object FileUniqueKey,object Key,object To,object Source,object Result)
+        {
+            this.FileUniqueKey = ConvertHelper.ObjToInt(FileUniqueKey);
+            this.Key = ConvertHelper.ObjToStr(Key);
+            this.To = ConvertHelper.ObjToInt(To);
+            this.Source = ConvertHelper.ObjToStr(Source);
+            this.Result = ConvertHelper.ObjToStr(Result);
+        }
+    }
+
     public class CloudDBCache
     {
         public static void Init()
@@ -23,6 +41,7 @@ CREATE TABLE [CloudTranslation](
   [FileUniqueKey] INT, 
   [Key] TEXT, 
   [To] INT, 
+  [Source] TEXT,
   [Result] TEXT
 );";
                 Engine.LocalDB.ExecuteNonQuery(CreateTableSql);
@@ -63,7 +82,7 @@ CREATE TABLE [CloudTranslation](
             catch { return string.Empty; }
         }
 
-        public static bool AddCache(int FileUniqueKey, string Key, int To,string Result)
+        public static bool AddCache(int FileUniqueKey, string Key, int To,string Source,string Result)
         {
             try {
 
@@ -71,9 +90,9 @@ CREATE TABLE [CloudTranslation](
 
             if (GetRowID < 0)
             {
-                string SqlOrder = "Insert Into CloudTranslation([FileUniqueKey],[Key],[To],[Result])Values({0},'{1}',{2},'{3}')";
+                string SqlOrder = "Insert Into CloudTranslation([FileUniqueKey],[Key],[To],[Source],[Result])Values({0},'{1}',{2},'{3}','{4}')";
 
-                int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, Key, To, System.Web.HttpUtility.HtmlEncode(Result)));
+                int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, Key, To, System.Web.HttpUtility.HtmlEncode(Source),System.Web.HttpUtility.HtmlEncode(Result)));
 
                 if (State != 0)
                 {
@@ -86,6 +105,29 @@ CREATE TABLE [CloudTranslation](
             return false;
             }
             catch { return false; }
+        }
+
+        public static List<CloudTranslationItem> MatchCloudItem(int To, string Source, int Limit = 5)
+        {
+            List<CloudTranslationItem> CloudTranslationItems = new List<CloudTranslationItem>();
+
+            string SqlOrder = "Select * From CloudTranslation Where [To] = {0} And [Source] = '{1}' Limit 5";
+            DataTable NTable = Engine.LocalDB.ExecuteDataTable(string.Format(SqlOrder,To, System.Web.HttpUtility.UrlEncode(Source)));
+            if (NTable.Rows.Count > 0)
+            {
+                for (int i = 0; i < NTable.Rows.Count; i++)
+                {
+                    CloudTranslationItems.Add(new CloudTranslationItem(
+                        NTable.Rows[i]["FileUniqueKey"],
+                        NTable.Rows[i]["Key"],
+                        NTable.Rows[i]["To"],
+                        NTable.Rows[i]["Source"],
+                        NTable.Rows[i]["Result"]
+                       ));
+                }
+            }
+
+            return CloudTranslationItems;
         }
 
 

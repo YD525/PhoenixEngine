@@ -68,6 +68,13 @@ CREATE TABLE [UniqueKeys](
             }
         }
 
+        public static string RowidToOriginalKey(int RowID)
+        {
+            string SqlOrder = "Select OriginalKey From UniqueKeys Where Rowid = {0}";
+            string GetOriginalKey = ConvertHelper.ObjToStr(Engine.LocalDB.ExecuteScalar(string.Format(SqlOrder,RowID)));
+            return GetOriginalKey;
+        }
+
         /// <summary>
         /// Get the file extension from a file path. Returns empty string if none.
         /// </summary>
