@@ -84,49 +84,6 @@ namespace PhoenixEngine.TranslateCore
             return Lang;
         }
 
-        /// <summary>
-        /// Uses AI to guess which language the given text belongs to,
-        /// and converts the AI’s result into a <see cref="Languages"/> enum value.
-        /// </summary>
-        public static Languages AIGuess(string Source)
-        {
-            LMStudio NewLMAI = new LMStudio();
-
-            var Names = Enum.GetNames(typeof(Languages))
-                       .Where(n => n != nameof(Languages.Null) && n != nameof(Languages.Auto))
-                       .ToArray();
-            var EnumNames = string.Join(", ", Names);
-
-            var Prompt = $"Identify which language the following text belongs to.\nOnly return one of the enum names from this list, and nothing else:\n{EnumNames}\nText: \"" + Source + "\"";
-
-            var ReturnJson = "";
-            var GetResult = NewLMAI.CallAI(Prompt, ref ReturnJson);
-
-            string GetStr = "";
-
-            if (GetResult != null)
-            {
-                if (GetResult.choices != null)
-                {
-                    if (GetResult.choices.Length > 0)
-                    {
-                        GetStr = GetResult.choices[0].message.content.Trim();
-                    }
-                    if (GetStr.Trim().Length > 0)
-                    {
-                        GetStr = JsonGeter.GetValue(GetStr);
-                    }
-                }
-            }
-
-            if (Enum.TryParse(typeof(Languages), GetStr, ignoreCase: true, out var Result))
-            {
-                return (Languages)Result;
-            }
-
-            return Languages.Null;
-        }
-
         public static void DetectLanguage(ref LanguageDetect OneDetect, string Str)
         {
             if (string.IsNullOrWhiteSpace(Str))
