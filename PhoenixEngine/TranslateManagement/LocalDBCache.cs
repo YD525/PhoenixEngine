@@ -1,6 +1,7 @@
 ﻿
 using System.Data;
 using PhoenixEngine.ConvertManager;
+using PhoenixEngine.DataBaseManagement;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
 
@@ -40,12 +41,8 @@ namespace PhoenixEngine.TranslateManagement
     {
         public static void Init()
         {
-            string CheckTableSql = "SELECT name FROM sqlite_master WHERE type='table' AND name='LocalTranslation';";
-            var Result = Engine.LocalDB.ExecuteScalar(CheckTableSql);
-
-            if (Result == null || Result == DBNull.Value)
-            {
-                string CreateTableSql = @"
+            string TableName = "LocalTranslation";
+            string CreateSql = @"
 CREATE TABLE [LocalTranslation](
   [FileUniqueKey] INT, 
   [Key] TEXT, 
@@ -54,7 +51,39 @@ CREATE TABLE [LocalTranslation](
   [Result] TEXT, 
   [Index] INT
 );";
-                Engine.LocalDB.ExecuteNonQuery(CreateTableSql);
+
+            // Check if table exists
+            string CheckTableSql = $"SELECT name FROM sqlite_master WHERE type='table' AND name='{TableName}';";
+            var Result = Engine.LocalDB.ExecuteScalar(CheckTableSql);
+
+            if (Result != null && Result != DBNull.Value)
+            {
+                // Table exists, check column structure
+                var Columns = Engine.LocalDB.ExecuteQuery("PRAGMA table_info(LocalTranslation);");
+
+                // Current columns
+                var ExistingCols = new HashSet<string>(
+                    Columns.AsEnumerable().Select(R => R["name"].ToString()),
+                    StringComparer.OrdinalIgnoreCase
+                );
+
+                // Expected columns
+                string[] ExpectedCols = { "FileUniqueKey", "Key", "To", "Source", "Result", "Index" };
+
+                bool StructureChanged =
+                    ExistingCols.Count != ExpectedCols.Length ||
+                    ExpectedCols.Any(C => !ExistingCols.Contains(C));
+
+                if (StructureChanged)
+                {
+                    Engine.LocalDB.ExecuteNonQuery($"DROP TABLE IF EXISTS [{TableName}];");
+                    Engine.LocalDB.ExecuteNonQuery(CreateSql);
+                }
+            }
+            else
+            {
+                // Create if not exists
+                Engine.LocalDB.ExecuteNonQuery(CreateSql);
             }
         }
 
@@ -65,7 +94,7 @@ CREATE TABLE [LocalTranslation](
                 List<CloudTranslationItem> CloudTranslationItems = new List<CloudTranslationItem>();
 
                 string SqlOrder = "Select * From LocalTranslation Where [To] = {0} And [Source] = '{1}' Limit 5";
-                DataTable NTable = Engine.LocalDB.ExecuteDataTable(string.Format(SqlOrder, To, System.Web.HttpUtility.HtmlEncode(Source)));
+                DataTable NTable = Engine.LocalDB.ExecuteDataTable(string.Format(SqlOrder, To, SqlSafeCodec.Encode(Source)));
                 if (NTable.Rows.Count > 0)
                 {
                     for (int i = 0; i < NTable.Rows.Count; i++)
@@ -74,8 +103,8 @@ CREATE TABLE [LocalTranslation](
                             NTable.Rows[i]["FileUniqueKey"],
                             NTable.Rows[i]["Key"],
                             NTable.Rows[i]["To"],
-                            NTable.Rows[i]["Source"],
-                            NTable.Rows[i]["Result"]
+                            SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["Source"])),
+                            SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["Result"]))
                            ));
                     }
                 }
@@ -112,7 +141,7 @@ CREATE TABLE [LocalTranslation](
             {
                 string SqlOrder = "Delete From LocalTranslation Where [FileUniqueKey] = {0} And [Result] = '{1}' And [To] = {2}";
 
-                int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, System.Web.HttpUtility.HtmlEncode(ResultText), (int)TargetLanguage));
+                int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, SqlSafeCodec.Encode(ResultText), (int)TargetLanguage));
 
                 if (State != 0)
                 {
@@ -152,7 +181,7 @@ CREATE TABLE [LocalTranslation](
 
                 if (GetText.Trim().Length > 0)
                 {
-                    return System.Web.HttpUtility.HtmlDecode(GetText);
+                    return SqlSafeCodec.Decode(GetText);
                 }
 
                 return string.Empty;
@@ -176,7 +205,7 @@ CREATE TABLE [LocalTranslation](
 
                 if (GetResult.Trim().Length > 0)
                 {
-                    return System.Web.HttpUtility.HtmlDecode(GetResult);
+                    return SqlSafeCodec.Decode(GetResult);
                 }
 
                 return string.Empty;
@@ -190,7 +219,7 @@ CREATE TABLE [LocalTranslation](
             {
                 int GetRowID = ConvertHelper.ObjToInt(Engine.LocalDB.ExecuteScalar(String.Format("Select Rowid From LocalTranslation Where [FileUniqueKey] = '{0}' And [Key] = '{1}' And [To] = {2}", FileUniqueKey, Key, To)));
 
-                if (GetRowID < 0)
+                if (GetRowID <= 0)
                 {
                     var GetStr = CloudDBCache.FindCache(FileUniqueKey, Key, (Languages)To);
                     if (GetStr.Length > 0)
@@ -206,8 +235,8 @@ CREATE TABLE [LocalTranslation](
                         FileUniqueKey,
                         Key,
                         To,
-                        System.Web.HttpUtility.HtmlEncode(Source),
-                        System.Web.HttpUtility.HtmlEncode(Result),
+                        SqlSafeCodec.Encode(Source),
+                        SqlSafeCodec.Encode(Result),
                         Index
                         ));
                     if (State != 0)
@@ -218,7 +247,7 @@ CREATE TABLE [LocalTranslation](
                 else
                 {
                     string SqlOrder = "UPDate LocalTranslation Set [Result] = '{1}',[Index] = {2} Where Rowid = {0}";
-                    int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, GetRowID, System.Web.HttpUtility.HtmlEncode(Result), Index));
+                    int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, GetRowID, SqlSafeCodec.Encode(Result), Index));
                     if (State != 0)
                     {
                         return true;

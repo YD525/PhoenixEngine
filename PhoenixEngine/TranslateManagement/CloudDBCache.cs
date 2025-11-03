@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using PhoenixEngine.ConvertManager;
+using PhoenixEngine.DataBaseManagement;
 using PhoenixEngine.EngineManagement;
 
 namespace PhoenixEngine.TranslateCore
@@ -31,12 +32,8 @@ namespace PhoenixEngine.TranslateCore
     {
         public static void Init()
         {
-            string CheckTableSql = "SELECT name FROM sqlite_master WHERE type='table' AND name='CloudTranslation';";
-            var Result = Engine.LocalDB.ExecuteScalar(CheckTableSql);
-
-            if (Result == null || Result == DBNull.Value)
-            {
-                string CreateTableSql = @"
+            string TableName = "CloudTranslation";
+            string CreateSql = @"
 CREATE TABLE [CloudTranslation](
   [FileUniqueKey] INT, 
   [Key] TEXT, 
@@ -44,7 +41,35 @@ CREATE TABLE [CloudTranslation](
   [Source] TEXT,
   [Result] TEXT
 );";
-                Engine.LocalDB.ExecuteNonQuery(CreateTableSql);
+
+            // Check if table exists
+            string CheckTableSql = $"SELECT name FROM sqlite_master WHERE type='table' AND name='{TableName}';";
+            var Result = Engine.LocalDB.ExecuteScalar(CheckTableSql);
+
+            if (Result != null && Result != DBNull.Value)
+            {
+                // Table exists, check structure
+                DataTable Columns = Engine.LocalDB.ExecuteQuery($"PRAGMA table_info({TableName});");
+                var ExistingCols = new HashSet<string>(
+                    Columns.AsEnumerable().Select(R => R["name"].ToString()),
+                    StringComparer.OrdinalIgnoreCase
+                );
+
+                string[] ExpectedCols = { "FileUniqueKey", "Key", "To", "Source", "Result" };
+                bool StructureChanged =
+                    ExistingCols.Count != ExpectedCols.Length ||
+                    ExpectedCols.Any(C => !ExistingCols.Contains(C));
+
+                if (StructureChanged)
+                {
+                    Engine.LocalDB.ExecuteNonQuery($"DROP TABLE IF EXISTS [{TableName}];");
+                    Engine.LocalDB.ExecuteNonQuery(CreateSql);
+                }
+            }
+            else
+            {
+                // Create if not exists
+                Engine.LocalDB.ExecuteNonQuery(CreateSql);
             }
         }
 
@@ -75,7 +100,7 @@ CREATE TABLE [CloudTranslation](
 
                 if (GetResult.Trim().Length > 0)
                 {
-                    return System.Web.HttpUtility.HtmlDecode(GetResult);
+                    return SqlSafeCodec.Decode(GetResult);
                 }
 
                 return string.Empty;
@@ -90,11 +115,11 @@ CREATE TABLE [CloudTranslation](
 
                 int GetRowID = ConvertHelper.ObjToInt(Engine.LocalDB.ExecuteScalar(String.Format("Select Rowid From CloudTranslation Where [FileUniqueKey] = {0} And [Key] = '{1}' And [To] = {2}", FileUniqueKey, Key, To)));
 
-                if (GetRowID < 0)
+                if (GetRowID <= 0)
                 {
                     string SqlOrder = "Insert Into CloudTranslation([FileUniqueKey],[Key],[To],[Source],[Result])Values({0},'{1}',{2},'{3}','{4}')";
 
-                    int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, Key, To, System.Web.HttpUtility.HtmlEncode(Source), System.Web.HttpUtility.HtmlEncode(Result)));
+                    int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, Key, To, SqlSafeCodec.Encode(Source), SqlSafeCodec.Encode(Result)));
 
                     if (State != 0)
                     {
@@ -116,7 +141,7 @@ CREATE TABLE [CloudTranslation](
                 List<CloudTranslationItem> CloudTranslationItems = new List<CloudTranslationItem>();
 
                 string SqlOrder = "Select * From CloudTranslation Where [To] = {0} And [Source] = '{1}' Limit 5";
-                DataTable NTable = Engine.LocalDB.ExecuteDataTable(string.Format(SqlOrder, To, System.Web.HttpUtility.HtmlEncode(Source)));
+                DataTable NTable = Engine.LocalDB.ExecuteDataTable(string.Format(SqlOrder, To, SqlSafeCodec.Encode(Source)));
                 if (NTable.Rows.Count > 0)
                 {
                     for (int i = 0; i < NTable.Rows.Count; i++)
@@ -125,9 +150,9 @@ CREATE TABLE [CloudTranslation](
                             NTable.Rows[i]["FileUniqueKey"],
                             NTable.Rows[i]["Key"],
                             NTable.Rows[i]["To"],
-                            NTable.Rows[i]["Source"],
-                            NTable.Rows[i]["Result"]
-                           ));
+                            SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["Source"])),
+                            SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["Result"]))
+                            ));
                     }
                 }
 
@@ -149,7 +174,7 @@ CREATE TABLE [CloudTranslation](
 
                 if (GetResult.Rows.Count > 0)
                 {
-                    string GetStr = System.Web.HttpUtility.HtmlDecode(ConvertHelper.ObjToStr(GetResult.Rows[0]["Result"]));
+                    string GetStr = SqlSafeCodec.Decode(ConvertHelper.ObjToStr(GetResult.Rows[0]["Result"]));
                     ID = ConvertHelper.ObjToInt(GetResult.Rows[0]["Rowid"]);
                     return GetStr;
                 }
