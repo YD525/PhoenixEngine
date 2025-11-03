@@ -39,8 +39,8 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
                 Accept = "*/*",
                 Postdata = GetJson,
                 Cookie = "",
-                ContentType = "application/json"
-                //Timeout = DeFine.GlobalRequestTimeOut
+                ContentType = "application/json",
+                Timeout = 800000
                 //ProxyIp = ProxyCenter.GlobalProxyIP
             };
             try

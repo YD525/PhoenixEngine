@@ -9,7 +9,7 @@ namespace PhoenixEngine.PlatformManagement
 {
     public class AIPrompt
     {
-        public static string GenerateTranslationPrompt(Languages From,Languages To,string TextToTranslate,string CategoryType,List<string> TerminologyReferences, List<string> CustomWords,string AdditionalInstructions)
+        public static string GenerateTranslationPrompt(Languages From, Languages To, string TextToTranslate, string CategoryType, List<string> TerminologyReferences, List<string> CustomWords, string AdditionalInstructions)
         {
             if (CategoryType == "Papyrus" || CategoryType == "MCM")
             {
@@ -19,7 +19,7 @@ namespace PhoenixEngine.PlatformManagement
             var Prompt = new System.Text.StringBuilder();
 
             // Main Role and Instructions
-            Prompt.AppendLine("You are a professional translation AI.");
+            Prompt.AppendLine("You are a professional translation AI. Your task is to provide only the translated text, with no additional explanation, reasoning, or commentary.");
 
             if (From == Languages.Auto)
             {
@@ -30,8 +30,9 @@ namespace PhoenixEngine.PlatformManagement
                 Prompt.AppendLine($"Translate the following text from {LanguageHelper.ToLanguageCode(From)} to {LanguageHelper.ToLanguageCode(To)}.");
             }
 
-            Prompt.AppendLine("Respond ONLY with the translated content. Do not include any explanations or comments.");
-            Prompt.AppendLine("The category is a broad context type (e.g., related to NPCs, weapons, etc.), not a specific entity label.");
+            // Direct instruction to exclude extra information
+            Prompt.AppendLine("Respond ONLY with the translated content. Do not include any explanations, reasoning, or additional comments. The response must only contain the translation, and no other text.");
+            Prompt.AppendLine("The category is a broad context type (e.g., related to NPCs, weapons, etc.), but it is NOT a specific entity label.");
 
             // Optional Context Category
             if (!string.IsNullOrWhiteSpace(CategoryType))
@@ -40,7 +41,7 @@ namespace PhoenixEngine.PlatformManagement
                 Prompt.AppendLine($"Category: {CategoryType}");
             }
 
-            // New: Custom Words
+            // Custom Words section
             if (CustomWords != null && CustomWords.Count > 0)
             {
                 Prompt.AppendLine("For the words listed under [Custom Words], use the exact provided translation.");
@@ -51,7 +52,7 @@ namespace PhoenixEngine.PlatformManagement
                 }
             }
 
-            // Optional Terminology References
+            // Terminology References section
             if (TerminologyReferences != null && TerminologyReferences.Count > 0)
             {
                 Prompt.AppendLine("\n[Terminology References]");
@@ -73,10 +74,10 @@ namespace PhoenixEngine.PlatformManagement
                 Prompt.AppendLine($"\n{AdditionalInstructions}");
             }
 
-            // Response Format
+            // Response Format section
             Prompt.AppendLine("\n[Response Format]");
             Prompt.AppendLine("Respond strictly with: {\"translation\": \"....\"}");
-            Prompt.AppendLine("The value must contain only translated text.");
+            Prompt.AppendLine("The value must contain only translated text. No explanations, reasoning, or additional comments are allowed in the response.");
 
             return Prompt.ToString();
         }
