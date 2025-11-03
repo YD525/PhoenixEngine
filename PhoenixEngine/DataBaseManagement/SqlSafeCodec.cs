@@ -6,54 +6,83 @@ using System.Threading.Tasks;
 
 namespace PhoenixEngine.DataBaseManagement
 {
-    public class SqlSafeCodec
+    public static class SqlSafeCodec
     {
-        private static readonly Dictionary<string, string> EncodeMap = new Dictionary<string, string>
+        private static readonly char[] DangerChars = new char[]
         {
-        { "'",  "[SQ]" },
-        { "\"", "[DQ]" },
-        { ";",  "[SM]" },
-        { "--", "[CM]" },
-        { "#",  "[SH]" },
-        { "/*", "[CO]" },
-        { "*/", "[CC]" },
-        { "\\", "[BS]" },
-        { "%",  "[PW]" },
-        { "_",  "[US]" },
-        { "=",  "[EQ]" },
-        { "<",  "[LT]" },
-        { ">",  "[GT]" },
-        { "!",  "[NT]" },
-        { "|",  "[PI]" },
-        { "&",  "[AM]" },
-        { "(",  "[LP]" },
-        { ")",  "[RP]" },
-        { "[",  "[LB]" },
-        { "]",  "[RB]" },
-        { "\0", "[N0]" },
-        { "\r", "[CR]" },
-        { "\n", "[LF]" }
+        '\'', '\"', ';', '-', '#', '/', '\\', '%', '_', '=', '<', '>', '!',
+        '|', '&', '(', ')', '[', ']', '\r', '\n', '\0'
         };
 
-        private static readonly Dictionary<string, string> DecodeMap = EncodeMap
-            .ToDictionary(kv => kv.Value, kv => kv.Key);
+        private static readonly Dictionary<char, char> EncodeMap;
+        private static readonly Dictionary<char, char> DecodeMap;
+        private static readonly HashSet<char> EncodedSet;
 
-        public static string Encode(string Input)
+        static SqlSafeCodec()
         {
-            if (Input == string.Empty) return string.Empty;
-            string Result = Input;
-            foreach (var kv in EncodeMap.OrderByDescending(x => x.Key.Length))
-                Result = Result.Replace(kv.Key, kv.Value);
-            return Result;
+            EncodeMap = new Dictionary<char, char>(DangerChars.Length);
+            DecodeMap = new Dictionary<char, char>(DangerChars.Length);
+            EncodedSet = new HashSet<char>();
+
+            int baseCode = 0xE000;
+            for (int i = 0; i < DangerChars.Length; i++)
+            {
+                char source = DangerChars[i];
+                char mapped = (char)(baseCode + i);
+                EncodeMap[source] = mapped;
+                DecodeMap[mapped] = source;
+                EncodedSet.Add(mapped);
+            }
         }
 
-        public static string Decode(string Input)
+        public static bool IsEncoded(string input)
         {
-            if (Input == string.Empty) return string.Empty;
-            string Result = Input;
-            foreach (var kv in DecodeMap)
-                Result = Result.Replace(kv.Key, kv.Value);
-            return Result;
+            if (string.IsNullOrEmpty(input)) return false;
+            foreach (var c in input)
+            {
+                if (EncodedSet.Contains(c)) return true;
+            }
+            return false;
+        }
+
+        public static string Encode(string input)
+        {
+            if (input == null) return null;
+            if (input.Length == 0) return string.Empty;
+
+            if (IsEncoded(input)) return input;
+
+            var sb = new StringBuilder(input.Length);
+            foreach (var c in input)
+            {
+                if (EncodeMap.TryGetValue(c, out var m))
+                    sb.Append(m);
+                else
+                    sb.Append(c);
+            }
+            return sb.ToString();
+        }
+
+        public static string Decode(string input)
+        {
+            if (input == null) return null;
+            if (input.Length == 0) return string.Empty;
+
+            var sb = new StringBuilder(input.Length);
+            foreach (var c in input)
+            {
+                if (DecodeMap.TryGetValue(c, out var o))
+                    sb.Append(o);
+                else
+                    sb.Append(c);
+            }
+            return sb.ToString();
+        }
+
+        public static string EncodeForSqlLiteral(string input)
+        {
+            var s = Encode(input) ?? string.Empty;
+            return $"'{s}'";
         }
     }
 }

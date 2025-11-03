@@ -23,7 +23,7 @@ namespace PhoenixEngine.EngineManagement
     //https://github.com/YD525/PhoenixEngine
     public class Engine
     {
-        public static string Version = "1.1.3";
+        public static string Version = "1.1.5";
         public static string CurrentPath = "";
         /// <summary>
         /// Instance of the local SQLite database helper.
