@@ -38,12 +38,8 @@ namespace PhoenixEngine.TranslateManagement
         }
         public static void Init()
         {
-            string CheckTableSql = "SELECT name FROM sqlite_master WHERE type='table' AND name='FontColors';";
-            var Result = Engine.LocalDB.ExecuteScalar(CheckTableSql);
-
-            if (Result == null || Result == DBNull.Value)
-            {
-                string CreateTableSql = @"
+            string TableName = "FontColors";
+            string CreateSql = @"
 CREATE TABLE [FontColors](
   [FileUniqueKey] INT, 
   [Key] TEXT, 
@@ -51,7 +47,35 @@ CREATE TABLE [FontColors](
   [G] INT, 
   [B] INT
 );";
-                Engine.LocalDB.ExecuteNonQuery(CreateTableSql);
+
+            // Check if table exists
+            string CheckTableSql = $"SELECT name FROM sqlite_master WHERE type='table' AND name='{TableName}';";
+            var Result = Engine.LocalDB.ExecuteScalar(CheckTableSql);
+
+            if (Result != null && Result != DBNull.Value)
+            {
+                // Table exists, check structure
+                DataTable Columns = Engine.LocalDB.ExecuteQuery($"PRAGMA table_info({TableName});");
+                var ExistingCols = new HashSet<string>(
+                    Columns.AsEnumerable().Select(R => R["name"].ToString()),
+                    StringComparer.OrdinalIgnoreCase
+                );
+
+                string[] ExpectedCols = { "FileUniqueKey", "Key", "R", "G", "B" };
+                bool StructureChanged =
+                    ExistingCols.Count != ExpectedCols.Length ||
+                    ExpectedCols.Any(C => !ExistingCols.Contains(C));
+
+                if (StructureChanged)
+                {
+                    Engine.LocalDB.ExecuteNonQuery($"DROP TABLE IF EXISTS [{TableName}];");
+                    Engine.LocalDB.ExecuteNonQuery(CreateSql);
+                }
+            }
+            else
+            {
+                // Create if not exists
+                Engine.LocalDB.ExecuteNonQuery(CreateSql);
             }
         }
 

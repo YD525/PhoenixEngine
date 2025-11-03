@@ -59,12 +59,39 @@ namespace PhoenixEngine.TranslateManagement
         public static void Init()
         {
             string CheckTableSql = "SELECT name FROM sqlite_master WHERE type='table' AND name='AdvancedDictionary';";
-
             var Result = Engine.LocalDB.ExecuteScalar(CheckTableSql);
 
             if (Result == null || Result == DBNull.Value)
             {
-                string CreateTableSql = @"CREATE TABLE [AdvancedDictionary](
+                //If the table doesn't exist, create a new one
+                CreateNewTable();
+            }
+            else
+            {
+                //Table exists, check whether it's the old structure (has TargetModName instead of TargetFileName)
+                string CheckOldColumnSql = "PRAGMA table_info(AdvancedDictionary);";
+                var dt = Engine.LocalDB.ExecuteDataTable(CheckOldColumnSql);
+
+                bool HasTargetFileName = dt.AsEnumerable().Any(r => r["name"].ToString() == "TargetFileName");
+                bool HasTargetModName = dt.AsEnumerable().Any(r => r["name"].ToString() == "TargetModName");
+
+                if (!HasTargetFileName && HasTargetModName)
+                {
+                    //Detected old table structure, migrate data to the new structure
+                    MigrateOldTable();
+                }
+                else if (!HasTargetFileName)
+                {
+                    //Table structure is broken or unknown, recreate a new one
+                    RecreateNewTable();
+                }
+            }
+        }
+
+        private static void CreateNewTable()
+        {
+            string SqlOrder = @"
+CREATE TABLE [AdvancedDictionary](
   [TargetFileName] TEXT, 
   [Type] TEXT, 
   [Source] TEXT, 
@@ -73,11 +100,37 @@ namespace PhoenixEngine.TranslateManagement
   [To] INT, 
   [ExactMatch] INT, 
   [IgnoreCase] INT, 
-  [Regex] TEXT);
-";
+  [Regex] TEXT
+);";
+            Engine.LocalDB.ExecuteNonQuery(SqlOrder);
+        }
 
-                Engine.LocalDB.ExecuteNonQuery(CreateTableSql);
-            }
+        private static void MigrateOldTable()
+        {
+            //Rename the old table
+            Engine.LocalDB.ExecuteNonQuery("ALTER TABLE AdvancedDictionary RENAME TO AdvancedDictionary_Old;");
+
+            //Create a new table with the updated structure
+            CreateNewTable();
+
+            //Migrate data from the old table to the new table
+            string SqlOrder = @"
+INSERT INTO AdvancedDictionary
+(TargetFileName, Type, Source, Result, [From], [To], ExactMatch, IgnoreCase, Regex)
+SELECT TargetModName, Type, Source, Result, [From], [To], ExactMatch, IgnoreCase, Regex
+FROM AdvancedDictionary_Old;";
+
+            Engine.LocalDB.ExecuteNonQuery(SqlOrder);
+
+            //Drop the old table after migration
+            Engine.LocalDB.ExecuteNonQuery("DROP TABLE AdvancedDictionary_Old;");
+        }
+
+        private static void RecreateNewTable()
+        {
+            //Defensive fallback: drop the broken table and recreate it
+            Engine.LocalDB.ExecuteNonQuery("DROP TABLE IF EXISTS AdvancedDictionary;");
+            CreateNewTable();
         }
 
         public static string GetSourceByRowid(int Rowid)
