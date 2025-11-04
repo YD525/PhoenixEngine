@@ -77,8 +77,7 @@ namespace PhoenixEngine.PlatformManagement
             // Response Format section
             Prompt.AppendLine("\n[Response Format]");
             Prompt.AppendLine("Respond strictly with: {\"translation\": \"....\"}");
-            Prompt.AppendLine("The value must contain only translated text. No explanations, reasoning, or additional comments are allowed in the response.");
-
+            
             return Prompt.ToString();
         }
     }
