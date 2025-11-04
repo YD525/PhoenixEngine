@@ -9,7 +9,7 @@ namespace SSELex.SkyrimManage
     //https://github.com/YD525/PhoenixEngine
     public class PapyrusHeurCore
     {
-        public static string Version = "1.3Alpha";
+        public static string Version = "1.5Beta";
         public List<ParsingItem> ParsingItems = new();
         public FunctionFinder CurrentFunctionFinder = new FunctionFinder();
         public static List<string> SafePapyrusFuncs = new List<string>() { "SetInfoText", "NotifyActor", "Warn", "messageBox", "messagebox", "Messagebox", "Log", "NotifyPlayer", "NotifyNPC", "Message", "ecSlider", "ecToggle", "TextUpdate" };
@@ -445,9 +445,11 @@ namespace SSELex.SkyrimManage
             return !string.IsNullOrEmpty(Ext) && ValidExtensions.Contains(Ext);
         }
 
+        public Dictionary<string, int> FuncIndex = new Dictionary<string, int>();
 
         public void AnalyzeCodeLine(List<string> Lines)
         {
+            FuncIndex.Clear();
             DStringItems.Clear();
 
             string RichText = "";
@@ -580,6 +582,7 @@ namespace SSELex.SkyrimManage
                                                     //Is Function
                                                     string TryGetFunctionName = OuterMethodOrReturn;
                                                     DStringItems[i].Feature += TryGetFunctionName + ">";
+                                                    DStringItems[i].FunctionName = TryGetFunctionName;
                                                     DetectFunction(GetLine, TryGetFunctionName, i, DStringItems[i].Str);
                                                     FindVariableLocation = true;
                                                 }
@@ -637,10 +640,11 @@ namespace SSELex.SkyrimManage
                                             else
                                             {
                                                 DStringItems[i].Feature += "Is Function>";
+                                               
                                                 //Is Function
                                                 string TryGetFunctionName = OuterMethodOrReturn;
                                                 DStringItems[i].Feature += TryGetFunctionName + ">";
-
+                                                DStringItems[i].FunctionName = TryGetFunctionName;
                                                 DetectFunction(GetLine, TryGetFunctionName, i, DStringItems[i].Str);
                                             }
                                         }
@@ -653,15 +657,12 @@ namespace SSELex.SkyrimManage
                 }
                 else
                 {
-                    if (SourceLine.Contains("UnSetFormValue"))
-                    {
-
-                    }
                     //Is Function
                     DStringItems[i].Feature += "Is Function>";
                     DStringItems[i].ItemType = DStringItemType.FunctionCall;
                     string TryGetFunctionName = ExtractOuterMethodNameByValue(SourceLine, DStringItems[i].Str);
                     DStringItems[i].Feature += TryGetFunctionName + ">";
+                    DStringItems[i].FunctionName = TryGetFunctionName;
                     DStringItems[i].IdentifierName = TryGetFunctionName;
 
                     DetectFunction(SourceLine, TryGetFunctionName, i, DStringItems[i].Str);
@@ -675,14 +676,86 @@ namespace SSELex.SkyrimManage
                     DStringItems[i].TranslationSafetyScore += GetValue.Value;
                 }
 
-                DStringItems[i].Key = Crc32Helper.ComputeCrc32(DStringItems[i].Feature + ","+ DStringItems[i].TranslationSafetyScore);
+                var GetVariables = ExtractVariableNames(DStringItems[i].SourceLine);
+
+                string MergeVariables = "";
+                foreach (var Get in GetVariables)
+                {
+                    MergeVariables += Get + ",";
+                }
+
+                string SetKey = DStringItems[i].ParentFunctionName + "," + DStringItems[i].FunctionName;
+                if (DStringItems[i].FunctionName.Length > 0)
+                {
+                    if (FuncIndex.ContainsKey(SetKey))
+                    {
+                        FuncIndex[SetKey]++;
+                    }
+                    else
+                    {
+                        FuncIndex.Add(SetKey, 0);
+                    }
+                }
+
+                int GetFuncIndex = 0;
+
+                if (FuncIndex.ContainsKey(SetKey))
+                {
+                    GetFuncIndex = FuncIndex[SetKey];
+                }
+
+                DStringItems[i].Key = Crc32Helper.ComputeCrc32(DStringItems[i].Feature + "," + DStringItems[i].TranslationSafetyScore + "," + MergeVariables + GetFuncIndex);
                 DStringItems[i].FromIDELineID = i;
             }
 
             this.DStringItems = DStringItems.OrderByDescending(Item => Item.TranslationSafetyScore).ToList();
         }
-    }
 
+        /// <summary>
+        /// Extract Variable Names Including Array Indexes From A Code Line, 
+        /// Ignoring String Literals, Numbers, And Function Names.
+        /// </summary>
+        public static List<string> ExtractVariableNames(string Code)
+        {
+            // Check For Empty Input
+            if (string.IsNullOrWhiteSpace(Code))
+                return new List<string>();
+
+            // Remove Comments After Semicolon
+            int CommentIndex = Code.IndexOf(';');
+            if (CommentIndex >= 0)
+                Code = Code.Substring(0, CommentIndex);
+
+            // Remove String Literals Surrounded By Double Quotes
+            string NoStrings = Regex.Replace(Code, "\".*?\"", "");
+
+            // Match Variables With Optional Array Index (Keep Brackets)
+            // Example: Pages[0], _toggle_PlacePuddles, Self, 0
+            var Matches = Regex.Matches(NoStrings, @"\b[a-zA-Z_][a-zA-Z0-9_]*(?:\s*\[[^\]]+\])?|\b\d+\b");
+
+            var Result = new List<string>();
+
+            foreach (Match M in Matches)
+            {
+                string Name = M.Value.Trim();
+
+                // Skip Keywords And Literal Values
+                if (Name == "if" || Name == "else" || Name == "true" || Name == "false" || Name == "return")
+                    continue;
+
+                // Skip Function Names (If Followed By A Left Parenthesis)
+                int NextPos = M.Index + M.Length;
+                if (NextPos < Code.Length && Regex.IsMatch(Code.Substring(NextPos), @"^\s*\("))
+                    continue;
+
+                // Add Unique Variable Names Only
+                if (!Result.Contains(Name))
+                    Result.Add(Name);
+            }
+
+            return Result;
+        }
+    }
     public static class Crc32Helper
     {
         private static readonly uint[] Table;
@@ -782,10 +855,6 @@ namespace SSELex.SkyrimManage
         }
 
     }
-
-
-
-
     public class VariablesFinder
     {
         private int FunctionDepth = 0;
@@ -900,7 +969,6 @@ namespace SSELex.SkyrimManage
         public List<TrackedVariable> VariableLinks = new();
         public FunctionLink FuncLinks = new();
     }
-
     public class TranslationScoreDetail
     {
         public string DefLine = "";
@@ -921,7 +989,6 @@ namespace SSELex.SkyrimManage
         FunctionCall,
         VariableAssignment
     }
-
     public class DStringItem
     {
         public string Key = "";
@@ -935,6 +1002,7 @@ namespace SSELex.SkyrimManage
         public List<TranslationScoreDetail> TranslationScoreDetails = new List<TranslationScoreDetail>();
         public string Feature = "";
         public int FromIDELineID = 0;
+        public string FunctionName = "";
     }
     public class MethodParam
     {
