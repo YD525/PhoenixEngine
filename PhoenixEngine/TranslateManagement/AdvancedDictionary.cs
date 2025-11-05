@@ -136,7 +136,7 @@ FROM AdvancedDictionary_Old;";
         public static string GetSourceByRowid(int Rowid)
         {
             string SqlOrder = "Select [Source] From AdvancedDictionary Where Rowid = {0}";
-            return ConvertHelper.ObjToStr(Engine.LocalDB.ExecuteScalar(string.Format(SqlOrder,Rowid)));
+            return SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Engine.LocalDB.ExecuteScalar(string.Format(SqlOrder,Rowid))));
         }
         public static bool IsRegexMatch(string Input, string SetRegex)
         {
@@ -148,16 +148,6 @@ FROM AdvancedDictionary_Old;";
             {
                 return false;
             }
-        }
-
-        public static string EscapeSqlString(string S)
-        {
-            if (string.IsNullOrEmpty(S)) return S;
-            S = S.Replace("'", "''");
-            S = S.Replace(@"\", @"\\");
-            S = S.Replace("%", @"\%");
-            S = S.Replace("_", @"\_");
-            return S;
         }
 
         public static List<AdvancedDictionaryItem> Query(string FileName, string Type, Languages From, Languages To, string SourceText)
@@ -192,11 +182,11 @@ WHERE
 ";
             DataTable NTable = Engine.LocalDB.ExecuteQuery(string.Format(
                 SqlOrder,
-                EscapeSqlString(FileName),
-                EscapeSqlString(Type),
+                SqlSafeCodec.Encode(FileName),
+                SqlSafeCodec.Encode(Type),
                 (int)From,
                 (int)To,
-                EscapeSqlString(SourceText)
+                SqlSafeCodec.Encode(SourceText)
             ));
 
             for (int i = 0; i < NTable.Rows.Count; i++)
@@ -234,10 +224,10 @@ WHERE
             string CheckSql = $@"
 SELECT COUNT(*) FROM AdvancedDictionary 
 WHERE 
-[TargetFileName] = '{EscapeSqlString(item.TargetFileName)}' AND
-[Type] = '{EscapeSqlString(item.Type)}' AND
-[Source] = '{EscapeSqlString(item.Source)}' AND
-[Result] = '{EscapeSqlString(item.Result)}' AND
+[TargetFileName] = '{SqlSafeCodec.Encode(item.TargetFileName)}' AND
+[Type] = '{SqlSafeCodec.Encode(item.Type)}' AND
+[Source] = '{SqlSafeCodec.Encode(item.Source)}' AND
+[Result] = '{SqlSafeCodec.Encode(item.Result)}' AND
 [From] = {item.From} AND
 [To] = {item.To}";
 
@@ -253,10 +243,10 @@ WHERE
                 string sql = $@"INSERT INTO AdvancedDictionary 
 ([TargetFileName], [Type], [Source], [Result], [From], [To], [ExactMatch], [IgnoreCase], [Regex])
 VALUES (
-'{EscapeSqlString(Item.TargetFileName)}',
-'{EscapeSqlString(Item.Type)}',
-'{EscapeSqlString(Item.Source)}',
-'{EscapeSqlString(Item.Result)}',
+'{SqlSafeCodec.Encode(Item.TargetFileName)}',
+'{SqlSafeCodec.Encode(Item.Type)}',
+'{SqlSafeCodec.Encode(Item.Source)}',
+'{SqlSafeCodec.Encode(Item.Result)}',
 {Item.From},
 {Item.To},
 {Item.ExactMatch},
@@ -279,10 +269,10 @@ VALUES (
         public static void DeleteItem(AdvancedDictionaryItem item)
         {
             string sql = $@"DELETE FROM AdvancedDictionary WHERE 
-TargetFileName = '{EscapeSqlString(item.TargetFileName)}' AND
-Type = '{EscapeSqlString(item.Type)}' AND
-Source = '{EscapeSqlString(item.Source)}' AND
-Result = '{EscapeSqlString(item.Result)}' AND
+TargetFileName = '{SqlSafeCodec.Encode(item.TargetFileName)}' AND
+Type = '{SqlSafeCodec.Encode(item.Type)}' AND
+Source = '{SqlSafeCodec.Encode(item.Source)}' AND
+Result = '{SqlSafeCodec.Encode(item.Result)}' AND
 [From] = {item.From} AND
 [To] = {item.To} AND
 ExactMatch = {item.ExactMatch} AND
@@ -305,10 +295,10 @@ Regex = '{System.Web.HttpUtility.HtmlEncode(item.Regex)}'";
                 DataRow Row = NTable.Rows[i];
                 Items.Add(new AdvancedDictionaryItem(
                     Row["Rowid"],
-                    Row["TargetFileName"],
-                    Row["Type"],
-                    Row["Source"],
-                    Row["Result"],
+                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["TargetFileName"])),
+                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Type"])),
+                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Source"])),
+                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Result"])),
                     Row["From"],
                     Row["To"],
                     Row["ExactMatch"],
@@ -322,7 +312,7 @@ Regex = '{System.Web.HttpUtility.HtmlEncode(item.Regex)}'";
 
         public static PageItem<List<AdvancedDictionaryItem>> QueryByPage(string SourceText,int From,int To, int PageNo)
         {
-            string Where = $"WHERE Source = '{EscapeSqlString(SourceText)}' And [From] = {From} And [To] = {To}";
+            string Where = $"WHERE Source = '{SqlSafeCodec.Encode(SourceText)}' And [From] = {From} And [To] = {To}";
 
             int MaxPage = PageHelper.GetPageCount("AdvancedDictionary", Where);
 
@@ -333,10 +323,10 @@ Regex = '{System.Web.HttpUtility.HtmlEncode(item.Regex)}'";
             {
                 DataRow Row = NTable.Rows[i];
                 Items.Add(new AdvancedDictionaryItem(
-                    Row["TargetFileName"],
-                    Row["Type"],
-                    Row["Source"],
-                    Row["Result"],
+                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["TargetFileName"])),
+                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Type"])),
+                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Source"])),
+                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Result"])),
                     Row["From"],
                     Row["To"],
                     Row["ExactMatch"],
