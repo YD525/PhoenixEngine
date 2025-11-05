@@ -150,6 +150,30 @@ FROM AdvancedDictionary_Old;";
             }
         }
 
+        public static AdvancedDictionaryItem ExactMatch(Languages From,Languages To,string Type,string Source)
+        {
+            string SqlOrder = "Select Rowid,* From AdvancedDictionary Where [ExactMatch] = 1 And [From] = {0} And [To] = {1} And ([Type] Is NULL OR [Type] = '' OR [Type] = '{2}') And [Source] = '{3}' Limit 1";
+
+            DataTable NTable = Engine.LocalDB.ExecuteDataTable(string.Format(SqlOrder,(int)From,(int)To,SqlSafeCodec.Encode(Type),SqlSafeCodec.Encode(Source)));
+            if (NTable.Rows.Count > 0)
+            {
+                return new AdvancedDictionaryItem(
+                    NTable.Rows[0]["Rowid"],
+                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[0]["TargetFileName"])),
+                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[0]["Type"])),
+                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[0]["Source"])),
+                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[0]["Result"])),
+                    NTable.Rows[0]["From"],
+                    NTable.Rows[0]["To"],
+                    NTable.Rows[0]["ExactMatch"],
+                    NTable.Rows[0]["IgnoreCase"],
+                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[0]["Regex"]))
+                );
+            }
+
+            return null;
+        }
+
         public static List<AdvancedDictionaryItem> Query(string FileName, string Type, Languages From, Languages To, string SourceText)
         {
             List<AdvancedDictionaryItem> AdvancedDictionaryItems = new List<AdvancedDictionaryItem>();
@@ -193,15 +217,15 @@ WHERE
             {
                 var Get = new AdvancedDictionaryItem(
                     NTable.Rows[i]["Rowid"],
-                    NTable.Rows[i]["TargetFileName"],
-                    NTable.Rows[i]["Type"],
-                    NTable.Rows[i]["Source"],
-                    NTable.Rows[i]["Result"],
+                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["TargetFileName"])),
+                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["Type"])),
+                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["Source"])),
+                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["Result"])),
                     NTable.Rows[i]["From"],
                     NTable.Rows[i]["To"],
                     NTable.Rows[i]["ExactMatch"],
                     NTable.Rows[i]["IgnoreCase"],
-                    NTable.Rows[i]["Regex"]
+                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["Regex"]))
                 );
                 if (Get.Regex.Trim().Length > 0)
                 {
@@ -251,7 +275,7 @@ VALUES (
 {Item.To},
 {Item.ExactMatch},
 {Item.IgnoreCase},
-'{System.Web.HttpUtility.HtmlEncode(Item.Regex)}'
+'{SqlSafeCodec.Encode(Item.Regex)}'
 )";
                 int State = Engine.LocalDB.ExecuteNonQuery(sql);
                 if (State != 0)
@@ -277,7 +301,7 @@ Result = '{SqlSafeCodec.Encode(item.Result)}' AND
 [To] = {item.To} AND
 ExactMatch = {item.ExactMatch} AND
 IgnoreCase = {item.IgnoreCase} AND
-Regex = '{System.Web.HttpUtility.HtmlEncode(item.Regex)}'";
+Regex = '{SqlSafeCodec.Encode(item.Regex)}'";
             Engine.LocalDB.ExecuteNonQuery(sql);
         }
 
@@ -303,7 +327,7 @@ Regex = '{System.Web.HttpUtility.HtmlEncode(item.Regex)}'";
                     Row["To"],
                     Row["ExactMatch"],
                     Row["IgnoreCase"],
-                    Row["Regex"]
+                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Regex"]))
                 ));
             }
 
@@ -331,7 +355,7 @@ Regex = '{System.Web.HttpUtility.HtmlEncode(item.Regex)}'";
                     Row["To"],
                     Row["ExactMatch"],
                     Row["IgnoreCase"],
-                    Row["Regex"]
+                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Regex"]))
                 ));
             }
 

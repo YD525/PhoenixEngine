@@ -2,6 +2,8 @@
 using System.Text.RegularExpressions;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
+using PhoenixEngine.TranslateManagement;
+using static PhoenixEngine.EngineManagement.DataTransmission;
 using static PhoenixEngine.TranslateManage.TransCore;
 
 namespace PhoenixEngine.TranslateManage
@@ -84,6 +86,36 @@ namespace PhoenixEngine.TranslateManage
             return Content;
         }
 
+        public static bool ExactMatch(Languages From,Languages To,string Key,string Type,string Source,ref string Result)
+        {
+            var GetData = AdvancedDictionary.ExactMatch(From, To, Type, Source);
+            if (GetData != null)
+            {
+                PreTranslateCall NPreTranslateCall = new PreTranslateCall();
+                NPreTranslateCall.Platform = PlatformType.PhoenixEngine;
+                NPreTranslateCall.FromAI = false;
+                NPreTranslateCall.Key = Key;
+
+                string GetDefSource = Source;
+
+                NPreTranslateCall.SendString = GetDefSource;
+
+                NPreTranslateCall.ReceiveString = Source;
+
+                NPreTranslateCall.ReplaceTags.Add(new ReplaceTag(GetData.Rowid,GetData.Source,GetData.Result));
+
+                NPreTranslateCall.Output();
+
+                Result = GetData.Result;
+
+                return true;
+            }
+
+            return false;
+        }
+
+     
+
         public static string QuickTrans(TranslationUnit Item, ref bool CanSleep,bool IsBook = false)
         {
             string GetSourceStr = Item.SourceText;
@@ -97,6 +129,13 @@ namespace PhoenixEngine.TranslateManage
             if (string.IsNullOrEmpty(GetSourceStr))
             {
                 return GetSourceStr;
+            }
+
+            string GetMatchResult = "";
+
+            if (ExactMatch(Item.From,Item.To,Item.Key, Item.Type, GetSourceStr, ref GetMatchResult))
+            {
+                return GetMatchResult;
             }
 
             bool HasOuterQuotes = TranslationPreprocessor.HasOuterQuotes(GetSourceStr.Trim());
