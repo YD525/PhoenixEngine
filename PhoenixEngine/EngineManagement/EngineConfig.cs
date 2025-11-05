@@ -191,6 +191,14 @@ namespace PhoenixEngine.EngineManagement
         /// </summary>
         public static string UserCustomAIPrompt { get; set; } = "";
 
+        public static void SyncTrdCount()
+        {
+            if (EngineConfig.AutoSetThreadLimit)
+            {
+                EngineConfig.MaxThreadCount = EngineConfig.AutoCalcThreadLimit();
+            }
+        }
+
         /// <summary>
         /// Automatically limit the number of concurrent threads
         /// </summary>
@@ -219,7 +227,26 @@ namespace PhoenixEngine.EngineManagement
             {
                 if (EngineConfig.LMLocalAIEnable)
                 {
-                    AutoThread = 15;
+                    try 
+                    {
+                        AutoThread = Environment.ProcessorCount;
+                        AutoThread = AutoThread / 2;
+
+                        if (AutoThread <= 0)
+                        {
+                            AutoThread = Environment.ProcessorCount;
+                        }
+                    }
+                    catch 
+                    {
+                        
+                    }
+
+                    if (AutoThread <= 0)
+                    {
+                        AutoThread = 3;
+                    }
+
                 }
             }
 

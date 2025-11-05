@@ -135,7 +135,25 @@ CREATE TABLE [LocalTranslation](
             catch { return false; }
         }
 
-        public static bool DeleteCacheByResult(string FileUniqueKey, string ResultText, Languages TargetLanguage)
+        public static bool DeleteCacheBySource(int FileUniqueKey,string Source,Languages TargetLanguage)
+        {
+            try 
+            {
+                string SqlOrder = "Delete From LocalTranslation Where [FileUniqueKey] = {0} And [Source] = '{1}' And [To] = {2}";
+
+                int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, SqlSafeCodec.Encode(Source), (int)TargetLanguage));
+
+                if (State != 0)
+                {
+                    return true;
+                }
+
+                return false;
+
+            } catch { return false; }
+        }
+
+        public static bool DeleteCacheByResult(int FileUniqueKey, string ResultText, Languages TargetLanguage)
         {
             try
             {
