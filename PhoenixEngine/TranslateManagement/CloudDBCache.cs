@@ -163,6 +163,35 @@ CREATE TABLE [CloudTranslation](
             return new List<CloudTranslationItem>();
         }
 
+        public static List<CloudTranslationItem> MatchOtherCloudItem(int Rowid,int To, string Source, int Limit = 5)
+        {
+            try
+            {
+                List<CloudTranslationItem> CloudTranslationItems = new List<CloudTranslationItem>();
+
+                string SqlOrder = "Select * From CloudTranslation Where [To] = {0} And [Source] = '{1}' And Rowid != {2} Limit 5";
+                DataTable NTable = Engine.LocalDB.ExecuteDataTable(string.Format(SqlOrder, To, SqlSafeCodec.Encode(Source),Rowid));
+                if (NTable.Rows.Count > 0)
+                {
+                    for (int i = 0; i < NTable.Rows.Count; i++)
+                    {
+                        CloudTranslationItems.Add(new CloudTranslationItem(
+                            NTable.Rows[i]["FileUniqueKey"],
+                            NTable.Rows[i]["Key"],
+                            NTable.Rows[i]["To"],
+                            SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["Source"])),
+                            SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["Result"]))
+                            ));
+                    }
+                }
+
+                return CloudTranslationItems;
+            }
+            catch { }
+
+            return new List<CloudTranslationItem>();
+        }
+
 
         public static string FindCacheAndID(int FileUniqueKey, string Key, int To, ref int ID)
         {
