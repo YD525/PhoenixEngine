@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using PhoenixEngine.ConvertManager;
+using PhoenixEngine.DataBaseManagement;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.FileManagement;
 
@@ -71,7 +72,7 @@ CREATE TABLE [UniqueKeys](
         public static string RowidToOriginalKey(int RowID)
         {
             string SqlOrder = "Select OriginalKey From UniqueKeys Where Rowid = {0}";
-            string GetOriginalKey = ConvertHelper.ObjToStr(Engine.LocalDB.ExecuteScalar(string.Format(SqlOrder,RowID)));
+            string GetOriginalKey = SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Engine.LocalDB.ExecuteScalar(string.Format(SqlOrder,RowID))));
             return GetOriginalKey;
         }
 
@@ -200,8 +201,8 @@ CREATE TABLE [UniqueKeys](
                 SqlOrder = "Insert Into UniqueKeys(OriginalKey,FileName,FileExtension,UpdateTime,CreatTime)Values('{0}','{1}','{2}','{3}','{4}')";
 
                 int State = ConvertHelper.ObjToInt(Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,
-                    GenUniqueKeyItem.OriginalKey,
-                    GenUniqueKeyItem.FileName,
+                    SqlSafeCodec.Encode(GenUniqueKeyItem.OriginalKey),
+                    SqlSafeCodec.Encode(GenUniqueKeyItem.FileName),
                     GenUniqueKeyItem.FileExtension,
                     GenUniqueKeyItem.UpdateTime,
                     GenUniqueKeyItem.CreatTime
@@ -211,7 +212,7 @@ CREATE TABLE [UniqueKeys](
                 {
                     int NewRowid = ConvertHelper.ObjToInt(
                     Engine.LocalDB.ExecuteScalar(
-                     $"Select Rowid From UniqueKeys Where OriginalKey = '{GenUniqueKeyItem.OriginalKey}';"
+                     $"Select Rowid From UniqueKeys Where OriginalKey = '{SqlSafeCodec.Encode(GenUniqueKeyItem.OriginalKey)}';"
                     ));
                     return NewRowid;
                 }
@@ -233,7 +234,7 @@ CREATE TABLE [UniqueKeys](
         public static bool UpdateOldFiles(string OriginalKey, UniqueKeyItem KeyItem)
         {
             string SqlOrder = "UPDate UniqueKeys Set FileName = '{1}',FileExtension = '{2}',UpdateTime = '{3}' Where OriginalKey = '{0}';";
-            int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,OriginalKey,KeyItem.FileName,KeyItem.FileExtension,KeyItem.UpdateTime));
+            int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,SqlSafeCodec.Encode(OriginalKey),SqlSafeCodec.Encode(KeyItem.FileName),KeyItem.FileExtension,KeyItem.UpdateTime));
             if (State != 0)
             {
                 return true;
@@ -255,7 +256,7 @@ CREATE TABLE [UniqueKeys](
 
             string SqlOrder = "Select Rowid From UniqueKeys Where [OriginalKey] = '{0}';";
 
-            int GetRowid = ConvertHelper.ObjToInt(Engine.LocalDB.ExecuteScalar(string.Format(SqlOrder, GenUniqueKeyItem.OriginalKey)));
+            int GetRowid = ConvertHelper.ObjToInt(Engine.LocalDB.ExecuteScalar(string.Format(SqlOrder, SqlSafeCodec.Encode(GenUniqueKeyItem.OriginalKey))));
 
             if (GetRowid > 0)
             {
@@ -265,8 +266,8 @@ CREATE TABLE [UniqueKeys](
 
                 int State = Engine.LocalDB.ExecuteNonQuery(
                     string.Format(SqlOrder,
-                    GenUniqueKeyItem.OriginalKey,
-                    GenUniqueKeyItem.FileName,
+                    SqlSafeCodec.Encode(GenUniqueKeyItem.OriginalKey),
+                    SqlSafeCodec.Encode(GenUniqueKeyItem.FileName),
                     GenUniqueKeyItem.FileExtension,
                     GenUniqueKeyItem.UpdateTime,
                     GenUniqueKeyItem.CreatTime
@@ -294,8 +295,8 @@ CREATE TABLE [UniqueKeys](
                 {
                     return new UniqueKeyItem(
                         NTable.Rows[i]["Rowid"],
-                        NTable.Rows[i]["OriginalKey"],
-                        NTable.Rows[i]["FileName"],
+                        SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["OriginalKey"])),
+                        SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["FileName"])),
                         NTable.Rows[i]["FileExtension"],
                         NTable.Rows[i]["UpdateTime"],
                         NTable.Rows[i]["CreatTime"]
@@ -327,8 +328,8 @@ CREATE TABLE [UniqueKeys](
                 {
                     UniqueKeyItems.Add(new UniqueKeyItem(
                         NTable.Rows[i]["Rowid"],
-                        NTable.Rows[i]["OriginalKey"],
-                        NTable.Rows[i]["FileName"],
+                        SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["OriginalKey"])),
+                        SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["FileName"])),
                         NTable.Rows[i]["FileExtension"],
                         NTable.Rows[i]["UpdateTime"],
                         NTable.Rows[i]["CreatTime"]
@@ -356,8 +357,8 @@ CREATE TABLE [UniqueKeys](
                 {
                     UniqueKeyItems.Add(new UniqueKeyItem(
                         NTable.Rows[i]["Rowid"],
-                        NTable.Rows[i]["OriginalKey"],
-                        NTable.Rows[i]["FileName"],
+                        SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["OriginalKey"])),
+                        SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["FileName"])),
                         NTable.Rows[i]["FileExtension"],
                         NTable.Rows[i]["UpdateTime"],
                         NTable.Rows[i]["CreatTime"]
