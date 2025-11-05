@@ -1,21 +1,24 @@
 ﻿
 using System.Text.RegularExpressions;
 using System.Transactions;
+using PhoenixEngine.ConvertManager;
 
 namespace PhoenixEngine.TranslateManage
 {
     public class JsonGeter
     {
-        public static string GetValue(string Json,string Name = "translation")
+        public static string GetValue(string Json, string Name = "translation")
         {
             if (string.IsNullOrEmpty(Json))
                 return string.Empty;
 
-            var Matches = Regex.Matches(Json, @"[""']?\s*" + Regex.Escape(Name) + @"\s*[""']?\s*:\s*[""'](.*?)[""']", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+            string GetStr = ConvertHelper.StringDivision(Json, Name, "}");
 
-            if (Matches.Count > 0)
+            if (GetStr.Contains(":"))
             {
-                return Matches[Matches.Count - 1].Groups[1].Value.Trim();
+                GetStr = GetStr.Split(':')[1].Trim();
+                GetStr = GetStr.Trim('"');
+                return GetStr;
             }
 
             return string.Empty;
