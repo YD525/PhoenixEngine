@@ -10,17 +10,6 @@ This project uses the following third-party frameworks and packages:
 
 ---
 
-## 📜 License Notice
-
-The old version of **SSE Lexicon** was licensed under **LGPL v3.0**.  
-Starting from this version, the project license has been changed to **MIT License**.  
-
-Please note that this change only affects the licensing model — the software itself remains the same.  
-
-👉 **Previous versions of this DLL were licensed under LGPL v3.0. From this release onward, the project is licensed under MIT.**
-
----
-
 ## 🔥 PhoenixEngine
 
 **PhoenixEngine** is a high-performance, multi-threaded language translation engine.  
