@@ -704,7 +704,7 @@ namespace SSELex.SkyrimManage
                     GetFuncIndex = FuncIndex[SetKey];
                 }
 
-                DStringItems[i].Key = Crc32Helper.ComputeCrc32(DStringItems[i].Feature + "," + DStringItems[i].TranslationSafetyScore + "," + MergeVariables + GetFuncIndex);
+                DStringItems[i].Key = Crc32Helper.ComputeCrc32(DStringItems[i].Feature + "," + DStringItems[i].TranslationSafetyScore + "," + MergeVariables) + "-" + GetFuncIndex.ToString();
                 DStringItems[i].FromIDELineID = i;
             }
 
@@ -750,7 +750,10 @@ namespace SSELex.SkyrimManage
 
                 // Add Unique Variable Names Only
                 if (!Result.Contains(Name))
+                {
+                    if(Name.ToLower()!= "self")
                     Result.Add(Name);
+                } 
             }
 
             return Result;
