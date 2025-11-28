@@ -54,8 +54,6 @@ namespace PhoenixEngine.TranslateManage
 
         public static string FormatStr(string Content)
         {
-            Content = Content.Replace("{", "%%").Replace("}", "%%");
-
             string GetSourceStr = Content;
 
             bool HasOuterQuotes = TranslationPreprocessor.HasOuterQuotes(GetSourceStr.Trim());

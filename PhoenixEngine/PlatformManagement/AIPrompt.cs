@@ -37,8 +37,8 @@ namespace PhoenixEngine.PlatformManagement
             //Check if there are paired $$Word$$ placeholders present.
             if (!string.IsNullOrWhiteSpace(TextToTranslate))
             {
-                var regex = new System.Text.RegularExpressions.Regex(@"\$\$(.+?)\$\$");
-                if (regex.IsMatch(TextToTranslate))
+                var Regex = new System.Text.RegularExpressions.Regex(@"\$\$(.+?)\$\$");
+                if (Regex.IsMatch(TextToTranslate))
                 {
                     Prompt.AppendLine("\n[Important Rule for Placeholders]");
                     Prompt.AppendLine("Do NOT translate any content inside $$...$$ placeholders. Keep everything inside $$ exactly as it is, including symbols, words, and formatting. Only translate the text outside of $$.");
