@@ -213,13 +213,18 @@ FROM (
             return null;
         }
 
-
-        public static void ClearTranslationUnit()
+        public static void InitTranslationCore(Languages From,Languages To)
         {
-            TranslationCore.UnitsToTranslate.Clear();
+            TranslationCore = new BatchTranslationCore(From,To,new List<TranslationUnit>() { });
         }
-
-        public static int GetTranslationUnitCount()
+        public static void ClearUnits()
+        {
+            if (TranslationCore != null)
+            {
+                TranslationCore.UnitsToTranslate.Clear();
+            }
+        }
+        public static int GetUnitCount()
         {
             if (TranslationCore != null)
             {
