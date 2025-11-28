@@ -213,6 +213,22 @@ FROM (
             return null;
         }
 
+
+        public static void ClearTranslationUnit()
+        {
+            TranslationCore.UnitsToTranslate.Clear();
+        }
+
+        public static int GetTranslationUnitCount()
+        {
+            if (TranslationCore != null)
+            {
+                return TranslationCore.UnitsToTranslate.Count;
+            }
+
+            return - 1;
+        }
+
         public static void AddAIMemory(string Original, string Translated)
         {
             EngineSelect.AIMemory.AddTranslation(Engine.From, Original, Translated);
