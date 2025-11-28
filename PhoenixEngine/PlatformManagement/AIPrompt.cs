@@ -34,6 +34,18 @@ namespace PhoenixEngine.PlatformManagement
             Prompt.AppendLine("Respond ONLY with the translated content. Do not include any explanations, reasoning, or additional comments. The response must only contain the translation, and no other text.");
             Prompt.AppendLine("The category is a broad context type (e.g., related to NPCs, weapons, etc.), but it is NOT a specific entity label.");
 
+            //Check if there are paired $$Word$$ placeholders present.
+            if (!string.IsNullOrWhiteSpace(TextToTranslate))
+            {
+                var regex = new System.Text.RegularExpressions.Regex(@"\$\$(.+?)\$\$");
+                if (regex.IsMatch(TextToTranslate))
+                {
+                    Prompt.AppendLine("\n[Important Rule for Placeholders]");
+                    Prompt.AppendLine("Do NOT translate any content inside $$...$$ placeholders. Keep everything inside $$ exactly as it is, including symbols, words, and formatting. Only translate the text outside of $$.");
+                    Prompt.AppendLine("The order of $$ placeholders may be rearranged if required by the grammar of the target language, but the number of $$ placeholders must remain the same, and each placeholder must be preserved exactly as it appears.");
+                }
+            }
+
             // Optional Context Category
             if (!string.IsNullOrWhiteSpace(CategoryType))
             {
