@@ -18,7 +18,7 @@ In addition, it provides **heuristic analysis for Papyrus scripts**, generating 
 
 ---
 
-## 🌙 SSEATTransCore (Lite Version)
+## 🌙 SSEATTransCore — Lightweight Version Made Exclusively for SSEAT
 
 The Lite version of the translation core is available here:  
 **https://github.com/YD525/SSEATTransCore**
