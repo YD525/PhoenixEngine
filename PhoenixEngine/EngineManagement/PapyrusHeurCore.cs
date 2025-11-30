@@ -488,38 +488,74 @@ namespace SSELex.SkyrimManage
             return false;
         }
 
+        public static string ReverseString(string Input)
+        {
+            if (string.IsNullOrEmpty(Input))
+                return Input;
+
+            char[] Chars = Input.ToCharArray();
+            Array.Reverse(Chars);
+            return new string(Chars);
+        }
+
         public bool GetIfSelfFuncName(string Line, string SourceStr,ref string FunctionName,string Params)
         {
-            if (CheckSingleOccurrence(Line, SourceStr))
+            if (Line.Contains("The configuration file detected "))
+            {
+
+            }
+
+            string FormatSource = "\"" + SourceStr + "\"";
+            if (CheckSingleOccurrence(Line, FormatSource))
             {
                 bool IfOrFuncEnd = false;
                 string MergeStr = "";
-                int GetStartIndex = Line.IndexOf(SourceStr);
+                int GetStartIndex = Line.IndexOf(FormatSource);
 
-                for (int i = 0; i > GetStartIndex; i--)
+                if (GetStartIndex > 0)
                 {
-                    string GetChar = Line.Substring(i, 1);
-
-                    if (GetChar == "(")
+                    for (int i = GetStartIndex - 1; i > 0; i--)
                     {
-                        IfOrFuncEnd = true;
-                    }
-                    if (IfOrFuncEnd && GetChar.Trim().Length > 0)
-                    {
-                        MergeStr += GetChar;
+                        string GetChar = Line.Substring(i, 1);
 
-                        if (GetChar.Contains("("))
+                        if (GetChar == "(")
                         {
-                            string GetRightStr = GetChar.Split('(')[1];
-
-                            if (!GetRightStr.ToLower().Contains("if"))
+                            IfOrFuncEnd = true;
+                        }
+                        else
+                        if (IfOrFuncEnd && GetChar.Trim().Length > 0)
+                        {
+                            if (GetChar.Contains("("))
                             {
-                                FunctionName = GetRightStr;
+                                string GetRightStr = GetChar.Split('(')[1];
+
+                                if (!GetRightStr.ToLower().Contains("if"))
+                                {
+                                    FunctionName = MergeStr;
+                                    break;
+                                }
+                            }
+                            else
+                            if (GetChar.Contains("&"))
+                            {
+                                FunctionName = MergeStr;
                                 break;
+                            }
+                            else
+                            if (GetChar.Contains("|"))
+                            {
+                                FunctionName = MergeStr;
+                                break;
+                            }
+                            else
+                            {
+                                MergeStr += GetChar;
                             }
                         }
                     }
                 }
+
+                FunctionName = ReverseString(FunctionName);
 
                 if (FunctionName.Length > 0)
                 {
@@ -528,6 +564,7 @@ namespace SSELex.SkyrimManage
 
                 return false;
             }
+            return false;
         }
 
         public Dictionary<string, int> FuncIndex = new Dictionary<string, int>();
@@ -583,11 +620,6 @@ namespace SSELex.SkyrimManage
             {
                 string SourceLine = DStringItems[i].SourceLine;
 
-                if (SourceLine.Contains("The configuration file detected "))
-                {
-
-                }
-
                 string FormattedLine = FormatLine(SourceLine);
                 DStringItems[i].Feature += DStringItems[i].ParentFunctionName + ">";
 
@@ -627,6 +659,8 @@ namespace SSELex.SkyrimManage
                 {
                     if (IsIf(FormattedLine))
                     {
+                        string FuncName = "";
+                        GetIfSelfFuncName(FormattedLine, DStringItems[i].Str, ref FuncName, "");
                         //Is IF
                         DStringItems[i].Feature += "Is IF>";
                         DStringItems[i].ItemType = DStringItemType.IfCondition;
