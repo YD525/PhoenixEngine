@@ -1,5 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace SSELex.SkyrimManage
 {
@@ -9,7 +10,7 @@ namespace SSELex.SkyrimManage
     //https://github.com/YD525/PhoenixEngine
     public class PapyrusHeurCore
     {
-        public static string Version = "1.5Beta";
+        public static string Version = "1.6Beta";
         public List<ParsingItem> ParsingItems = new();
         public FunctionFinder CurrentFunctionFinder = new FunctionFinder();
         public static List<string> SafePapyrusFuncs = new List<string>() { "SetInfoText", "NotifyActor", "Warn", "messageBox", "messagebox", "Messagebox", "Log", "NotifyPlayer", "NotifyNPC", "Message", "ecSlider", "ecToggle", "TextUpdate" };
@@ -59,7 +60,8 @@ namespace SSELex.SkyrimManage
            new MethodParam("AddTextOptionST",1),//SkyUI Api
            new MethodParam("AddToggleOption",0),//SkyUI Api
            new MethodParam("AddToggleOptionST",1),//SkyUI Api
-           new MethodParam("SetGameSettingString",1)//?? Api
+           new MethodParam("SetGameSettingString",1),//?? Api
+           new MethodParam("ShowMessage",0)//??
         };
 
         public List<DStringItem> DStringItems = new List<DStringItem>();
@@ -371,34 +373,26 @@ namespace SSELex.SkyrimManage
         {
             bool IsNativeFunction = false;
 
-            var Details = DStringItems[Offset].TranslationScoreDetails;
-
-            void AddIfNotExists(string defLine, string reason, double value)
-            {
-                if (!Details.Any(d => d.DefLine == defLine && d.Reason == reason && d.Value == value))
-                {
-                    Details.Add(new TranslationScoreDetail(defLine, reason, value));
-                }
-            }
+            var ScorePtr = DStringItems[Offset].TranslationScoreDetails;
 
             int GetIndex = FindParameterPosition(SourceLine, "\"" + SourceStr + "\"");
             DStringItems[Offset].Feature += "[" + GetIndex.ToString() + "]";
 
             if (IsSafeParam(FunctionName, GetIndex))
             {
-                AddIfNotExists(SourceLine, $"Detected safe function '{FunctionName}'", 20);
+                AddScore(ref ScorePtr, SourceLine, $"Detected safe function '{FunctionName}'", 20);
                 IsNativeFunction = true;
             }
 
             if (SafePapyrusFuncs.Contains(FunctionName))
             {
-                AddIfNotExists(SourceLine, $"Detected safe function '{FunctionName}'", 10);
+                AddScore(ref ScorePtr, SourceLine, $"Detected safe function '{FunctionName}'", 10);
                 IsNativeFunction = true;
             }
 
             if (DangerPapyrusFuncs.Contains(FunctionName))
             {
-                AddIfNotExists(SourceLine, $"Detected danger function '{FunctionName}'", -20);
+                AddScore(ref ScorePtr, SourceLine, $"Detected danger function '{FunctionName}'", -20);
                 IsNativeFunction = true;
             }
 
@@ -406,14 +400,14 @@ namespace SSELex.SkyrimManage
             {
                 if (UserDefinedSafeFuncs.Contains(FunctionName))
                 {
-                    AddIfNotExists(SourceLine, $"Determined safe function by name '{FunctionName}'", 5);
+                    AddScore(ref ScorePtr, SourceLine, $"Determined safe function by name '{FunctionName}'", 5);
                 }
                 else
                 {
                     string lower = FunctionName.ToLower();
                     if (lower.StartsWith("is") || lower.StartsWith("get") || lower.StartsWith("set"))
                     {
-                        AddIfNotExists(SourceLine, $"Function '{FunctionName}' may be related to state check or key-value access (e.g., get/set/is). Translation may alter logic.", -20);
+                        AddScore(ref ScorePtr, SourceLine, $"Function '{FunctionName}' may be related to state check or key-value access (e.g., get/set/is). Translation may alter logic.", -20);
                     }
                     else
                     {
@@ -498,7 +492,7 @@ namespace SSELex.SkyrimManage
             return new string(Chars);
         }
 
-        public bool GetIfSelfFuncName(string Line, string SourceStr,ref string FunctionName,string Params)
+        public bool GetIfSelfFuncName(string Line, string SourceStr,ref string FunctionName,ref int ParamIndex)
         {
             //Line = "if(xx(\"AA\",1))"; SourceStr = "AA";
             //Line = "if xx(\"AA\",1)"; SourceStr = "AA";
@@ -506,6 +500,7 @@ namespace SSELex.SkyrimManage
             //Line = "if(( aa(xx(\"AA\",1))"; SourceStr = "AA";
             //Line = "if 1 == print(\"AA\")"; SourceStr = "AA";
 
+            int Index = 0;
             string FormatSource = "\"" + SourceStr + "\"";
             if (CheckSingleOccurrence(Line, FormatSource))
             {
@@ -518,6 +513,11 @@ namespace SSELex.SkyrimManage
                     for (int i = GetStartIndex; i > 0; i--)
                     {
                         string GetChar = Line.Substring(i-1, 1);
+
+                        if (GetChar == "," && !IfOrFuncEnd)
+                        {
+                            Index++;
+                        }
 
                         if (GetChar == "(" && !IfOrFuncEnd)
                         {
@@ -592,7 +592,7 @@ namespace SSELex.SkyrimManage
 
                     FunctionName = FunctionName.Trim();
 
-
+                    ParamIndex = Index;
 
                     return true;
                 }
@@ -600,6 +600,14 @@ namespace SSELex.SkyrimManage
                 return false;
             }
             return false;
+        }
+
+        public void AddScore(ref List<TranslationScoreDetail> Scores,string Line,string Reason,double Value)
+        {
+            if (!Scores.Any(E => E.DefLine == Line && E.Reason == Reason && E.Value == Value))
+            {
+                Scores.Add(new TranslationScoreDetail(Line, Reason, Value));
+            }
         }
 
         public Dictionary<string, int> FuncIndex = new Dictionary<string, int>();
@@ -693,12 +701,23 @@ namespace SSELex.SkyrimManage
                 if (!IsFunction(FormattedLine))
                 {
                     if (IsIf(FormattedLine))
-                    {
-                        string FuncName = "";
-                        GetIfSelfFuncName(FormattedLine, DStringItems[i].Str, ref FuncName, "");
+                    {           
                         //Is IF
                         DStringItems[i].Feature += "Is IF>";
                         DStringItems[i].ItemType = DStringItemType.IfCondition;
+
+                        string IfSelfFuncName = "";
+                        int IfSelfFuncParamIndex = -1;
+                        if (GetIfSelfFuncName(FormattedLine, DStringItems[i].Str, ref IfSelfFuncName, ref IfSelfFuncParamIndex))
+                        {
+                            if (IsSafeParam(IfSelfFuncName, IfSelfFuncParamIndex))
+                            {
+                                DStringItems[i].Feature +="IFSelfFunc_" + IfSelfFuncName +"(" + IfSelfFuncParamIndex + ")" +">";
+                                AddScore(ref DStringItems[i].TranslationScoreDetails, SourceLine, $"Detected safe function '{IfSelfFuncName}'", 20);
+                                continue;
+                            }
+                        }
+
                         string IfVar = MatchIfCondition(FormattedLine);
 
                         var Result = ConditionHelper.FindVariableOrMethodForString(SourceLine, DStringItems[i].Str);
