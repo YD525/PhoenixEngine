@@ -41,9 +41,10 @@ namespace PhoenixEngine.PlatformManagement
                 if (Regex.IsMatch(TextToTranslate))
                 {
                     Prompt.AppendLine("\n[Important Rule for Placeholders]");
-                    Prompt.AppendLine("Do NOT translate any content inside $$...$$ placeholders. Keep everything inside $$ exactly as it is, including all symbols, letters, numbers, and spaces. The AI must output the placeholders exactly as they appear in the source text, without removing or altering them.");
-                    Prompt.AppendLine("Only translate the text outside of $$.");
-                    Prompt.AppendLine("The order of $$ placeholders may be rearranged if required by the grammar of the target language, but the number of $$ placeholders must remain the same.");
+                    Prompt.AppendLine("Do NOT translate or modify any content inside $$...$$ placeholders. Keep everything inside $$ exactly as it is, including all symbols, letters, numbers, and spaces.");
+                    Prompt.AppendLine("The AI must NOT remove, delete, or omit any $$ placeholders. Every $$ placeholder present in the source text must appear exactly once in the output.");
+                    Prompt.AppendLine("You can adjust the order of $$ placeholders if necessary for grammar, but the total number of $$ placeholders must remain unchanged.");
+                    Prompt.AppendLine("Only translate the text outside of $$ placeholders.");
                 }
             }
 
