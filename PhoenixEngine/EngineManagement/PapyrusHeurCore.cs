@@ -445,6 +445,91 @@ namespace SSELex.SkyrimManage
             return !string.IsNullOrEmpty(Ext) && ValidExtensions.Contains(Ext);
         }
 
+        public static bool CheckSingleOccurrence(string Str, string Find)
+        {
+            if (string.IsNullOrEmpty(Str) || string.IsNullOrEmpty(Find))
+                return false;
+
+            if (Find.Length > Str.Length)
+                return false;
+
+            int Count = 0;
+            int StartIndex = 0;
+            StringComparison ComparisonType = StringComparison.OrdinalIgnoreCase;
+
+            while (true)
+            {
+                int Index = Str.IndexOf(Find, StartIndex, ComparisonType);
+
+                if (Index == -1)
+                {
+                    break;
+                }       
+
+                Count++;
+
+                if (Count > 1)
+                {
+                    return false;
+                }  
+
+                StartIndex = Index + Find.Length;
+
+                if (StartIndex + Find.Length > Str.Length)
+                {
+                    break;
+                }
+            }
+
+            if (Count == 1)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public bool GetIfSelfFuncName(string Line, string SourceStr,ref string FunctionName,string Params)
+        {
+            if (CheckSingleOccurrence(Line, SourceStr))
+            {
+                bool IfOrFuncEnd = false;
+                string MergeStr = "";
+                int GetStartIndex = Line.IndexOf(SourceStr);
+
+                for (int i = 0; i > GetStartIndex; i--)
+                {
+                    string GetChar = Line.Substring(i, 1);
+
+                    if (GetChar == "(")
+                    {
+                        IfOrFuncEnd = true;
+                    }
+                    if (IfOrFuncEnd && GetChar.Trim().Length > 0)
+                    {
+                        MergeStr += GetChar;
+
+                        if (GetChar.Contains("("))
+                        {
+                            string GetRightStr = GetChar.Split('(')[1];
+
+                            if (!GetRightStr.ToLower().Contains("if"))
+                            {
+                                FunctionName = GetRightStr;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (FunctionName.Length > 0)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+        }
+
         public Dictionary<string, int> FuncIndex = new Dictionary<string, int>();
 
         public void AnalyzeCodeLine(List<string> Lines)
@@ -497,6 +582,11 @@ namespace SSELex.SkyrimManage
             for (int i = 0; i < DStringItems.Count; i++)
             {
                 string SourceLine = DStringItems[i].SourceLine;
+
+                if (SourceLine.Contains("The configuration file detected "))
+                {
+
+                }
 
                 string FormattedLine = FormatLine(SourceLine);
                 DStringItems[i].Feature += DStringItems[i].ParentFunctionName + ">";
