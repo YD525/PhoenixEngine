@@ -500,10 +500,11 @@ namespace SSELex.SkyrimManage
 
         public bool GetIfSelfFuncName(string Line, string SourceStr,ref string FunctionName,string Params)
         {
-            if (Line.Contains("The configuration file detected "))
-            {
-
-            }
+            //Line = "if(xx(\"AA\",1))"; SourceStr = "AA";
+            //Line = "if xx(\"AA\",1)"; SourceStr = "AA";
+            //Line = "if aa(xx(\"AA\",1))"; SourceStr = "AA";
+            //Line = "if(( aa(xx(\"AA\",1))"; SourceStr = "AA";
+            //Line = "if 1 == print(\"AA\")"; SourceStr = "AA";
 
             string FormatSource = "\"" + SourceStr + "\"";
             if (CheckSingleOccurrence(Line, FormatSource))
@@ -514,35 +515,45 @@ namespace SSELex.SkyrimManage
 
                 if (GetStartIndex > 0)
                 {
-                    for (int i = GetStartIndex - 1; i > 0; i--)
+                    for (int i = GetStartIndex; i > 0; i--)
                     {
-                        string GetChar = Line.Substring(i, 1);
+                        string GetChar = Line.Substring(i-1, 1);
 
-                        if (GetChar == "(")
+                        if (GetChar == "(" && !IfOrFuncEnd)
                         {
                             IfOrFuncEnd = true;
                         }
                         else
-                        if (IfOrFuncEnd && GetChar.Trim().Length > 0)
+                        if (IfOrFuncEnd)
                         {
-                            if (GetChar.Contains("("))
+                            if (GetChar.Equals("("))
                             {
-                                string GetRightStr = GetChar.Split('(')[1];
-
-                                if (!GetRightStr.ToLower().Contains("if"))
+                                if (!MergeStr.ToLower().Contains("if "))
                                 {
                                     FunctionName = MergeStr;
                                     break;
                                 }
                             }
                             else
-                            if (GetChar.Contains("&"))
+                            if (GetChar.Equals("!"))
                             {
                                 FunctionName = MergeStr;
                                 break;
                             }
                             else
-                            if (GetChar.Contains("|"))
+                            if (GetChar.Equals("&"))
+                            {
+                                FunctionName = MergeStr;
+                                break;
+                            }
+                            else
+                            if (GetChar.Equals("|"))
+                            {
+                                FunctionName = MergeStr;
+                                break;
+                            }
+                            else
+                            if (GetChar.Equals("="))
                             {
                                 FunctionName = MergeStr;
                                 break;
@@ -555,10 +566,34 @@ namespace SSELex.SkyrimManage
                     }
                 }
 
+                MergeStr = ReverseString(MergeStr);
                 FunctionName = ReverseString(FunctionName);
+
+                if (MergeStr.StartsWith("if "))
+                {
+                    MergeStr = MergeStr.Substring("if ".Length);
+
+                    if (FunctionName == string.Empty && MergeStr.Length > 0)
+                    {
+                        FunctionName = MergeStr;
+                    }
+                }
 
                 if (FunctionName.Length > 0)
                 {
+                    if (FunctionName.StartsWith("Self."))
+                    {
+                        FunctionName = FunctionName.Substring("Self.".Length);
+                    }
+                    if (FunctionName.StartsWith("This."))
+                    {
+                        FunctionName = FunctionName.Substring("This.".Length);
+                    }
+
+                    FunctionName = FunctionName.Trim();
+
+
+
                     return true;
                 }
 
