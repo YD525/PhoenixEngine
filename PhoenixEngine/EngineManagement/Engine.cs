@@ -6,6 +6,7 @@ using System.Net;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.DataBaseManagement;
@@ -137,6 +138,14 @@ FROM (
             return Engine.FileUniqueKey;
         }
 
+        public static void SkipWordAnalysis(bool Check)
+        {
+            if (TranslationCore != null)
+            {
+                TranslationCore.SkipWordAnalysis = Check;
+            }
+        }
+
         public static void Start()
         {
             Start(false);
@@ -237,6 +246,18 @@ FROM (
         public static void AddAIMemory(string Original, string Translated)
         {
             EngineSelect.AIMemory.AddTranslation(Engine.From, Original, Translated);
+        }
+
+        public static string AppendDollarWrappedReplacements(string input)
+        {
+            // Create a regex to match text wrapped in $$...$$
+            Regex OneRegex = new Regex(@"\$\$(.+?)\$\$");
+
+            // Replace each match with {content}
+            string Replaced = OneRegex.Replace(input, match => "{" + match.Groups[1].Value + "}");
+
+            // Return the processed text only (original text is not preserved)
+            return Replaced;
         }
     }
 }

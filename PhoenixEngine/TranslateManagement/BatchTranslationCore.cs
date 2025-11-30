@@ -222,6 +222,8 @@ namespace PhoenixEngine.TranslateManage
 
         public bool IsStop = false;
 
+        public bool SkipWordAnalysis = false;
+
         public BatchTranslationCore(Languages From, Languages To, List<TranslationUnit> UnitsToTranslate, bool ClearCache = false)
         {
             if (ClearCache)
@@ -454,7 +456,10 @@ namespace PhoenixEngine.TranslateManage
                         LangDetecter = null;
                     }
 
-                    MarkLeadersAndSortHighPerfAccumulate(new List<TranslationUnit>(this.UnitsToTranslate), this.DetectSourceLang);
+                    if (!SkipWordAnalysis)
+                    {
+                        MarkLeadersAndSortHighPerfAccumulate(new List<TranslationUnit>(this.UnitsToTranslate), this.DetectSourceLang);
+                    }
 
                     if (ExitAny)
                     {
