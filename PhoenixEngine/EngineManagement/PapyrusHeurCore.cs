@@ -61,7 +61,7 @@ namespace SSELex.SkyrimManage
            new MethodParam("AddToggleOption",0),//SkyUI Api
            new MethodParam("AddToggleOptionST",1),//SkyUI Api
            new MethodParam("SetGameSettingString",1),//?? Api
-           new MethodParam("ShowMessage",0)//??
+           new MethodParam("ShowMessage",0)//DDI Api
         };
 
         public List<DStringItem> DStringItems = new List<DStringItem>();
