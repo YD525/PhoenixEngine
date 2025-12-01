@@ -11,7 +11,7 @@ namespace SSELex.SkyrimManage
     public class PapyrusHeurCore
     {
         public static string Version = "1.6Beta";
-        public List<ParsingItem> ParsingItems = new();
+        public List<ParsingItem> ParsingItems = new List<ParsingItem>();
         public FunctionFinder CurrentFunctionFinder = new FunctionFinder();
         public static List<string> SafePapyrusFuncs = new List<string>() { "SetInfoText", "NotifyActor", "Warn", "messageBox", "messagebox", "Messagebox", "Log", "NotifyPlayer", "NotifyNPC", "Message", "ecSlider", "ecToggle", "TextUpdate" };
 
@@ -425,7 +425,7 @@ namespace SSELex.SkyrimManage
             return AlreadyAdded;
         }
 
-        private static readonly HashSet<string> ValidExtensions = new(StringComparer.OrdinalIgnoreCase)
+        private static readonly HashSet<string> ValidExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
         ".dsd", ".txt", ".json", ".esl", ".esm", ".esp", ".pex",".dds"
         };
@@ -1147,8 +1147,8 @@ namespace SSELex.SkyrimManage
         public bool IsFinalCall = false;
         public int DebugLineId = 0;
         public int Point = 0;
-        public List<TrackedVariable> VariableLinks = new();
-        public FunctionLink FuncLinks = new();
+        public List<TrackedVariable> VariableLinks = new List<TrackedVariable>();
+        public FunctionLink FuncLinks = new FunctionLink();
     }
     public class TranslationScoreDetail
     {
