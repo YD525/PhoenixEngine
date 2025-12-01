@@ -19,7 +19,7 @@ namespace PhoenixEngine.DataBaseManagement
         /// <summary>
         /// Enable SQL logging
         /// </summary>
-        public bool EnableSqlOutput { get; set; } = true;
+        public bool EnableSqlOutput { get; set; } = false;
 
         /// <summary>
         /// Number of retries if SQLite operation fails (e.g., Busy)
