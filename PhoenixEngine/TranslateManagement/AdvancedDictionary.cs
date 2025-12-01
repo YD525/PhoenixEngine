@@ -70,10 +70,10 @@ namespace PhoenixEngine.TranslateManagement
             {
                 //Table exists, check whether it's the old structure (has TargetModName instead of TargetFileName)
                 string CheckOldColumnSql = "PRAGMA table_info(AdvancedDictionary);";
-                var dt = Engine.LocalDB.ExecuteDataTable(CheckOldColumnSql);
+                var dt = Engine.LocalDB.ExecuteQuery(CheckOldColumnSql);
 
-                bool HasTargetFileName = dt.AsEnumerable().Any(r => r["name"].ToString() == "TargetFileName");
-                bool HasTargetModName = dt.AsEnumerable().Any(r => r["name"].ToString() == "TargetModName");
+                bool HasTargetFileName = dt.Any(r => r["name"].ToString() == "TargetFileName");
+                bool HasTargetModName = dt.Any(r => r["name"].ToString() == "TargetModName");
 
                 if (!HasTargetFileName && HasTargetModName)
                 {
@@ -154,20 +154,22 @@ FROM AdvancedDictionary_Old;";
         {
             string SqlOrder = "Select Rowid,* From AdvancedDictionary Where [ExactMatch] = 1 And [From] = {0} And [To] = {1} And ([Type] Is NULL OR [Type] = '' OR [Type] = '{2}') And [Source] = '{3}' And [IgnoreCase] = 1 Limit 1";
 
-            DataTable NTable = Engine.LocalDB.ExecuteDataTable(string.Format(SqlOrder,(int)From,(int)To,SqlSafeCodec.Encode(Type),SqlSafeCodec.Encode(Source)));
-            if (NTable.Rows.Count > 0)
+            List<Dictionary<string, object>> NTable = Engine.LocalDB.ExecuteQuery(string.Format(SqlOrder,(int)From,(int)To,SqlSafeCodec.Encode(Type),SqlSafeCodec.Encode(Source)));
+            if (NTable.Count > 0)
             {
+                var Row = NTable[0]; // row is Dictionary<string, object>
+
                 return new AdvancedDictionaryItem(
-                    NTable.Rows[0]["Rowid"],
-                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[0]["TargetFileName"])),
-                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[0]["Type"])),
-                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[0]["Source"])),
-                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[0]["Result"])),
-                    NTable.Rows[0]["From"],
-                    NTable.Rows[0]["To"],
-                    NTable.Rows[0]["ExactMatch"],
-                    NTable.Rows[0]["IgnoreCase"],
-                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[0]["Regex"]))
+                    Row["Rowid"],
+                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["TargetFileName"])),
+                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Type"])),
+                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Source"])),
+                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Result"])),
+                    Row["From"],
+                    Row["To"],
+                    Row["ExactMatch"],
+                    Row["IgnoreCase"],
+                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Regex"]))
                 );
             }
 
@@ -204,7 +206,7 @@ WHERE
     ))
   )
 ";
-            DataTable NTable = Engine.LocalDB.ExecuteQuery(string.Format(
+                List<Dictionary<string, object>> NTable = Engine.LocalDB.ExecuteQuery(string.Format(
                 SqlOrder,
                 SqlSafeCodec.Encode(FileName),
                 SqlSafeCodec.Encode(Type),
@@ -213,20 +215,21 @@ WHERE
                 SqlSafeCodec.Encode(SourceText)
             ));
 
-            for (int i = 0; i < NTable.Rows.Count; i++)
+            for (int i = 0; i < NTable.Count; i++)
             {
+                var Row = NTable[i];
                 var Get = new AdvancedDictionaryItem(
-                    NTable.Rows[i]["Rowid"],
-                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["TargetFileName"])),
-                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["Type"])),
-                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["Source"])),
-                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["Result"])),
-                    NTable.Rows[i]["From"],
-                    NTable.Rows[i]["To"],
-                    NTable.Rows[i]["ExactMatch"],
-                    NTable.Rows[i]["IgnoreCase"],
-                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["Regex"]))
-                );
+                Row["Rowid"],
+                SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["TargetFileName"])),
+                SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Type"])),
+                SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Source"])),
+                SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Result"])),
+                Row["From"],
+                Row["To"],
+                Row["ExactMatch"],
+                Row["IgnoreCase"],
+                SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Regex"]))
+            );
                 if (Get.Regex.Trim().Length > 0)
                 {
                     if (IsRegexMatch(SourceText,System.Web.HttpUtility.HtmlDecode(Get.Regex)))
@@ -311,12 +314,13 @@ Regex = '{SqlSafeCodec.Encode(item.Regex)}'";
 
             int MaxPage = PageHelper.GetPageCount("AdvancedDictionary", Where);
 
-            DataTable NTable = PageHelper.GetTablePageData("AdvancedDictionary", PageNo, EngineConfig.DefPageSize, Where);
+            List<Dictionary<string, object>> NTable = PageHelper.GetTablePageData("AdvancedDictionary", PageNo, EngineConfig.DefPageSize, Where);
 
             List<AdvancedDictionaryItem> Items = new List<AdvancedDictionaryItem>();
-            for (int i = 0; i < NTable.Rows.Count; i++)
+            for (int i = 0; i < NTable.Count; i++)
             {
-                DataRow Row = NTable.Rows[i];
+                var Row = NTable[i]; // row 是 Dictionary<string, object>
+
                 Items.Add(new AdvancedDictionaryItem(
                     Row["Rowid"],
                     SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["TargetFileName"])),
@@ -340,12 +344,13 @@ Regex = '{SqlSafeCodec.Encode(item.Regex)}'";
 
             int MaxPage = PageHelper.GetPageCount("AdvancedDictionary", Where);
 
-            DataTable NTable = PageHelper.GetTablePageData("AdvancedDictionary", PageNo, EngineConfig.DefPageSize, Where);
+            List<Dictionary<string, object>> NTable = PageHelper.GetTablePageData("AdvancedDictionary", PageNo, EngineConfig.DefPageSize, Where);
 
             List<AdvancedDictionaryItem> Items = new List<AdvancedDictionaryItem>();
-            for (int i = 0; i < NTable.Rows.Count; i++)
+            for (int i = 0; i < NTable.Count; i++)
             {
-                DataRow Row = NTable.Rows[i];
+                var Row = NTable[i];
+
                 Items.Add(new AdvancedDictionaryItem(
                     SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["TargetFileName"])),
                     SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Type"])),

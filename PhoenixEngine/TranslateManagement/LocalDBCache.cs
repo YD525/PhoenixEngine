@@ -94,18 +94,20 @@ CREATE TABLE [LocalTranslation](
                 List<CloudTranslationItem> CloudTranslationItems = new List<CloudTranslationItem>();
 
                 string SqlOrder = "Select * From LocalTranslation Where [To] = {0} And [Source] = '{1}' Limit 5";
-                DataTable NTable = Engine.LocalDB.ExecuteDataTable(string.Format(SqlOrder, To, SqlSafeCodec.Encode(Source)));
-                if (NTable.Rows.Count > 0)
+                List<Dictionary<string, object>> NTable = Engine.LocalDB.ExecuteQuery(string.Format(SqlOrder, To, SqlSafeCodec.Encode(Source)));
+                if (NTable.Count > 0)
                 {
-                    for (int i = 0; i < NTable.Rows.Count; i++)
+                    for (int i = 0; i < NTable.Count; i++)
                     {
+                        var Row = NTable[i]; 
+
                         CloudTranslationItems.Add(new CloudTranslationItem(
-                            NTable.Rows[i]["FileUniqueKey"],
-                            NTable.Rows[i]["Key"],
-                            NTable.Rows[i]["To"],
-                            SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["Source"])),
-                            SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["Result"]))
-                           ));
+                            Row["FileUniqueKey"],
+                            Row["Key"],
+                            Row["To"],
+                            SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Source"])),
+                            SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Result"]))
+                        ));
                     }
                 }
 

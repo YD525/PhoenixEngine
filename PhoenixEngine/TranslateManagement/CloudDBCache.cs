@@ -49,9 +49,9 @@ CREATE TABLE [CloudTranslation](
             if (Result != null && Result != DBNull.Value)
             {
                 // Table exists, check structure
-                DataTable Columns = Engine.LocalDB.ExecuteQuery($"PRAGMA table_info({TableName});");
+                List<Dictionary<string, object>> Columns = Engine.LocalDB.ExecuteQuery($"PRAGMA table_info({TableName});");
                 var ExistingCols = new HashSet<string>(
-                    Columns.AsEnumerable().Select(R => R["name"].ToString()),
+                    Columns.Select(R => R["name"].ToString()),
                     StringComparer.OrdinalIgnoreCase
                 );
 
@@ -141,18 +141,20 @@ CREATE TABLE [CloudTranslation](
                 List<CloudTranslationItem> CloudTranslationItems = new List<CloudTranslationItem>();
 
                 string SqlOrder = "Select * From CloudTranslation Where [To] = {0} And [Source] = '{1}' Limit 5";
-                DataTable NTable = Engine.LocalDB.ExecuteDataTable(string.Format(SqlOrder, To, SqlSafeCodec.Encode(Source)));
-                if (NTable.Rows.Count > 0)
+                List<Dictionary<string, object>> NTable = Engine.LocalDB.ExecuteQuery(string.Format(SqlOrder, To, SqlSafeCodec.Encode(Source)));
+                if (NTable.Count > 0)
                 {
-                    for (int i = 0; i < NTable.Rows.Count; i++)
+                    for (int i = 0; i < NTable.Count; i++)
                     {
+                        var Row = NTable[i]; 
+
                         CloudTranslationItems.Add(new CloudTranslationItem(
-                            NTable.Rows[i]["FileUniqueKey"],
-                            NTable.Rows[i]["Key"],
-                            NTable.Rows[i]["To"],
-                            SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["Source"])),
-                            SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["Result"]))
-                            ));
+                            Row["FileUniqueKey"],
+                            Row["Key"],
+                            Row["To"],
+                            SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Source"])),
+                            SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Result"]))
+                        ));
                     }
                 }
 
@@ -170,18 +172,20 @@ CREATE TABLE [CloudTranslation](
                 List<CloudTranslationItem> CloudTranslationItems = new List<CloudTranslationItem>();
 
                 string SqlOrder = "Select * From CloudTranslation Where [To] = {0} And [Source] = '{1}' And Rowid != {2} Limit 5";
-                DataTable NTable = Engine.LocalDB.ExecuteDataTable(string.Format(SqlOrder, To, SqlSafeCodec.Encode(Source),Rowid));
-                if (NTable.Rows.Count > 0)
+                List<Dictionary<string, object>> NTable = Engine.LocalDB.ExecuteQuery(string.Format(SqlOrder, To, SqlSafeCodec.Encode(Source),Rowid));
+                if (NTable.Count > 0)
                 {
-                    for (int i = 0; i < NTable.Rows.Count; i++)
+                    for (int i = 0; i < NTable.Count; i++)
                     {
+                        var Row = NTable[i];
+
                         CloudTranslationItems.Add(new CloudTranslationItem(
-                            NTable.Rows[i]["FileUniqueKey"],
-                            NTable.Rows[i]["Key"],
-                            NTable.Rows[i]["To"],
-                            SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["Source"])),
-                            SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["Result"]))
-                            ));
+                            Row["FileUniqueKey"],
+                            Row["Key"],
+                            Row["To"],
+                            SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Source"])),
+                            SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Result"]))
+                        ));
                     }
                 }
 
@@ -199,12 +203,13 @@ CREATE TABLE [CloudTranslation](
             {
                 string SqlOrder = "Select Rowid,Result From CloudTranslation Where [FileUniqueKey] = {0} And [Key] = '{1}' And [To] = {2}";
 
-                DataTable GetResult = Engine.LocalDB.ExecuteQuery(string.Format(SqlOrder, FileUniqueKey, Key, To));
+                List<Dictionary<string, object>> GetResult = Engine.LocalDB.ExecuteQuery(string.Format(SqlOrder, FileUniqueKey, Key, To));
 
-                if (GetResult.Rows.Count > 0)
+                if (GetResult.Count > 0)
                 {
-                    string GetStr = SqlSafeCodec.Decode(ConvertHelper.ObjToStr(GetResult.Rows[0]["Result"]));
-                    ID = ConvertHelper.ObjToInt(GetResult.Rows[0]["Rowid"]);
+                    var Row = GetResult[0];
+                    string GetStr = SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Result"]));
+                    ID = ConvertHelper.ObjToInt(Row["Rowid"]);
                     return GetStr;
                 }
 

@@ -17,7 +17,7 @@ namespace PhoenixEngine.DataBaseManagement
             return PageCount;
         }
 
-        public static DataTable GetTablePageData(string TableName, int PageNo, int Count, string Where = "")
+        public static List<Dictionary<string, object>> GetTablePageData(string TableName, int PageNo, int Count, string Where = "")
         {
             if (Where.Trim().Length > 0)
             {

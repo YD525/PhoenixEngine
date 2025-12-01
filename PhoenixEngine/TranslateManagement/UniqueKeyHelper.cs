@@ -287,20 +287,22 @@ CREATE TABLE [UniqueKeys](
         public UniqueKeyItem? QueryUniqueKey(int Rowid)
         {
             string SqlOrder = "Select Rowid,* From UniqueKeys Where Rowid = {0}";
-            DataTable NTable = Engine.LocalDB.ExecuteDataTable(string.Format(SqlOrder,Rowid));
-            
-            if (NTable.Rows.Count > 0)
+            List<Dictionary<string, object>> NTable = Engine.LocalDB.ExecuteQuery(string.Format(SqlOrder,Rowid));
+
+            if (NTable.Count > 0)
             {
-                for (int i = 0; i < NTable.Rows.Count; i++)
+                for (int i = 0; i < NTable.Count; i++)
                 {
+                    var Row = NTable[i];
+
                     return new UniqueKeyItem(
-                        NTable.Rows[i]["Rowid"],
-                        SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["OriginalKey"])),
-                        SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["FileName"])),
-                        NTable.Rows[i]["FileExtension"],
-                        NTable.Rows[i]["UpdateTime"],
-                        NTable.Rows[i]["CreatTime"]
-                        );
+                        Row["Rowid"],
+                        SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["OriginalKey"])),
+                        SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["FileName"])),
+                        Row["FileExtension"],
+                        Row["UpdateTime"],
+                        Row["CreatTime"]
+                    );
                 }
             }
 
@@ -320,19 +322,21 @@ CREATE TABLE [UniqueKeys](
 
             string SqlOrder = "SELECT Rowid, * FROM UniqueKeys ORDER BY Rowid DESC LIMIT " + Limit.ToString() + ";";
 
-            DataTable NTable = Engine.LocalDB.ExecuteDataTable(SqlOrder);
+            List<Dictionary<string, object>> NTable = Engine.LocalDB.ExecuteQuery(SqlOrder);
 
-            if (NTable.Rows.Count > 0)
+            if (NTable.Count > 0)
             {
-                for (int i = 0; i < NTable.Rows.Count; i++)
+                for (int i = 0; i < NTable.Count; i++)
                 {
+                    var Row = NTable[i]; // Dictionary<string, object>
+
                     UniqueKeyItems.Add(new UniqueKeyItem(
-                        NTable.Rows[i]["Rowid"],
-                        SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["OriginalKey"])),
-                        SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["FileName"])),
-                        NTable.Rows[i]["FileExtension"],
-                        NTable.Rows[i]["UpdateTime"],
-                        NTable.Rows[i]["CreatTime"]
+                        Row["Rowid"],
+                        SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["OriginalKey"])),
+                        SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["FileName"])),
+                        Row["FileExtension"],
+                        Row["UpdateTime"],
+                        Row["CreatTime"]
                     ));
                 }
             }
@@ -349,19 +353,21 @@ CREATE TABLE [UniqueKeys](
             List<UniqueKeyItem> UniqueKeyItems = new List<UniqueKeyItem>();
 
             string SqlOrder = "Select Rowid,* From UniqueKeys Where 1 = 1";
-            DataTable NTable = Engine.LocalDB.ExecuteDataTable(SqlOrder);
+            List<Dictionary<string, object>> NTable = Engine.LocalDB.ExecuteQuery(SqlOrder);
 
-            if (NTable.Rows.Count > 0)
+            if (NTable.Count > 0)
             {
-                for (int i = 0; i < NTable.Rows.Count; i++)
+                for (int i = 0; i < NTable.Count; i++)
                 {
+                    var Row = NTable[i]; // Dictionary<string, object>
+
                     UniqueKeyItems.Add(new UniqueKeyItem(
-                        NTable.Rows[i]["Rowid"],
-                        SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["OriginalKey"])),
-                        SqlSafeCodec.Decode(ConvertHelper.ObjToStr(NTable.Rows[i]["FileName"])),
-                        NTable.Rows[i]["FileExtension"],
-                        NTable.Rows[i]["UpdateTime"],
-                        NTable.Rows[i]["CreatTime"]
+                        Row["Rowid"],
+                        SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["OriginalKey"])),
+                        SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["FileName"])),
+                        Row["FileExtension"],
+                        Row["UpdateTime"],
+                        Row["CreatTime"]
                     ));
                 }
             }
