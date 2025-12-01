@@ -28,7 +28,7 @@ namespace PhoenixEngine.DataBaseManagement
                 string str2 = "true";
                 if (str2 == "true")
                 {
-                    text = "Data Source=" + SqlPath + ";Pooling=true;FailIfMissing=false;Journal Mode=WAL;Cache=Shared";
+                    text = "Data Source=" + SqlPath + ";Pooling=true;FailIfMissing=false;Journal Mode=WAL;Cache=Shared;BusyTimeout=5000";
                 }
                 return text;
             }
