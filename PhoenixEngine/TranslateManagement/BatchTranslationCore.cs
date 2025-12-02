@@ -1,4 +1,5 @@
 ﻿
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -662,34 +663,35 @@ namespace PhoenixEngine.TranslateManage
 
         public TranslationUnit? DequeueTranslated(out bool IsEnd)
         {
-            lock (UnitsTranslatedLocker)
+            try 
             {
-                if (UnitsTranslated.Count == 0)
+                lock (UnitsTranslatedLocker)
                 {
-                    if (this.WorkState == 3 && GetWorkCount() == 0)
+                    if (UnitsTranslated.Count > 0)
                     {
-                        IsEnd = true;
-                        return null;
-                    }
-                    else
-                    {
+                        var Item = UnitsTranslated.Dequeue();
+
+                        if (!string.IsNullOrWhiteSpace(Item.TransText))
+                        {
+                            IsEnd = false;
+                            return Item;
+                        }
+
                         IsEnd = false;
                         return null;
                     }
-                }
 
-                IsEnd = false;
+                    bool NoMoreWork = (this.WorkState == 3 && GetWorkCount() == 0);
 
-                var GetResult = UnitsTranslated.Dequeue();
+                    IsEnd = NoMoreWork;
 
-                if (GetResult.TransText.Trim().Length > 0)
-                {
-                    return GetResult;
-                }
-                else
-                {
                     return null;
                 }
+            } 
+            catch 
+            {
+                IsEnd = false;
+                return null;
             }
         }
     }
