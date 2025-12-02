@@ -18,7 +18,7 @@ namespace PhoenixEngine.DelegateManagement
         public delegate void SetData(int Sign,object Any);
 
         public static TranslationUnitCallBack? SetTranslationUnitCallBack = null;
-        public delegate bool TranslationUnitCallBack(TranslationUnit Item);
+        public delegate bool TranslationUnitCallBack(TranslationUnit Item,int State);
 
         public static BookTranslateCallback SetBookTranslateCallback = null;
 
