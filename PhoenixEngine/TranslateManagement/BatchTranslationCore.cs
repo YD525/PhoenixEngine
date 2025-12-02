@@ -98,6 +98,7 @@ namespace PhoenixEngine.TranslateManage
 
                         if (!CanTrans(1))
                         {
+                            this.Transing = false;
                             WorkEnd = 2;
                             return;
                         }
@@ -109,6 +110,7 @@ namespace PhoenixEngine.TranslateManage
 
                             if (!CanTrans(2))
                             {
+                                this.Transing = false;
                                 WorkEnd = 2;
                                 return;
                             }
