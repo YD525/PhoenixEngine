@@ -110,7 +110,22 @@ using PhoenixEngine.TranslateManage;
           {
               return -1;
           }
-      }
+       }
+       
+        /// <summary>
+        /// This is used to receive any entry state change event.
+        /// </summary>
+        /// <param name="Item">Translation Unit</param>
+        /// <param name="State">
+        /// 0 = is picked up by the thread.
+        /// 1 = Initiating translation.
+        /// 2 = Obtain translation results
+        /// </param>
+        /// <returns></returns>
+       public static bool TranslationUnitStateChanged(TranslationUnit Item,int State)
+       {
+           //If false is returned in stage 2, the final translation will not be stored in the database.
+       }
   }
 
 ```
