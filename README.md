@@ -131,17 +131,6 @@ using PhoenixEngine.TranslateManage;
   }
 
 ```
----
-## 🌙PhoenixEngineR — R Version Made for SSE AT
-
-Added some support for SSEAT.
-
-Some AI platforms have been removed to reduce size.
-
-The R version of the translation core is available here:  
-**https://github.com/YD525/PhoenixEngineR**
-
-This Lite edition is jointly maintained by the authors of **SSEAT** and **SSELex**.
 
 ## 💬 Community & Contribution
 
