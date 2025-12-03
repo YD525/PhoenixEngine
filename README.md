@@ -32,6 +32,7 @@ using PhoenixEngine.TranslateManage;
       public void Init()
       {
           Engine.Init();
+          DelegateHelper.SetTranslationUnitCallBack += TranslationUnitStateChanged;
 
           string SetCachePath = GetFullPath(@"\Cache");
           if (!Directory.Exists(SetCachePath))
@@ -125,6 +126,7 @@ using PhoenixEngine.TranslateManage;
        public static bool TranslationUnitStateChanged(TranslationUnit Item,int State)
        {
            //If false is returned in stage 2, the final translation will not be stored in the database.
+           return true;
        }
   }
 
