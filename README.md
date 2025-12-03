@@ -132,16 +132,15 @@ using PhoenixEngine.TranslateManage;
 
 ```
 ---
-## 🌙 SSEATTransCore — Lightweight Version Made Exclusively for SSEAT
+## 🌙 SSEATTransCore — R Version Made for SSE AT
 
-The Lite version of the translation core is available here:  
-**https://github.com/YD525/SSEATTransCore**
+Added some support for SSEAT
+Some AI platforms have been removed to reduce size.
 
-This version is built on **.NET Framework**, so **end users do not need to install any runtime**.  
-Compared to the full version, it **removes several AI platform integrations**, resulting in a **smaller and more lightweight** build.
+The R version of the translation core is available here:  
+**https://github.com/YD525/PhoenixEngineR**
 
 This Lite edition is jointly maintained by the authors of **SSEAT** and **SSELex**.
-
 
 ## 💬 Community & Contribution
 
