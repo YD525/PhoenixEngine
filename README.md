@@ -134,7 +134,8 @@ using PhoenixEngine.TranslateManage;
 ---
 ## 🌙 SSEATTransCore — R Version Made for SSE AT
 
-Added some support for SSEAT
+Added some support for SSEAT.
+
 Some AI platforms have been removed to reduce size.
 
 The R version of the translation core is available here:  
