@@ -82,7 +82,7 @@ using PhoenixEngine.TranslateManage;
 
       public void End()
       {
-          Engine.Start();
+          Engine.End();
       }
 
       public void SetThread(int ThreadCount)
