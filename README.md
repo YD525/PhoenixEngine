@@ -18,6 +18,102 @@ In addition, it provides **heuristic analysis for Papyrus scripts**, generating 
 
 ---
 
+## ⭐ API Usage Example (How to Call the Engine)
+
+Quickly call PhoenixAPI
+
+```csharp
+using PhoenixEngine.EngineManagement;
+using PhoenixEngine.TranslateCore;
+using PhoenixEngine.TranslateManage;
+
+  public class PhoenixAPI
+  {
+      public void Init()
+      {
+          Engine.Init();
+
+          string SetCachePath = GetFullPath(@"\Cache");
+          if (!Directory.Exists(SetCachePath))
+          {
+              Directory.CreateDirectory(SetCachePath);
+          }
+
+          EngineConfig.LMLocalAIEnable = true;
+          EngineConfig.ContextEnable = true;
+
+          EngineConfig.ContextLimit = 150;
+          EngineConfig.PreTranslateEnable = true;
+
+          EngineConfig.Save();
+
+          Engine.From = Languages.English;
+          Engine.To = Languages.English;
+      }
+    
+      public TranslationUnit? Dequeue(ref bool IsEnd)
+      {
+          return Engine.DequeueTranslated(ref IsEnd);
+      }
+     
+      public int Enqueue(string FileName, string Key, string Type, string Original, string AIParam)
+      {
+          TranslationUnit Unit = new TranslationUnit(
+          CrcHelper.ComputeCRC32Int(FileName),
+          Key,
+          Type,
+          Original,
+          "",
+          "",
+          Engine.From,
+          Engine.To,
+          100
+          );
+
+          int GetEnqueueCount = Engine.AddTranslationUnit(Unit);
+
+          return GetEnqueueCount;
+      }
+
+      public void Start()
+      {
+          Engine.Start();
+      }
+
+      public void End()
+      {
+          Engine.Start();
+      }
+
+      public void SetThread(int ThreadCount)
+      {
+          EngineConfig.MaxThreadCount = ThreadCount;
+          EngineConfig.AutoSetThreadLimit = false;
+
+          EngineConfig.Save();
+      }
+      public int GetWorkingThreadCount()
+      {
+          return Engine.GetThreadCount();
+      }
+      public int SetLang(string From, string To)
+      {
+          try
+          {
+              Engine.From = LanguageHelper.FromLanguageCode(From);
+              Engine.To = LanguageHelper.FromLanguageCode(To);
+
+              return 1;
+
+          }
+          catch
+          {
+              return -1;
+          }
+      }
+  }
+
+---
 ## 🌙 SSEATTransCore — Lightweight Version Made Exclusively for SSEAT
 
 The Lite version of the translation core is available here:  
