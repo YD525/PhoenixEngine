@@ -165,6 +165,36 @@ CREATE TABLE [CloudTranslation](
             return new List<CloudTranslationItem>();
         }
 
+        public static CloudTranslationItem? Match(int To, string Source)
+        {
+            try
+            {
+
+                string SqlOrder = "Select * From CloudTranslation Where [To] = {0} And [Source] = '{1}' Limit 1";
+                List<Dictionary<string, object>> NTable = Engine.LocalDB.ExecuteQuery(string.Format(SqlOrder, To, SqlSafeCodec.Encode(Source)));
+                if (NTable.Count > 0)
+                {
+                    for (int i = 0; i < NTable.Count; i++)
+                    {
+                        var Row = NTable[i];
+
+                        return new CloudTranslationItem(
+                            Row["FileUniqueKey"],
+                            Row["Key"],
+                            Row["To"],
+                            SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Source"])),
+                            SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Result"]))
+                        );
+                    }
+                }
+
+                return null;
+            }
+            catch { }
+
+            return null;
+        }
+
         public static List<CloudTranslationItem> MatchOtherCloudItem(int Rowid,int To, string Source, int Limit = 5)
         {
             try

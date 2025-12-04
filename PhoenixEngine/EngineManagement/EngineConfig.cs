@@ -186,6 +186,13 @@ namespace PhoenixEngine.EngineManagement
         public static int ContextLimit { get; set; } = 150;
 
         /// <summary>
+        /// Allows retrieval of the entire database using only the source text.
+        /// </summary>
+        public static bool EnableGlobalSearch { get; set; } = false;
+
+        #endregion
+
+        /// <summary>
         /// User-defined custom prompt sent to the AI model.
         /// This prompt can be used to guide the AI's behavior or translation style.
         /// </summary>
@@ -227,7 +234,7 @@ namespace PhoenixEngine.EngineManagement
             {
                 if (EngineConfig.LMLocalAIEnable)
                 {
-                    try 
+                    try
                     {
                         AutoThread = Environment.ProcessorCount;
                         AutoThread = AutoThread / 2;
@@ -237,9 +244,9 @@ namespace PhoenixEngine.EngineManagement
                             AutoThread = Environment.ProcessorCount;
                         }
                     }
-                    catch 
+                    catch
                     {
-                        
+
                     }
 
                     if (AutoThread <= 0)
@@ -319,6 +326,7 @@ namespace PhoenixEngine.EngineManagement
                 Writer.Write(ContextEnable);
                 Writer.Write(ContextLimit);
                 Writer.Write(UserCustomAIPrompt ?? "");
+                Writer.Write(EnableGlobalSearch);
 
                 Writer.Flush();
 
@@ -349,7 +357,7 @@ namespace PhoenixEngine.EngineManagement
                     ProxyUrl = Reader.ReadString();
                     ProxyUserName = Reader.ReadString();
                     ProxyPassword = Reader.ReadString();
-                    
+
                     GlobalRequestTimeOut = Reader.ReadInt32();
 
                     DefPageSize = Reader.ReadInt32();
@@ -393,6 +401,7 @@ namespace PhoenixEngine.EngineManagement
                     ContextEnable = Reader.ReadBoolean();
                     ContextLimit = Reader.ReadInt32();
                     UserCustomAIPrompt = Reader.ReadString();
+                    EnableGlobalSearch = Reader.ReadBoolean();
                 }
 
             }
@@ -403,7 +412,5 @@ namespace PhoenixEngine.EngineManagement
 
             EngineConfig.LMModel = "(Auto)";
         }
-
-        #endregion
     }
 }

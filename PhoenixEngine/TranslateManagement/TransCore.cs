@@ -5,6 +5,7 @@ using PhoenixEngine.EngineManagement;
 using PhoenixEngine.PlatformManagement;
 using PhoenixEngine.PlatformManagement.LocalAI;
 using PhoenixEngine.TranslateCore;
+using PhoenixEngine.TranslateManagement;
 using static PhoenixEngine.EngineManagement.DataTransmission;
 
 namespace PhoenixEngine.TranslateManage
@@ -140,6 +141,25 @@ namespace PhoenixEngine.TranslateManage
 
                 CanSleep = false;
                 return GetCacheStr;
+            }
+
+            if (EngineConfig.EnableGlobalSearch)
+            {
+                var MatchItem = CloudDBCache.Match((int)Item.To, Item.SourceText);
+                if (MatchItem != null)
+                {
+                    Call.ReceiveString = GetCacheStr;
+                    try 
+                    {
+                        Call.Log = "Data available for translation was retrieved from the database. File:" + UniqueKeyHelper.RowidToOriginalKey(MatchItem.FileUniqueKey);
+                    }
+                    catch { }
+
+                    Call.Output();
+
+                    CanSleep = false;
+                    return MatchItem.Result;
+                }
             }
 
             EngineSelect? CurrentEngine = null;
