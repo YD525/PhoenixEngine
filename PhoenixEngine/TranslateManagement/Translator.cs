@@ -125,8 +125,9 @@ namespace PhoenixEngine.TranslateManage
                 Item.SourceText = Regex.Replace(Item.SourceText, @"$$$$$1$$$$");
             }
 
+            //Skip fields that do not need translation
+
             string GetSourceStr = Item.SourceText;
-            string Content = Item.SourceText;
 
             if (IsOnlySymbolsAndSpaces(GetSourceStr))
             {
@@ -138,52 +139,57 @@ namespace PhoenixEngine.TranslateManage
                 return GetSourceStr;
             }
 
-            string GetMatchResult = "";
-
-            if (ExactMatch(Item.From,Item.To,Item.Key, Item.Type, GetSourceStr, ref GetMatchResult))
-            {
-                return GetMatchResult;
-            }
-
-            bool HasOuterQuotes = TranslationPreprocessor.HasOuterQuotes(GetSourceStr.Trim());
-
-            TranslationPreprocessor.ConditionalSplitCamelCase(ref Content);
-            TranslationPreprocessor.RemoveInvisibleCharacters(ref Content);
-
             Languages SourceLanguage = Item.From;
-
             if (SourceLanguage == Item.To)
             {
                 return GetSourceStr;
             }
 
-            if (TranslationPreprocessor.IsNumeric(Content))
+            if (TranslationPreprocessor.IsNumeric(GetSourceStr))
             {
                 return GetSourceStr;
             }
 
-            Item.From = SourceLanguage;
+            //Optimize strings
+            TranslationPreprocessor.OptimizeStrings(ref GetSourceStr);
+
+            //Check OuterQuotes
+            bool HasOuterQuotes = TranslationPreprocessor.HasOuterQuotes(GetSourceStr.Trim());
+
+            //Remove OuterQuotes
+            if (HasOuterQuotes)
+            {
+                TranslationPreprocessor.StripOuterQuotes(ref GetSourceStr);
+            }
+
+            //Match DataBase
+            string Content = GetSourceStr;
+            string GetMatchResult = "";
+            if (ExactMatch(Item.From,Item.To,Item.Key, Item.Type, Content, ref GetMatchResult))
+            {
+                return GetMatchResult;
+            }
 
             Item.SourceText = Content;
-
             Content = CurrentTransCore.TransAny(Item,ref CanSleep, IsBook);
+            if (TranslationPreprocessor.HasUnicodeEscape(Content))
+            { 
+                Content = Regex.Unescape(Content);
+            }
 
-            TranslationPreprocessor.NormalizePunctuation(ref Content);
-            TranslationPreprocessor.ProcessEmptyEndLine(ref Content);
-            TranslationPreprocessor.RemoveInvisibleCharacters(ref Content);
-
+            TranslationPreprocessor.OptimizeStrings(ref Content);
             TranslationPreprocessor.StripOuterQuotes(ref Content);
 
             Content = Content.Trim();
 
+            TranslationPreprocessor.OptimizeStrings(ref Content);
+
             if (HasOuterQuotes)
             {
-                Content = "\"" + HasOuterQuotes + "\"";
+                Content = "\"" + Content + "\"";
             }
 
             Content = ReturnStr(Content);
-
-            TranslationPreprocessor.ProcessEscapeCharacters(ref Content);
 
             return Content;
         }

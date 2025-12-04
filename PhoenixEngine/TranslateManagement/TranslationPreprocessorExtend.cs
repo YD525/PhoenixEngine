@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text.RegularExpressions;
+using System.Xml;
 
 namespace PhoenixEngine.TranslateManagement
 {
@@ -9,6 +10,23 @@ namespace PhoenixEngine.TranslateManagement
     //https://github.com/YD525/PhoenixEngine
     public class TranslationPreprocessorExtend
     {
+        public static bool HasUnicodeEscape(string Text)
+        {
+            return Regex.IsMatch(Text, @"\\u[0-9a-fA-F]{4}");
+        }
+
+        /// <summary>
+        /// Remove invisible characters, convert full-width characters to half-width characters, and remove certain special symbols.
+        /// </summary>
+        /// <returns></returns>
+        public static void OptimizeStrings(ref string Input)
+        {
+            NormalizePunctuation(ref Input);
+            RemoveInvisibleCharacters(ref Input);
+            ConditionalSplitCamelCase(ref Input);
+            ProcessEscapeCharacters(ref Input);
+            ProcessEmptyEndLine(ref Input);
+        }
         public static bool IsNullOrEmpty(string Input)
         {
             if (Input == null)
