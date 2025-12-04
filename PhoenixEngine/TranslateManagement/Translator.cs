@@ -54,35 +54,7 @@ namespace PhoenixEngine.TranslateManage
 
         public static string FormatStr(string Content)
         {
-            string GetSourceStr = Content;
-
-            bool HasOuterQuotes = TranslationPreprocessor.HasOuterQuotes(GetSourceStr.Trim());
-
-            TranslationPreprocessor.ConditionalSplitCamelCase(ref Content);
-            TranslationPreprocessor.RemoveInvisibleCharacters(ref Content);
-
-            if (TranslationPreprocessor.IsNumeric(Content))
-            {
-                return GetSourceStr;
-            }
-
-            TranslationPreprocessor.NormalizePunctuation(ref Content);
-            TranslationPreprocessor.ProcessEmptyEndLine(ref Content);
-            TranslationPreprocessor.RemoveInvisibleCharacters(ref Content);
-
-            TranslationPreprocessor.StripOuterQuotes(ref Content);
-
-            Content = Content.Trim();
-
-            if (HasOuterQuotes)
-            {
-                Content = "\"" + HasOuterQuotes + "\"";
-            }
-
-            Content = ReturnStr(Content);
-
-            TranslationPreprocessor.ProcessEscapeCharacters(ref Content);
-
+            TranslationPreprocessor.OptimizeStrings(ref Content);
             return Content;
         }
 
