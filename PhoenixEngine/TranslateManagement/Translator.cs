@@ -58,7 +58,7 @@ namespace PhoenixEngine.TranslateManage
             return Content;
         }
 
-        public static bool ExactMatch(Languages From,Languages To,string Key,string Type,string Source,ref string Result)
+        public static bool ExactMatch(Languages From, Languages To, string Key, string Type, string Source, ref string Result)
         {
             var GetData = AdvancedDictionary.ExactMatch(From, To, Type, Source);
             if (GetData != null)
@@ -74,7 +74,7 @@ namespace PhoenixEngine.TranslateManage
 
                 NPreTranslateCall.ReceiveString = Source;
 
-                NPreTranslateCall.ReplaceTags.Add(new ReplaceTag(GetData.Rowid,GetData.Source,GetData.Result));
+                NPreTranslateCall.ReplaceTags.Add(new ReplaceTag(GetData.Rowid, GetData.Source, GetData.Result));
 
                 NPreTranslateCall.Output();
 
@@ -86,9 +86,9 @@ namespace PhoenixEngine.TranslateManage
             return false;
         }
 
-     
 
-        public static string QuickTrans(TranslationUnit Item, ref bool CanSleep,bool IsBook = false)
+
+        public static string QuickTrans(TranslationUnit Item, ref bool CanSleep, bool IsBook = false)
         {
             Regex Regex = new Regex(@"\{([A-Za-z0-9_ ]+)\}");
 
@@ -137,17 +137,22 @@ namespace PhoenixEngine.TranslateManage
             //Match DataBase
             string Content = GetSourceStr;
             string GetMatchResult = "";
-            if (ExactMatch(Item.From,Item.To,Item.Key, Item.Type, Content, ref GetMatchResult))
+            if (ExactMatch(Item.From, Item.To, Item.Key, Item.Type, Content, ref GetMatchResult))
             {
                 return GetMatchResult;
             }
 
             Item.SourceText = Content;
-            Content = CurrentTransCore.TransAny(Item,ref CanSleep, IsBook);
-            if (TranslationPreprocessor.HasUnicodeEscape(Content))
-            { 
-                Content = Regex.Unescape(Content);
+            Content = CurrentTransCore.TransAny(Item, ref CanSleep, IsBook);
+
+            try
+            {
+                if (TranslationPreprocessor.HasUnicodeEscape(Content))
+                {
+                    Content = Regex.Unescape(Content);
+                }
             }
+            catch { Content = string.Empty; }
 
             TranslationPreprocessor.OptimizeStrings(ref Content);
             TranslationPreprocessor.StripOuterQuotes(ref Content);
