@@ -339,7 +339,7 @@ namespace PhoenixEngine.TranslateManage
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
-                                        AIMemory.AddTranslation(Item.From, GetSource, GetData);
+                                        AIMemory.AddTranslation(Item.From,Item.To, GetSource, GetData);
                                     }
 
                                     TransText = GetData;
@@ -404,7 +404,7 @@ namespace PhoenixEngine.TranslateManage
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
-                                        AIMemory.AddTranslation(Item.From, GetSource, GetData);
+                                        AIMemory.AddTranslation(Item.From,Item.To, GetSource, GetData);
                                     }
                                     TransText = GetData;
 
@@ -432,7 +432,7 @@ namespace PhoenixEngine.TranslateManage
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
-                                        AIMemory.AddTranslation(Item.From, GetSource, GetData);
+                                        AIMemory.AddTranslation(Item.From,Item.To, GetSource, GetData);
                                     }
                                     TransText = GetData;
 
@@ -461,7 +461,7 @@ namespace PhoenixEngine.TranslateManage
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
-                                        AIMemory.AddTranslation(Item.From, GetSource, GetData);
+                                        AIMemory.AddTranslation(Item.From,Item.To, GetSource, GetData);
                                     }
                                     TransText = GetData;
 
@@ -490,7 +490,7 @@ namespace PhoenixEngine.TranslateManage
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
-                                        AIMemory.AddTranslation(Item.From, GetSource, GetData);
+                                        AIMemory.AddTranslation(Item.From,Item.To, GetSource, GetData);
                                     }
                                     TransText = GetData;
 
@@ -519,7 +519,7 @@ namespace PhoenixEngine.TranslateManage
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
-                                        AIMemory.AddTranslation(Item.From, GetSource, GetData);
+                                        AIMemory.AddTranslation(Item.From,Item.To, GetSource, GetData);
                                     }
                                     TransText = GetData;
 
@@ -548,7 +548,7 @@ namespace PhoenixEngine.TranslateManage
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
-                                        AIMemory.AddTranslation(Item.From, GetSource, GetData);
+                                        AIMemory.AddTranslation(Item.From,Item.To, GetSource, GetData);
                                     }
                                     TransText = GetData;
 

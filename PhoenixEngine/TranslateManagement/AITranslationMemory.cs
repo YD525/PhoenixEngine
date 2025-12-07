@@ -39,110 +39,211 @@ namespace PhoenixEngine.TranslateManage
 
     public class AITranslationMemory
     {
-        private readonly Dictionary<string, string> _TranslationDictionary = new Dictionary<string, string>();
-        private readonly Dictionary<string, HashSet<string>> _WordIndex = new Dictionary<string, HashSet<string>>();
+        // TranslationMemory[TargetLang][Original] = Translated
+        private readonly Dictionary<Languages, Dictionary<string, string>> _TranslationMemory
+            = new Dictionary<Languages, Dictionary<string, string>>();
+
+        // WordIndex[TargetLang][token] = set of originals
+        private readonly Dictionary<Languages, Dictionary<string, HashSet<string>>> _WordIndex
+            = new Dictionary<Languages, Dictionary<string, HashSet<string>>>();
+
+        private readonly object Locker = new object();
 
         public void Clear()
         {
-            _TranslationDictionary.Clear();
-            _WordIndex.Clear();
+            lock (Locker)
+            {
+                _TranslationMemory.Clear();
+                _WordIndex.Clear();
+            }
         }
 
-        private object AddTranslationLocker = new object();
         /// <summary>
-        /// Add translation and create index (filter out long text)
+        /// Remove translation only if stored value equals the provided translated.
+        /// Index is cleaned accordingly.
         /// </summary>
-        public void AddTranslation(Languages SourceLang, string Original, string Translated)
+        public bool RemoveTranslation(Languages SourceLang, Languages TargetLang,
+                                      string Original, string Translated)
         {
+            // detect languages
             if (SourceLang == Languages.Auto)
-            {
                 SourceLang = LanguageHelper.DetectLanguageByLine(Original);
-            }
 
-            lock (AddTranslationLocker)
+            if (TargetLang == Languages.Auto)
+                TargetLang = LanguageHelper.DetectLanguageByLine(Translated);
+
+            lock (Locker)
             {
-                if (!_TranslationDictionary.ContainsKey(Original))
+                if (!_TranslationMemory.ContainsKey(TargetLang))
+                    return false;
+
+                var dict = _TranslationMemory[TargetLang];
+
+                // not found
+                if (!dict.ContainsKey(Original))
+                    return false;
+
+                // must match exactly
+                string stored = dict[Original];
+                if (!string.Equals(stored, Translated, StringComparison.Ordinal))
+                    return false;
+
+                // --- remove from main dict ---
+                dict.Remove(Original);
+
+                // --- update word index ---
+                if (_WordIndex.ContainsKey(TargetLang))
                 {
-                    _TranslationDictionary[Original] = Translated;
+                    var index = _WordIndex[TargetLang];
 
-                    string[] Tokens = Tokenize(SourceLang, Original);
-                    foreach (string Word in Tokens)
+                    // tokenize original using source language
+                    string[] tokens = Tokenize(SourceLang, Original);
+
+                    foreach (string w in tokens)
                     {
-                        string Key = Word.ToLower();
-                        if (!_WordIndex.ContainsKey(Key))
-                            _WordIndex[Key] = new HashSet<string>();
+                        string key = w.ToLower();
 
-                        _WordIndex[Key].Add(Original);
+                        if (index.TryGetValue(key, out var set))
+                        {
+                            set.Remove(Original);
+
+                            if (set.Count == 0)
+                                index.Remove(key);
+                        }
+                    }
+                }
+
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Add translation: tokenize using source language, 
+        /// but store index under target language bucket.
+        /// </summary>
+        public void AddTranslation(Languages SourceLang, Languages TargetLang,
+                                   string Original, string Translated)
+        {
+            // Auto detect source
+            if (SourceLang == Languages.Auto)
+                SourceLang = LanguageHelper.DetectLanguageByLine(Original);
+
+            // Auto detect target
+            if (TargetLang == Languages.Auto)
+                TargetLang = LanguageHelper.DetectLanguageByLine(Translated);
+
+            lock (Locker)
+            {
+                // Create target dictionaries if missing
+                if (!_TranslationMemory.ContainsKey(TargetLang))
+                    _TranslationMemory[TargetLang] = new Dictionary<string, string>();
+
+                if (!_WordIndex.ContainsKey(TargetLang))
+                    _WordIndex[TargetLang] = new Dictionary<string, HashSet<string>>();
+
+                var dict = _TranslationMemory[TargetLang];
+                var index = _WordIndex[TargetLang];
+
+                // Do not overwrite existing
+                if (!dict.ContainsKey(Original))
+                {
+                    dict[Original] = Translated;
+
+                    // TOKENIZE USING SOURCE LANGUAGE
+                    string[] tokens = Tokenize(SourceLang, Original);
+
+                    foreach (string word in tokens)
+                    {
+                        string key = word.ToLower();
+
+                        if (!index.ContainsKey(key))
+                            index[key] = new HashSet<string>();
+
+                        index[key].Add(Original);
                     }
                 }
             }
         }
 
         /// <summary>
-        /// Find the most relevant translations
+        /// Find relevant translations using target language memory.
+        /// Query tokenization uses source language.
         /// </summary>
-        public List<string> FindRelevantTranslations(Languages SourceLang, string Query,int ContextLength)
+        public List<string> FindRelevantTranslations(Languages SourceLang,
+                                                     Languages TargetLang,
+                                                     string Query,
+                                                     int ContextLength)
         {
             if (SourceLang == Languages.Auto)
-            {
                 SourceLang = LanguageHelper.DetectLanguageByLine(Query);
-            }
 
-            lock (AddTranslationLocker)
+            if (TargetLang == Languages.Auto)
+                throw new InvalidOperationException("TargetLang cannot be Auto when finding context.");
+
+            lock (Locker)
             {
-                string[] Words = Tokenize(SourceLang, Query);
-                Dictionary<string, int> RelevanceMap = new Dictionary<string, int>();
+                if (!_TranslationMemory.ContainsKey(TargetLang))
+                    return new List<string>();
+
+                if (!_WordIndex.ContainsKey(TargetLang))
+                    return new List<string>();
+
+                var dict = _TranslationMemory[TargetLang];
+                var index = _WordIndex[TargetLang];
+
+                // TOKENIZE QUERY USING SOURCE LANGUAGE
+                string[] words = Tokenize(SourceLang, Query);
+
                 HashSet<string> CandidateSentences = new HashSet<string>();
+                Dictionary<string, int> RelevanceMap = new Dictionary<string, int>();
 
-                foreach (string Word in Words)
+                // get candidate entries
+                foreach (string word in words)
                 {
-                    string Key = Word.ToLower();
-                    if (_WordIndex.ContainsKey(Key))
+                    string key = word.ToLower();
+                    if (index.ContainsKey(key))
                     {
-                        foreach (var Sentence in _WordIndex[Key])
-                        {
-                            CandidateSentences.Add(Sentence);
-                        }
+                        foreach (var sentence in index[key])
+                            CandidateSentences.Add(sentence);
                     }
                 }
 
-                foreach (var Sentence in CandidateSentences)
+                // score candidate relevance
+                foreach (var sentence in CandidateSentences)
                 {
-                    int MatchCount = 0;
-                    foreach (string Word in Words)
+                    int count = 0;
+
+                    foreach (string word in words)
                     {
-                        string Key = Word.ToLower();
-                        if (_WordIndex.TryGetValue(Key, out var SentencesForWord))
+                        string key = word.ToLower();
+                        if (index.TryGetValue(key, out var set))
                         {
-                            if (SentencesForWord.Contains(Sentence))
-                                MatchCount++;
+                            if (set.Contains(sentence))
+                                count++;
                         }
                     }
-                    if (MatchCount > 0)
-                    {
-                        RelevanceMap[Sentence] = MatchCount;
-                    }
+
+                    if (count > 0)
+                        RelevanceMap[sentence] = count;
                 }
 
-                List<string> GetContexts = RelevanceMap.OrderByDescending(kvp => kvp.Value)
-                    .Select(kvp => $"{kvp.Key} -> {_TranslationDictionary[kvp.Key]}")
+                var result = RelevanceMap
+                    .OrderByDescending(kvp => kvp.Value)
+                    .Select(kvp => $"{kvp.Key} -> {dict[kvp.Key]}")
                     .ToList();
 
-                TrimListByCharCount(ref GetContexts, ContextLength);
-
-                return GetContexts;
+                TrimListByCharCount(ref result, ContextLength);
+                return result;
             }
         }
 
         /// <summary>
-        /// Tokenizer: supports English splitting + simplified N-gram for no-space languages
+        /// Tokenizer wrapper
         /// </summary>
         private string[] Tokenize(Languages Lang, string Text)
         {
             if (Lang == Languages.Auto)
-            {
                 Lang = LanguageHelper.DetectLanguageByLine(Text);
-            }
 
             return TextTokenizer.Tokenize(Lang, Text);
         }
@@ -150,25 +251,22 @@ namespace PhoenixEngine.TranslateManage
         public void TrimListByCharCount(ref List<string> ListToTrim, int MaxChars)
         {
             if (ListToTrim == null || ListToTrim.Count == 0 || MaxChars <= 0)
-            {
                 return;
-            }
 
-            int CurrentLength = 0;
-            var TrimmedList = new List<string>();
+            int current = 0;
+            var trimmed = new List<string>();
 
             foreach (var item in ListToTrim)
             {
-                if (CurrentLength + item.Length > MaxChars)
-                {
+                if (current + item.Length > MaxChars)
                     break;
-                }
 
-                TrimmedList.Add(item);
-                CurrentLength += item.Length;
+                trimmed.Add(item);
+                current += item.Length;
             }
 
-            ListToTrim = TrimmedList;
+            ListToTrim = trimmed;
         }
     }
+
 }

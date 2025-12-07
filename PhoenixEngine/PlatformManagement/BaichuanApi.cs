@@ -66,7 +66,7 @@ namespace PhoenixEngine.PlatformManagement
 
             if (EngineConfig.ContextEnable && UseAIMemory)
             {
-                Related = EngineSelect.AIMemory.FindRelevantTranslations(FromLang, TransSource, AIMemoryCountLimit);
+                Related = EngineSelect.AIMemory.FindRelevantTranslations(FromLang,ToLang, TransSource, AIMemoryCountLimit);
             }
 
             if (EngineConfig.UserCustomAIPrompt.Trim().Length > 0)

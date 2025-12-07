@@ -24,7 +24,7 @@ namespace PhoenixEngine.EngineManagement
     //https://github.com/YD525/PhoenixEngine
     public class Engine
     {
-        public static string Version = "1.1.8.6";
+        public static string Version = "1.1.8.7";
         public static string CurrentPath = "";
         /// <summary>
         /// Instance of the local SQLite database helper.
@@ -244,7 +244,7 @@ FROM (
 
         public static void AddAIMemory(string Original, string Translated)
         {
-            EngineSelect.AIMemory.AddTranslation(Engine.From, Original, Translated);
+            EngineSelect.AIMemory.AddTranslation(Engine.From,Engine.To, Original, Translated);
         }
 
         public static string AppendDollarWrappedReplacements(string input)

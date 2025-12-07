@@ -10,6 +10,7 @@ using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManagement;
 using static PhoenixEngine.SSELexiconBridge.NativeBridge;
 using static PhoenixEngine.TranslateCore.LanguageHelper;
+using static PhoenixEngine.TranslateManage.TransCore;
 
 namespace PhoenixEngine.TranslateManage
 {
@@ -54,13 +55,13 @@ namespace PhoenixEngine.TranslateManage
         {
             if (!CanTrans(0))
             {
-                WorkEnd = 2;
+                this.WorkEnd = 2;
                 return;
             }
 
             if (this.TransText.Trim().Length > 0)
             {
-                WorkEnd = 2;
+                this.WorkEnd = 2;
                 return;
             }
 
@@ -75,7 +76,9 @@ namespace PhoenixEngine.TranslateManage
                     else
                     {
                         this.Transing = false;
-                        WorkEnd = 2;
+                        this.WorkEnd = 2;
+                        CurrentTrd = null;
+
                         return;
                     }
                 }
@@ -99,7 +102,9 @@ namespace PhoenixEngine.TranslateManage
                         if (!CanTrans(1))
                         {
                             this.Transing = false;
-                            WorkEnd = 2;
+                            this.WorkEnd = 2;
+                            CurrentTrd = null;
+
                             return;
                         }
 
@@ -110,8 +115,12 @@ namespace PhoenixEngine.TranslateManage
 
                             if (!CanTrans(2))
                             {
+                                EngineSelect.AIMemory.RemoveTranslation(this.From,this.To,Translator.FormatStr(this.SourceText),TransText);
+
+                                this.TransText = string.Empty;
                                 this.Transing = false;
-                                WorkEnd = 0;
+                                this.WorkEnd = 0;
+
                                 CurrentTrd = null;
                                 return;
                             }
