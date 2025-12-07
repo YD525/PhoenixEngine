@@ -140,6 +140,12 @@ namespace PhoenixEngine.TranslateManage
                 Call.Output();
 
                 CanSleep = false;
+
+                if (Item.SourceText.Length > 0 && EngineConfig.ContextEnable)
+                {
+                    EngineSelect.AIMemory.AddTranslation(Item.From, Item.To, Item.SourceText, GetCacheStr);
+                }
+
                 return GetCacheStr;
             }
 
@@ -158,6 +164,12 @@ namespace PhoenixEngine.TranslateManage
                     Call.Output();
 
                     CanSleep = false;
+
+                    if (Item.SourceText.Length > 0 && EngineConfig.ContextEnable)
+                    {
+                        EngineSelect.AIMemory.AddTranslation(Item.From, Item.To, Item.SourceText, GetCacheStr);
+                    }  
+
                     return MatchItem.Result;
                 }
             }
@@ -306,6 +318,11 @@ namespace PhoenixEngine.TranslateManage
                                     }
 
                                     var GetData = ConvertHelper.ObjToStr(((GoogleTransApi)this.TransEngine).Translate(GetSource, Item.From, Item.To,ref Call));
+
+                                    if (GetData.Trim().Length > 0 && UseAIMemory)
+                                    {
+                                        AIMemory.AddTranslation(Item.From, Item.To, GetSource, GetData);
+                                    }
 
                                     TransText = GetData;
 
