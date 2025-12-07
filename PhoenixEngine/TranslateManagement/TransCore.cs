@@ -206,14 +206,20 @@ namespace PhoenixEngine.TranslateManage
 
                 if (CurrentEngine != null)
                 {
+                    string AIParam = EngineConfig.UserCustomAIPrompt;
+                    if (Item.AIParam?.Length > 0)
+                    {
+                        AIParam = Item.AIParam;
+                    }
+
                     string GetTrans = "";
                     if (!IsBook)
                     {
-                        GetTrans = CurrentEngine.Call(Item, true, EngineConfig.ContextLimit, string.Empty);
+                        GetTrans = CurrentEngine.Call(Item, true, EngineConfig.ContextLimit, AIParam);
                     }
                     else
                     {
-                        GetTrans = CurrentEngine.Call(Item, false, 1, Item.AIParam);
+                        GetTrans = CurrentEngine.Call(Item, false, 1, AIParam);
                     }
 
                     if (CanSleep)
