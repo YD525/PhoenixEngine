@@ -44,7 +44,7 @@ namespace PhoenixEngine.TranslateManage
         {
             if (DelegateHelper.SetTranslationUnitCallBack != null)
             {
-                return DelegateHelper.SetTranslationUnitCallBack(this,State);
+                return DelegateHelper.SetTranslationUnitCallBack(this, State);
             }
 
             return true;
@@ -111,7 +111,8 @@ namespace PhoenixEngine.TranslateManage
                             if (!CanTrans(2))
                             {
                                 this.Transing = false;
-                                WorkEnd = 2;
+                                WorkEnd = 0;
+                                CurrentTrd = null;
                                 return;
                             }
 
@@ -187,7 +188,7 @@ namespace PhoenixEngine.TranslateManage
             TransThreadToken?.Cancel();
         }
 
-        public TranslationUnit(int FileUniqueKey, string Key, string Type, string SourceText, string TransText,string AIParam,Languages From,Languages To,double Score)
+        public TranslationUnit(int FileUniqueKey, string Key, string Type, string SourceText, string TransText, string AIParam, Languages From, Languages To, double Score)
         {
             this.FileUniqueKey = FileUniqueKey;
             this.Key = Key;
@@ -331,13 +332,62 @@ namespace PhoenixEngine.TranslateManage
 
         public void AddTranslated(TranslationUnit Item)
         {
+            int MaxTry = 10;
             lock (TranslatedAddLocker)
             {
-                UnitsTranslated.Enqueue(Item);
-                TranslatorBridge.SetCloudTransData(Item.Key,Item.SourceText,Item.TransText);
-                TranslatedKeys.Add(Item.Key);
+                bool HasAdd = false;
+                bool HasUPDate = false;
+                try
+                {
+                    //Has Add
+                    UnitsTranslated.Enqueue(Item);
+                    HasAdd = true;
+                    TranslatorBridge.SetCloudTransData(Item.Key, Item.SourceText, Item.TransText);
+                    HasUPDate = true;
+                    TranslatedKeys.Add(Item.Key);
+                }
+                catch
+                {
+                NextTry:
+
+                    if (!HasAdd)
+                    {
+                        try
+                        {
+                            if (MaxTry > 0)
+                            {
+                                UnitsTranslated.Enqueue(Item);
+                                MaxTry--;
+                                HasAdd = true;
+                            }
+
+                        }
+                        catch { }
+                    }
+                    if (!HasUPDate)
+                    {
+                        try
+                        {
+                            if (MaxTry > 0)
+                            {
+                                TranslatorBridge.SetCloudTransData(Item.Key, Item.SourceText, Item.TransText);
+                                MaxTry--;
+                                HasUPDate = true;
+                            }
+
+                        }
+                        catch { }
+                    }
+                    if ((!HasAdd || !HasUPDate) && MaxTry > 0)
+                    {
+                        Thread.Sleep(100);
+                        goto NextTry;
+                    }
+                }
             }
         }
+
+        public object WaitTranslateLock = new object();
 
         public int GetWorkCount()
         {
@@ -430,6 +480,50 @@ namespace PhoenixEngine.TranslateManage
             }
             catch { }
         }
+
+        public TranslationUnit? GetWaitTransUnit(ref List<TranslationUnit> Arrays)
+        {
+            lock (WaitTranslateLock)
+            {
+                return Arrays.FirstOrDefault(u => u.WorkEnd <= 0);
+            }
+        }
+
+        public int AddWaitTransUnit(TranslationUnit Item, bool IsLeader = false)
+        {
+            lock (WaitTranslateLock)
+            {
+                bool HasAdd = false;
+                try
+                {
+                    int Count = 0;
+                    if (IsLeader)
+                    {
+                        UnitsLeaderToTranslate.Add(Item);
+                        HasAdd = true;
+                        Count = UnitsLeaderToTranslate.Count;
+                       
+                    }
+                    else
+                    {
+                        UnitsToTranslate.Add(Item);
+                        HasAdd = true;
+                        Count = UnitsToTranslate.Count;
+                    }
+
+                    return Count;
+                }
+                catch 
+                {
+                    if (!HasAdd)
+                    {
+                        return -1;
+                    }
+
+                    return 0; 
+                }
+            }
+        }
         public void Start()
         {
             if (IsWork || TransMainTrd == null)
@@ -483,7 +577,7 @@ namespace PhoenixEngine.TranslateManage
                         {
                             try
                             {
-                                NextFind:
+                            NextFind:
 
                                 ThreadUsage.CurrentThreads = CurrentTrds;
                                 ThreadUsage.MaxThreads = EngineConfig.MaxThreadCount;
@@ -494,7 +588,7 @@ namespace PhoenixEngine.TranslateManage
 
                                 if (CurrentTrds < EngineConfig.MaxThreadCount)
                                 {
-                                    var Leader = UnitsLeaderToTranslate.FirstOrDefault(u => u.WorkEnd <= 0);
+                                    TranslationUnit? Leader = GetWaitTransUnit(ref UnitsLeaderToTranslate);
                                     if (Leader != null)
                                     {
                                         Leader.StartWork(this);
@@ -502,7 +596,7 @@ namespace PhoenixEngine.TranslateManage
                                         goto Next;
                                     }
 
-                                    var Normal = UnitsToTranslate.FirstOrDefault(u => u.WorkEnd <= 0);
+                                    TranslationUnit? Normal = GetWaitTransUnit(ref UnitsToTranslate);
                                     if (Normal != null)
                                     {
                                         Normal.StartWork(this);
@@ -510,7 +604,7 @@ namespace PhoenixEngine.TranslateManage
                                         goto Next;
                                     }
 
-                                    Next:
+                                Next:
 
                                     if (CurrentTrds > EngineConfig.MaxThreadCount * EngineConfig.ThrottleRatio)
                                     {
@@ -639,7 +733,7 @@ namespace PhoenixEngine.TranslateManage
         {
             IsStop = true;
         }
-       
+
         public void SetDuplicateSource(string Source)
         {
             IEnumerable<TranslationUnit> AllUnits = UnitsToTranslate.Concat(UnitsLeaderToTranslate);
@@ -665,7 +759,7 @@ namespace PhoenixEngine.TranslateManage
 
         public TranslationUnit? DequeueTranslated(out bool IsEnd)
         {
-            try 
+            try
             {
                 lock (UnitsTranslatedLocker)
                 {
@@ -689,8 +783,8 @@ namespace PhoenixEngine.TranslateManage
 
                     return null;
                 }
-            } 
-            catch 
+            }
+            catch
             {
                 IsEnd = false;
                 return null;

@@ -192,7 +192,7 @@ FROM (
         }
 
         private static object AddTranslationUnitLocker = new object();
-        public static int AddTranslationUnit(TranslationUnit Item)
+        public static int AddTranslationUnit(TranslationUnit Item,bool IsLeader=false)
         {
             if (TranslationCore == null)
             {
@@ -201,8 +201,7 @@ FROM (
 
             lock (AddTranslationUnitLocker)
             {
-                TranslationCore.UnitsToTranslate.Add(Item);
-                return TranslationCore.UnitsToTranslate.Count;
+                return TranslationCore.AddWaitTransUnit(Item,IsLeader);
             }
         }
         public static TranslationUnit? DequeueTranslated(ref bool IsEnd)
