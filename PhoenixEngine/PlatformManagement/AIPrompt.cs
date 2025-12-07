@@ -40,11 +40,29 @@ namespace PhoenixEngine.PlatformManagement
                 var Regex = new System.Text.RegularExpressions.Regex(@"\$\$(.+?)\$\$");
                 if (Regex.IsMatch(TextToTranslate))
                 {
-                    Prompt.AppendLine("\n[Important Rule for Placeholders]");
-                    Prompt.AppendLine("Do NOT translate or modify any content inside $$...$$ placeholders. Keep everything inside $$ exactly as it is, including all symbols, letters, numbers, and spaces.");
-                    Prompt.AppendLine("The AI must NOT remove, delete, or omit any $$ placeholders. Every $$ placeholder present in the source text must appear exactly once in the output.");
-                    Prompt.AppendLine("You can adjust the order of $$ placeholders if necessary for grammar, but the total number of $$ placeholders must remain unchanged.");
-                    Prompt.AppendLine("Only translate the text outside of $$ placeholders.");
+                    Prompt.AppendLine();
+                    Prompt.AppendLine("[Important Placeholder Rule]");
+                    Prompt.AppendLine("The text contains placeholders using the format $$...$$.");
+                    Prompt.AppendLine();
+                    Prompt.AppendLine("You must strictly obey the following rules:");
+                    Prompt.AppendLine();
+                    Prompt.AppendLine("1. A placeholder always begins with two dollar signs ($$) and ends with two dollar signs ($$).");
+                    Prompt.AppendLine("   Example: $$Name$$ , $$ItemId$$ , $$ Some Text $$");
+                    Prompt.AppendLine();
+                    Prompt.AppendLine("2. You MUST NOT translate, modify, rewrite, lowercase, uppercase, or alter ANYTHING inside $$...$$.");
+                    Prompt.AppendLine("   Keep the inside EXACTLY as the original, including letters, symbols, numbers, and spaces.");
+                    Prompt.AppendLine();
+                    Prompt.AppendLine("3. You MUST NOT remove or merge dollar signs.");
+                    Prompt.AppendLine("   \"$$\" must stay exactly \"$$\".");
+                    Prompt.AppendLine();
+                    Prompt.AppendLine("4. Every placeholder that exists in the input MUST appear exactly once in the output.");
+                    Prompt.AppendLine("   Do NOT delete, omit, or duplicate placeholders.");
+                    Prompt.AppendLine();
+                    Prompt.AppendLine("5. You may change the position of the placeholders ONLY when needed for grammar,");
+                    Prompt.AppendLine("   but the total number of placeholders MUST remain unchanged.");
+                    Prompt.AppendLine();
+                    Prompt.AppendLine("6. Placeholders are NOT equations, NOT math, NOT Markdown.");
+                    Prompt.AppendLine("   Treat $$...$$ as plain text tokens, not formatting.");
                 }
             }
 
