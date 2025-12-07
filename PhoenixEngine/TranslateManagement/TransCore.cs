@@ -118,6 +118,11 @@ namespace PhoenixEngine.TranslateManage
         {
             CacheCall Call = new CacheCall();
 
+            if (Item.SourceText == null)
+            {
+                return string.Empty;
+            }
+
             if (string.IsNullOrEmpty(Item.SourceText))
             {
                 return Item.SourceText;
@@ -167,7 +172,7 @@ namespace PhoenixEngine.TranslateManage
 
                     if (Item.SourceText.Length > 0 && EngineConfig.ContextEnable)
                     {
-                        EngineSelect.AIMemory.AddTranslation(Item.From, Item.To, Item.SourceText, GetCacheStr);
+                        EngineSelect.AIMemory.AddTranslation(Item.From, Item.To, Item.SourceText, MatchItem.Result);
                     }  
 
                     return MatchItem.Result;
