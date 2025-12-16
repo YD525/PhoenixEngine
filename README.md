@@ -14,6 +14,7 @@ This project uses the following third-party frameworks and packages:
 
 **PhoenixEngine** is a high-performance, multi-threaded language translation engine.  
 It combines **AI-powered translation** with **context generation**, and features **text segmentation** and **priority-based ordering** to deliver more natural and context-aware results.  
+It also implements **Placeholder Logic**, allowing users to define custom dictionaries and placeholders for specific words, names, or terms, ensuring **consistent translation of key terms across multiple contexts**.  
 In addition, it provides **heuristic analysis for Papyrus scripts**, generating a **comprehensive scoring report** to help evaluate script structure, consistency, and potential translation risks.
 
 ---
