@@ -115,6 +115,7 @@ namespace PhoenixEngine.EngineManagement
         public static int TranslatedCount = 0;
         public static int GetTranslatedCount(int FileUniqueKey)
         {
+            if (LastLoadFileName.Length == 0) return 0;
             string SqlOrder = $@"SELECT COUNT(*) AS TotalCount
 FROM (
     SELECT Key
