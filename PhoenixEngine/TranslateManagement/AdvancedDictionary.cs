@@ -176,10 +176,50 @@ FROM AdvancedDictionary_Old;";
             return null;
         }
 
-        public static List<AdvancedDictionaryItem> Query(string FileName, string Type, Languages From, Languages To, string SourceText)
+        public static void KeepLongestMatches(string SourceText, ref List<AdvancedDictionaryItem> Items)
+        {
+            if (Items == null || Items.Count <= 1) return;
+
+            var SortedItems = Items.OrderByDescending(x => x.Source.Length).ToList();
+            var FinalList = new List<AdvancedDictionaryItem>();
+
+            foreach (var Current in SortedItems)
+            {
+                string CurrentSource = Current.Source;
+                
+                StringComparison ComparisonMode = Current.IgnoreCase == 1 ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+
+                int MatchStart = SourceText.IndexOf(CurrentSource, ComparisonMode);
+                if (MatchStart < 0) continue;
+
+                int MatchEnd = MatchStart + CurrentSource.Length;
+
+                bool Overlaps = FinalList.Any(Item =>
+                {
+                    StringComparison ItemComparison = Item.IgnoreCase == 1 ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+                    int ItemStart = SourceText.IndexOf(Item.Source, ItemComparison);
+                    int ItemEnd = ItemStart + Item.Source.Length;
+                    return MatchStart < ItemEnd && ItemStart < MatchEnd;
+                });
+
+                if (!Overlaps)
+                {
+                    FinalList.Add(Current);
+                }
+            }
+
+            Items = FinalList;
+        }
+
+        public static List<AdvancedDictionaryItem> Query(string FileName, string Type, Languages From, Languages To, string SourceText,bool UseWordBoundary)
         {
             List<AdvancedDictionaryItem> AdvancedDictionaryItems = new List<AdvancedDictionaryItem>();
-            string SqlOrder = @"
+
+            string SqlOrder = "";
+
+            if (!UseWordBoundary)
+            {
+                SqlOrder = @"
 SELECT Rowid,* FROM AdvancedDictionary
 WHERE 
   (
@@ -206,6 +246,87 @@ WHERE
     ))
   )
 ";
+            }
+            else
+            {
+                SqlOrder = @"
+SELECT Rowid,* FROM AdvancedDictionary
+WHERE 
+  (
+    TargetFileName IS NULL
+    OR TargetFileName = ''
+    OR TargetFileName = '{0}'
+  )
+  AND (
+    [Type] IS NULL
+    OR [Type] = ''
+    OR [Type] = '{1}'
+  )
+  AND [From] = {2}
+  AND [To] = {3}
+  AND (
+    -- Exact match
+    (
+      ExactMatch = 1 AND (
+        (IgnoreCase = 1 AND LOWER(Source) = LOWER('{4}'))
+        OR (IgnoreCase = 0 AND Source = '{4}')
+      )
+    )
+    OR
+    -- Non-exact match with word boundary
+    (
+      ExactMatch = 0 AND (
+        (
+          IgnoreCase = 1
+          AND INSTR(LOWER('{4}'), LOWER(Source)) > 0
+          AND (
+            -- Left boundary: start of string or non-word character
+            INSTR(LOWER('{4}'), LOWER(Source)) = 1
+            OR SUBSTR(
+                 LOWER('{4}'),
+                 INSTR(LOWER('{4}'), LOWER(Source)) - 1,
+                 1
+               ) NOT GLOB '[a-z0-9_]'
+          )
+          AND (
+            -- Right boundary: end of string or non-word character
+            INSTR(LOWER('{4}'), LOWER(Source)) + LENGTH(Source) - 1 = LENGTH('{4}')
+            OR SUBSTR(
+                 LOWER('{4}'),
+                 INSTR(LOWER('{4}'), LOWER(Source)) + LENGTH(Source),
+                 1
+               ) NOT GLOB '[a-z0-9_]'
+          )
+        )
+        OR
+        (
+          IgnoreCase = 0
+          AND INSTR('{4}', Source) > 0
+          AND (
+            -- Left boundary: start of string or non-word character
+            INSTR('{4}', Source) = 1
+            OR SUBSTR(
+                 '{4}',
+                 INSTR('{4}', Source) - 1,
+                 1
+               ) NOT GLOB '[A-Za-z0-9_]'
+          )
+          AND (
+            -- Right boundary: end of string or non-word character
+            INSTR('{4}', Source) + LENGTH(Source) - 1 = LENGTH('{4}')
+            OR SUBSTR(
+                 '{4}',
+                 INSTR('{4}', Source) + LENGTH(Source),
+                 1
+               ) NOT GLOB '[A-Za-z0-9_]'
+          )
+        )
+      )
+    )
+  )
+";
+            }
+
                 List<Dictionary<string, object>> NTable = Engine.LocalDB.ExecuteQuery(string.Format(
                 SqlOrder,
                 SqlSafeCodec.Encode(FileName),
@@ -242,6 +363,8 @@ WHERE
                     AdvancedDictionaryItems.Add(Get);
                 }
             }
+
+            KeepLongestMatches(SourceText, ref AdvancedDictionaryItems);
 
             return AdvancedDictionaryItems;
         }

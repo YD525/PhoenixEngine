@@ -48,8 +48,9 @@ namespace PhoenixEngine.TranslateManage
 
             List<string> Words = new List<string>();
 
-            var Datas = AdvancedDictionary.Query(FileName, Type, From, To, SourceStr);
             bool UseWordBoundary = LanguageExtensions.IsSpaceDelimitedLanguage(From);
+
+            var Datas = AdvancedDictionary.Query(FileName, Type, From, To, SourceStr, UseWordBoundary);
 
             string TempStr = SourceStr;
 
@@ -81,7 +82,7 @@ namespace PhoenixEngine.TranslateManage
 
             bool UseWordBoundary = LanguageExtensions.IsSpaceDelimitedLanguage(From);
 
-            var Datas = AdvancedDictionary.Query(FileName, Type, From, To, SourceStr);
+            var Datas = AdvancedDictionary.Query(FileName, Type, From, To, SourceStr, UseWordBoundary);
 
             for (int i = 0; i < Datas.Count; i++)
             {
