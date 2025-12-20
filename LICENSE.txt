@@ -1,37 +1,7 @@
-MIT License – Dual Author Exception
-==================================
+Copyright (c) 2025 YD525
 
-This software is licensed under the MIT License with the following
-additional permissions and conditions.
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
-------------------------------------------------------------
-1. Author Exception
-------------------------------------------------------------
-The original authors, YD525 and Cutleast, as joint copyright holders,
-are granted unrestricted rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or commercialize this software without any
-attribution requirement or limitation imposed by the MIT License.
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
-------------------------------------------------------------
-2. Attribution Clarification for Third Parties
-------------------------------------------------------------
-Third-party redistributions of this software, in source or binary form,
-must retain the original MIT License text and clearly attribute BOTH
-original authors, YD525 and Cutleast.
-
-Attribution must include visible reference(s) to:
-- https://github.com/YD525
-- https://github.com/cutleast
-
-------------------------------------------------------------
-3. No Misrepresentation
-------------------------------------------------------------
-Third parties may not claim authorship of this software, nor imply
-endorsement, maintenance, or responsibility by the original authors
-without explicit written permission.
-
-------------------------------------------------------------
-4. Precedence
-------------------------------------------------------------
-In the event of conflict, this exception shall take precedence over
-the MIT License text.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
