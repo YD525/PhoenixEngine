@@ -33,6 +33,7 @@ namespace PhoenixEngine.TranslateManage
             return Lang == Languages.SimplifiedChinese ||
             Lang == Languages.TraditionalChinese ||
             Lang == Languages.Japanese ||
+            Lang == Languages.Thai||
             Lang == Languages.Korean;
         }
     }
