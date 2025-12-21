@@ -13,8 +13,8 @@ namespace PhoenixEngine.TranslateManage
     {
         public static bool IsSpaceDelimitedLanguage(this Languages Lang)
         {
-            return Lang == Languages.English ||
-            Lang == Languages.German ||
+            return Lang == Languages.German ||
+            Lang == Languages.English ||
             Lang == Languages.Turkish ||
             Lang == Languages.Brazilian ||
             Lang == Languages.Russian ||
@@ -30,11 +30,11 @@ namespace PhoenixEngine.TranslateManage
 
         public static bool IsNoSpaceLanguage(this Languages Lang)
         {
-            return Lang == Languages.SimplifiedChinese ||
+            return Lang == Languages.Japanese ||
+            Lang == Languages.Korean ||
             Lang == Languages.TraditionalChinese ||
-            Lang == Languages.Japanese ||
             Lang == Languages.Thai||
-            Lang == Languages.Korean;
+            Lang == Languages.SimplifiedChinese;
         }
     }
 
