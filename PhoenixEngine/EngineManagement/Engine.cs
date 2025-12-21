@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data.SQLite;
-using System.Linq;
-using System.Net;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Text;
+using System.IO;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.DataBaseManagement;
 using PhoenixEngine.RequestManagement;
@@ -205,7 +199,7 @@ FROM (
                 return TranslationCore.AddWaitTransUnit(Item,IsLeader);
             }
         }
-        public static TranslationUnit? DequeueTranslated(ref bool IsEnd)
+        public static TranslationUnit DequeueTranslated(ref bool IsEnd)
         {
             if (TranslationCore != null)
             {

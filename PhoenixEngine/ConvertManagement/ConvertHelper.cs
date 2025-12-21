@@ -1,5 +1,4 @@
-﻿using System.Drawing;
-using System.Web;
+﻿using System;
 
 // Copyright (c) 2025 YD525
 // Licensed under the MIT License.
@@ -29,7 +28,7 @@ namespace PhoenixEngine.ConvertManager
             }
         }
       
-        public static string ObjToStr(object? Item)
+        public static string ObjToStr(object Item)
         {
             string GetConvertStr = "";
 

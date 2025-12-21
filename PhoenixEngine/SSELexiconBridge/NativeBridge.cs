@@ -39,7 +39,7 @@ namespace PhoenixEngine.SSELexiconBridge
                 }
             }
 
-            public static string? GetTranslatorCache(string Key)
+            public static string GetTranslatorCache(string Key)
             {
                 lock (Translator.TransDataLocker)
                 {

@@ -1,7 +1,6 @@
-﻿using System.Net;
-using System.Text.Json;
-using PhoenixEngine.ConvertManager;
-using PhoenixEngine.DelegateManagement;
+﻿using System.Collections.Generic;
+using System.Net;
+using Newtonsoft.Json;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.RequestManagement;
 using PhoenixEngine.TranslateCore;
@@ -144,7 +143,7 @@ namespace PhoenixEngine.PlatformManagement
             return string.Empty;
         }
 
-        public GeminiRootobject? CallAI(string Msg, ref string Recv)
+        public GeminiRootobject CallAI(string Msg, ref string Recv)
         {
             int GetCount = Msg.Length;
             GeminiItem NGeminiItem = new GeminiItem();
@@ -155,9 +154,9 @@ namespace PhoenixEngine.PlatformManagement
             return GetResult;
         }
 
-        public GeminiRootobject? CallAI(GeminiItem Item, ref string Recv)
+        public GeminiRootobject CallAI(GeminiItem Item, ref string Recv)
         {
-            string GetJson = JsonSerializer.Serialize(Item);
+            string GetJson = JsonConvert.SerializeObject(Item);
             WebHeaderCollection Headers = new WebHeaderCollection();
             HttpItem Http = new HttpItem()
             {
@@ -183,7 +182,7 @@ namespace PhoenixEngine.PlatformManagement
             Recv = GetResult;
             try
             {
-                return JsonSerializer.Deserialize<GeminiRootobject>(GetResult);
+                return JsonConvert.DeserializeObject<GeminiRootobject>(GetResult);
             }
             catch
             {

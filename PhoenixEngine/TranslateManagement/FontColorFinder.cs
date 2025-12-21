@@ -1,4 +1,7 @@
-﻿using System.Data;
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.EngineManagement;
 
@@ -79,7 +82,7 @@ CREATE TABLE [FontColors](
             }
         }
 
-        public static FontColor? FindColor(int FileUniqueKey, string Key)
+        public static FontColor FindColor(int FileUniqueKey, string Key)
         {
             string SqlOrder = "Select * From FontColors Where FileUniqueKey = {0} And Key = '{1}'";
             List<Dictionary<string, object>> NTable = Engine.LocalDB.ExecuteQuery(string.Format(SqlOrder,FileUniqueKey, Key));

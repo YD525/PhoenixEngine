@@ -158,7 +158,7 @@ namespace PhoenixEngine.TranslateManagement
             if (string.IsNullOrWhiteSpace(Input))
                 return;
 
-            if (!Input.Contains(' '))
+            if (!Input.Contains(" "))
             {
                 Input = Regex.Replace(Input, @"([a-z])([A-Z])", "$1 $2");
                 Input = Regex.Replace(Input, @"([a-zA-Z])([0-9])", "$1 $2");

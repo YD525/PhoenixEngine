@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\SSELexicon\packages\EntityFramework.6.4.4\build\EntityFramework.props" Condition="Exists('..\SSELexicon\packages\EntityFramework.6.4.4\build\EntityFramework.props')" />
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{C4C8271B-390A-4345-AC9A-20F2464306FB}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>PhoenixEngine</RootNamespace>
+    <AssemblyName>PhoenixEngine</AssemblyName>
+    <TargetFrameworkVersion>v4.8.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\SSELexicon\packages\EntityFramework.6.4.4\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\SSELexicon\packages\EntityFramework.6.4.4\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\SSELexicon\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.SQLite, Version=1.0.118.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
+      <HintPath>..\SSELexicon\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.118.0\lib\net46\System.Data.SQLite.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data.SQLite.EF6, Version=1.0.118.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
+      <HintPath>..\SSELexicon\packages\System.Data.SQLite.EF6.1.0.118.0\lib\net46\System.Data.SQLite.EF6.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data.SQLite.Linq, Version=1.0.118.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
+      <HintPath>..\SSELexicon\packages\System.Data.SQLite.Linq.1.0.118.0\lib\net46\System.Data.SQLite.Linq.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ConvertManagement\ConvertHelper.cs" />
+    <Compile Include="DataBaseManagement\PageHelper.cs" />
+    <Compile Include="DataBaseManagement\SQLiteHelper.cs" />
+    <Compile Include="DataBaseManagement\SqlSafeCodec.cs" />
+    <Compile Include="DelegateManagement\DelegateHelper.cs" />
+    <Compile Include="EngineManagement\DataTransmission.cs" />
+    <Compile Include="EngineManagement\Engine.cs" />
+    <Compile Include="EngineManagement\EngineConfig.cs" />
+    <Compile Include="EngineManagement\PapyrusHeurCore.cs" />
+    <Compile Include="FileManagement\BlockHashComparer.cs" />
+    <Compile Include="LanguageDetector\BrazilianPortugueseHelper.cs" />
+    <Compile Include="LanguageDetector\CanadianFrenchHelper.cs" />
+    <Compile Include="LanguageDetector\EnglishHelper.cs" />
+    <Compile Include="LanguageDetector\FrenchHelper.cs" />
+    <Compile Include="LanguageDetector\GermanHelper.cs" />
+    <Compile Include="LanguageDetector\HindiHelper.cs" />
+    <Compile Include="LanguageDetector\IndonesianHelper.cs" />
+    <Compile Include="LanguageDetector\ItalianHelper.cs" />
+    <Compile Include="LanguageDetector\JapaneseHelper.cs" />
+    <Compile Include="LanguageDetector\KoreanHelper.cs" />
+    <Compile Include="LanguageDetector\PolishHelper.cs" />
+    <Compile Include="LanguageDetector\PortugueseHelper.cs" />
+    <Compile Include="LanguageDetector\RussianHelper.cs" />
+    <Compile Include="LanguageDetector\SimplifiedChineseHelper.cs" />
+    <Compile Include="LanguageDetector\SpanishHelper.cs" />
+    <Compile Include="LanguageDetector\ThaiHelper.cs" />
+    <Compile Include="LanguageDetector\TraditionalChineseHelper.cs" />
+    <Compile Include="LanguageDetector\TurkishHelper.cs" />
+    <Compile Include="LanguageDetector\UkrainianHelper.cs" />
+    <Compile Include="LanguageDetector\UrduHelper.cs" />
+    <Compile Include="LanguageDetector\VietnameseHelper.cs" />
+    <Compile Include="PlatformManagement\AIPrompt.cs" />
+    <Compile Include="PlatformManagement\ChatGptApi.cs" />
+    <Compile Include="PlatformManagement\DeepLApi.cs" />
+    <Compile Include="PlatformManagement\DeepSeekApi.cs" />
+    <Compile Include="PlatformManagement\GeminiApi.cs" />
+    <Compile Include="PlatformManagement\LocalAI\LMStudio.cs" />
+    <Compile Include="PlatformManagement\LocalAI\LocalAIJson.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RequestManagement\HttpHelper.cs" />
+    <Compile Include="RequestManagement\ProxyCenter.cs" />
+    <Compile Include="SSELexiconBridge\NativeBridge.cs" />
+    <Compile Include="TranslateManagement\AdvancedDictionary.cs" />
+    <Compile Include="TranslateManagement\AITranslationMemory.cs" />
+    <Compile Include="TranslateManagement\BatchTranslationCore.cs" />
+    <Compile Include="TranslateManagement\CloudDBCache.cs" />
+    <Compile Include="TranslateManagement\FontColorFinder.cs" />
+    <Compile Include="TranslateManagement\JsonGeter.cs" />
+    <Compile Include="TranslateManagement\LanguageHelper.cs" />
+    <Compile Include="TranslateManagement\LocalDBCache.cs" />
+    <Compile Include="TranslateManagement\SpeechHelper.cs" />
+    <Compile Include="TranslateManagement\TextSegmentTranslator.cs" />
+    <Compile Include="TranslateManagement\TextTokenizer.cs" />
+    <Compile Include="TranslateManagement\TransCore.cs" />
+    <Compile Include="TranslateManagement\TranslationPreprocessor.cs" />
+    <Compile Include="TranslateManagement\TranslationPreprocessorExtend.cs" />
+    <Compile Include="TranslateManagement\Translator.cs" />
+    <Compile Include="TranslateManagement\UniqueKeyHelper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\SSELexicon\packages\EntityFramework.6.4.4\build\EntityFramework.props')" Text="$([System.String]::Format('$(ErrorText)', '..\SSELexicon\packages\EntityFramework.6.4.4\build\EntityFramework.props'))" />
+    <Error Condition="!Exists('..\SSELexicon\packages\EntityFramework.6.4.4\build\EntityFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\SSELexicon\packages\EntityFramework.6.4.4\build\EntityFramework.targets'))" />
+    <Error Condition="!Exists('..\SSELexicon\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.118.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\SSELexicon\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.118.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets'))" />
+  </Target>
+  <Import Project="..\SSELexicon\packages\EntityFramework.6.4.4\build\EntityFramework.targets" Condition="Exists('..\SSELexicon\packages\EntityFramework.6.4.4\build\EntityFramework.targets')" />
+  <Import Project="..\SSELexicon\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.118.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets" Condition="Exists('..\SSELexicon\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.118.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets')" />
+</Project>

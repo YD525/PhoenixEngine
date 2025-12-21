@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.13.35931.197 d17.13
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoenixEngine", "PhoenixEngine\PhoenixEngine.csproj", "{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoenixEngine", "PhoenixEngine\PhoenixEngine.csproj", "{08A03389-528E-4629-AA7A-80C9A96524BF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{017DBFAE-C199-4AD5-A2E0-D1049B6016F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08A03389-528E-4629-AA7A-80C9A96524BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08A03389-528E-4629-AA7A-80C9A96524BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08A03389-528E-4629-AA7A-80C9A96524BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08A03389-528E-4629-AA7A-80C9A96524BF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {160702EE-E5A5-408C-BD9C-C182F35B9823}
+		SolutionGuid = {FE4F5E2D-45D9-48F7-AFFA-DF0E4AE11FAF}
 	EndGlobalSection
 EndGlobal

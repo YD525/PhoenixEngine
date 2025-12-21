@@ -1,7 +1,9 @@
-﻿using System.Net;
-using System.Text.Json;
-using PhoenixEngine.ConvertManager;
-using PhoenixEngine.DelegateManagement;
+﻿using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Threading;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.RequestManagement;
 using PhoenixEngine.TranslateCore;
@@ -23,7 +25,7 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
                 EngineConfig.Save();
             }).Start();
         }
-        public OpenAIResponse? CallAI(string Msg,ref string Recv)
+        public OpenAIResponse CallAI(string Msg,ref string Recv)
         {
             if (EngineConfig.LMModel == string.Empty)
             {
@@ -48,10 +50,10 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
             {
                 URL = GenUrl,
                 UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
-                Method = "Get",  
+                Method = "Get",
                 Header = Headers,
                 Accept = "*/*",
-                Postdata = "", 
+                Postdata = "",
                 Cookie = "",
                 Timeout = 7000,
                 ContentType = "application/json",
@@ -61,25 +63,13 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
             try
             {
                 string GetResult = new HttpHelper().GetHtml(Http).Html;
+                JObject Obj = JObject.Parse(GetResult);
 
-                var Response = JsonSerializer.Deserialize<OpenAIResponse>(GetResult);
-                
-                if (Response != null)
+                JArray Models = (JArray)Obj["data"];
+                if (Models != null && Models.Count > 0)
                 {
-                    var Json = JsonSerializer.Deserialize<JsonElement>(GetResult);
-
-                    var Models = Json.GetProperty("data").EnumerateArray();
-
-                    // If there are models, return the "id" (model name) of the first model
-                    foreach (var Model in Models)
-                    {
-                        string ?ID = Model.GetProperty("id").GetString();
-
-                        if (ID != null)
-                        {
-                            return ID;
-                        }
-                    }
+                    string ID = (string)Models[0]["id"];
+                    return ID ?? string.Empty;
                 }
             }
             catch (Exception ex)
@@ -90,10 +80,10 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
 
             return string.Empty;
         }
-        public OpenAIResponse? CallAI(OpenAIItem Item,ref string Recv)
+        public OpenAIResponse CallAI(OpenAIItem Item,ref string Recv)
         {
             string GenUrl = EngineConfig.LMHost + ":" + EngineConfig.LMPort + "/v1/chat/completions";
-            string GetJson = JsonSerializer.Serialize(Item);
+            string GetJson = JsonConvert.SerializeObject(Item);
             WebHeaderCollection Headers = new WebHeaderCollection();
             //Headers.Add("Authorization", string.Format("Bearer {0}", DeFine.GlobalLocalSetting.LMKey));
             HttpItem Http = new HttpItem()
@@ -119,7 +109,7 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
             Recv = GetResult;
             try
             {
-                return JsonSerializer.Deserialize<OpenAIResponse>(GetResult);
+                return JsonConvert.DeserializeObject<OpenAIResponse>(GetResult);
             }
             catch
             {

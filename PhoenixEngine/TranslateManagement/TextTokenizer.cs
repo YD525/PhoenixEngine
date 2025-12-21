@@ -1,4 +1,7 @@
-﻿using System.Text.RegularExpressions;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
 
@@ -53,13 +56,13 @@ namespace PhoenixEngine.TranslateManagement
                     .ToArray();
             }
 
-            List<(string Token, int Index)> TokensWithIndex = new();
+            List<(string Token, int Index)> TokensWithIndex = new List<(string Token, int Index)>();
             for (int I = 0; I < Text.Length; I++)
             {
                 TokensWithIndex.Add((" " + Text[I] + " ", I));
             }
 
-            List<string> Result = new();
+            List<string> Result = new List<string>();
 
             string[] SingleTokens = TokensWithIndex.Select(T => T.Token).ToArray();
             int[] Indices = TokensWithIndex.Select(T => T.Index).ToArray();

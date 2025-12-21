@@ -1,8 +1,10 @@
 ﻿
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Microsoft.VisualBasic;
 using PhoenixEngine.DelegateManagement;
 using PhoenixEngine.EngineManagement;
@@ -23,7 +25,7 @@ namespace PhoenixEngine.TranslateManage
     {
         public int FileUniqueKey = 0;
         public int WorkEnd = 0;
-        public Thread? CurrentTrd;
+        public Thread CurrentTrd;
         public double Score = 100;
         public string Key = "";
         public string Type = "";
@@ -39,7 +41,7 @@ namespace PhoenixEngine.TranslateManage
         public Languages From = Languages.Auto;
         public Languages To = Languages.Auto;
 
-        private CancellationTokenSource? TransThreadToken;
+        private CancellationTokenSource TransThreadToken;
 
         public bool CanTrans(int State)
         {
@@ -466,7 +468,7 @@ namespace PhoenixEngine.TranslateManage
         }
 
         public CancellationTokenSource TransMainTrdCancel = null;
-        public Thread? TransMainTrd = null;
+        public Thread TransMainTrd = null;
 
         public void CancelMainTransThread()
         {
@@ -490,7 +492,7 @@ namespace PhoenixEngine.TranslateManage
             catch { }
         }
 
-        public TranslationUnit? GetWaitTransUnit(ref List<TranslationUnit> Arrays)
+        public TranslationUnit GetWaitTransUnit(ref List<TranslationUnit> Arrays)
         {
             lock (WaitTranslateLock)
             {
@@ -550,7 +552,7 @@ namespace PhoenixEngine.TranslateManage
                     }
                     else
                     {
-                        FileLanguageDetect? LangDetecter = new FileLanguageDetect();
+                        FileLanguageDetect LangDetecter = new FileLanguageDetect();
 
                         for (int i = 0; i < this.UnitsToTranslate.Count; i++)
                         {
@@ -597,7 +599,7 @@ namespace PhoenixEngine.TranslateManage
 
                                 if (CurrentTrds < EngineConfig.MaxThreadCount)
                                 {
-                                    TranslationUnit? Leader = GetWaitTransUnit(ref UnitsLeaderToTranslate);
+                                    TranslationUnit Leader = GetWaitTransUnit(ref UnitsLeaderToTranslate);
                                     if (Leader != null)
                                     {
                                         Leader.StartWork(this);
@@ -605,7 +607,7 @@ namespace PhoenixEngine.TranslateManage
                                         goto Next;
                                     }
 
-                                    TranslationUnit? Normal = GetWaitTransUnit(ref UnitsToTranslate);
+                                    TranslationUnit Normal = GetWaitTransUnit(ref UnitsToTranslate);
                                     if (Normal != null)
                                     {
                                         Normal.StartWork(this);
@@ -766,7 +768,7 @@ namespace PhoenixEngine.TranslateManage
             }
         }
 
-        public TranslationUnit? DequeueTranslated(out bool IsEnd)
+        public TranslationUnit DequeueTranslated(out bool IsEnd)
         {
             try
             {

@@ -1,14 +1,18 @@
 ﻿
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using PhoenixEngine.TranslateCore;
 
 namespace PhoenixEngine.TranslateManagement
 {
     public static class SpeechHelper
     {
-        private static readonly object VoiceLock = new();
-        private static dynamic? VoiceInstance = null;
+        private static readonly object VoiceLock = new object();
+        private static dynamic VoiceInstance = null;
 
-        private static readonly Dictionary<Languages, string[]> VoiceHints = new()
+        private static readonly Dictionary<Languages, string[]> VoiceHints = new Dictionary<Languages, string[]>()
     {
         { Languages.English, new[] { "English", "David", "Zira", "George" } },
         { Languages.SimplifiedChinese, new[] { "Chinese", "Huihui", "Zh-cn" } },
@@ -54,8 +58,8 @@ namespace PhoenixEngine.TranslateManagement
 
                                 foreach (var Hint in Hints)
                                 {
-                                    if (Desc.Contains(Hint, StringComparison.OrdinalIgnoreCase) ||
-                                        LangAttr.Contains(Hint, StringComparison.OrdinalIgnoreCase))
+                                    if (Desc.IndexOf(Hint, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                    LangAttr.IndexOf(Hint, StringComparison.OrdinalIgnoreCase) >= 0)
                                     {
                                         BestMatch = Token;
                                         break;

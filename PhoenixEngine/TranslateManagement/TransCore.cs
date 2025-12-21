@@ -1,4 +1,6 @@
 ﻿
+using System.Collections.Generic;
+using System.Threading;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.DelegateManagement;
 using PhoenixEngine.EngineManagement;
@@ -48,13 +50,6 @@ namespace PhoenixEngine.TranslateManage
             {
                 EngineSelects.Clear();
 
-                // Google support
-                if (EngineConfig.GoogleYunApiEnable &&
-                    !string.IsNullOrWhiteSpace(EngineConfig.GoogleApiKey))
-                {
-                    EngineSelects.Add(new EngineSelect(new GoogleTransApi(), 1));
-                }
-
                 // ChatGPT support
                 if (EngineConfig.ChatGptApiEnable &&
                     !string.IsNullOrWhiteSpace(EngineConfig.ChatGptKey))
@@ -74,20 +69,6 @@ namespace PhoenixEngine.TranslateManage
                     !string.IsNullOrWhiteSpace(EngineConfig.DeepSeekKey))
                 {
                     EngineSelects.Add(new EngineSelect(new DeepSeekApi(), 1));
-                }
-
-                // Cohere support
-                if (EngineConfig.CohereApiEnable &&
-                    !string.IsNullOrWhiteSpace(EngineConfig.CohereKey))
-                {
-                    EngineSelects.Add(new EngineSelect(new CohereApi(), 1));
-                }
-
-                // Baichuan support
-                if (EngineConfig.BaichuanApiEnable &&
-                    !string.IsNullOrWhiteSpace(EngineConfig.BaichuanKey))
-                {
-                    EngineSelects.Add(new EngineSelect(new BaichuanApi(), 1));
                 }
 
                 //LocalAI(LM) support
@@ -179,7 +160,7 @@ namespace PhoenixEngine.TranslateManage
                 }
             }
 
-            EngineSelect? CurrentEngine = null;
+            EngineSelect CurrentEngine = null;
 
             while (CurrentEngine == null)
             {
@@ -287,7 +268,7 @@ namespace PhoenixEngine.TranslateManage
 
                 if (GetSource.Length > 0)
                 {
-                    if (this.TransEngine is GoogleTransApi || this.TransEngine is DeepLApi)
+                    if (this.TransEngine is DeepLApi)
                     {
                         bool CanTrans = false;
 
@@ -317,41 +298,6 @@ namespace PhoenixEngine.TranslateManage
 
                         if (CanTrans)
                         {
-                            if (this.TransEngine is GoogleTransApi)
-                            {
-                                if (EngineConfig.GoogleYunApiEnable)
-                                {
-                                    PlatformCall Call = new PlatformCall();
-
-                                    if (Item.From == Languages.Auto)
-                                    {
-                                        Item.From = LanguageHelper.DetectLanguageByLine(GetSource);
-                                    }
-
-                                    var GetData = ConvertHelper.ObjToStr(((GoogleTransApi)this.TransEngine).Translate(GetSource, Item.From, Item.To,ref Call));
-
-                                    if (GetData.Trim().Length > 0 && UseAIMemory)
-                                    {
-                                        AIMemory.AddTranslation(Item.From, Item.To, GetSource, GetData);
-                                    }
-
-                                    TransText = GetData;
-
-                                    Call.Output();
-
-                                    CurrentPlatform = PlatformType.GoogleApi;
-
-                                    if (GetData.Trim().Length == 0)
-                                    {
-                                        this.CallCountDown = 0;
-                                    }
-                                }
-                                else
-                                {
-                                    this.CallCountDown = 0;
-                                }
-                            }
-                            else
                             if (this.TransEngine is DeepLApi)
                             {
                                 if (EngineConfig.DeepLApiEnable)
@@ -395,7 +341,7 @@ namespace PhoenixEngine.TranslateManage
                         }
                     }
                     else
-                    if (this.TransEngine is CohereApi || this.TransEngine is ChatGptApi || this.TransEngine is GeminiApi || this.TransEngine is DeepSeekApi || this.TransEngine is BaichuanApi || this.TransEngine is LMStudio)
+                    if (this.TransEngine is ChatGptApi || this.TransEngine is GeminiApi || this.TransEngine is DeepSeekApi || this.TransEngine is LMStudio)
                     {
                         bool CanTrans = false;
 
@@ -442,35 +388,6 @@ namespace PhoenixEngine.TranslateManage
                                     {
                                         this.CallCountDown = 0;
                                     }
-                                    Call.Output();
-                                }
-                                else
-                                {
-                                    this.CallCountDown = 0;
-                                }
-                            }
-                            else
-                            if (this.TransEngine is CohereApi)
-                            {
-                                if (EngineConfig.CohereApiEnable)
-                                {
-                                    AICall Call = new AICall();
-
-                                    var GetData = ((CohereApi)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam,ref Call,Item.Type).Trim();
-
-                                    if (GetData.Trim().Length > 0 && UseAIMemory)
-                                    {
-                                        AIMemory.AddTranslation(Item.From,Item.To, GetSource, GetData);
-                                    }
-                                    TransText = GetData;
-
-                                    CurrentPlatform = PlatformType.Cohere;
-
-                                    if (GetData.Trim().Length == 0)
-                                    {
-                                        this.CallCountDown = 0;
-                                    }
-
                                     Call.Output();
                                 }
                                 else
@@ -552,35 +469,6 @@ namespace PhoenixEngine.TranslateManage
                                     TransText = GetData;
 
                                     CurrentPlatform = PlatformType.DeepSeek;
-
-                                    if (GetData.Trim().Length == 0)
-                                    {
-                                        this.CallCountDown = 0;
-                                    }
-
-                                    Call.Output();
-                                }
-                                else
-                                {
-                                    this.CallCountDown = 0;
-                                }
-                            }
-                            else
-                            if (this.TransEngine is BaichuanApi)
-                            {
-                                if (EngineConfig.BaichuanApiEnable)
-                                {
-                                    AICall Call = new AICall();
-
-                                    var GetData = ((BaichuanApi)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam,ref Call,Item.Type).Trim();
-
-                                    if (GetData.Trim().Length > 0 && UseAIMemory)
-                                    {
-                                        AIMemory.AddTranslation(Item.From,Item.To, GetSource, GetData);
-                                    }
-                                    TransText = GetData;
-
-                                    CurrentPlatform = PlatformType.Baichuan;
 
                                     if (GetData.Trim().Length == 0)
                                     {

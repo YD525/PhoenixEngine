@@ -1,4 +1,7 @@
 ﻿
+using System;
+using System.Linq;
+
 namespace PhoenixEngine.LanguageDetector
 {
     public static class IndonesianHelper

@@ -1,10 +1,7 @@
-﻿
-using PhoenixEngine.EngineManagement;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using PhoenixEngine.LanguageDetector;
-using PhoenixEngine.PlatformManagement.LocalAI;
-using PhoenixEngine.TranslateManage;
-using static System.Net.Mime.MediaTypeNames;
-using static PhoenixEngine.TranslateManage.TransCore;
 
 namespace PhoenixEngine.TranslateCore
 {
@@ -19,7 +16,7 @@ namespace PhoenixEngine.TranslateCore
     }
     public static class LanguageConverter
     {
-        private static readonly Dictionary<Languages, string> LanguageCodeMap = new()
+        private static readonly Dictionary<Languages, string> LanguageCodeMap = new Dictionary<Languages, string>()
         {
             [Languages.English] = "en",
             [Languages.SimplifiedChinese] = "zh-CN",
@@ -46,7 +43,7 @@ namespace PhoenixEngine.TranslateCore
             [Languages.Null] = ""
         };
 
-        private static readonly Dictionary<string, Languages> CodeToLanguageMap = new(StringComparer.OrdinalIgnoreCase);
+        private static readonly Dictionary<string, Languages> CodeToLanguageMap = new Dictionary<string, Languages>(StringComparer.OrdinalIgnoreCase);
         static LanguageConverter()
         {
             foreach (var pair in LanguageCodeMap)

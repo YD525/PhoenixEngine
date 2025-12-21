@@ -10,7 +10,7 @@ namespace PhoenixEngine.RequestManagement
 {
     public class ProxyCenter
     {
-        public static WebProxy? CurrentProxy = null;
+        public static WebProxy CurrentProxy = null;
 
         public static void UsingProxy()
         {

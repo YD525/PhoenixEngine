@@ -1,7 +1,4 @@
-﻿
-using System.Text.RegularExpressions;
-using System.Transactions;
-using PhoenixEngine.ConvertManager;
+﻿using PhoenixEngine.ConvertManager;
 
 namespace PhoenixEngine.TranslateManage
 {

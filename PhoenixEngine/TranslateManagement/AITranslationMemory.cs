@@ -1,5 +1,6 @@
-﻿using System.Runtime.InteropServices.ObjectiveC;
-using System.Text;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManagement;
 

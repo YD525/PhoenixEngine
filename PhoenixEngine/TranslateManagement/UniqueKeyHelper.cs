@@ -1,11 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Reflection.PortableExecutable;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.DataBaseManagement;
 using PhoenixEngine.EngineManagement;
@@ -115,30 +109,7 @@ CREATE TABLE [UniqueKeys](
             }
         }
 
-        /// <summary>
-        /// Generate a block-based MD5 key string for a file.
-        /// If failed, returns the file name.
-        /// </summary>
-        /// <param name="filePath">Full path to the file</param>
-        /// <returns>Joined MD5 hash string or file name if failed</returns>
-        public static string GenOriginalKeyByFile(string FilePath)
-        {
-            string Key = "";
-
-            try
-            {
-                Key = BlockHashComparer.JoinHashes(
-                BlockHashComparer.GetBlockCRC32(FilePath)
-                );
-            }
-            catch
-            {
-                return GetFileName(FilePath);
-            }
-
-            return Key;
-        }
-
+      
         /// <summary>
         /// Get the total number of records in the UniqueKeys table.
         /// </summary>
@@ -284,7 +255,7 @@ CREATE TABLE [UniqueKeys](
         /// </summary>
         /// <param name="Rowid">The Rowid of the record in the UniqueKeys table (primary key).</param>
         /// <returns>The matching UniqueKeyItem if found; otherwise, null.</returns>
-        public UniqueKeyItem? QueryUniqueKey(int Rowid)
+        public UniqueKeyItem QueryUniqueKey(int Rowid)
         {
             string SqlOrder = "Select Rowid,* From UniqueKeys Where Rowid = {0}";
             List<Dictionary<string, object>> NTable = Engine.LocalDB.ExecuteQuery(string.Format(SqlOrder,Rowid));

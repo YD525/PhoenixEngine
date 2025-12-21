@@ -1,4 +1,6 @@
 ﻿
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using PhoenixEngine.EngineManagement;
@@ -173,7 +175,7 @@ namespace PhoenixEngine.TranslateManage
                    lang == Languages.Italian ||
                    lang == Languages.Spanish;
         }
-        private string? FindBestMatchingPlaceholder(string Input)
+        private string FindBestMatchingPlaceholder(string Input)
         {
             foreach (var Tag in ReplaceTags)
             {

@@ -5,6 +5,8 @@ using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
+using System;
+using System.Linq;
 
 namespace PhoenixEngine.RequestManagement
 {
@@ -480,7 +482,7 @@ namespace PhoenixEngine.RequestManagement
             set { connectionlimit = value; }
         }
 
-        public IWebProxy? WebProxy { get; set; } = null;
+        public IWebProxy WebProxy { get; set; } = null;
 
         private ResultType resulttype = ResultType.String;
 
