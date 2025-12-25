@@ -1,12 +1,12 @@
 ## 🧩 Third-Party Frameworks
 
-This project uses the following third-party frameworks and packages:
+This project uses the following key open-source libraries/frameworks:
 
-- **Cohere**  
-  Required package to call the CohereAI API for natural language processing tasks.
+- [Newtonsoft.Json](https://www.newtonsoft.com/json) – JSON parsing and serialization library.  
+- [System.Data.SQLite](https://system.data.sqlite.org/index.html/doc/trunk/www/index.wiki) – SQLite database engine for .NET, used for reading/writing local SQLite databases.
 
-- **System.Data.SQLite**  
-  Dependency package for SQLite database operations.
+Other dependencies (such as various helper libraries) are also used.  
+Please refer to their respective LICENSE files for more information.
 
 ---
 
