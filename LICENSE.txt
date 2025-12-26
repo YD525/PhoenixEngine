@@ -5,6 +5,15 @@ Almost all files in this folder are under the license described below.
 
 The only exceptions are Newtonsoft.Json, System.Data.SQLite, which each have their own licenses.
 
+Development of SSELex has been a challenging process. I would like to acknowledge and thank the following contributors for their significant help and support:
+- https://github.com/Cutleast
+- https://github.com/Wuerfelhusten
+
+Special Permission:
+The contributors listed above are granted full permission to use, modify, distribute, and sublicense PhoenixEngine, including all parts of the framework, under the MIT License or any other license of their choice. 
+This special permission overrides the restrictions of the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License (CC BY-NC-ND 4.0) for these contributors only. 
+All other users remain subject to CC BY-NC-ND 4.0 for the Licensed Material.
+
 =======================================================================
 
 Creative Commons Attribution-NonCommercial-NoDerivatives 4.0
