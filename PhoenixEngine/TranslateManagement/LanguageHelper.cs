@@ -12,7 +12,39 @@ namespace PhoenixEngine.TranslateCore
 
     public enum Languages
     {
-        Null = -2, English = 0, SimplifiedChinese = 1, Japanese = 2, German = 5, Korean = 6, Turkish = 7, Brazilian = 8, Russian = 9, TraditionalChinese = 10, Italian = 11, Spanish = 12, Hindi = 13, Urdu = 15, Indonesian = 16, French = 17, Vietnamese = 20, Polish = 22, CanadianFrench = 23, Portuguese = 25, Ukrainian = 26, Thai = 31, Persian = 32, Auto = 99
+        // Special
+        Null = -1,
+        Auto = 0,
+
+        // Latin-based / common Western languages
+        English = 1,
+        German = 2,
+        French = 3,
+        CanadianFrench = 4,
+        Spanish = 5,
+        Italian = 6,
+        Portuguese = 7,
+        Brazilian = 8,
+        Polish = 9,
+        Turkish = 10,
+        Vietnamese = 11,
+        Indonesian = 12,
+
+        // Slavic / Eastern European
+        Russian = 20,
+        Ukrainian = 21,
+
+        // South Asian / Middle Eastern (RTL / special word boundaries)
+        Hindi = 30,
+        Urdu = 31,
+        Persian = 32,
+
+        // East Asian (no explicit word delimiters)
+        TraditionalChinese = 40,
+        SimplifiedChinese = 41,
+        Japanese = 42,
+        Korean = 43,
+        Thai = 45
     }
     public static class LanguageConverter
     {
