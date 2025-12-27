@@ -5,10 +5,6 @@ using PhoenixEngine.TranslateManagement;
 
 namespace PhoenixEngine.TranslateManage
 {
-    // Copyright (c) 2025 YD525
-    // Licensed under the MIT License.
-    // See LICENSE file in the project root for full license information.
-    //https://github.com/YD525/PhoenixEngine
     public static class LanguageExtensions
     {
         public static bool IsSpaceDelimitedLanguage(this Languages Lang)
