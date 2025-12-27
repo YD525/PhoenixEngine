@@ -117,12 +117,12 @@ namespace PhoenixEngine.TranslateCore
 
             if (EnglishHelper.IsProbablyEnglish(Str)) //100%
             {
-                OneDetect.Add(Languages.English,0.01);
+                OneDetect.Add(Languages.English, 0.01);
             }
 
             if (RussianHelper.ContainsRussian(Str)) //100%
             {
-                OneDetect.Add(Languages.Russian,0.02); 
+                OneDetect.Add(Languages.Russian, 0.02);
             }
 
             if (UkrainianHelper.IsProbablyUkrainian(Str))
@@ -188,7 +188,7 @@ namespace PhoenixEngine.TranslateCore
             {
                 OneDetect.Add(Languages.Spanish, SpanishHelper.GetSpanishScore(Str));
             }
-           
+
             if (PolishHelper.IsProbablyPolish(Str))
             {
                 OneDetect.Add(Languages.Polish, PolishHelper.GetPolishScore(Str));
@@ -201,22 +201,32 @@ namespace PhoenixEngine.TranslateCore
 
             if (HindiHelper.IsProbablyHindi(Str))
             {
-                OneDetect.Add(Languages.Hindi,HindiHelper.GetHindiScore(Str));
+                OneDetect.Add(Languages.Hindi, HindiHelper.GetHindiScore(Str));
             }
 
             if (UrduHelper.IsProbablyUrdu(Str))
             {
-                OneDetect.Add(Languages.Urdu,UrduHelper.GetUrduScore(Str));
+                OneDetect.Add(Languages.Urdu, UrduHelper.GetUrduScore(Str));
             }
 
             if (IndonesianHelper.IsProbablyIndonesian(Str))
             {
-                OneDetect.Add(Languages.Indonesian,IndonesianHelper.GetIndonesianScore(Str));
+                OneDetect.Add(Languages.Indonesian, IndonesianHelper.GetIndonesianScore(Str));
             }
 
             if (VietnameseHelper.IsProbablyVietnamese(Str))
             {
-                OneDetect.Add(Languages.Vietnamese,VietnameseHelper.GetVietnameseScore(Str));
+                OneDetect.Add(Languages.Vietnamese, VietnameseHelper.GetVietnameseScore(Str));
+            }
+
+            if (ThaiHelper.IsProbablyThai(Str))
+            {
+                OneDetect.Add(Languages.Thai, ThaiHelper.GetThaiScore(Str));
+            }
+
+            if (PersianHelper.IsProbablyPersian(Str))
+            {
+                OneDetect.Add(Languages.Persian, PersianHelper.GetPersianScore(Str));
             }
 
             if (OneDetect.Array.Count == 0)
