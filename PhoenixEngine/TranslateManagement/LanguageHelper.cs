@@ -20,15 +20,15 @@ namespace PhoenixEngine.TranslateCore
         English = 1,
         German = 2,
         French = 3,
-        CanadianFrench = 4,
-        Spanish = 5,
-        Italian = 6,
-        Portuguese = 7,
-        Brazilian = 8,
-        Polish = 9,
-        Turkish = 10,
-        Vietnamese = 11,
-        Indonesian = 12,
+        CanadianFrench = 5,
+        Spanish = 6,
+        Italian = 7,
+        Portuguese = 8,
+        Brazilian = 9,
+        Polish = 10,
+        Turkish = 11,
+        Vietnamese = 12,
+        Indonesian = 13,
 
         // Slavic / Eastern European
         Russian = 20,
@@ -40,11 +40,11 @@ namespace PhoenixEngine.TranslateCore
         Persian = 32,
 
         // East Asian (no explicit word delimiters)
-        TraditionalChinese = 40,
-        SimplifiedChinese = 41,
-        Japanese = 42,
-        Korean = 43,
-        Thai = 45
+        TraditionalChinese = 50,
+        SimplifiedChinese = 51,
+        Japanese = 52,
+        Korean = 53,
+        Thai = 55
     }
     public static class LanguageConverter
     {
