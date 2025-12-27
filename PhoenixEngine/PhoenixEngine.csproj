@@ -92,6 +92,7 @@
     <Compile Include="LanguageDetector\ItalianHelper.cs" />
     <Compile Include="LanguageDetector\JapaneseHelper.cs" />
     <Compile Include="LanguageDetector\KoreanHelper.cs" />
+    <Compile Include="LanguageDetector\PersianHelper.cs" />
     <Compile Include="LanguageDetector\PolishHelper.cs" />
     <Compile Include="LanguageDetector\PortugueseHelper.cs" />
     <Compile Include="LanguageDetector\RussianHelper.cs" />

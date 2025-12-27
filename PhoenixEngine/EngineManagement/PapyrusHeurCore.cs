@@ -6,10 +6,6 @@ using System.Text.RegularExpressions;
 
 namespace SSELex.SkyrimManage
 {
-    // Copyright (c) 2025 YD525
-    // Licensed under the MIT License.
-    // See LICENSE file in the project root for full license information.
-    //https://github.com/YD525/PhoenixEngine
     public class PapyrusHeurCore
     {
         public static string Version = "1.6Beta";
