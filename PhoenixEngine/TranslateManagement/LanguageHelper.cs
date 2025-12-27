@@ -8,11 +8,6 @@ using static PhoenixEngine.TranslateManage.TransCore;
 
 namespace PhoenixEngine.TranslateCore
 {
-    // Copyright (c) 2025 YD525
-    // Licensed under the MIT License.
-    // See LICENSE file in the project root for full license information.
-    //https://github.com/YD525/PhoenixEngine
-
     public enum Languages
     {
         Null = -2, English = 0, SimplifiedChinese = 1, Japanese = 2, German = 5, Korean = 6, Turkish = 7, Brazilian = 8, Russian = 9, TraditionalChinese = 10, Italian = 11, Spanish = 12, Hindi = 13, Urdu = 15, Indonesian = 16, French = 17, Vietnamese = 20, Polish = 22, CanadianFrench = 23, Portuguese = 25, Ukrainian = 26, Thai = 31, Persian = 32, Auto = 99
