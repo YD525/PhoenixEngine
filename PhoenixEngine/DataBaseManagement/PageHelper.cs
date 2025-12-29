@@ -9,8 +9,8 @@ namespace PhoenixEngine.DataBaseManagement
         public static int GetPageCount(string TableName, string Where)
         {
             int GetCount = ConvertHelper.ObjToInt(Engine.LocalDB.ExecuteScalar(string.Format("Select Count(*) From {0} ", TableName) + Where));
-            int PageCount = GetCount / EngineConfig.DefPageSize;
-            if (GetCount % EngineConfig.DefPageSize > 0)
+            int PageCount = GetCount / EngineConfig.Config.DefPageSize;
+            if (GetCount % EngineConfig.Config.DefPageSize > 0)
             {
                 PageCount++;
             }

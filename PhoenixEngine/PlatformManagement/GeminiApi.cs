@@ -80,14 +80,14 @@ namespace PhoenixEngine.PlatformManagement
         {
             List<string> Related = new List<string>();
 
-            if (EngineConfig.ContextEnable && UseAIMemory)
+            if (EngineConfig.Config.ContextEnable && UseAIMemory)
             {
                 Related = EngineSelect.AIMemory.FindRelevantTranslations(FromLang, ToLang, TransSource, AIMemoryCountLimit);
             }
 
-            if (EngineConfig.UserCustomAIPrompt.Trim().Length > 0)
+            if (EngineConfig.Config.UserCustomAIPrompt.Trim().Length > 0)
             {
-                AIParam = AIParam + "\n" + EngineConfig.UserCustomAIPrompt;
+                AIParam = AIParam + "\n" + EngineConfig.Config.UserCustomAIPrompt;
             }
 
             var GetTransSource = AIPrompt.GenerateTranslationPrompt(FromLang, ToLang, TransSource, Type, Related, CustomWords, AIParam);
@@ -160,7 +160,7 @@ namespace PhoenixEngine.PlatformManagement
             WebHeaderCollection Headers = new WebHeaderCollection();
             HttpItem Http = new HttpItem()
             {
-                URL = $"https://generativelanguage.googleapis.com/v1beta/models/{EngineConfig.GeminiModel}:generateContent?key={EngineConfig.GeminiKey}",
+                URL = $"https://generativelanguage.googleapis.com/v1beta/models/{EngineConfig.Config.GeminiModel}:generateContent?key={EngineConfig.Config.GeminiKey}",
                 UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
                 Method = "Post",
                 Header = Headers,
@@ -168,7 +168,7 @@ namespace PhoenixEngine.PlatformManagement
                 Postdata = GetJson,
                 Cookie = "",
                 ContentType = "application/json",
-                Timeout = EngineConfig.GlobalRequestTimeOut,
+                Timeout = EngineConfig.Config.GlobalRequestTimeOut,
                 WebProxy = ProxyCenter.CurrentProxy
             };
             try

@@ -455,9 +455,9 @@ namespace PhoenixEngine.TranslateManage
 
             MarkDuplicates(UnitsToTranslate);
 
-            if (EngineConfig.MaxThreadCount <= 0)
+            if (EngineConfig.Config.MaxThreadCount <= 0)
             {
-                EngineConfig.MaxThreadCount = 1;
+                EngineConfig.Config.MaxThreadCount = 1;
             }
 
             AutoSleep = 1;
@@ -587,13 +587,13 @@ namespace PhoenixEngine.TranslateManage
                             NextFind:
 
                                 ThreadUsage.CurrentThreads = CurrentTrds;
-                                ThreadUsage.MaxThreads = EngineConfig.MaxThreadCount;
+                                ThreadUsage.MaxThreads = EngineConfig.Config.MaxThreadCount;
 
                                 bool CanExit = true;
                                 Token.ThrowIfCancellationRequested();
                                 CurrentTrds = GetWorkCount();
 
-                                if (CurrentTrds < EngineConfig.MaxThreadCount)
+                                if (CurrentTrds < EngineConfig.Config.MaxThreadCount)
                                 {
                                     TranslationUnit Leader = GetWaitTransUnit(ref UnitsLeaderToTranslate);
                                     if (Leader != null)
@@ -613,9 +613,9 @@ namespace PhoenixEngine.TranslateManage
 
                                 Next:
 
-                                    if (CurrentTrds > EngineConfig.MaxThreadCount * EngineConfig.ThrottleRatio)
+                                    if (CurrentTrds > EngineConfig.Config.MaxThreadCount * EngineConfig.Config.ThrottleRatio)
                                     {
-                                        AutoSleep = EngineConfig.ThrottleDelayMs;
+                                        AutoSleep = EngineConfig.Config.ThrottleDelayMs;
                                     }
                                     else
                                     {

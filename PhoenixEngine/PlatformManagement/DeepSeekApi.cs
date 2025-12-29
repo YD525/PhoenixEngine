@@ -78,14 +78,14 @@ namespace PhoenixEngine.PlatformManagement
         {
             List<string> Related = new List<string>();
 
-            if (EngineConfig.ContextEnable && UseAIMemory)
+            if (EngineConfig.Config.ContextEnable && UseAIMemory)
             {
                 Related = EngineSelect.AIMemory.FindRelevantTranslations(FromLang, ToLang, TransSource, AIMemoryCountLimit);
             }
 
-            if (EngineConfig.UserCustomAIPrompt.Trim().Length > 0)
+            if (EngineConfig.Config.UserCustomAIPrompt.Trim().Length > 0)
             {
-                AIParam = AIParam + "\n" + EngineConfig.UserCustomAIPrompt;
+                AIParam = AIParam + "\n" + EngineConfig.Config.UserCustomAIPrompt;
             }
 
             var GetTransSource = AIPrompt.GenerateTranslationPrompt(FromLang, ToLang, TransSource, Type, Related, CustomWords, AIParam);
@@ -138,7 +138,7 @@ namespace PhoenixEngine.PlatformManagement
         {
             int GetCount = Msg.Length;
             DeepSeekItem NDeepSeekItem = new DeepSeekItem();
-            NDeepSeekItem.model = EngineConfig.DeepSeekModel;
+            NDeepSeekItem.model = EngineConfig.Config.DeepSeekModel;
             NDeepSeekItem.messages = new List<DeepSeekMessage>();
             NDeepSeekItem.messages.Add(new DeepSeekMessage("user", Msg));
             NDeepSeekItem.stream = false;
@@ -150,7 +150,7 @@ namespace PhoenixEngine.PlatformManagement
         {
             string GetJson = JsonConvert.SerializeObject(Item);
             WebHeaderCollection Headers = new WebHeaderCollection();
-            Headers.Add("Authorization", string.Format("Bearer {0}", EngineConfig.DeepSeekKey));
+            Headers.Add("Authorization", string.Format("Bearer {0}", EngineConfig.Config.DeepSeekKey));
             HttpItem Http = new HttpItem()
             {
                 URL = "https://api.deepseek.com/chat/completions",
@@ -161,7 +161,7 @@ namespace PhoenixEngine.PlatformManagement
                 Postdata = GetJson,
                 Cookie = "",
                 ContentType = "application/json",
-                Timeout = EngineConfig.GlobalRequestTimeOut,
+                Timeout = EngineConfig.Config.GlobalRequestTimeOut,
                 WebProxy = ProxyCenter.CurrentProxy
             };
             try

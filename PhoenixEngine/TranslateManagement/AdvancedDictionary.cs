@@ -436,7 +436,7 @@ Regex = '{SqlSafeCodec.Encode(item.Regex)}'";
 
             int MaxPage = PageHelper.GetPageCount("AdvancedDictionary", Where);
 
-            List<Dictionary<string, object>> NTable = PageHelper.GetTablePageData("AdvancedDictionary", PageNo, EngineConfig.DefPageSize, Where);
+            List<Dictionary<string, object>> NTable = PageHelper.GetTablePageData("AdvancedDictionary", PageNo, EngineConfig.Config.DefPageSize, Where);
 
             List<AdvancedDictionaryItem> Items = new List<AdvancedDictionaryItem>();
             for (int i = 0; i < NTable.Count; i++)
@@ -466,7 +466,7 @@ Regex = '{SqlSafeCodec.Encode(item.Regex)}'";
 
             int MaxPage = PageHelper.GetPageCount("AdvancedDictionary", Where);
 
-            List<Dictionary<string, object>> NTable = PageHelper.GetTablePageData("AdvancedDictionary", PageNo, EngineConfig.DefPageSize, Where);
+            List<Dictionary<string, object>> NTable = PageHelper.GetTablePageData("AdvancedDictionary", PageNo, EngineConfig.Config.DefPageSize, Where);
 
             List<AdvancedDictionaryItem> Items = new List<AdvancedDictionaryItem>();
             for (int i = 0; i < NTable.Count; i++)

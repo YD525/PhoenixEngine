@@ -35,7 +35,7 @@ namespace PhoenixEngine.PlatformManagement
         {
             int GetCount = Msg.Length; 
             ChatGptItem NChatGptItem = new ChatGptItem();
-            NChatGptItem.model = EngineConfig.ChatGptModel;
+            NChatGptItem.model = EngineConfig.Config.ChatGptModel;
             NChatGptItem.store = true;
             NChatGptItem.messages = new List<ChatGptMessage>();
             NChatGptItem.messages.Add(new ChatGptMessage("user", Msg));
@@ -45,7 +45,7 @@ namespace PhoenixEngine.PlatformManagement
         public void GetModes()
         {
             WebHeaderCollection Headers = new WebHeaderCollection();
-            Headers.Add("Authorization", string.Format("Bearer {0}", EngineConfig.ChatGptKey));
+            Headers.Add("Authorization", string.Format("Bearer {0}", EngineConfig.Config.ChatGptKey));
             HttpItem Http = new HttpItem()
             {
                 URL = "https://api.openai.com/v1/models",
@@ -56,7 +56,7 @@ namespace PhoenixEngine.PlatformManagement
                 Postdata = "",
                 Cookie = "",
                 ContentType = "application/json",
-                Timeout = EngineConfig.GlobalRequestTimeOut,
+                Timeout = EngineConfig.Config.GlobalRequestTimeOut,
                 WebProxy = ProxyCenter.CurrentProxy
             };
             try
@@ -72,7 +72,7 @@ namespace PhoenixEngine.PlatformManagement
             //GetModes();
             string GetJson = JsonConvert.SerializeObject(Item);
             WebHeaderCollection Headers = new WebHeaderCollection();
-            Headers.Add("Authorization", string.Format("Bearer {0}", EngineConfig.ChatGptKey));
+            Headers.Add("Authorization", string.Format("Bearer {0}", EngineConfig.Config.ChatGptKey));
             HttpItem Http = new HttpItem()
             {
                 URL = "https://api.openai.com/v1/chat/completions",
@@ -83,7 +83,7 @@ namespace PhoenixEngine.PlatformManagement
                 Postdata = GetJson,
                 Cookie = "",
                 ContentType = "application/json",
-                Timeout = EngineConfig.GlobalRequestTimeOut,
+                Timeout = EngineConfig.Config.GlobalRequestTimeOut,
                 WebProxy = ProxyCenter.CurrentProxy
             };
             try
@@ -109,14 +109,14 @@ namespace PhoenixEngine.PlatformManagement
         {
             List<string> Related = new List<string>();
 
-            if (EngineConfig.ContextEnable && UseAIMemory)
+            if (EngineConfig.Config.ContextEnable && UseAIMemory)
             {
                 Related = EngineSelect.AIMemory.FindRelevantTranslations(FromLang, ToLang, TransSource, AIMemoryCountLimit);
             }
 
-            if (EngineConfig.UserCustomAIPrompt.Trim().Length > 0)
+            if (EngineConfig.Config.UserCustomAIPrompt.Trim().Length > 0)
             {
-                AIParam = AIParam + "\n" + EngineConfig.UserCustomAIPrompt;
+                AIParam = AIParam + "\n" + EngineConfig.Config.UserCustomAIPrompt;
             }
 
             var GetTransSource = AIPrompt.GenerateTranslationPrompt(FromLang, ToLang, TransSource, Type, Related, CustomWords, AIParam);

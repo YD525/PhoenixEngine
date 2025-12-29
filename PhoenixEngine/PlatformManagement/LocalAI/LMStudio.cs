@@ -18,22 +18,22 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
     {
         public void GetCurrentModel()
         {
-            EngineConfig.LMModel = string.Empty;
+            EngineConfig.Config.LMModel = string.Empty;
 
-            new Thread(() => { 
-                EngineConfig.LMModel = GetCurrentModelName();
+            new Thread(() => {
+                EngineConfig.Config.LMModel = GetCurrentModelName();
                 EngineConfig.Save();
             }).Start();
         }
         public OpenAIResponse CallAI(string Msg,ref string Recv)
         {
-            if (EngineConfig.LMModel == string.Empty)
+            if (EngineConfig.Config.LMModel == string.Empty)
             {
                 return new OpenAIResponse();
             }
 
             int GetCount = Msg.Length;
-            OpenAIItem NOpenAIItem = new OpenAIItem(EngineConfig.LMModel);
+            OpenAIItem NOpenAIItem = new OpenAIItem(EngineConfig.Config.LMModel);
             NOpenAIItem.store = true;
             NOpenAIItem.messages.Add(new OpenAIMessage("user", Msg));
             var GetResult = CallAI(NOpenAIItem,ref Recv);
@@ -43,7 +43,7 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
         public string GetCurrentModelName()
         {
             // Construct the URL for the request
-            string GenUrl = EngineConfig.LMHost + ":" + EngineConfig.LMPort + "/v1/models";
+            string GenUrl = EngineConfig.Config.LMHost + ":" + EngineConfig.Config.LMPort + "/v1/models";
 
             WebHeaderCollection Headers = new WebHeaderCollection();
             HttpItem Http = new HttpItem()
@@ -82,7 +82,7 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
         }
         public OpenAIResponse CallAI(OpenAIItem Item,ref string Recv)
         {
-            string GenUrl = EngineConfig.LMHost + ":" + EngineConfig.LMPort + "/v1/chat/completions";
+            string GenUrl = EngineConfig.Config.LMHost + ":" + EngineConfig.Config.LMPort + "/v1/chat/completions";
             string GetJson = JsonConvert.SerializeObject(Item);
             WebHeaderCollection Headers = new WebHeaderCollection();
             //Headers.Add("Authorization", string.Format("Bearer {0}", DeFine.GlobalLocalSetting.LMKey));
@@ -121,14 +121,14 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
         {
             List<string> Related = new List<string>();
 
-            if (EngineConfig.ContextEnable && UseAIMemory)
+            if (EngineConfig.Config.ContextEnable && UseAIMemory)
             {
                 Related = EngineSelect.AIMemory.FindRelevantTranslations(FromLang, ToLang, TransSource, AIMemoryCountLimit);
             }
 
-            if (EngineConfig.UserCustomAIPrompt.Trim().Length > 0)
+            if (EngineConfig.Config.UserCustomAIPrompt.Trim().Length > 0)
             {
-                AIParam = AIParam + "\n" + EngineConfig.UserCustomAIPrompt;
+                AIParam = AIParam + "\n" + EngineConfig.Config.UserCustomAIPrompt;
             }
 
             var GetTransSource = AIPrompt.GenerateTranslationPrompt(FromLang,ToLang,TransSource,Type, Related,CustomWords, AIParam);

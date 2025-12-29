@@ -72,10 +72,10 @@ namespace PhoenixEngine.PlatformManagement
         {
             string GetJson = JsonConvert.SerializeObject(Item);
             WebHeaderCollection Headers = new WebHeaderCollection();
-            Headers.Add("Authorization", string.Format("DeepL-Auth-Key {0}", EngineConfig.DeepLKey));
+            Headers.Add("Authorization", string.Format("DeepL-Auth-Key {0}", EngineConfig.Config.DeepLKey));
             string AutoHost = "";
 
-            if (EngineConfig.IsFreeDeepL)
+            if (EngineConfig.Config.IsFreeDeepL)
             {
                 AutoHost = DeepLFreeHost;
             }
@@ -94,7 +94,7 @@ namespace PhoenixEngine.PlatformManagement
                 Postdata = GetJson,
                 Cookie = "",
                 ContentType = "application/json",
-                Timeout = EngineConfig.GlobalRequestTimeOut,
+                Timeout = EngineConfig.Config.GlobalRequestTimeOut,
                 WebProxy = ProxyCenter.CurrentProxy
             };
             try
