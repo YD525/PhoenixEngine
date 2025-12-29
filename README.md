@@ -41,11 +41,11 @@ using PhoenixEngine.TranslateManage;
               Directory.CreateDirectory(SetCachePath);
           }
 
-          EngineConfig.LMLocalAIEnable = true;
-          EngineConfig.ContextEnable = true;
+          EngineConfig.Config.LMLocalAIEnable = true;
+          EngineConfig.Config.ContextEnable = true;
 
-          EngineConfig.ContextLimit = 150;
-          EngineConfig.PreTranslateEnable = true;
+          EngineConfig.Config.ContextLimit = 150;
+          EngineConfig.Config.PreTranslateEnable = true;
 
           EngineConfig.Save();
 
@@ -89,8 +89,8 @@ using PhoenixEngine.TranslateManage;
 
       public void SetThread(int ThreadCount)
       {
-          EngineConfig.MaxThreadCount = ThreadCount;
-          EngineConfig.AutoSetThreadLimit = false;
+          EngineConfig.Config.MaxThreadCount = ThreadCount;
+          EngineConfig.Config.AutoSetThreadLimit = false;
 
           EngineConfig.Save();
       }
