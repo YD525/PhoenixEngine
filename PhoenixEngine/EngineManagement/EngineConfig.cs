@@ -164,6 +164,12 @@ namespace PhoenixEngine.EngineManagement
         /// </summary>
         public bool EnableGlobalSearch { get; set; } = false;
 
+
+        /// <summary>
+        /// Protective symbols such as <(.*?)> are created and applied to the TranslationPreprocessor to prevent certain characters from being mistranslated.
+        /// </summary>
+        public List<string> ProtectedPatterns = new List<string>();
+
         #endregion
 
         /// <summary>
