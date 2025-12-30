@@ -1,5 +1,6 @@
 ﻿
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Threading;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.DelegateManagement;
@@ -254,6 +255,75 @@ namespace PhoenixEngine.TranslateManage
                 }
             }
 
+            public bool SecondaryQualityInspection(string Source, List<string> CustomWords)
+            {
+                if (string.IsNullOrEmpty(Source))
+                    return false;
+
+                if (CustomWords == null || CustomWords.Count == 0)
+                    return true;
+
+                HashSet<string> FoundKeys = new HashSet<string>();
+
+                int Index = 0;
+                while (Index < Source.Length)
+                {
+                    // Detect "__"
+                    if (Source[Index] == '_' &&
+                        Index + 1 < Source.Length &&
+                        Source[Index + 1] == '_')
+                    {
+                        int PrefixLength = 0;
+
+                        // __(Number)__
+                        if (Index + 2 < Source.Length && Source[Index + 2] == '(')
+                        {
+                            PrefixLength = 3;
+                        }
+                        // __P(Number)__
+                        else if (Index + 3 < Source.Length &&
+                                 Source[Index + 2] == 'P' &&
+                                 Source[Index + 3] == '(')
+                        {
+                            PrefixLength = 4;
+                        }
+
+                        if (PrefixLength > 0)
+                        {
+                            int Start = Index;
+                            int Cursor = Index + PrefixLength;
+
+                            while (Cursor < Source.Length && char.IsDigit(Source[Cursor]))
+                            {
+                                Cursor++;
+                            }
+
+                            if (Cursor + 2 < Source.Length &&
+                                Source[Cursor] == ')' &&
+                                Source[Cursor + 1] == '_' &&
+                                Source[Cursor + 2] == '_')
+                            {
+                                int TokenLength = Cursor - Start + 3;
+                                string Token = Source.Substring(Start, TokenLength);
+
+                                string NormalizedToken = Regex.Replace(Token, @"[\s\u3000]", "");
+
+                                if (CustomWords.Contains(NormalizedToken))
+                                {
+                                    FoundKeys.Add(NormalizedToken);
+                                }
+
+                                Index += TokenLength;
+                                continue;
+                            }
+                        }
+                    }
+
+                    Index++;
+                }
+
+                return FoundKeys.Count == CustomWords.Count;
+            }
             public string Call(TranslationUnit Item,bool UseAIMemory, int AIMemoryCountLimit, string AIParam)
             {
                 TranslationPreprocessor NTranslationPreprocessor = new TranslationPreprocessor();
@@ -264,6 +334,8 @@ namespace PhoenixEngine.TranslateManage
 
                 if (GetSource.Length > 0)
                 {
+                    List<string> CustomWords = new List<string>();
+
                     if (this.TransEngine is DeepLApi)
                     {
                         bool CanTrans = false;
@@ -280,6 +352,12 @@ namespace PhoenixEngine.TranslateManage
                             NPreTranslateCall.SendString = GetDefSource;
 
                             GetSource = NTranslationPreprocessor.GeneratePlaceholderText(Engine.LastLoadFileName,Item.From,Item.To, GetDefSource, Item.Type, out CanTrans);
+
+                            CustomWords.Clear();
+                            foreach (var GetWord in NTranslationPreprocessor.ReplaceTags)
+                            {
+                                CustomWords.Add(GetWord.Key);
+                            }
 
                             NPreTranslateCall.ReceiveString = GetSource;
 
@@ -305,7 +383,15 @@ namespace PhoenixEngine.TranslateManage
                                         Item.From = LanguageHelper.DetectLanguageByLine(GetSource);
                                     }
 
-                                    var GetData = ((DeepLApi)this.TransEngine).QuickTrans(GetSource, Item.From, Item.To,ref Call).Trim();
+                                    string GetData = null;
+                                    bool Passed = false;
+
+                                    //Detecting the quality of AI-translated content
+                                    while (!Passed)
+                                    {
+                                        GetData = ((DeepLApi)this.TransEngine).QuickTrans(GetSource, Item.From, Item.To, ref Call).Trim();
+                                        Passed = SecondaryQualityInspection(GetData, CustomWords);
+                                    }
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
@@ -342,8 +428,7 @@ namespace PhoenixEngine.TranslateManage
                     if (this.TransEngine is ChatGptApi || this.TransEngine is GeminiApi || this.TransEngine is DeepSeekApi || this.TransEngine is LMStudio)
                     {
                         bool CanTrans = false;
-
-                        List<string> CustomWords = new List<string>();
+                
 
                         if (EngineConfig.Config.PreTranslateEnable)
                         {
@@ -361,7 +446,7 @@ namespace PhoenixEngine.TranslateManage
                             CustomWords.Clear();
                             foreach (var GetWord in NTranslationPreprocessor.ReplaceTags)
                             { 
-                              CustomWords.Add(GetWord.Key);
+                                CustomWords.Add(GetWord.Key);
                             }
 
                             NPreTranslateCall.ReceiveString = GetSource;
@@ -382,7 +467,16 @@ namespace PhoenixEngine.TranslateManage
                                 if (EngineConfig.Config.LMLocalAIEnable)
                                 {
                                     AICall Call = new AICall();
-                                    var GetData = ((LMStudio)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam,ref Call,Item.Type).Trim();
+
+                                    string GetData = null;
+                                    bool Passed = false;
+
+                                    //Detecting the quality of AI-translated content
+                                    while (!Passed)
+                                    {
+                                        GetData = ((LMStudio)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
+                                        Passed = SecondaryQualityInspection(GetData, CustomWords);
+                                    }
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
@@ -413,7 +507,15 @@ namespace PhoenixEngine.TranslateManage
                                 {
                                     AICall Call = new AICall();
 
-                                    var GetData = ((ChatGptApi)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam,ref Call,Item.Type).Trim();
+                                    string GetData = null;
+                                    bool Passed = false;
+
+                                    //Detecting the quality of AI-translated content
+                                    while (!Passed)
+                                    {
+                                        GetData = ((ChatGptApi)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
+                                        Passed = SecondaryQualityInspection(GetData, CustomWords);
+                                    }
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
@@ -445,7 +547,15 @@ namespace PhoenixEngine.TranslateManage
                                 {
                                     AICall Call = new AICall();
 
-                                    var GetData = ((GeminiApi)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam,ref Call,Item.Type).Trim();
+                                    string GetData = null;
+                                    bool Passed = false;
+
+                                    //Detecting the quality of AI-translated content
+                                    while (!Passed)
+                                    {
+                                        GetData = ((GeminiApi)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
+                                        Passed = SecondaryQualityInspection(GetData, CustomWords);
+                                    }
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
@@ -477,7 +587,15 @@ namespace PhoenixEngine.TranslateManage
                                 {
                                     AICall Call = new AICall();
 
-                                    var GetData = ((DeepSeekApi)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call,Item.Type).Trim();
+                                    string GetData = null;
+                                    bool Passed = false;
+
+                                    //Detecting the quality of AI-translated content
+                                    while (!Passed)
+                                    {
+                                        GetData = ((DeepSeekApi)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
+                                        Passed = SecondaryQualityInspection(GetData, CustomWords);
+                                    }
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
