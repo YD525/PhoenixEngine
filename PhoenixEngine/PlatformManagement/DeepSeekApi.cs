@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Net;
+using System.Text;
 using Newtonsoft.Json;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.RequestManagement;
@@ -160,7 +161,8 @@ namespace PhoenixEngine.PlatformManagement
                 Accept = "*/*",
                 Postdata = GetJson,
                 Cookie = "",
-                ContentType = "application/json",
+                ContentType = "application/json; charset=utf-8",
+                Encoding = Encoding.UTF8,
                 Timeout = EngineConfig.Config.GlobalRequestTimeOut,
                 WebProxy = ProxyCenter.CurrentProxy
             };

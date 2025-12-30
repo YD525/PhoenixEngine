@@ -78,8 +78,6 @@ namespace PhoenixEngine.PlatformManagement
 
             // Response Format section
             Prompt.AppendLine("\n[Response Format]");
-
-            Prompt.AppendLine("NEVER output garbled text, unknown symbols, emoji, or invalid characters. If encoding error occurs, return empty string instead of corrupted output.");
             Prompt.AppendLine("If you cannot translate, do not return any content; return empty JSON instead: {\"translation\": \"\"}");
             Prompt.AppendLine("Respond strictly with: {\"translation\": \"....\"}");
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Text;
 using System.Threading;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -95,7 +96,8 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
                 Accept = "*/*",
                 Postdata = GetJson,
                 Cookie = "",
-                ContentType = "application/json",
+                ContentType = "application/json; charset=utf-8",
+                Encoding = Encoding.UTF8
                 //ProxyIp = ProxyCenter.GlobalProxyIP
             };
             try

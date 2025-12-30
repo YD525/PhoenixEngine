@@ -14,9 +14,9 @@ namespace PhoenixEngine.RequestManagement
     {
         #region Predefined Variables 
 
-        private Encoding Encoding = Encoding.Default;
-       
-        private Encoding Postencoding = Encoding.Default;
+        private Encoding Encoding = Encoding.UTF8;//Damn it, .NET Framework is killing me! It defaults to ANSI encoding.
+
+        private Encoding Postencoding = Encoding.UTF8;
         
         private HttpWebRequest Request = null;
      
