@@ -19,6 +19,8 @@ namespace PhoenixEngine.PlatformManagement
 
             var Prompt = new System.Text.StringBuilder();
 
+            Prompt.AppendLine($"\n<!-- Request ID: {DateTime.UtcNow.Ticks} -->");
+
             // Main Role and Instructions
             Prompt.AppendLine("You are a professional translation AI. Your task is to provide only the translated text, with no additional explanation, reasoning, or commentary.");
 

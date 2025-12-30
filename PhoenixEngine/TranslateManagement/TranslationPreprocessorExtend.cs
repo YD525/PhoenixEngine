@@ -232,6 +232,11 @@ namespace PhoenixEngine.TranslateManagement
         {
             if (string.IsNullOrEmpty(text)) return false;
 
+            if (text.Contains("\uFFFD") || text.Contains("�"))
+            {
+                return false;
+            }
+
             foreach (char c in text)
             {
                 if (char.IsLetterOrDigit(c) || char.IsPunctuation(c) || char.IsSymbol(c) || char.IsWhiteSpace(c))
