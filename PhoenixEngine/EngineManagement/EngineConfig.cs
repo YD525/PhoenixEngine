@@ -171,7 +171,7 @@ namespace PhoenixEngine.EngineManagement
         public List<string> ProtectedPatterns = new List<string>();
 
         /// <summary>
-        /// Configure the maximum number of rejections, and the maximum number of times a piece of content can be translated repeatedly.
+        /// Configure the maximum number of rejections,Used to prevent infinite loops.
         /// </summary>
         public int MaxTranslationAttempts = 10;
 
