@@ -4,12 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using PhoenixEngine.TranslateCore;
+using PhoenixEngine.TranslateManage;
 
 namespace PhoenixEngine.PlatformManagement
 {
     public class AIPrompt
     {
-        public static string GenerateTranslationPrompt(Languages From, Languages To, string TextToTranslate, string CategoryType, List<string> TerminologyReferences, List<string> CustomWords, string AdditionalInstructions)
+        public static string GenerateTranslationPrompt(Languages From, Languages To, string TextToTranslate, string CategoryType, List<string> TerminologyReferences, List<ReplaceTag> CustomWords, string AdditionalInstructions)
         {
             if (CategoryType == "Papyrus" || CategoryType == "MCM")
             {
@@ -41,17 +42,19 @@ namespace PhoenixEngine.PlatformManagement
                 Prompt.AppendLine($"Category: {CategoryType}");
             }
 
-            Prompt.AppendLine("");
-
             // Custom Words section
             if (CustomWords != null && CustomWords.Count > 0)
             {
+                Prompt.AppendLine("");
                 Prompt.AppendLine("[Placeholder Rule]");
-                Prompt.AppendLine("Placeholders such as __P(number)__ and __(number)__ are immutable tokens.");
-                Prompt.AppendLine("They are NOT language content.");
-                Prompt.AppendLine("You MUST copy them byte-for-byte.");
-                Prompt.AppendLine("Any change to a placeholder (including characters, numbers, or count) is INVALID.");
-                Prompt.AppendLine("You may only reorder placeholders if required by grammar.");
+                Prompt.AppendLine("These placeholders represent their actual corresponding translated content and are provided for reference only during translation.");
+                Prompt.AppendLine("The placeholders must be preserved, as the program will handle their replacement.");
+                Prompt.AppendLine("You have only one permission: to adjust the order of the placeholders so that the translation reads as naturally and smoothly as possible.");
+                foreach (var GetWord in CustomWords)
+                {
+                    Prompt.AppendLine($"{GetWord.Key}  // meaning: {GetWord.Value}");
+                }
+                Prompt.AppendLine("");
             }
 
             // Terminology References section

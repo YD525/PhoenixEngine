@@ -1,5 +1,6 @@
 ﻿
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using PhoenixEngine.ConvertManager;
@@ -255,7 +256,7 @@ namespace PhoenixEngine.TranslateManage
                 }
             }
 
-            public bool SecondaryQualityInspection(string Source, List<string> CustomWords)
+            public bool SecondaryQualityInspection(string Source, List<ReplaceTag> CustomWords)
             {
                 if (string.IsNullOrEmpty(Source))
                     return false;
@@ -308,7 +309,7 @@ namespace PhoenixEngine.TranslateManage
 
                                 string NormalizedToken = Regex.Replace(Token, @"[\s\u3000]", "");
 
-                                if (CustomWords.Contains(NormalizedToken))
+                                if (CustomWords.Any(T => T.Key == NormalizedToken))
                                 {
                                     FoundKeys.Add(NormalizedToken);
                                 }
@@ -334,7 +335,7 @@ namespace PhoenixEngine.TranslateManage
 
                 if (GetSource.Length > 0)
                 {
-                    List<string> CustomWords = new List<string>();
+                    List<ReplaceTag> CustomWords = new List<ReplaceTag>();
 
                     if (this.TransEngine is DeepLApi)
                     {
@@ -356,7 +357,7 @@ namespace PhoenixEngine.TranslateManage
                             CustomWords.Clear();
                             foreach (var GetWord in NTranslationPreprocessor.ReplaceTags)
                             {
-                                CustomWords.Add(GetWord.Key);
+                                CustomWords.Add(GetWord);
                             }
 
                             NPreTranslateCall.ReceiveString = GetSource;
@@ -446,7 +447,7 @@ namespace PhoenixEngine.TranslateManage
                             CustomWords.Clear();
                             foreach (var GetWord in NTranslationPreprocessor.ReplaceTags)
                             { 
-                                CustomWords.Add(GetWord.Key);
+                                CustomWords.Add(GetWord);
                             }
 
                             NPreTranslateCall.ReceiveString = GetSource;
