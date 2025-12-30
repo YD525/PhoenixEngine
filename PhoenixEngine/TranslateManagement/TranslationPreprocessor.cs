@@ -38,12 +38,53 @@ namespace PhoenixEngine.TranslateManage
         {
         
         }
+        private List<ReplaceTag> GenerateProtectedTags(string Source, bool IsAIPlatform)
+        {
+            var Tags = new List<ReplaceTag>();
+            int Index = 0;
+
+            foreach (var Pattern in EngineConfig.Config.ProtectedPatterns)
+            {
+                var Matches = Regex.Matches(Source, Pattern);
+                foreach (Match Match in Matches)
+                {
+                    if (!Match.Success)
+                        continue;
+
+                    string Value = Match.Value;
+
+                    if (Tags.Any(T => T.Value == Value))
+                        continue;
+
+                    if (IsAIPlatform)
+                    {
+                        Tags.Add(new ReplaceTag(Value, Value));
+                    }
+                    else
+                    {
+                        string Placeholder = $"__P({Index})__";
+                        Tags.Add(new ReplaceTag(Placeholder, Value));
+                        Index++;
+                    }
+                }
+            }
+
+            return Tags;
+        }
 
         public List<string> GeneratePlaceholderTextByAI(string FileName, Languages From, Languages To, string SourceStr, string Type, out bool NeedFurtherTranslate)
         {
             ReplaceTags.Clear();
 
             List<string> Words = new List<string>();
+
+            var ProtectedTags = GenerateProtectedTags(SourceStr,true);
+            foreach (var Tag in ProtectedTags)
+            {
+                Words.Add($"{Tag.Value} -> {Tag.Value}");
+                ReplaceTags.Add(Tag);
+                SourceStr = SourceStr.Replace(Tag.Value, "");
+            }
 
             bool UseWordBoundary = LanguageExtensions.IsSpaceDelimitedLanguage(From);
 
@@ -76,6 +117,17 @@ namespace PhoenixEngine.TranslateManage
         {
             ReplaceTags.Clear();
             HasPlaceholder = false;
+
+            var ProtectedTags = GenerateProtectedTags(SourceStr,false);
+            for (int i=0;i< ProtectedTags.Count;i++)
+            {
+                if (SourceStr.Contains(ProtectedTags[i].Value))
+                {
+                    SourceStr = SourceStr.Replace(ProtectedTags[i].Value, ProtectedTags[i].Key);
+                    ReplaceTags.Add(ProtectedTags[i]);
+                    HasPlaceholder = true;
+                }
+            }
 
             bool UseWordBoundary = LanguageExtensions.IsSpaceDelimitedLanguage(From);
 
@@ -125,33 +177,58 @@ namespace PhoenixEngine.TranslateManage
 
             bool HasSpace = IsSpaceLanguage(Lang);
 
-            StringBuilder Result = new StringBuilder();
+            StringBuilder Result = new StringBuilder(Str.Length);
             int I = 0;
 
             while (I < Str.Length)
             {
-                if (Str[I] == '_' && I + 6 < Str.Length && Str.Substring(I, 3) == "__(")
+                if (Str[I] == '_' && I + 15 < Str.Length && Str[I + 1] == '_')
                 {
-                    int Start = I;
-                    int J = I + 3;
+                    bool IsPType = false;
+                    int PrefixLength = 0;
 
-                    while (J < Str.Length && char.IsDigit(Str[J]))
-                        J++;
-
-                    if (J < Str.Length - 2 && Str[J] == ')' && Str[J + 1] == '_' && Str[J + 2] == '_')
+                    if (I + 2 < Str.Length && Str[I + 2] == '(')
                     {
-                        string Token = Str.Substring(Start, J - Start + 3); // +3 for ")__"
+                        PrefixLength = 3; 
+                    }
+                    else if (I + 3 < Str.Length && Str[I + 2] == 'P' && Str[I + 3] == '(')
+                    {
+                        IsPType = true;
+                        PrefixLength = 4;
+                    }
 
-                        string MatchToken = HasSpace ? Token : Regex.Replace(Token, @"\s+", "");
+                    if (PrefixLength > 0)
+                    {
+                        int Start = I;
+                        int J = I + PrefixLength;
 
-                        string MatchedKey = FindBestMatchingPlaceholder(MatchToken);
+                        while (J < Str.Length && char.IsDigit(Str[J]))
+                            J++;
 
-                        if (MatchedKey != null)
+                        if (J + 2 < Str.Length &&
+                            Str[J] == ')' &&
+                            Str[J + 1] == '_' &&
+                            Str[J + 2] == '_')
                         {
-                            string Replacement = ReplaceTags.First(Tag => Tag.Key == MatchedKey).Value;
-                            Result.Append(Replacement);
-                            I = J + 3;
-                            continue;
+                            int TokenLength = J - Start + 3;
+                            string Token = Str.Substring(Start, TokenLength);
+
+                            string MatchToken = HasSpace
+                                ? Token
+                                : Regex.Replace(Token, @"\s+", "");
+
+                            string MatchedKey = FindBestMatchingPlaceholder(MatchToken);
+
+                            if (MatchedKey != null)
+                            {
+                                var Tag = ReplaceTags.FirstOrDefault(t => t.Key == MatchedKey);
+                                if (Tag != null)
+                                {
+                                    Result.Append(Tag.Value);
+                                    I += TokenLength;
+                                    continue;
+                                }
+                            }
                         }
                     }
                 }
