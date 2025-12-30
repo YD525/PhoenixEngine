@@ -1,9 +1,7 @@
-﻿
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Web.UI.WebControls;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManagement;
@@ -73,63 +71,6 @@ namespace PhoenixEngine.TranslateManage
             return Tags;
         }
 
-        public List<string> GeneratePlaceholderTextByAI(string FileName, Languages From, Languages To, string SourceStr, string Type, out bool NeedFurtherTranslate)
-        {
-            ReplaceTags.Clear();
-
-            List<string> Words = new List<string>();
-
-            bool UseWordBoundary = LanguageExtensions.IsSpaceDelimitedLanguage(From);
-            string TempStr = SourceStr;
-
-            var ProtectedTags = GenerateProtectedTags(SourceStr,true);
-
-            for (int i=0;i<ProtectedTags.Count;i++)
-            {
-                var Tag = ProtectedTags[i];
-
-                if (ProtectedTags[i].Value == string.Empty)
-                {
-                    continue;
-                }
-
-                var Source = ProtectedTags[i].Value;
-                Words.Add($"{Tag.Value} -> {Tag.Value}");
-                ReplaceTags.Add(Tag);
-                if (UseWordBoundary)
-                {
-                    string Pattern = $@"\b{Regex.Escape(Source)}\b";
-                    TempStr = Regex.Replace(TempStr, Pattern, "", RegexOptions.IgnoreCase);
-                }
-                else
-                {
-                    TempStr = TempStr.Replace(Source, "");
-                }
-            }
-
-            var Tags = AdvancedDictionary.Query(FileName, Type, From, To, SourceStr, UseWordBoundary);
-
-            for (int i = 0; i < Tags.Count; i++)
-            {
-                var Source = Tags[i].Source;
-                Words.Add($"{Source} -> {Tags[i].Result}");
-                ReplaceTags.Add(new ReplaceTag(Tags[i].Rowid,Source, Tags[i].Result));
-                if (UseWordBoundary)
-                {
-                    string Pattern = $@"\b{Regex.Escape(Source)}\b";
-                    TempStr = Regex.Replace(TempStr, Pattern, "", RegexOptions.IgnoreCase);
-                }
-                else
-                {
-                    TempStr = TempStr.Replace(Source, "");
-                }
-            }
-
-            NeedFurtherTranslate = !string.IsNullOrWhiteSpace(TempStr.Trim());
-
-            return Words;
-        }
-
         public string GeneratePlaceholderText(string FileName, Languages From, Languages To, string SourceStr, string Type, out bool NeedFurtherTranslate)
         {
             ReplaceTags.Clear();
@@ -152,7 +93,7 @@ namespace PhoenixEngine.TranslateManage
 
                     if (UseWordBoundary)
                     {
-                        string Pattern = $@"\b{Regex.Escape(Source)}\b";
+                        string Pattern = $@"(?:^|[^\w]){Regex.Escape(Source)}(?:$|[^\w])";
                         if (Regex.IsMatch(SourceStr, Pattern, RegexOptions.IgnoreCase))
                         {
                             SourceStr = SourceStr.Replace(Source, Placeholder);
@@ -182,7 +123,7 @@ namespace PhoenixEngine.TranslateManage
 
                 if (UseWordBoundary)
                 {
-                    string Pattern = $@"\b{Regex.Escape(Source)}\b";
+                    string Pattern = $@"(?:^|[^\w]){Regex.Escape(Source)}(?:$|[^\w])";
                     if (Regex.IsMatch(SourceStr, Pattern, RegexOptions.IgnoreCase))
                     {
                         SourceStr = Regex.Replace(SourceStr, Pattern, Placeholder, RegexOptions.IgnoreCase);
@@ -201,9 +142,14 @@ namespace PhoenixEngine.TranslateManage
                 }
             }
 
-            string Residual = UseWordBoundary
-                ? Regex.Replace(SourceStr, @"__\(\d+\)__", "")
-                : ReplaceTags.Aggregate(SourceStr, (str, tag) => str.Replace(tag.Key, ""));
+            string Residual = SourceStr;
+
+            foreach (var tag in ReplaceTags)
+            {
+                Residual = Residual.Replace(tag.Key, "");
+            }
+
+            Residual = Regex.Replace(Residual, @"[\s\u3000]", "");
 
             NeedFurtherTranslate = !string.IsNullOrWhiteSpace(Residual.Trim());
 

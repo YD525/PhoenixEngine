@@ -312,6 +312,8 @@ namespace PhoenixEngine.TranslateManage
                                         AIMemory.AddTranslation(Item.From,Item.To, GetSource, GetData);
                                     }
 
+                                    GetData = NTranslationPreprocessor.RestoreFromPlaceholder(GetData, Item.To);
+
                                     TransText = GetData;
 
                                     Call.Output();
@@ -350,9 +352,19 @@ namespace PhoenixEngine.TranslateManage
                             NPreTranslateCall.FromAI = true;
                             NPreTranslateCall.Key = Item.Key;
 
-                            NPreTranslateCall.SendString = GetSource;
+                            string GetDefSource = GetSource;
 
-                            CustomWords = NTranslationPreprocessor.GeneratePlaceholderTextByAI(Engine.LastLoadFileName, Item.From, Item.To, GetSource, Item.Type, out CanTrans);
+                            NPreTranslateCall.SendString = GetDefSource;
+
+                            GetSource = NTranslationPreprocessor.GeneratePlaceholderText(Engine.LastLoadFileName, Item.From, Item.To, GetDefSource, Item.Type, out CanTrans);
+
+                            CustomWords.Clear();
+                            foreach (var GetWord in NTranslationPreprocessor.ReplaceTags)
+                            { 
+                              CustomWords.Add(GetWord.Key);
+                            }
+
+                            NPreTranslateCall.ReceiveString = GetSource;
 
                             NPreTranslateCall.ReplaceTags = NTranslationPreprocessor.ReplaceTags;
 
@@ -376,6 +388,9 @@ namespace PhoenixEngine.TranslateManage
                                     {
                                         AIMemory.AddTranslation(Item.From,Item.To, GetSource, GetData);
                                     }
+
+                                    GetData = NTranslationPreprocessor.RestoreFromPlaceholder(GetData, Item.To);
+
                                     TransText = GetData;
 
                                     CurrentPlatform = PlatformType.LMLocalAI;
@@ -404,6 +419,9 @@ namespace PhoenixEngine.TranslateManage
                                     {
                                         AIMemory.AddTranslation(Item.From,Item.To, GetSource, GetData);
                                     }
+
+                                    GetData = NTranslationPreprocessor.RestoreFromPlaceholder(GetData, Item.To);
+
                                     TransText = GetData;
 
                                     CurrentPlatform = PlatformType.ChatGpt;
@@ -433,6 +451,9 @@ namespace PhoenixEngine.TranslateManage
                                     {
                                         AIMemory.AddTranslation(Item.From,Item.To, GetSource, GetData);
                                     }
+
+                                    GetData = NTranslationPreprocessor.RestoreFromPlaceholder(GetData, Item.To);
+
                                     TransText = GetData;
 
                                     CurrentPlatform = PlatformType.Gemini;
@@ -462,6 +483,9 @@ namespace PhoenixEngine.TranslateManage
                                     {
                                         AIMemory.AddTranslation(Item.From,Item.To, GetSource, GetData);
                                     }
+
+                                    GetData = NTranslationPreprocessor.RestoreFromPlaceholder(GetData, Item.To);
+
                                     TransText = GetData;
 
                                     CurrentPlatform = PlatformType.DeepSeek;
@@ -481,7 +505,7 @@ namespace PhoenixEngine.TranslateManage
                         }
                         else
                         {
-                            TransText = GetSource;
+                            TransText = NTranslationPreprocessor.RestoreFromPlaceholder(GetSource, Item.To);
 
                             for (int i = 0; i < NTranslationPreprocessor.ReplaceTags.Count; i++)
                             {
