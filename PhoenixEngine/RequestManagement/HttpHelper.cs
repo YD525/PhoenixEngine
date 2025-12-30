@@ -14,9 +14,13 @@ namespace PhoenixEngine.RequestManagement
     {
         #region Predefined Variables 
 
-        private Encoding Encoding = Encoding.UTF8;//Damn it, .NET Framework is killing me! It defaults to ANSI encoding.
+        private Encoding Encoding = Encoding.UTF8;
+        //Damn it, .NET Framework is killing me! It defaults to ANSI encoding.
+        //This is absolutely ridiculous! In .NET 8.0, the default encoding is UTF-8. But when I switched to .NET Framework, it became ANSI. I was wondering what was wrong and it kept displaying garbled characters. I even thought there were invisible characters in the string...
+        //Luckily I took another look; I almost had to redo the entire class...
 
         private Encoding Postencoding = Encoding.UTF8;
+
         
         private HttpWebRequest Request = null;
      
