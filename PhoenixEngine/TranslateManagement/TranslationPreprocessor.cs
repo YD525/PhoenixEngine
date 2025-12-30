@@ -182,18 +182,16 @@ namespace PhoenixEngine.TranslateManage
 
             while (I < Str.Length)
             {
-                if (Str[I] == '_' && I + 15 < Str.Length && Str[I + 1] == '_')
+                if (Str[I] == '_' && I + 1 < Str.Length && Str[I + 1] == '_')
                 {
-                    bool IsPType = false;
                     int PrefixLength = 0;
 
                     if (I + 2 < Str.Length && Str[I + 2] == '(')
                     {
-                        PrefixLength = 3; 
+                        PrefixLength = 3;
                     }
                     else if (I + 3 < Str.Length && Str[I + 2] == 'P' && Str[I + 3] == '(')
                     {
-                        IsPType = true;
                         PrefixLength = 4;
                     }
 
