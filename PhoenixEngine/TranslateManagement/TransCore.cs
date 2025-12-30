@@ -261,10 +261,6 @@ namespace PhoenixEngine.TranslateManage
                 if (string.IsNullOrEmpty(Source))
                     return false;
 
-                if (!TranslationPreprocessorExtend.IsProbablyString(Source))
-                {
-                    return false;
-                }
                 if (!TranslationPreprocessorExtend.IsValidTranslation(Source))
                 {
                     return false;

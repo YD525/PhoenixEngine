@@ -33,7 +33,7 @@ namespace PhoenixEngine.PlatformManagement
 
             // Direct instruction to exclude extra information
             Prompt.AppendLine("Respond ONLY with the translated content. Do not include any explanations, reasoning, or additional comments. The response must only contain the translation, and no other text.");
-            Prompt.AppendLine("The category is a broad context type (e.g., related to NPCs, weapons, etc.), but it is NOT a specific entity label.");
+            Prompt.AppendLine("The category is a broad context type (e.g., related to NPC_,ARMO, etc.), but it is NOT a specific entity label.");
 
             // Optional Context Category
             if (!string.IsNullOrWhiteSpace(CategoryType))
@@ -45,16 +45,11 @@ namespace PhoenixEngine.PlatformManagement
             // Custom Words section
             if (CustomWords != null && CustomWords.Count > 0)
             {
-                Prompt.AppendLine("");
                 Prompt.AppendLine("[Placeholder Rule]");
-                Prompt.AppendLine("These placeholders represent their actual corresponding translated content and are provided for reference only during translation.");
-                Prompt.AppendLine("The placeholders must be preserved, as the program will handle their replacement.");
-                Prompt.AppendLine("You have only one permission: to adjust the order of the placeholders so that the translation reads as naturally and smoothly as possible.");
                 foreach (var GetWord in CustomWords)
                 {
-                    Prompt.AppendLine($"{GetWord.Key}  // meaning: {GetWord.Value}");
+                    Prompt.AppendLine($"{GetWord.Key} //meaning: {GetWord.Value}");
                 }
-                Prompt.AppendLine("");
             }
 
             // Terminology References section
@@ -82,7 +77,7 @@ namespace PhoenixEngine.PlatformManagement
             // Response Format section
             Prompt.AppendLine("\n[Response Format]");
             Prompt.AppendLine("Respond strictly with: {\"translation\": \"....\"}");
-            Prompt.AppendLine("The JSON content must be translated text; please do not encode it in any way.");
+
 
             return Prompt.ToString();
         }
