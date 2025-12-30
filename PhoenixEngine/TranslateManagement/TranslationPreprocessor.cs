@@ -93,7 +93,7 @@ namespace PhoenixEngine.TranslateManage
 
                     if (UseWordBoundary)
                     {
-                        string Pattern = $@"(?:^|[^\w]){Regex.Escape(Source)}(?:$|[^\w])";
+                        string Pattern = Regex.Escape(Source);
                         if (Regex.IsMatch(SourceStr, Pattern, RegexOptions.IgnoreCase))
                         {
                             SourceStr = SourceStr.Replace(Source, Placeholder);
@@ -123,7 +123,7 @@ namespace PhoenixEngine.TranslateManage
 
                 if (UseWordBoundary)
                 {
-                    string Pattern = $@"(?:^|[^\w]){Regex.Escape(Source)}(?:$|[^\w])";
+                    string Pattern = Regex.Escape(Source);
                     if (Regex.IsMatch(SourceStr, Pattern, RegexOptions.IgnoreCase))
                     {
                         SourceStr = Regex.Replace(SourceStr, Pattern, Placeholder, RegexOptions.IgnoreCase);

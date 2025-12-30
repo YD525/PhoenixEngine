@@ -48,6 +48,9 @@ namespace PhoenixEngine.PlatformManagement
             if (CustomWords != null && CustomWords.Count > 0)
             {
                 Prompt.AppendLine("[Placeholder Rule]");
+                Prompt.AppendLine("These placeholders represent their actual corresponding translated content and are provided for reference only during translation.");
+                Prompt.AppendLine("The placeholders must be preserved, as the program will handle their replacement.");
+                Prompt.AppendLine("You have only one permission: to adjust the order of the placeholders so that the translation reads as naturally and smoothly as possible.");
                 foreach (var GetWord in CustomWords)
                 {
                     Prompt.AppendLine($"{GetWord.Key} //meaning: {GetWord.Value}");
