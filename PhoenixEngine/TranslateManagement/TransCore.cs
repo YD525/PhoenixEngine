@@ -396,11 +396,12 @@ namespace PhoenixEngine.TranslateManage
                                     int MaxTry = MaxTranslationAttempts;
 
                                     //Detecting the quality of AI-translated content
-                                    while (!Passed)
+                                    do
                                     {
                                         GetData = ((DeepLApi)this.TransEngine).QuickTrans(GetSource, Item.From, Item.To, ref Call).Trim();
                                         Passed = SecondaryQualityInspection(GetData, CustomWords);
-                                        if (MaxTry > 0)
+
+                                        if (!Passed && MaxTry > 0)
                                         {
                                             Thread.Sleep(EngineConfig.Config.ReTryWaitTime);
                                             MaxTry--;
@@ -409,7 +410,7 @@ namespace PhoenixEngine.TranslateManage
                                         {
                                             break;
                                         }
-                                    }
+                                    } while (!Passed);
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
@@ -490,12 +491,12 @@ namespace PhoenixEngine.TranslateManage
                                     bool Passed = false;
                                     int MaxTry = MaxTranslationAttempts;
 
-                                    //Detecting the quality of AI-translated content
-                                    while (!Passed)
+                                    do
                                     {
                                         GetData = ((LMStudio)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
                                         Passed = SecondaryQualityInspection(GetData, CustomWords);
-                                        if (MaxTry > 0)
+
+                                        if (!Passed && MaxTry > 0)
                                         {
                                             Thread.Sleep(EngineConfig.Config.ReTryWaitTime);
                                             MaxTry--;
@@ -504,7 +505,7 @@ namespace PhoenixEngine.TranslateManage
                                         {
                                             break;
                                         }
-                                    }
+                                    } while (!Passed);
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
@@ -539,12 +540,12 @@ namespace PhoenixEngine.TranslateManage
                                     bool Passed = false;
                                     int MaxTry = MaxTranslationAttempts;
 
-                                    //Detecting the quality of AI-translated content
-                                    while (!Passed)
+                                    do
                                     {
                                         GetData = ((ChatGptApi)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
                                         Passed = SecondaryQualityInspection(GetData, CustomWords);
-                                        if (MaxTry > 0)
+
+                                        if (!Passed && MaxTry > 0)
                                         {
                                             Thread.Sleep(EngineConfig.Config.ReTryWaitTime);
                                             MaxTry--;
@@ -553,7 +554,7 @@ namespace PhoenixEngine.TranslateManage
                                         {
                                             break;
                                         }
-                                    }
+                                    } while (!Passed);
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
@@ -589,12 +590,12 @@ namespace PhoenixEngine.TranslateManage
                                     bool Passed = false;
                                     int MaxTry = MaxTranslationAttempts;
 
-                                    //Detecting the quality of AI-translated content
-                                    while (!Passed)
+                                    do
                                     {
                                         GetData = ((GeminiApi)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
                                         Passed = SecondaryQualityInspection(GetData, CustomWords);
-                                        if (MaxTry > 0)
+
+                                        if (!Passed && MaxTry > 0)
                                         {
                                             Thread.Sleep(EngineConfig.Config.ReTryWaitTime);
                                             MaxTry--;
@@ -603,7 +604,7 @@ namespace PhoenixEngine.TranslateManage
                                         {
                                             break;
                                         }
-                                    }
+                                    } while (!Passed);
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
@@ -640,11 +641,12 @@ namespace PhoenixEngine.TranslateManage
                                     int MaxTry = MaxTranslationAttempts;
 
                                     //Detecting the quality of AI-translated content
-                                    while (!Passed)
+                                    do
                                     {
                                         GetData = ((DeepSeekApi)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
                                         Passed = SecondaryQualityInspection(GetData, CustomWords);
-                                        if (MaxTry > 0)
+
+                                        if (!Passed && MaxTry > 0)
                                         {
                                             Thread.Sleep(EngineConfig.Config.ReTryWaitTime);
                                             MaxTry--;
@@ -653,7 +655,7 @@ namespace PhoenixEngine.TranslateManage
                                         {
                                             break;
                                         }
-                                    }
+                                    } while (!Passed);
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
