@@ -19,18 +19,18 @@ namespace PhoenixEngine.PlatformManagement
 
             var Prompt = new System.Text.StringBuilder();
 
-            Prompt.AppendLine($"\n<!-- Request ID: {DateTime.UtcNow.Ticks} -->");
+            Prompt.AppendLine($"\n<!-- Request ID: {DateTime.UtcNow.Ticks.GetHashCode().ToString().Replace("-","_")} -->");
 
             // Main Role and Instructions
             Prompt.AppendLine("You are a professional translation AI. Your task is to provide only the translated text, with no additional explanation, reasoning, or commentary.");
 
             if (From == Languages.Auto)
             {
-                Prompt.AppendLine("Translate the following text to " + LanguageHelper.ToLanguageCode(To) + ". The source language will be automatically detected.");
+                Prompt.AppendLine("Translate the following text to " + To.ToString() + ". The source language will be automatically detected.");
             }
             else
             {
-                Prompt.AppendLine($"Translate the following text from {LanguageHelper.ToLanguageCode(From)} to {LanguageHelper.ToLanguageCode(To)}.");
+                Prompt.AppendLine($"Translate the following text from {From.ToString()} to {To.ToString()}.");
             }
 
             // Direct instruction to exclude extra information
@@ -78,8 +78,10 @@ namespace PhoenixEngine.PlatformManagement
 
             // Response Format section
             Prompt.AppendLine("\n[Response Format]");
-            Prompt.AppendLine("Respond strictly with: {\"translation\": \"....\"}");
 
+            Prompt.AppendLine("NEVER output garbled text, unknown symbols, emoji, or invalid characters. If encoding error occurs, return empty string instead of corrupted output.");
+            Prompt.AppendLine("If you cannot translate, do not return any content; return empty JSON instead: {\"translation\": \"\"}");
+            Prompt.AppendLine("Respond strictly with: {\"translation\": \"....\"}");
 
             return Prompt.ToString();
         }

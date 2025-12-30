@@ -261,11 +261,6 @@ namespace PhoenixEngine.TranslateManage
                 if (string.IsNullOrEmpty(Source))
                     return false;
 
-                if (!TranslationPreprocessorExtend.IsValidTranslation(Source))
-                {
-                    return false;
-                }
-
                 if (CustomWords == null || CustomWords.Count == 0)
                 return true;
 
