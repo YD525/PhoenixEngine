@@ -43,7 +43,7 @@ namespace PhoenixEngine.EngineManagement
         /// Default page size for pagination.  
         /// Represents how many items are shown per page by default.
         /// </summary>
-        public int DefPageSize { get; set; } = 0;
+        public int DefPageSize { get; set; } = 50;
 
         #endregion
 
