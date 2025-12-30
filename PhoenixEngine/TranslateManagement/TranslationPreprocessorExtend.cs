@@ -227,5 +227,25 @@ namespace PhoenixEngine.TranslateManagement
             Input = Regex.Replace(Input, @"\\'", "'");
             Input = Regex.Replace(Input, @"\\\\", "\\");       
         }
+
+        public static bool IsValidTranslation(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return false;
+
+            foreach (char c in text)
+            {
+                if (char.IsLetterOrDigit(c) || char.IsPunctuation(c) || char.IsSymbol(c) || char.IsWhiteSpace(c))
+                    continue;
+
+                if (c == '_' || c == '(' || c == ')') continue;
+
+                return false;
+            }
+
+            if (text.Contains(@"\u")) return false;
+
+            return true;
+        }
+
     }
 }

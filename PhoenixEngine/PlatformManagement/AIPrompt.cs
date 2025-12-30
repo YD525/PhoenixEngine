@@ -82,7 +82,8 @@ namespace PhoenixEngine.PlatformManagement
             // Response Format section
             Prompt.AppendLine("\n[Response Format]");
             Prompt.AppendLine("Respond strictly with: {\"translation\": \"....\"}");
-            
+            Prompt.AppendLine("The JSON content must be translated text; please do not encode it in any way.");
+
             return Prompt.ToString();
         }
     }
