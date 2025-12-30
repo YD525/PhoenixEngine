@@ -6,6 +6,56 @@ namespace PhoenixEngine.TranslateManagement
 {
     public class TranslationPreprocessorExtend
     {
+        public static bool IsProbablyString(string str)
+        {
+            if (string.IsNullOrEmpty(str))
+                return false;
+
+            int zeroCount = 0;
+            foreach (char c in str)
+            {
+                if (c == '\0')
+                    zeroCount++;
+            }
+
+            if (zeroCount > str.Length / 4)
+                return false;
+
+            int printable = 0;
+            int scanned = 0;
+
+            foreach (char c in str)
+            {
+                if (c == '\0') break;
+                scanned++;
+
+                if ((c >= 0x20 && c <= 0x7E) || c == '\n' || c == '\r' || c == '\t' || c >= 0x80)
+                {
+                    printable++;
+                }
+            }
+
+            if (printable == 0)
+                return false;
+
+            if (printable * 2 < scanned)
+                return false;
+
+            bool IsHexChar(char c) =>
+                char.IsDigit(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+
+            int hexLike = 0;
+            foreach (char c in str.Substring(0, scanned))
+            {
+                if (IsHexChar(c) || c == '-')
+                    hexLike++;
+            }
+
+            if (hexLike == scanned)
+                return false;
+
+            return true;
+        }
         public static bool HasUnicodeEscape(string Text)
         {
             return Regex.IsMatch(Text, @"\\u[0-9a-fA-F]{4}");

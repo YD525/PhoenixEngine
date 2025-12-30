@@ -264,6 +264,11 @@ namespace PhoenixEngine.TranslateManage
                 if (CustomWords == null || CustomWords.Count == 0)
                     return true;
 
+                if (!TranslationPreprocessorExtend.IsProbablyString(Source))
+                {
+                    return false;
+                }
+
                 HashSet<string> FoundKeys = new HashSet<string>();
 
                 int Index = 0;
