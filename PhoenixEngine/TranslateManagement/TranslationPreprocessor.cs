@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Web.UI.WebControls;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManagement;
@@ -78,25 +79,41 @@ namespace PhoenixEngine.TranslateManage
 
             List<string> Words = new List<string>();
 
-            var ProtectedTags = GenerateProtectedTags(SourceStr,true);
-            foreach (var Tag in ProtectedTags)
-            {
-                Words.Add($"{Tag.Value} -> {Tag.Value}");
-                ReplaceTags.Add(Tag);
-                SourceStr = SourceStr.Replace(Tag.Value, "");
-            }
-
             bool UseWordBoundary = LanguageExtensions.IsSpaceDelimitedLanguage(From);
-
-            var Datas = AdvancedDictionary.Query(FileName, Type, From, To, SourceStr, UseWordBoundary);
-
             string TempStr = SourceStr;
 
-            for (int i = 0; i < Datas.Count; i++)
+            var ProtectedTags = GenerateProtectedTags(SourceStr,true);
+
+            for (int i=0;i<ProtectedTags.Count;i++)
             {
-                var Source = Datas[i].Source;
-                Words.Add($"{Source} -> {Datas[i].Result}");
-                ReplaceTags.Add(new ReplaceTag(Datas[i].Rowid,Source, Datas[i].Result));
+                var Tag = ProtectedTags[i];
+
+                if (ProtectedTags[i].Value == string.Empty)
+                {
+                    continue;
+                }
+
+                var Source = ProtectedTags[i].Value;
+                Words.Add($"{Tag.Value} -> {Tag.Value}");
+                ReplaceTags.Add(Tag);
+                if (UseWordBoundary)
+                {
+                    string Pattern = $@"\b{Regex.Escape(Source)}\b";
+                    TempStr = Regex.Replace(TempStr, Pattern, "", RegexOptions.IgnoreCase);
+                }
+                else
+                {
+                    TempStr = TempStr.Replace(Source, "");
+                }
+            }
+
+            var Tags = AdvancedDictionary.Query(FileName, Type, From, To, SourceStr, UseWordBoundary);
+
+            for (int i = 0; i < Tags.Count; i++)
+            {
+                var Source = Tags[i].Source;
+                Words.Add($"{Source} -> {Tags[i].Result}");
+                ReplaceTags.Add(new ReplaceTag(Tags[i].Rowid,Source, Tags[i].Result));
                 if (UseWordBoundary)
                 {
                     string Pattern = $@"\b{Regex.Escape(Source)}\b";
@@ -118,24 +135,48 @@ namespace PhoenixEngine.TranslateManage
             ReplaceTags.Clear();
             HasPlaceholder = false;
 
+            bool UseWordBoundary = LanguageExtensions.IsSpaceDelimitedLanguage(From);
+
             var ProtectedTags = GenerateProtectedTags(SourceStr,false);
             for (int i=0;i< ProtectedTags.Count;i++)
             {
                 if (SourceStr.Contains(ProtectedTags[i].Value))
                 {
-                    SourceStr = SourceStr.Replace(ProtectedTags[i].Value, ProtectedTags[i].Key);
-                    ReplaceTags.Add(ProtectedTags[i]);
-                    HasPlaceholder = true;
+                    var Source = ProtectedTags[i].Value;
+                    var Placeholder = ProtectedTags[i].Key;
+
+                    if (ProtectedTags[i].Value == string.Empty)
+                    {
+                        continue;
+                    }
+
+                    if (UseWordBoundary)
+                    {
+                        string Pattern = $@"\b{Regex.Escape(Source)}\b";
+                        if (Regex.IsMatch(SourceStr, Pattern, RegexOptions.IgnoreCase))
+                        {
+                            SourceStr = SourceStr.Replace(Source, Placeholder);
+                            ReplaceTags.Add(ProtectedTags[i]);
+                            HasPlaceholder = true;
+                        }
+                    }
+                    else
+                    {
+                        if (SourceStr.Contains(Source))
+                        {
+                            SourceStr = SourceStr.Replace(Source, Placeholder);
+                            ReplaceTags.Add(ProtectedTags[i]);
+                            HasPlaceholder = true;
+                        }
+                    }
                 }
-            }
+            }   
 
-            bool UseWordBoundary = LanguageExtensions.IsSpaceDelimitedLanguage(From);
+            var Tags = AdvancedDictionary.Query(FileName, Type, From, To, SourceStr, UseWordBoundary);
 
-            var Datas = AdvancedDictionary.Query(FileName, Type, From, To, SourceStr, UseWordBoundary);
-
-            for (int i = 0; i < Datas.Count; i++)
+            for (int i = 0; i < Tags.Count; i++)
             {
-                var Word = Datas[i];
+                var Word = Tags[i];
                 string Placeholder = $"__({i})__";
                 string Source = Word.Source;
 
@@ -145,7 +186,7 @@ namespace PhoenixEngine.TranslateManage
                     if (Regex.IsMatch(SourceStr, Pattern, RegexOptions.IgnoreCase))
                     {
                         SourceStr = Regex.Replace(SourceStr, Pattern, Placeholder, RegexOptions.IgnoreCase);
-                        ReplaceTags.Add(new ReplaceTag(Datas[i].Rowid,Placeholder, Word.Result));
+                        ReplaceTags.Add(new ReplaceTag(Tags[i].Rowid,Placeholder, Word.Result));
                         HasPlaceholder = true;
                     }
                 }
