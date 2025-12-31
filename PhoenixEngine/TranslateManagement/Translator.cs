@@ -141,6 +141,22 @@ namespace PhoenixEngine.TranslateManage
 
             string MergeLine = "";
 
+            if (Chunks.Count > 0)
+            {
+                //It is necessary to prevent the preceding lines of code from being lost.
+                foreach (var GetChunk in Chunks)
+                {
+                    if (GetChunk.IsCode)
+                    {
+                        MergeLine += GetChunk.Data;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+
             foreach (var GetUnit in Units)
             {
                 Regex Regex = new Regex(@"\{([A-Za-z0-9_ ]+)\}");
@@ -231,6 +247,7 @@ namespace PhoenixEngine.TranslateManage
 
                             int SetNextOffset = 0;
 
+                            //Scan the tail downwards.
                             while (Chunks.Count > SetNextOffset)
                             {
                                 SetNextOffset = (i + 1) + 1;
