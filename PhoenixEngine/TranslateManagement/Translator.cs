@@ -227,6 +227,8 @@ namespace PhoenixEngine.TranslateManage
                     {
                         if (Chunks[i].Equals(Item.Key))
                         {
+                            MergeLine += Content;
+
                             int SetNextOffset = 0;
 
                             while (Chunks.Count > SetNextOffset)
@@ -237,12 +239,10 @@ namespace PhoenixEngine.TranslateManage
                                 {
                                     if (Chunks[SetNextOffset].IsCode)
                                     {
-                                        MergeLine += Content;
                                         MergeLine += Chunks[SetNextOffset];
                                     }
                                     else
                                     {
-                                        MergeLine += Content;
                                         break;
                                     }
                                 }
