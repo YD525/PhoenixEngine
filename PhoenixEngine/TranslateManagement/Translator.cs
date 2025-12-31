@@ -100,90 +100,103 @@ namespace PhoenixEngine.TranslateManage
 
         public static string QuickTrans(TranslationUnit Item, ref bool CanSleep)
         {
+            List<TranslationUnit> Units = new List<TranslationUnit>();
+
             if (IsBook(Item))
-            { 
-            
+            {
+                Units.AddRange(ChunkTranslationUnit(Item));
+            }
+            else
+            {
+                Units.Add(Item);
             }
 
-            Regex Regex = new Regex(@"\{([A-Za-z0-9_ ]+)\}");
+            string MergeLine = "";
 
-            if (Regex.IsMatch(Item.SourceText))
+            foreach (var GetUnit in Units)
             {
-                Item.SourceText = Regex.Replace(Item.SourceText, @"$$$$$1$$$$");
-            }
+                Regex Regex = new Regex(@"\{([A-Za-z0-9_ ]+)\}");
 
-            //Skip fields that do not need translation
-
-            string GetSourceStr = Item.SourceText;
-
-            if (IsOnlySymbolsAndSpaces(GetSourceStr))
-            {
-                return GetSourceStr;
-            }
-
-            if (string.IsNullOrEmpty(GetSourceStr))
-            {
-                return GetSourceStr;
-            }
-
-            Languages SourceLanguage = Item.From;
-            if (SourceLanguage == Item.To)
-            {
-                return GetSourceStr;
-            }
-
-            if (TranslationPreprocessor.IsNumeric(GetSourceStr))
-            {
-                return GetSourceStr;
-            }
-
-            //Optimize strings
-            TranslationPreprocessor.OptimizeStrings(ref GetSourceStr);
-
-            //Check OuterQuotes
-            bool HasOuterQuotes = TranslationPreprocessor.HasOuterQuotes(GetSourceStr.Trim());
-
-            //Remove OuterQuotes
-            if (HasOuterQuotes)
-            {
-                TranslationPreprocessor.StripOuterQuotes(ref GetSourceStr);
-            }
-
-            //Match DataBase
-            string Content = GetSourceStr;
-            string GetMatchResult = "";
-            if (ExactMatch(Item.From, Item.To, Item.Key, Item.Type, Content, ref GetMatchResult))
-            {
-                return GetMatchResult;
-            }
-
-            Item.SourceText = Content;
-            Content = CurrentTransCore.TransAny(Item, ref CanSleep);
-
-            try
-            {
-                if (TranslationPreprocessor.HasUnicodeEscape(Content))
+                if (Regex.IsMatch(Item.SourceText))
                 {
-                    Content = Regex.Unescape(Content);
+                    Item.SourceText = Regex.Replace(Item.SourceText, @"$$$$$1$$$$");
                 }
+
+                //Skip fields that do not need translation
+
+                string GetSourceStr = Item.SourceText;
+
+                if (IsOnlySymbolsAndSpaces(GetSourceStr))
+                {
+                    return GetSourceStr;
+                }
+
+                if (string.IsNullOrEmpty(GetSourceStr))
+                {
+                    return GetSourceStr;
+                }
+
+                Languages SourceLanguage = Item.From;
+                if (SourceLanguage == Item.To)
+                {
+                    return GetSourceStr;
+                }
+
+                if (TranslationPreprocessor.IsNumeric(GetSourceStr))
+                {
+                    return GetSourceStr;
+                }
+
+                //Optimize strings
+                TranslationPreprocessor.OptimizeStrings(ref GetSourceStr);
+
+                //Check OuterQuotes
+                bool HasOuterQuotes = TranslationPreprocessor.HasOuterQuotes(GetSourceStr.Trim());
+
+                //Remove OuterQuotes
+                if (HasOuterQuotes)
+                {
+                    TranslationPreprocessor.StripOuterQuotes(ref GetSourceStr);
+                }
+
+                //Match DataBase
+                string Content = GetSourceStr;
+                string GetMatchResult = "";
+                if (ExactMatch(Item.From, Item.To, Item.Key, Item.Type, Content, ref GetMatchResult))
+                {
+                    return GetMatchResult;
+                }
+
+                Item.SourceText = Content;
+                Content = CurrentTransCore.TransAny(Item, ref CanSleep);
+
+                try
+                {
+                    if (TranslationPreprocessor.HasUnicodeEscape(Content))
+                    {
+                        Content = Regex.Unescape(Content);
+                    }
+                }
+                catch { Content = string.Empty; }
+
+                TranslationPreprocessor.OptimizeStrings(ref Content);
+                TranslationPreprocessor.StripOuterQuotes(ref Content);
+
+                Content = Content.Trim();
+
+                TranslationPreprocessor.OptimizeStrings(ref Content);
+
+                if (HasOuterQuotes)
+                {
+                    Content = "\"" + Content + "\"";
+                }
+
+                Content = ReturnStr(Content);
+
+                MergeLine += Content;
             }
-            catch { Content = string.Empty; }
 
-            TranslationPreprocessor.OptimizeStrings(ref Content);
-            TranslationPreprocessor.StripOuterQuotes(ref Content);
-
-            Content = Content.Trim();
-
-            TranslationPreprocessor.OptimizeStrings(ref Content);
-
-            if (HasOuterQuotes)
-            {
-                Content = "\"" + Content + "\"";
-            }
-
-            Content = ReturnStr(Content);
-
-            return Content;
+            return MergeLine;
         }
         public static bool ClearCloudCache(int FileUniqueKey)
         {
