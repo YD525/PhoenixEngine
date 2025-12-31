@@ -104,18 +104,21 @@ namespace PhoenixEngine.TranslateManage
             List<TranslationUnit> Units = new List<TranslationUnit>();
             foreach (UnitChunk Chunk in Chunks)
             {
-                Units.Add(
-                new TranslationUnit(
-                    Unit.FileUniqueKey,
-                    Chunk.Key,
-                    Unit.Type,
-                    Chunk.Data,
-                    string.Empty,
-                    Unit.AIParam,
-                    Unit.From,
-                    Unit.To,
-                    Unit.Score
-                ));
+                if (!Chunk.IsCode)
+                {
+                    Units.Add(
+                    new TranslationUnit(
+                       Unit.FileUniqueKey,
+                       Chunk.Key,
+                       Unit.Type,
+                       Chunk.Data,
+                       string.Empty,
+                       Unit.AIParam,
+                       Unit.From,
+                       Unit.To,
+                       Unit.Score
+                   ));
+                }
             }
 
             return Units;
@@ -218,7 +221,24 @@ namespace PhoenixEngine.TranslateManage
 
                 Content = ReturnStr(Content);
 
-                MergeLine += Content;
+                if (Chunks.Count > 0)
+                {
+                    for (int i = 0; i < Chunks.Count; i++)
+                    {
+                        if (Chunks[i].Equals(Item.Key))
+                        {
+                            int SetNextOffset = (i + 1) + 1;
+                            if (Chunks.Count > SetNextOffset)
+                            { 
+                            
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    MergeLine += Content;
+                }   
             }
 
             return MergeLine;
