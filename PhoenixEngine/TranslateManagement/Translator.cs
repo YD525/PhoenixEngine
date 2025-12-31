@@ -130,8 +130,11 @@ namespace PhoenixEngine.TranslateManage
             List<UnitChunk> Chunks = new List<UnitChunk>();
             Game GameType = Game.Null;
 
+            bool Book = false;
+
             if (IsBook(Item,ref GameType))
             {
+                Book = true;
                 Units.AddRange(ChunkTranslationUnit(GameType,Item,ref Chunks));
             }
             else
@@ -212,7 +215,8 @@ namespace PhoenixEngine.TranslateManage
                 }
 
                 Item.SourceText = Content;
-                Content = CurrentTransCore.TransAny(Item, ref CanSleep);
+
+                Content = CurrentTransCore.TransAny(Item, ref CanSleep, Book);
 
                 try
                 {

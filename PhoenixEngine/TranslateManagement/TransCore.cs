@@ -93,7 +93,7 @@ namespace PhoenixEngine.TranslateManage
         /// <param name="Target"></param>
         /// <param name="SourceStr"></param>
         /// <returns></returns>
-        public string TransAny(TranslationUnit Item,ref bool CanSleep)
+        public string TransAny(TranslationUnit Item,ref bool CanSleep,bool IsBook)
         {
             CacheCall Call = new CacheCall();
 
@@ -193,7 +193,14 @@ namespace PhoenixEngine.TranslateManage
 
                     string GetTrans = "";
 
-                    GetTrans = CurrentEngine.Call(Item, true, EngineConfig.Config.ContextLimit, AIParam);
+                    if (!IsBook)
+                    {
+                        GetTrans = CurrentEngine.Call(Item, true, EngineConfig.Config.ContextLimit, AIParam);
+                    }
+                    else
+                    {
+                        GetTrans = CurrentEngine.Call(Item, false, 1, AIParam);
+                    }
 
                     if (CanSleep)
                     {
