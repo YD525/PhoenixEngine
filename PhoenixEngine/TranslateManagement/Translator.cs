@@ -227,11 +227,28 @@ namespace PhoenixEngine.TranslateManage
                     {
                         if (Chunks[i].Equals(Item.Key))
                         {
-                            int SetNextOffset = (i + 1) + 1;
-                            if (Chunks.Count > SetNextOffset)
-                            { 
-                            
+                            int SetNextOffset = 0;
+
+                            while (Chunks.Count > SetNextOffset)
+                            {
+                                SetNextOffset = (i + 1) + 1;
+
+                                if (Chunks.Count > SetNextOffset)
+                                {
+                                    if (Chunks[SetNextOffset].IsCode)
+                                    {
+                                        MergeLine += Content;
+                                        MergeLine += Chunks[SetNextOffset];
+                                    }
+                                    else
+                                    {
+                                        MergeLine += Content;
+                                        break;
+                                    }
+                                }
                             }
+
+                            break;
                         }
                     }
                 }
