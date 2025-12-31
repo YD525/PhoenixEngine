@@ -83,10 +83,28 @@ namespace PhoenixEngine.TranslateManage
             return false;
         }
 
-
-
-        public static string QuickTrans(TranslationUnit Item, ref bool CanSleep, bool IsBook = false)
+        public static bool IsBook(TranslationUnit Item)
         {
+            if (Item.Type == "BOOK" && Item.Key.EndsWith("DESC"))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public static List<TranslationUnit> ChunkTranslationUnit(TranslationUnit Unit)
+        {
+            return new List<TranslationUnit>();
+        }
+
+        public static string QuickTrans(TranslationUnit Item, ref bool CanSleep)
+        {
+            if (IsBook(Item))
+            { 
+            
+            }
+
             Regex Regex = new Regex(@"\{([A-Za-z0-9_ ]+)\}");
 
             if (Regex.IsMatch(Item.SourceText))
@@ -140,7 +158,7 @@ namespace PhoenixEngine.TranslateManage
             }
 
             Item.SourceText = Content;
-            Content = CurrentTransCore.TransAny(Item, ref CanSleep, IsBook);
+            Content = CurrentTransCore.TransAny(Item, ref CanSleep);
 
             try
             {
