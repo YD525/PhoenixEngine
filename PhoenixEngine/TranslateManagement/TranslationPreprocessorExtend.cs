@@ -69,7 +69,7 @@ namespace PhoenixEngine.TranslateManagement
         {
             NormalizePunctuation(ref Input);
             RemoveInvisibleCharacters(ref Input);
-            ConditionalSplitCamelCase(ref Input);
+            //ConditionalSplitCamelCase(ref Input);
             ProcessEscapeCharacters(ref Input);
             ProcessEmptyEndLine(ref Input);
         }
@@ -199,22 +199,22 @@ namespace PhoenixEngine.TranslateManagement
             return c == '"' || c == '“' || c == '”';
         }
 
-        public static void ConditionalSplitCamelCase(ref string Input)
-        {
-            if (string.IsNullOrWhiteSpace(Input))
-                return;
+        //public static void ConditionalSplitCamelCase(ref string Input)
+        //{
+        //    if (string.IsNullOrWhiteSpace(Input))
+        //        return;
 
-            if (!Input.Contains(" "))
-            {
-                Input = Regex.Replace(Input, @"([a-z])([A-Z])", "$1 $2");
-                Input = Regex.Replace(Input, @"([a-zA-Z])([0-9])", "$1 $2");
-                Input = Regex.Replace(Input, @"\s+", " ");
+        //    if (!Input.Contains(" "))
+        //    {
+        //        Input = Regex.Replace(Input, @"([a-z])([A-Z])", "$1 $2");
+        //        Input = Regex.Replace(Input, @"([a-zA-Z])([0-9])", "$1 $2");
+        //        Input = Regex.Replace(Input, @"\s+", " ");
 
-                Input = Input.Trim();
-            }
+        //        Input = Input.Trim();
+        //    }
 
-            return;
-        }
+        //    return;
+        //}
 
         public static void ProcessEscapeCharacters(ref string Input)
         {

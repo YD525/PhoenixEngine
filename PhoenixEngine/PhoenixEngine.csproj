@@ -124,7 +124,6 @@
     <Compile Include="TranslateManagement\LanguageHelper.cs" />
     <Compile Include="TranslateManagement\LocalDBCache.cs" />
     <Compile Include="TranslateManagement\SpeechHelper.cs" />
-    <Compile Include="TranslateManagement\TextSegmentTranslator.cs" />
     <Compile Include="TranslateManagement\TextTokenizer.cs" />
     <Compile Include="TranslateManagement\TransCore.cs" />
     <Compile Include="TranslateManagement\TranslationPreprocessor.cs" />
