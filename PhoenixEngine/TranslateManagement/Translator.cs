@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using PhoenixEngine.EngineManagement;
+using PhoenixEngine.GameManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManagement;
 using static PhoenixEngine.EngineManagement.DataTransmission;
 using static PhoenixEngine.TranslateManage.TransCore;
+using static PhoenixEngine.TranslateManagement.ChunkHelper;
 
 namespace PhoenixEngine.TranslateManage
 {
@@ -83,7 +85,7 @@ namespace PhoenixEngine.TranslateManage
             return false;
         }
 
-        public static bool IsBook(TranslationUnit Item)
+        public static bool IsBook(TranslationUnit Item,ref Game DetectGame)
         {
             if (Item.Type == "BOOK" && Item.Key.EndsWith("DESC"))
             {
@@ -93,18 +95,41 @@ namespace PhoenixEngine.TranslateManage
             return false;
         }
 
-        public static List<TranslationUnit> ChunkTranslationUnit(TranslationUnit Unit)
+        public static List<TranslationUnit> ChunkTranslationUnit(Game GameType,TranslationUnit Unit,ref List<UnitChunk> Chunks)
         {
-            return new List<TranslationUnit>();
+            if (GameType == Game.Skyrim)
+            {
+                Chunks = new SkyrimBookHelper().ChunkBook(Unit);
+            }
+            List<TranslationUnit> Units = new List<TranslationUnit>();
+            foreach (UnitChunk Chunk in Chunks)
+            {
+                Units.Add(
+                new TranslationUnit(
+                    Unit.FileUniqueKey,
+                    Chunk.Key,
+                    Unit.Type,
+                    Chunk.Data,
+                    string.Empty,
+                    Unit.AIParam,
+                    Unit.From,
+                    Unit.To,
+                    Unit.Score
+                ));
+            }
+
+            return Units;
         }
 
         public static string QuickTrans(TranslationUnit Item, ref bool CanSleep)
         {
             List<TranslationUnit> Units = new List<TranslationUnit>();
+            List<UnitChunk> Chunks = new List<UnitChunk>();
+            Game GameType = Game.Null;
 
-            if (IsBook(Item))
+            if (IsBook(Item,ref GameType))
             {
-                Units.AddRange(ChunkTranslationUnit(Item));
+                Units.AddRange(ChunkTranslationUnit(GameType,Item,ref Chunks));
             }
             else
             {

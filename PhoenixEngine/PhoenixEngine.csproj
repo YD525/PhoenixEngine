@@ -82,6 +82,8 @@
     <Compile Include="EngineManagement\EngineConfig.cs" />
     <Compile Include="EngineManagement\PapyrusHeurCore.cs" />
     <Compile Include="FileManagement\BlockHashComparer.cs" />
+    <Compile Include="GameManagement\GameHelper.cs" />
+    <Compile Include="GameManagement\SkyrimBookHelper.cs" />
     <Compile Include="LanguageDetector\BrazilianPortugueseHelper.cs" />
     <Compile Include="LanguageDetector\CanadianFrenchHelper.cs" />
     <Compile Include="LanguageDetector\EnglishHelper.cs" />
@@ -118,6 +120,7 @@
     <Compile Include="TranslateManagement\AdvancedDictionary.cs" />
     <Compile Include="TranslateManagement\AITranslationMemory.cs" />
     <Compile Include="TranslateManagement\BatchTranslationCore.cs" />
+    <Compile Include="TranslateManagement\ChunkHelper.cs" />
     <Compile Include="TranslateManagement\CloudDBCache.cs" />
     <Compile Include="TranslateManagement\FontColorFinder.cs" />
     <Compile Include="TranslateManagement\JsonGeter.cs" />
