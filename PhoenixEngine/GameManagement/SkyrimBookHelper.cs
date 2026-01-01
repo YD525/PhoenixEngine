@@ -63,6 +63,8 @@ namespace PhoenixEngine.GameManagement
 
             string GetBookContent = Unit.SourceText;
 
+            int Block = 0;
+
             for (int i = 0; i < GetBookContent.Length; i++)
             {
                 string GetChar = GetBookContent.Substring(i,1);
@@ -71,24 +73,33 @@ namespace PhoenixEngine.GameManagement
 
                 var Check = CheckCode(GetChar);
 
-                if (Check != null)
+                if (Check != null && TempText.Length > 0)
                 {
                     if (Check.Chars[0].Equals(GetChar))
                     {
                         LastSetChar = Check;
                     }
-
+                    else
                     if (Check.Chars[1].Equals(GetChar) && LastSetChar != null)
                     {
                         if (LastSetChar.Chars.Contains(GetChar))
-                        { 
-                        
+                        {
+                            Block++;
+                            UnitChunks.Add(new UnitChunk(Unit.Key, Unit.Key + "_" + Block, true, TempText));
+                            TempText = string.Empty;
                         }
                     }
                 }
+
+                if (GetChar.Equals("\r") || GetChar.Equals("\n") && TempText.Length > 0)
+                {
+                    Block++;
+                    UnitChunks.Add(new UnitChunk(Unit.Key, Unit.Key + "_" + Block, false, TempText));
+                    TempText = string.Empty;
+                }
             }
            
-            return new List<UnitChunk>();
+            return UnitChunks;
         }
     }
 }
