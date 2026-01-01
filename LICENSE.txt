@@ -5,7 +5,7 @@ Almost all files in this folder are under the license described below.
 
 The only exceptions are Newtonsoft.Json, System.Data.SQLite, which each have their own licenses.
 
-Development of SSELex has been a challenging process. I would like to acknowledge and thank the following contributors for their significant help and support:
+Development of SSE Lexicon has been a challenging process. I would like to acknowledge and thank the following contributors for their significant help and support:
 - https://github.com/Cutleast
 - https://github.com/Wuerfelhusten
 
