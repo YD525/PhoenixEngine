@@ -1,16 +1,13 @@
 ﻿
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
-using Microsoft.VisualBasic;
 using PhoenixEngine.DelegateManagement;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManagement;
-using static PhoenixEngine.SSELexiconBridge.NativeBridge;
+using static PhoenixEngine.Bridges.NativeBridge;
 using static PhoenixEngine.TranslateCore.LanguageHelper;
 using static PhoenixEngine.TranslateManage.TransCore;
 

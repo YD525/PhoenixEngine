@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace SSELex.SkyrimManage
+namespace PhoenixEngine.SSEManage
 {
     public class PapyrusHeurCore
     {

@@ -116,7 +116,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequestManagement\HttpHelper.cs" />
     <Compile Include="RequestManagement\ProxyCenter.cs" />
-    <Compile Include="SSELexiconBridge\NativeBridge.cs" />
+    <Compile Include="Bridges\NativeBridge.cs" />
     <Compile Include="TranslateManagement\AdvancedDictionary.cs" />
     <Compile Include="TranslateManagement\AITranslationMemory.cs" />
     <Compile Include="TranslateManagement\BatchTranslationCore.cs" />

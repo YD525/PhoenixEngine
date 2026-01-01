@@ -3,7 +3,7 @@ using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
 using PhoenixEngine.TranslateManagement;
 
-namespace PhoenixEngine.SSELexiconBridge
+namespace PhoenixEngine.Bridges
 {
     /// <summary>
     /// For SSE Lexicon
