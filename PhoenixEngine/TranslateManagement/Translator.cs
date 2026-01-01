@@ -84,7 +84,7 @@ namespace PhoenixEngine.TranslateManage
             return false;
         }
 
-        public static bool IsBook(TranslationUnit Item,ref Game DetectGame)
+        public static bool IsSkyrimBook(TranslationUnit Item,ref Game DetectGame)
         {
             if (Item.Type == "BOOK" && Item.Key.EndsWith("DESC"))
             {
@@ -131,8 +131,9 @@ namespace PhoenixEngine.TranslateManage
 
             bool Book = false;
 
-            if (IsBook(Item,ref GameType))
+            if (IsSkyrimBook(Item,ref GameType))
             {
+                GameType = Game.Skyrim;
                 Book = true;
                 Units.AddRange(ChunkTranslationUnit(GameType,Item,ref Chunks));
             }
