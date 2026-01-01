@@ -256,7 +256,7 @@ namespace PhoenixEngine.TranslateManage
                     {
                         if (Chunks[i].Key.Equals(GetUnit.Key))
                         {
-                            MergeLine += Content;
+                            MergeLine += Content + "\n";
 
                             for (int j = i + 1; j < Chunks.Count; j++)
                             {
