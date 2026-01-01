@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Web.UI.WebControls;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.GameManagement;
 using PhoenixEngine.TranslateCore;
@@ -164,108 +165,109 @@ namespace PhoenixEngine.TranslateManage
             {
                 Regex Regex = new Regex(@"\{([A-Za-z0-9_ ]+)\}");
 
-                if (Regex.IsMatch(Item.SourceText))
+                if (Regex.IsMatch(GetUnit.SourceText))
                 {
-                    Item.SourceText = Regex.Replace(Item.SourceText, @"$$$$$1$$$$");
+                    GetUnit.SourceText = Regex.Replace(GetUnit.SourceText, @"$$$$$1$$$$");
                 }
 
+                bool CanSkip = false;
                 //Skip fields that do not need translation
 
-                string GetSourceStr = Item.SourceText;
+                Languages SourceLanguage = GetUnit.From;
+                string GetSourceStr = GetUnit.SourceText;
 
                 if (IsOnlySymbolsAndSpaces(GetSourceStr))
                 {
-                    return GetSourceStr;
+                    CanSkip = true;
                 }
-
+                else
                 if (string.IsNullOrEmpty(GetSourceStr))
                 {
-                    return GetSourceStr;
+                    CanSkip = true;
                 }
-
-                Languages SourceLanguage = Item.From;
-                if (SourceLanguage == Item.To)
+                else
+                if (SourceLanguage == GetUnit.To)
                 {
-                    return GetSourceStr;
+                    CanSkip = true;
                 }
-
+                else
                 if (TranslationPreprocessor.IsNumeric(GetSourceStr))
                 {
-                    return GetSourceStr;
+                    CanSkip = true;
                 }
 
-                //Optimize strings
-                TranslationPreprocessor.OptimizeStrings(ref GetSourceStr);
-
-                //Check OuterQuotes
-                bool HasOuterQuotes = TranslationPreprocessor.HasOuterQuotes(GetSourceStr.Trim());
-
-                //Remove OuterQuotes
-                if (HasOuterQuotes)
-                {
-                    TranslationPreprocessor.StripOuterQuotes(ref GetSourceStr);
-                }
-
-                //Match DataBase
                 string Content = GetSourceStr;
-                string GetMatchResult = "";
-                if (ExactMatch(Item.From, Item.To, Item.Key, Item.Type, Content, ref GetMatchResult))
+
+                if (!CanSkip)
                 {
-                    return GetMatchResult;
-                }
+                    //Optimize strings
+                    TranslationPreprocessor.OptimizeStrings(ref Content);
 
-                Item.SourceText = Content;
+                    //Check OuterQuotes
+                    bool HasOuterQuotes = TranslationPreprocessor.HasOuterQuotes(Content.Trim());
 
-                Content = CurrentTransCore.TransAny(Item, ref CanSleep, Book);
-
-                try
-                {
-                    if (TranslationPreprocessor.HasUnicodeEscape(Content))
+                    //Remove OuterQuotes
+                    if (HasOuterQuotes)
                     {
-                        Content = Regex.Unescape(Content);
+                        TranslationPreprocessor.StripOuterQuotes(ref Content);
+                    }
+
+                    //Match DataBase
+                    string GetMatchResult = "";
+                    if (ExactMatch(GetUnit.From, GetUnit.To, GetUnit.Key, GetUnit.Type, Content, ref GetMatchResult))
+                    {
+                        Content = GetMatchResult;
+                        CanSkip = true;
+                    }
+
+                    if (!CanSkip)
+                    {
+                        GetUnit.SourceText = Content;
+
+                        Content = CurrentTransCore.TransAny(GetUnit, ref CanSleep, Book);
+
+                        try
+                        {
+                            if (TranslationPreprocessor.HasUnicodeEscape(Content))
+                            {
+                                Content = Regex.Unescape(Content);
+                            }
+                        }
+                        catch { Content = string.Empty; }
+
+                        TranslationPreprocessor.OptimizeStrings(ref Content);
+                        TranslationPreprocessor.StripOuterQuotes(ref Content);
+
+                        Content = Content.Trim();
+
+                        TranslationPreprocessor.OptimizeStrings(ref Content);
+
+                        if (HasOuterQuotes)
+                        {
+                            Content = "\"" + Content + "\"";
+                        }
+
+                        Content = ReturnStr(Content);
                     }
                 }
-                catch { Content = string.Empty; }
-
-                TranslationPreprocessor.OptimizeStrings(ref Content);
-                TranslationPreprocessor.StripOuterQuotes(ref Content);
-
-                Content = Content.Trim();
-
-                TranslationPreprocessor.OptimizeStrings(ref Content);
-
-                if (HasOuterQuotes)
-                {
-                    Content = "\"" + Content + "\"";
-                }
-
-                Content = ReturnStr(Content);
 
                 if (Chunks.Count > 0)
                 {
                     for (int i = 0; i < Chunks.Count; i++)
                     {
-                        if (Chunks[i].Equals(Item.Key))
+                        if (Chunks[i].Key.Equals(GetUnit.Key))
                         {
                             MergeLine += Content;
 
-                            int SetNextOffset = 0;
-
-                            //Scan the tail downwards.
-                            while (Chunks.Count > SetNextOffset)
+                            for (int j = i + 1; j < Chunks.Count; j++)
                             {
-                                SetNextOffset = (i + 1) + 1;
-
-                                if (Chunks.Count > SetNextOffset)
+                                if (Chunks[j].IsCode)
                                 {
-                                    if (Chunks[SetNextOffset].IsCode)
-                                    {
-                                        MergeLine += Chunks[SetNextOffset];
-                                    }
-                                    else
-                                    {
-                                        break;
-                                    }
+                                    MergeLine += Chunks[j].Data;
+                                }
+                                else
+                                {
+                                    break;
                                 }
                             }
 
