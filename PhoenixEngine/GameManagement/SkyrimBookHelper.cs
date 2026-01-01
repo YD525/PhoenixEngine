@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
 using PhoenixEngine.TranslateManage;
 using static PhoenixEngine.GameManagement.SkyrimBookHelper;
 using static PhoenixEngine.TranslateManagement.ChunkHelper;
@@ -10,12 +11,11 @@ namespace PhoenixEngine.GameManagement
     {
         public class CheckChar
         {
-            public string StartChar = "";
-            public string EndChar = "";
+            public List<string> Chars = new List<string>();
             public CheckChar(string Start, string End)
             { 
-                this.StartChar = Start;
-                this.EndChar = End;
+                this.Chars.Add(Start);
+                this.Chars.Add(End);
             }
         }
 
@@ -29,21 +29,63 @@ namespace PhoenixEngine.GameManagement
 
             IsInit = true;
         }
+
+        public CheckChar CheckCode(string Char)
+        {
+            for (int i = 0; i < this.CheckChars.Count; i++)
+            {
+                if(this.CheckChars.Count == 2)
+                if (
+                    this.CheckChars[i].Chars[0].Equals(Char) ||
+                    this.CheckChars[i].Chars[1].Equals(Char)
+                   )
+                { 
+                    return this.CheckChars[i];
+                }
+            }
+            return null;
+        }
         public List<UnitChunk> ChunkBook(TranslationUnit Unit)
         {
             //Okay, I just need to take care of this.
             //My real concern is that if the user isn't using local AI, but rather cloud-based AI, SSELex, due to its context-aware generation, might waste a lot of tokens.
+
+            List<UnitChunk> UnitChunks = new List<UnitChunk>();
 
             if (!IsInit)
             {
                 Init();
             }
 
+            CheckChar LastSetChar = null;
+
+            string TempText = "";
+
             string GetBookContent = Unit.SourceText;
 
             for (int i = 0; i < GetBookContent.Length; i++)
             {
                 string GetChar = GetBookContent.Substring(i,1);
+
+                TempText = TempText + GetChar;
+
+                var Check = CheckCode(GetChar);
+
+                if (Check != null)
+                {
+                    if (Check.Chars[0].Equals(GetChar))
+                    {
+                        LastSetChar = Check;
+                    }
+
+                    if (Check.Chars[1].Equals(GetChar) && LastSetChar != null)
+                    {
+                        if (LastSetChar.Chars.Contains(GetChar))
+                        { 
+                        
+                        }
+                    }
+                }
             }
            
             return new List<UnitChunk>();
