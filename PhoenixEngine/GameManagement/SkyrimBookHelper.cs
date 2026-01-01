@@ -34,12 +34,11 @@ namespace PhoenixEngine.GameManagement
         {
             for (int i = 0; i < this.CheckChars.Count; i++)
             {
-                if(this.CheckChars.Count == 2)
                 if (
                     this.CheckChars[i].Chars[0].Equals(Char) ||
                     this.CheckChars[i].Chars[1].Equals(Char)
                    )
-                { 
+                {
                     return this.CheckChars[i];
                 }
             }
@@ -87,18 +86,31 @@ namespace PhoenixEngine.GameManagement
                             Block++;
                             UnitChunks.Add(new UnitChunk(Unit.Key, Unit.Key + "_" + Block, true, TempText));
                             TempText = string.Empty;
+                            LastSetChar = null;
                         }
                     }
                 }
 
-                if (GetChar.Equals("\r") || GetChar.Equals("\n") && TempText.Length > 0)
+                if ((GetChar.Equals("\r") || GetChar.Equals("\n")) && TempText.Length > 0)
                 {
+                    if (i + 1 < GetBookContent.Length && GetBookContent[i + 1] == '\n' && GetChar.Equals("\r"))
+                    {
+                        i++;
+                    }
+
                     Block++;
                     UnitChunks.Add(new UnitChunk(Unit.Key, Unit.Key + "_" + Block, false, TempText));
                     TempText = string.Empty;
                 }
             }
-           
+
+            if (TempText.Length > 0)
+            {
+                Block++;
+                UnitChunks.Add(new UnitChunk(Unit.Key, Unit.Key + "_" + Block, false, TempText));
+                TempText = string.Empty;
+            }
+
             return UnitChunks;
         }
     }
