@@ -26,11 +26,11 @@ namespace PhoenixEngine.PlatformManagement
 
             if (From == Languages.Auto)
             {
-                Prompt.AppendLine("Translate the following text to " + To.ToString() + ". The source language will be automatically detected.");
+                Prompt.AppendLine("Translate the following text to " + LanguageHelper.ToLanguageCode(To) + ". The source language will be automatically detected.");
             }
             else
             {
-                Prompt.AppendLine($"Translate the following text from {From.ToString()} to {To.ToString()}.");
+                Prompt.AppendLine($"Translate the following text from {LanguageHelper.ToLanguageCode(From)} to {LanguageHelper.ToLanguageCode(To)}.");
             }
 
             // Direct instruction to exclude extra information
