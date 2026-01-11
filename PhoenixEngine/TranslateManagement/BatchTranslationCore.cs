@@ -729,6 +729,8 @@ namespace PhoenixEngine.TranslateManage
                 this.UnitsLeaderToTranslate[GetKey].Translated = false;
                 this.UnitsLeaderToTranslate[GetKey].WorkEnd = 0;
                 this.UnitsLeaderToTranslate[GetKey].TransText = string.Empty;
+                this.UnitsLeaderToTranslate[GetKey].From = Engine.From;
+                this.UnitsLeaderToTranslate[GetKey].To = Engine.To;
             }
 
             for (int i = 0; i < this.UnitsToTranslate.Count; i++)
@@ -736,6 +738,8 @@ namespace PhoenixEngine.TranslateManage
                 this.UnitsToTranslate[i].Translated = false;
                 this.UnitsToTranslate[i].WorkEnd = 0;
                 this.UnitsToTranslate[i].TransText = string.Empty;
+                this.UnitsToTranslate[i].From = Engine.From;
+                this.UnitsToTranslate[i].To = Engine.To;
             }
         }
 
