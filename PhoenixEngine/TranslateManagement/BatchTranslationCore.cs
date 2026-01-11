@@ -293,21 +293,19 @@ namespace PhoenixEngine.TranslateManage
 
             foreach (var idx in FilteredItems)
             {
-                var tokens = TextTokenizer
+                TokensCache[idx] = TextTokenizer
                     .Tokenize(Lang, SetItems[idx].SourceText)
                     .Where(t => t.Length >= 3)
                     .Select(t => t.ToLowerInvariant())
                     .Take(10)
                     .ToHashSet();
-
-                TokensCache[idx] = tokens;
             }
 
             var PrefixBuckets = new Dictionary<string, List<int>>();
 
             foreach (var idx in FilteredItems)
             {
-                var prefix = BuildPrefixKey(SetItems[idx].SourceText);
+                var prefix = BuildPrefixKey(SetItems[idx].SourceText, 3);
 
                 if (!PrefixBuckets.TryGetValue(prefix, out var list))
                 {
@@ -349,12 +347,7 @@ namespace PhoenixEngine.TranslateManage
                     if (idx == leaderIdx)
                         continue;
 
-                    var follower = SetItems[idx];
-                    follower.TempSim = CalculateSimilarity(
-                        TokensCache[leaderIdx],
-                        TokensCache[idx]);
-
-                    UnitsToTranslate.Add(follower);
+                    UnitsToTranslate.Add(SetItems[idx]);
                     ProcessedCount++;
                 }
 
@@ -364,6 +357,28 @@ namespace PhoenixEngine.TranslateManage
                         Math.Min(ProcessedCount, TotalToProcess) * 100.0 / TotalToProcess, 2);
                 }
             }
+
+            var SecondStageMap = new Dictionary<string, int>();
+            var RemoveLeaders = new List<string>();
+
+            foreach (var kv in UnitsLeaderToTranslate)
+            {
+                var item = kv.Value;
+                var key2 = BuildPrefixKey(item.SourceText, 2);
+
+                if (SecondStageMap.ContainsKey(key2))
+                {
+                    UnitsToTranslate.Add(item);
+                    RemoveLeaders.Add(kv.Key);
+                }
+                else
+                {
+                    SecondStageMap[key2] = 1;
+                }
+            }
+
+            foreach (var k in RemoveLeaders)
+                UnitsLeaderToTranslate.Remove(k);
 
             MarkLeadersPercent = 100;
         }
@@ -379,9 +394,7 @@ namespace PhoenixEngine.TranslateManage
             foreach (char c in text)
             {
                 if (c == ' ' || c == '\t')
-                {
                     inWord = false;
-                }
                 else if (!inWord)
                 {
                     count++;
@@ -431,7 +444,7 @@ namespace PhoenixEngine.TranslateManage
             return best;
         }
 
-        private static string BuildPrefixKey(string text)
+        private static string BuildPrefixKey(string text, int maxWords)
         {
             if (string.IsNullOrEmpty(text))
                 return string.Empty;
@@ -442,7 +455,7 @@ namespace PhoenixEngine.TranslateManage
 
             var sb = new StringBuilder(len);
 
-            while (i < len && wordCount < 2)
+            while (i < len && wordCount < maxWords)
             {
                 while (i < len && (text[i] == ' ' || text[i] == '\t'))
                     i++;
@@ -468,32 +481,12 @@ namespace PhoenixEngine.TranslateManage
         private static bool HasDigit(string text)
         {
             foreach (char c in text)
-            {
                 if (char.IsDigit(c))
                     return true;
-            }
             return false;
         }
 
-        private static double CalculateSimilarity(HashSet<string> a, HashSet<string> b)
-        {
-            if (a == null || b == null || a.Count == 0 || b.Count == 0)
-                return 0.0;
-
-            if (!a.Overlaps(b))
-                return 0.0;
-
-            int intersection = 0;
-            foreach (var t in a)
-                if (b.Contains(t))
-                    intersection++;
-
-            int union = a.Count + b.Count - intersection;
-            return union > 0 ? (double)intersection / union : 0.0;
-        }
-
         #endregion
-
 
         public ThreadUsageInfo ThreadUsage = new ThreadUsageInfo();
 
