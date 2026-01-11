@@ -626,6 +626,24 @@ namespace PhoenixEngine.TranslateManage
             }
         }
 
+        public void ReSet()
+        {
+            for (int i = 0; i < this.UnitsLeaderToTranslate.Count; i++)
+            {
+                string GetKey = this.UnitsLeaderToTranslate.ElementAt(i).Key;
+                this.UnitsLeaderToTranslate[GetKey].Translated = false;
+                this.UnitsLeaderToTranslate[GetKey].WorkEnd = 0;
+                this.UnitsLeaderToTranslate[GetKey].TransText = string.Empty;
+            }
+
+            for (int i = 0; i < this.UnitsToTranslate.Count; i++)
+            {
+                this.UnitsToTranslate[i].Translated = false;
+                this.UnitsToTranslate[i].WorkEnd = 0;
+                this.UnitsToTranslate[i].TransText = string.Empty;
+            }
+        }
+
         public void Start()
         {
             if (IsWork || TransMainTrd == null)
@@ -634,6 +652,8 @@ namespace PhoenixEngine.TranslateManage
                 TransMainTrd = new Thread(() =>
                 {
                     IsWork = true;
+
+                    ReSet();
 
                     if (this.From != Languages.Auto)
                     {
@@ -664,6 +684,8 @@ namespace PhoenixEngine.TranslateManage
 
                     int CurrentTrds = 0;
 
+                    bool IsLeader = true;
+
                     WorkState = 2;
 
                     while (true)
@@ -672,7 +694,7 @@ namespace PhoenixEngine.TranslateManage
                         {
                             try
                             {
-                            NextFind:
+                                NextFind:
 
                                 ThreadUsage.CurrentThreads = CurrentTrds;
                                 ThreadUsage.MaxThreads = EngineConfig.Config.MaxThreadCount;
@@ -680,14 +702,22 @@ namespace PhoenixEngine.TranslateManage
                                 bool CanExit = true;
                                 Token.ThrowIfCancellationRequested();
                                 CurrentTrds = GetWorkCount();
+                                
+                                int AutoTrd = EngineConfig.Config.MaxThreadCount;
 
-                                if (CurrentTrds < EngineConfig.Config.MaxThreadCount)
+                                if (IsLeader)
+                                {
+                                    AutoTrd = 1;
+                                }
+
+                                if (CurrentTrds < AutoTrd)
                                 {
                                     TranslationUnit Leader = GetWaitTransUnitFromDict(UnitsLeaderToTranslate);
                                     if (Leader != null)
                                     {
                                         Leader.StartWork(this);
                                         CanExit = false;
+                                        IsLeader = true;
                                         goto Next;
                                     }
 
@@ -696,10 +726,11 @@ namespace PhoenixEngine.TranslateManage
                                     {
                                         Normal.StartWork(this);
                                         CanExit = false;
+                                        IsLeader = false;
                                         goto Next;
                                     }
 
-                                Next:
+                                    Next:
 
                                     if (CurrentTrds > EngineConfig.Config.MaxThreadCount * EngineConfig.Config.ThrottleRatio)
                                     {
