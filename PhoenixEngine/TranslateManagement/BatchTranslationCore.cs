@@ -248,13 +248,7 @@ namespace PhoenixEngine.TranslateManage
 
         public double MarkLeadersPercent = 0;
 
-        /// <summary>
-        /// High-performance leader marking with token-based similarity
-        /// </summary>
-        /// <param name="SetItems">List of translation units</param>
-        /// <param name="Lang">Language for tokenization</param>
-        /// <param name="SimilarityThreshold">Minimum similarity to group as leader</param>
-        public void MarkLeadersAndSortHighPerfAccumulate(List<TranslationUnit> SetItems, Languages Lang)
+        public void MarkLeadersAndSort(List<TranslationUnit> SetItems, Languages Lang)
         {
             MarkLeadersPercent = 0;
             int N = SetItems.Count;
@@ -270,10 +264,12 @@ namespace PhoenixEngine.TranslateManage
             // Precompute Tokens For All Items
             var TokensCache = new string[N][];
             for (int I = 0; I < N; I++)
+            {
                 TokensCache[I] = TextTokenizer.Tokenize(Lang, SetItems[I].SourceText)
-                                              .Select(T => T.ToLowerInvariant())
-                                              .Take(10)
-                                              .ToArray();
+                                             .Select(T => T.ToLowerInvariant())
+                                             .Take(10)
+                                             .ToArray();
+            }
 
             // Build Inverted Index For Fast Token Lookup
             var TokenIndex = new Dictionary<string, List<int>>(StringComparer.OrdinalIgnoreCase);
@@ -290,44 +286,110 @@ namespace PhoenixEngine.TranslateManage
                 }
             }
 
-            // Compute Cumulative Similarity
-            for (int I = 0; I < N; I++)
+            // Precompute similarity matrix (only compute once for each pair)
+            var SimilarityCache = new Dictionary<(int, int), double>();
+
+            double GetSimilarity(int I, int J)
             {
+                if (I == J) return 1.0;
+
+                var key = I < J ? (I, J) : (J, I);
+                if (SimilarityCache.TryGetValue(key, out var cachedSim))
+                    return cachedSim;
+
                 var TokenSetA = TokensCache[I].ToHashSet();
-                var RelatedIndices = new HashSet<int>();
-                foreach (var Token in TokenSetA)
-                {
-                    if (TokenIndex.TryGetValue(Token, out var Indices))
-                        RelatedIndices.UnionWith(Indices);
-                }
+                var TokenSetB = TokensCache[J].ToHashSet();
 
-                foreach (var J in RelatedIndices)
-                {
-                    if (I == J) continue;
+                int Intersection = TokenSetA.Intersect(TokenSetB).Count();
+                int Union = TokenSetA.Union(TokenSetB).Count();
+                double Sim = Union > 0 ? (double)Intersection / Union : 0;
 
-                    int Intersection = TokenSetA.Intersect(TokensCache[J]).Count();
-                    int Union = TokenSetA.Union(TokensCache[J]).Count();
-                    double Sim = Union > 0 ? (double)Intersection / Union : 0;
-
-                    // Accumulate Similarity Score
-                    SetItems[I].TempSim += Sim;
-                }
-
-                MarkLeadersPercent = Math.Round(((double)(I + 1) * 100 / N), 2);
+                SimilarityCache[key] = Sim;
+                return Sim;
             }
 
-            // Sort By TempSim Descending
-            UnitsLeaderToTranslate.AddRange(SetItems.OrderByDescending(X => X.TempSim));
+            // Greedy Leader Selection Algorithm
+            const double SimilarityThreshold = 0.5; // Adjust this threshold as needed
 
-            // Move Items With TempSim == 0 To UnitsToTranslate
-            var ToMove = UnitsLeaderToTranslate.Where(X => X.TempSim == 0).ToList();
-            foreach (var Item in ToMove)
+            var RemainingIndices = new HashSet<int>(Enumerable.Range(0, N));
+            var LeaderIndices = new List<int>();
+            var FollowerGroups = new Dictionary<int, List<int>>(); // Leader index -> follower indices
+
+            int ProcessedCount = 0;
+
+            while (RemainingIndices.Count > 0)
             {
-                UnitsLeaderToTranslate.Remove(Item);
-                UnitsToTranslate.Add(Item);
+                // Find the item with lowest average similarity to existing leaders
+                // (most distinct from already selected leaders)
+                int BestCandidate = -1;
+                double LowestAvgSim = double.MaxValue;
+
+                foreach (var Candidate in RemainingIndices)
+                {
+                    double AvgSim = 0;
+                    if (LeaderIndices.Count > 0)
+                    {
+                        foreach (var Leader in LeaderIndices)
+                        {
+                            AvgSim += GetSimilarity(Candidate, Leader);
+                        }
+                        AvgSim /= LeaderIndices.Count;
+                    }
+
+                    if (AvgSim < LowestAvgSim)
+                    {
+                        LowestAvgSim = AvgSim;
+                        BestCandidate = Candidate;
+                    }
+                }
+
+                // Mark this item as a leader
+                LeaderIndices.Add(BestCandidate);
+                FollowerGroups[BestCandidate] = new List<int>();
+                RemainingIndices.Remove(BestCandidate);
+
+                // Find all items similar to this leader and group them
+                var ToRemove = new List<int>();
+                foreach (var Idx in RemainingIndices)
+                {
+                    double Sim = GetSimilarity(BestCandidate, Idx);
+                    if (Sim >= SimilarityThreshold)
+                    {
+                        FollowerGroups[BestCandidate].Add(Idx);
+                        ToRemove.Add(Idx);
+                    }
+                }
+
+                foreach (var Idx in ToRemove)
+                {
+                    RemainingIndices.Remove(Idx);
+                }
+
+                ProcessedCount += 1 + ToRemove.Count;
+                MarkLeadersPercent = Math.Round(((double)ProcessedCount * 100 / N), 2);
             }
 
-            GC.Collect();
+            // Build result lists
+            // Leaders are sorted by group size (descending) - larger groups first
+            var SortedLeaders = LeaderIndices
+                .OrderByDescending(L => FollowerGroups[L].Count)
+                .ThenBy(L => L) // Stable sort by original index
+                .ToList();
+
+            foreach (var LeaderIdx in SortedLeaders)
+            {
+                var LeaderItem = SetItems[LeaderIdx];
+                LeaderItem.TempSim = FollowerGroups[LeaderIdx].Count; // Store group size
+                UnitsLeaderToTranslate.Add(LeaderItem);
+
+                // Add followers to UnitsToTranslate
+                foreach (var FollowerIdx in FollowerGroups[LeaderIdx])
+                {
+                    var FollowerItem = SetItems[FollowerIdx];
+                    FollowerItem.TempSim = GetSimilarity(LeaderIdx, FollowerIdx); // Store similarity to leader
+                    UnitsToTranslate.Add(FollowerItem);
+                }
+            }
         }
 
         public ThreadUsageInfo ThreadUsage = new ThreadUsageInfo();
@@ -559,7 +621,7 @@ namespace PhoenixEngine.TranslateManage
 
                     if (!SkipWordAnalysis)
                     {
-                        MarkLeadersAndSortHighPerfAccumulate(new List<TranslationUnit>(this.UnitsToTranslate), this.DetectSourceLang);
+                        MarkLeadersAndSort(new List<TranslationUnit>(this.UnitsToTranslate), this.DetectSourceLang);
                     }
 
                     if (ExitAny)

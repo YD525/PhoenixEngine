@@ -6,36 +6,6 @@ using PhoenixEngine.TranslateManagement;
 
 namespace PhoenixEngine.TranslateManage
 {
-    public static class LanguageExtensions
-    {
-        public static bool IsSpaceDelimitedLanguage(this Languages Lang)
-        {
-            return Lang == Languages.German ||
-            Lang == Languages.English ||
-            Lang == Languages.Turkish ||
-            Lang == Languages.Brazilian ||
-            Lang == Languages.Russian ||
-            Lang == Languages.Italian ||
-            Lang == Languages.Spanish ||
-            Lang == Languages.Indonesian ||
-            Lang == Languages.Hindi ||
-            Lang == Languages.Urdu ||
-            Lang == Languages.French ||
-            Lang == Languages.Vietnamese ||
-            Lang == Languages.Polish||
-            Lang == Languages.Persian;
-        }
-
-        public static bool IsNoSpaceLanguage(this Languages Lang)
-        {
-            return Lang == Languages.Japanese ||
-            Lang == Languages.Korean ||
-            Lang == Languages.TraditionalChinese ||
-            Lang == Languages.Thai||
-            Lang == Languages.SimplifiedChinese;
-        }
-    }
-
     public class AITranslationMemory
     {
         // TranslationMemory[TargetLang][Original] = Translated
@@ -56,6 +26,60 @@ namespace PhoenixEngine.TranslateManage
                 _WordIndex.Clear();
             }
         }
+
+        /// <summary>
+        /// Delete translation by original text only (regardless of translated value).
+        /// Removes from both main dictionary and word index.
+        /// </summary>
+        public bool DeleteTranslation(Languages SourceLang, Languages TargetLang, string Original)
+        {
+            // Auto detect source
+            if (SourceLang == Languages.Auto)
+                SourceLang = LanguageHelper.DetectLanguageByLine(Original);
+
+            if (TargetLang == Languages.Auto)
+                throw new InvalidOperationException("TargetLang cannot be Auto when deleting.");
+
+            lock (Locker)
+            {
+                if (!_TranslationMemory.ContainsKey(TargetLang))
+                    return false;
+
+                var dict = _TranslationMemory[TargetLang];
+
+                // Not found
+                if (!dict.ContainsKey(Original))
+                    return false;
+
+                // Remove from main dictionary
+                dict.Remove(Original);
+
+                // Update word index
+                if (_WordIndex.ContainsKey(TargetLang))
+                {
+                    var index = _WordIndex[TargetLang];
+
+                    // Tokenize original using source language
+                    string[] tokens = Tokenize(SourceLang, Original);
+
+                    foreach (string w in tokens)
+                    {
+                        string key = w.ToLower();
+
+                        if (index.TryGetValue(key, out var set))
+                        {
+                            set.Remove(Original);
+
+                            if (set.Count == 0)
+                                index.Remove(key);
+                        }
+                    }
+                }
+
+                return true;
+            }
+        }
+
 
         /// <summary>
         /// Remove translation only if stored value equals the provided translated.
@@ -117,8 +141,9 @@ namespace PhoenixEngine.TranslateManage
         }
 
         /// <summary>
-        /// Add translation: tokenize using source language, 
+        /// Add or UPDATE translation: tokenize using source language, 
         /// but store index under target language bucket.
+        /// If Original already exists, it will be REPLACED with the new Translated value.
         /// </summary>
         public void AddTranslation(Languages SourceLang, Languages TargetLang,
                                    string Original, string Translated)
@@ -143,23 +168,43 @@ namespace PhoenixEngine.TranslateManage
                 var dict = _TranslationMemory[TargetLang];
                 var index = _WordIndex[TargetLang];
 
-                // Do not overwrite existing
-                if (!dict.ContainsKey(Original))
+                // Check if already exists
+                bool isUpdate = dict.ContainsKey(Original);
+
+                if (isUpdate)
                 {
-                    dict[Original] = Translated;
+                    // If the translation is the same, no need to update
+                    if (dict[Original] == Translated)
+                        return;
 
-                    // TOKENIZE USING SOURCE LANGUAGE
-                    string[] tokens = Tokenize(SourceLang, Original);
-
-                    foreach (string word in tokens)
+                    // Clean up old index entries before updating
+                    string[] oldTokens = Tokenize(SourceLang, Original);
+                    foreach (string word in oldTokens)
                     {
                         string key = word.ToLower();
-
-                        if (!index.ContainsKey(key))
-                            index[key] = new HashSet<string>();
-
-                        index[key].Add(Original);
+                        if (index.TryGetValue(key, out var set))
+                        {
+                            set.Remove(Original);
+                            if (set.Count == 0)
+                                index.Remove(key);
+                        }
                     }
+                }
+
+                // Add or update the translation
+                dict[Original] = Translated;
+
+                // TOKENIZE USING SOURCE LANGUAGE and rebuild index
+                string[] tokens = Tokenize(SourceLang, Original);
+
+                foreach (string word in tokens)
+                {
+                    string key = word.ToLower();
+
+                    if (!index.ContainsKey(key))
+                        index[key] = new HashSet<string>();
+
+                    index[key].Add(Original);
                 }
             }
         }
@@ -267,5 +312,4 @@ namespace PhoenixEngine.TranslateManage
             ListToTrim = trimmed;
         }
     }
-
 }
