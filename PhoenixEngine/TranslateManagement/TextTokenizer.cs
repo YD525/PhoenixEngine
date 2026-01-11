@@ -26,7 +26,6 @@ namespace PhoenixEngine.TranslateManagement
             Lang == Languages.Polish ||
             Lang == Languages.Persian;
         }
-
         public static bool IsNoSpaceLanguage(this Languages Lang)
         {
             return Lang == Languages.Japanese ||

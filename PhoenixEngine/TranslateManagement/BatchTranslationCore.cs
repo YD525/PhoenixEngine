@@ -211,7 +211,7 @@ namespace PhoenixEngine.TranslateManage
 
         public Dictionary<string, string> SameItems = new Dictionary<string, string>();
 
-        public List<TranslationUnit> UnitsLeaderToTranslate = new List<TranslationUnit>();
+        public Dictionary<string, TranslationUnit> UnitsLeaderToTranslate = new Dictionary<string, TranslationUnit>();
 
         public List<TranslationUnit> UnitsToTranslate = new List<TranslationUnit>();
 
@@ -380,7 +380,12 @@ namespace PhoenixEngine.TranslateManage
             {
                 var LeaderItem = SetItems[LeaderIdx];
                 LeaderItem.TempSim = FollowerGroups[LeaderIdx].Count; // Store group size
-                UnitsLeaderToTranslate.Add(LeaderItem);
+
+                // Add to dictionary using Key as the dictionary key
+                if (!string.IsNullOrEmpty(LeaderItem.Key))
+                {
+                    UnitsLeaderToTranslate[LeaderItem.Key] = LeaderItem;
+                }
 
                 // Add followers to UnitsToTranslate
                 foreach (var FollowerIdx in FollowerGroups[LeaderIdx])
@@ -467,9 +472,9 @@ namespace PhoenixEngine.TranslateManage
                 }
             }
 
-            for (int i = 0; i < UnitsLeaderToTranslate.Count; i++)
+            foreach (var kvp in UnitsLeaderToTranslate)
             {
-                if (UnitsLeaderToTranslate[i].Transing)
+                if (kvp.Value.Transing)
                 {
                     WorkCount++;
                 }
@@ -477,6 +482,7 @@ namespace PhoenixEngine.TranslateManage
 
             return WorkCount;
         }
+
         public void MarkDuplicates(List<TranslationUnit> Items)
         {
             var CountDict = new Dictionary<string, int>();
@@ -496,6 +502,7 @@ namespace PhoenixEngine.TranslateManage
                 Item.IsDuplicateSource = CountDict[Key] > 1;
             }
         }
+
         public void Init()
         {
             WorkState = 0;
@@ -529,6 +536,7 @@ namespace PhoenixEngine.TranslateManage
         {
             TransMainTrdCancel?.Cancel();
         }
+
         public int AutoSleep = 1;
 
         public bool IsWork = false;
@@ -555,6 +563,21 @@ namespace PhoenixEngine.TranslateManage
             }
         }
 
+        public TranslationUnit GetWaitTransUnitFromDict(Dictionary<string, TranslationUnit> Dict)
+        {
+            lock (WaitTranslateLock)
+            {
+                foreach (var kvp in Dict)
+                {
+                    if (kvp.Value.WorkEnd <= 0)
+                    {
+                        return kvp.Value;
+                    }
+                }
+                return null;
+            }
+        }
+
         public int AddWaitTransUnit(TranslationUnit Item, bool IsLeader = false)
         {
             lock (WaitTranslateLock)
@@ -565,10 +588,12 @@ namespace PhoenixEngine.TranslateManage
                     int Count = 0;
                     if (IsLeader)
                     {
-                        UnitsLeaderToTranslate.Add(Item);
-                        HasAdd = true;
-                        Count = UnitsLeaderToTranslate.Count;
-                       
+                        if (!string.IsNullOrEmpty(Item.Key))
+                        {
+                            UnitsLeaderToTranslate[Item.Key] = Item;
+                            HasAdd = true;
+                            Count = UnitsLeaderToTranslate.Count;
+                        }
                     }
                     else
                     {
@@ -579,17 +604,28 @@ namespace PhoenixEngine.TranslateManage
 
                     return Count;
                 }
-                catch 
+                catch
                 {
                     if (!HasAdd)
                     {
                         return -1;
                     }
 
-                    return 0; 
+                    return 0;
                 }
             }
         }
+
+        public void MarkLeaders()
+        {
+            if (!SkipWordAnalysis)
+            {
+                WorkState = 0;
+                MarkLeadersAndSort(new List<TranslationUnit>(this.UnitsToTranslate), this.DetectSourceLang);
+                WorkState = 1;
+            }
+        }
+
         public void Start()
         {
             if (IsWork || TransMainTrd == null)
@@ -598,8 +634,6 @@ namespace PhoenixEngine.TranslateManage
                 TransMainTrd = new Thread(() =>
                 {
                     IsWork = true;
-
-                    WorkState = 1;
 
                     if (this.From != Languages.Auto)
                     {
@@ -617,11 +651,6 @@ namespace PhoenixEngine.TranslateManage
                         this.DetectSourceLang = LangDetecter.GetLang();
 
                         LangDetecter = null;
-                    }
-
-                    if (!SkipWordAnalysis)
-                    {
-                        MarkLeadersAndSort(new List<TranslationUnit>(this.UnitsToTranslate), this.DetectSourceLang);
                     }
 
                     if (ExitAny)
@@ -654,7 +683,7 @@ namespace PhoenixEngine.TranslateManage
 
                                 if (CurrentTrds < EngineConfig.Config.MaxThreadCount)
                                 {
-                                    TranslationUnit Leader = GetWaitTransUnit(ref UnitsLeaderToTranslate);
+                                    TranslationUnit Leader = GetWaitTransUnitFromDict(UnitsLeaderToTranslate);
                                     if (Leader != null)
                                     {
                                         Leader.StartWork(this);
@@ -699,9 +728,9 @@ namespace PhoenixEngine.TranslateManage
                                         }
                                     }
 
-                                    for (int i = 0; i < UnitsLeaderToTranslate.Count; i++)
+                                    foreach (var kvp in UnitsLeaderToTranslate)
                                     {
-                                        if (UnitsLeaderToTranslate[i].WorkEnd == 2)
+                                        if (kvp.Value.WorkEnd == 2)
                                         {
                                             SucessCount++;
                                         }
@@ -763,6 +792,7 @@ namespace PhoenixEngine.TranslateManage
         }
 
         public bool ExitAny = false;
+
         public void Close()
         {
             ExitAny = true;
@@ -779,6 +809,18 @@ namespace PhoenixEngine.TranslateManage
                     try
                     {
                         UnitsToTranslate[i].CancelWorkThread();
+                    }
+                    catch { }
+                }
+            }
+
+            foreach (var kvp in UnitsLeaderToTranslate)
+            {
+                if (kvp.Value.Transing)
+                {
+                    try
+                    {
+                        kvp.Value.CancelWorkThread();
                     }
                     catch { }
                 }
@@ -802,7 +844,7 @@ namespace PhoenixEngine.TranslateManage
 
         public void SetDuplicateSource(string Source)
         {
-            IEnumerable<TranslationUnit> AllUnits = UnitsToTranslate.Concat(UnitsLeaderToTranslate);
+            IEnumerable<TranslationUnit> AllUnits = UnitsToTranslate.Concat(UnitsLeaderToTranslate.Values);
 
             foreach (var Unit in AllUnits)
             {
