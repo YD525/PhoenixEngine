@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using PhoenixEngine.DelegateManagement;
 using PhoenixEngine.EngineManagement;
@@ -246,156 +247,241 @@ namespace PhoenixEngine.TranslateManage
             Init();
         }
 
+        #region Words Analysis
+
         public double MarkLeadersPercent = 0;
 
         public void MarkLeadersAndSort(List<TranslationUnit> SetItems, Languages Lang)
         {
             MarkLeadersPercent = 0;
+
             int N = SetItems.Count;
             if (N == 0) return;
 
             UnitsLeaderToTranslate.Clear();
             UnitsToTranslate.Clear();
 
-            // Initialize TempSim For All Items
-            foreach (var Item in SetItems)
-                Item.TempSim = 0;
+            int MaxCharsForLeaderSelection = EngineConfig.Config.ContextLimit;
 
-            // Precompute Tokens For All Items
-            var TokensCache = new string[N][];
-            for (int I = 0; I < N; I++)
-            {
-                TokensCache[I] = TextTokenizer.Tokenize(Lang, SetItems[I].SourceText)
-                                             .Select(T => T.ToLowerInvariant())
-                                             .Take(10)
-                                             .ToArray();
-            }
+            var FilteredItems = new List<int>();
 
-            // Build Inverted Index For Fast Token Lookup
-            var TokenIndex = new Dictionary<string, List<int>>(StringComparer.OrdinalIgnoreCase);
-            for (int I = 0; I < N; I++)
+            for (int i = 0; i < N; i++)
             {
-                foreach (var Token in TokensCache[I])
+                var item = SetItems[i];
+                item.TempSim = 0;
+
+                if (!string.IsNullOrEmpty(item.SourceText) &&
+                    item.SourceText.Length > MaxCharsForLeaderSelection)
                 {
-                    if (!TokenIndex.TryGetValue(Token, out var List))
-                    {
-                        List = new List<int>();
-                        TokenIndex[Token] = List;
-                    }
-                    List.Add(I);
+                    UnitsToTranslate.Add(item);
+                }
+                else
+                {
+                    FilteredItems.Add(i);
                 }
             }
 
-            // Precompute similarity matrix (only compute once for each pair)
-            var SimilarityCache = new Dictionary<(int, int), double>();
-
-            double GetSimilarity(int I, int J)
+            if (FilteredItems.Count == 0)
             {
-                if (I == J) return 1.0;
-
-                var key = I < J ? (I, J) : (J, I);
-                if (SimilarityCache.TryGetValue(key, out var cachedSim))
-                    return cachedSim;
-
-                var TokenSetA = TokensCache[I].ToHashSet();
-                var TokenSetB = TokensCache[J].ToHashSet();
-
-                int Intersection = TokenSetA.Intersect(TokenSetB).Count();
-                int Union = TokenSetA.Union(TokenSetB).Count();
-                double Sim = Union > 0 ? (double)Intersection / Union : 0;
-
-                SimilarityCache[key] = Sim;
-                return Sim;
+                MarkLeadersPercent = 100;
+                return;
             }
 
-            // Greedy Leader Selection Algorithm
-            const double SimilarityThreshold = 0.5; // Adjust this threshold as needed
+            var TokensCache = new Dictionary<int, HashSet<string>>();
 
-            var RemainingIndices = new HashSet<int>(Enumerable.Range(0, N));
-            var LeaderIndices = new List<int>();
-            var FollowerGroups = new Dictionary<int, List<int>>(); // Leader index -> follower indices
-
-            int ProcessedCount = 0;
-
-            while (RemainingIndices.Count > 0)
+            foreach (var idx in FilteredItems)
             {
-                // Find the item with lowest average similarity to existing leaders
-                // (most distinct from already selected leaders)
-                int BestCandidate = -1;
-                double LowestAvgSim = double.MaxValue;
+                var tokens = TextTokenizer
+                    .Tokenize(Lang, SetItems[idx].SourceText)
+                    .Where(t => t.Length >= 3)
+                    .Select(t => t.ToLowerInvariant())
+                    .Take(10)
+                    .ToHashSet();
 
-                foreach (var Candidate in RemainingIndices)
-                {
-                    double AvgSim = 0;
-                    if (LeaderIndices.Count > 0)
-                    {
-                        foreach (var Leader in LeaderIndices)
-                        {
-                            AvgSim += GetSimilarity(Candidate, Leader);
-                        }
-                        AvgSim /= LeaderIndices.Count;
-                    }
-
-                    if (AvgSim < LowestAvgSim)
-                    {
-                        LowestAvgSim = AvgSim;
-                        BestCandidate = Candidate;
-                    }
-                }
-
-                // Mark this item as a leader
-                LeaderIndices.Add(BestCandidate);
-                FollowerGroups[BestCandidate] = new List<int>();
-                RemainingIndices.Remove(BestCandidate);
-
-                // Find all items similar to this leader and group them
-                var ToRemove = new List<int>();
-                foreach (var Idx in RemainingIndices)
-                {
-                    double Sim = GetSimilarity(BestCandidate, Idx);
-                    if (Sim >= SimilarityThreshold)
-                    {
-                        FollowerGroups[BestCandidate].Add(Idx);
-                        ToRemove.Add(Idx);
-                    }
-                }
-
-                foreach (var Idx in ToRemove)
-                {
-                    RemainingIndices.Remove(Idx);
-                }
-
-                ProcessedCount += 1 + ToRemove.Count;
-                MarkLeadersPercent = Math.Round(((double)ProcessedCount * 100 / N), 2);
+                TokensCache[idx] = tokens;
             }
 
-            // Build result lists
-            // Leaders are sorted by group size (descending) - larger groups first
-            var SortedLeaders = LeaderIndices
-                .OrderByDescending(L => FollowerGroups[L].Count)
-                .ThenBy(L => L) // Stable sort by original index
-                .ToList();
+            var PrefixBuckets = new Dictionary<string, List<int>>();
 
-            foreach (var LeaderIdx in SortedLeaders)
+            foreach (var idx in FilteredItems)
             {
-                var LeaderItem = SetItems[LeaderIdx];
-                LeaderItem.TempSim = FollowerGroups[LeaderIdx].Count; // Store group size
+                var text = SetItems[idx].SourceText;
+                var prefix = BuildPrefixKey(text);
 
-                // Add to dictionary using Key as the dictionary key
-                if (!string.IsNullOrEmpty(LeaderItem.Key))
+                if (!PrefixBuckets.TryGetValue(prefix, out var list))
                 {
-                    UnitsLeaderToTranslate[LeaderItem.Key] = LeaderItem;
+                    list = new List<int>();
+                    PrefixBuckets[prefix] = list;
+                }
+                list.Add(idx);
+            }
+
+            int ProcessedCount = UnitsToTranslate.Count;
+            int TotalToProcess = N;
+            int UpdateInterval = Math.Max(1, TotalToProcess / 100);
+
+            foreach (var bucket in PrefixBuckets.Values)
+            {
+                if (bucket.Count == 0)
+                    continue;
+
+                int leaderIdx = PickContextLeader(bucket, SetItems, TokensCache);
+
+                var leaderItem = SetItems[leaderIdx];
+                leaderItem.TempSim = bucket.Count - 1;
+
+                if (!string.IsNullOrEmpty(leaderItem.Key))
+                {
+                    UnitsLeaderToTranslate[leaderItem.Key] = leaderItem;
                 }
 
-                // Add followers to UnitsToTranslate
-                foreach (var FollowerIdx in FollowerGroups[LeaderIdx])
+                ProcessedCount++;
+
+                foreach (var idx in bucket)
                 {
-                    var FollowerItem = SetItems[FollowerIdx];
-                    FollowerItem.TempSim = GetSimilarity(LeaderIdx, FollowerIdx); // Store similarity to leader
-                    UnitsToTranslate.Add(FollowerItem);
+                    if (idx == leaderIdx) continue;
+
+                    var follower = SetItems[idx];
+                    follower.TempSim = CalculateSimilarity(
+                        TokensCache[leaderIdx],
+                        TokensCache[idx]);
+
+                    UnitsToTranslate.Add(follower);
+                    ProcessedCount++;
+                }
+
+                if (ProcessedCount % UpdateInterval == 0)
+                {
+                    MarkLeadersPercent = Math.Round(
+                        Math.Min(ProcessedCount, TotalToProcess) * 100.0 / TotalToProcess, 2);
                 }
             }
+
+            MarkLeadersPercent = 100;
         }
+        private static int CountWords(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return 0;
+
+            int count = 0;
+            bool inWord = false;
+
+            foreach (char c in text)
+            {
+                if (c == ' ' || c == '\t')
+                {
+                    if (inWord)
+                        inWord = false;
+                }
+                else
+                {
+                    if (!inWord)
+                    {
+                        count++;
+                        inWord = true;
+                    }
+                }
+            }
+
+            return count;
+        }
+        private static int PickContextLeader(List<int> bucket,List<TranslationUnit> items,Dictionary<int, HashSet<string>> tokensCache)
+        {
+            int best = -1;
+
+            int bestWordCount = int.MaxValue;
+            bool bestHasDigit = true;
+            int bestTokenCount = -1;
+            int bestLength = int.MaxValue;
+
+            foreach (var i in bucket)
+            {
+                var text = items[i].SourceText;
+
+                int wc = CountWords(text);
+                bool hasDigit = HasDigit(text);
+                int tc = tokensCache[i].Count;
+                int len = text.Length;
+
+                if (
+                    wc < bestWordCount ||
+                    (wc == bestWordCount && hasDigit != bestHasDigit && !hasDigit) ||
+                    (wc == bestWordCount && hasDigit == bestHasDigit && tc > bestTokenCount) ||
+                    (wc == bestWordCount && hasDigit == bestHasDigit && tc == bestTokenCount && len < bestLength)
+                )
+                {
+                    best = i;
+                    bestWordCount = wc;
+                    bestHasDigit = hasDigit;
+                    bestTokenCount = tc;
+                    bestLength = len;
+                }
+            }
+
+            return best;
+        }
+        private static string BuildPrefixKey(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return string.Empty;
+
+            int len = text.Length;
+            int wordCount = 0;
+            int i = 0;
+
+            var sb = new StringBuilder(len);
+
+            while (i < len && wordCount < 2)
+            {
+                while (i < len && (text[i] == ' ' || text[i] == '\t'))
+                    i++;
+
+                if (i >= len)
+                    break;
+
+                if (wordCount > 0)
+                    sb.Append(' ');
+
+                while (i < len && text[i] != ' ' && text[i] != '\t')
+                {
+                    char c = text[i];
+                    sb.Append(char.ToLowerInvariant(c));
+                    i++;
+                }
+
+                wordCount++;
+            }
+
+            return sb.ToString();
+        }
+        private static bool HasDigit(string text)
+        {
+            foreach (char c in text)
+            {
+                if (char.IsDigit(c))
+                    return true;
+            }
+            return false;
+        }
+
+        // Helper method for similarity calculation
+        private static double CalculateSimilarity(HashSet<string> TokenSetA, HashSet<string> TokenSetB)
+        {
+            if (TokenSetA == null || TokenSetB == null || TokenSetA.Count == 0 || TokenSetB.Count == 0)
+                return 0.0;
+
+            // Quick reject if no common tokens
+            if (!TokenSetA.Overlaps(TokenSetB))
+                return 0.0;
+
+            int intersection = TokenSetA.Count(t => TokenSetB.Contains(t));
+            int union = TokenSetA.Count + TokenSetB.Count - intersection;
+
+            return union > 0 ? (double)intersection / union : 0.0;
+        }
+
+        #endregion
 
         public ThreadUsageInfo ThreadUsage = new ThreadUsageInfo();
 
@@ -623,6 +709,10 @@ namespace PhoenixEngine.TranslateManage
                 WorkState = 0;
                 MarkLeadersAndSort(new List<TranslationUnit>(this.UnitsToTranslate), this.DetectSourceLang);
                 WorkState = 1;
+            }
+            else
+            {
+                WorkState = 2;
             }
         }
 
