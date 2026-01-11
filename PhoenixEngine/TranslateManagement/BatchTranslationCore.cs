@@ -256,7 +256,8 @@ namespace PhoenixEngine.TranslateManage
             MarkLeadersPercent = 0;
 
             int N = SetItems.Count;
-            if (N == 0) return;
+            if (N == 0)
+                return;
 
             UnitsLeaderToTranslate.Clear();
             UnitsToTranslate.Clear();
@@ -264,6 +265,7 @@ namespace PhoenixEngine.TranslateManage
             int MaxCharsForLeaderSelection = EngineConfig.Config.ContextLimit;
 
             var FilteredItems = new List<int>();
+            var LeaderIndexSet = new HashSet<int>();
 
             for (int i = 0; i < N; i++)
             {
@@ -287,7 +289,7 @@ namespace PhoenixEngine.TranslateManage
                 return;
             }
 
-            var TokensCache = new Dictionary<int, HashSet<string>>();
+            var TokensCache = new Dictionary<int, HashSet<string>>(FilteredItems.Count);
 
             foreach (var idx in FilteredItems)
             {
@@ -305,14 +307,14 @@ namespace PhoenixEngine.TranslateManage
 
             foreach (var idx in FilteredItems)
             {
-                var text = SetItems[idx].SourceText;
-                var prefix = BuildPrefixKey(text);
+                var prefix = BuildPrefixKey(SetItems[idx].SourceText);
 
                 if (!PrefixBuckets.TryGetValue(prefix, out var list))
                 {
                     list = new List<int>();
                     PrefixBuckets[prefix] = list;
                 }
+
                 list.Add(idx);
             }
 
@@ -326,6 +328,7 @@ namespace PhoenixEngine.TranslateManage
                     continue;
 
                 int leaderIdx = PickContextLeader(bucket, SetItems, TokensCache);
+                LeaderIndexSet.Add(leaderIdx);
 
                 var leaderItem = SetItems[leaderIdx];
                 leaderItem.TempSim = bucket.Count - 1;
@@ -334,12 +337,17 @@ namespace PhoenixEngine.TranslateManage
                 {
                     UnitsLeaderToTranslate[leaderItem.Key] = leaderItem;
                 }
+                else
+                {
+                    UnitsToTranslate.Add(leaderItem);
+                }
 
                 ProcessedCount++;
 
                 foreach (var idx in bucket)
                 {
-                    if (idx == leaderIdx) continue;
+                    if (idx == leaderIdx)
+                        continue;
 
                     var follower = SetItems[idx];
                     follower.TempSim = CalculateSimilarity(
@@ -359,6 +367,7 @@ namespace PhoenixEngine.TranslateManage
 
             MarkLeadersPercent = 100;
         }
+
         private static int CountWords(string text)
         {
             if (string.IsNullOrEmpty(text))
@@ -371,22 +380,22 @@ namespace PhoenixEngine.TranslateManage
             {
                 if (c == ' ' || c == '\t')
                 {
-                    if (inWord)
-                        inWord = false;
+                    inWord = false;
                 }
-                else
+                else if (!inWord)
                 {
-                    if (!inWord)
-                    {
-                        count++;
-                        inWord = true;
-                    }
+                    count++;
+                    inWord = true;
                 }
             }
 
             return count;
         }
-        private static int PickContextLeader(List<int> bucket,List<TranslationUnit> items,Dictionary<int, HashSet<string>> tokensCache)
+
+        private static int PickContextLeader(
+            List<int> bucket,
+            List<TranslationUnit> items,
+            Dictionary<int, HashSet<string>> tokensCache)
         {
             int best = -1;
 
@@ -406,7 +415,7 @@ namespace PhoenixEngine.TranslateManage
 
                 if (
                     wc < bestWordCount ||
-                    (wc == bestWordCount && hasDigit != bestHasDigit && !hasDigit) ||
+                    (wc == bestWordCount && bestHasDigit && !hasDigit) ||
                     (wc == bestWordCount && hasDigit == bestHasDigit && tc > bestTokenCount) ||
                     (wc == bestWordCount && hasDigit == bestHasDigit && tc == bestTokenCount && len < bestLength)
                 )
@@ -421,6 +430,7 @@ namespace PhoenixEngine.TranslateManage
 
             return best;
         }
+
         private static string BuildPrefixKey(string text)
         {
             if (string.IsNullOrEmpty(text))
@@ -445,8 +455,7 @@ namespace PhoenixEngine.TranslateManage
 
                 while (i < len && text[i] != ' ' && text[i] != '\t')
                 {
-                    char c = text[i];
-                    sb.Append(char.ToLowerInvariant(c));
+                    sb.Append(char.ToLowerInvariant(text[i]));
                     i++;
                 }
 
@@ -455,6 +464,7 @@ namespace PhoenixEngine.TranslateManage
 
             return sb.ToString();
         }
+
         private static bool HasDigit(string text)
         {
             foreach (char c in text)
@@ -465,23 +475,25 @@ namespace PhoenixEngine.TranslateManage
             return false;
         }
 
-        // Helper method for similarity calculation
-        private static double CalculateSimilarity(HashSet<string> TokenSetA, HashSet<string> TokenSetB)
+        private static double CalculateSimilarity(HashSet<string> a, HashSet<string> b)
         {
-            if (TokenSetA == null || TokenSetB == null || TokenSetA.Count == 0 || TokenSetB.Count == 0)
+            if (a == null || b == null || a.Count == 0 || b.Count == 0)
                 return 0.0;
 
-            // Quick reject if no common tokens
-            if (!TokenSetA.Overlaps(TokenSetB))
+            if (!a.Overlaps(b))
                 return 0.0;
 
-            int intersection = TokenSetA.Count(t => TokenSetB.Contains(t));
-            int union = TokenSetA.Count + TokenSetB.Count - intersection;
+            int intersection = 0;
+            foreach (var t in a)
+                if (b.Contains(t))
+                    intersection++;
 
+            int union = a.Count + b.Count - intersection;
             return union > 0 ? (double)intersection / union : 0.0;
         }
 
         #endregion
+
 
         public ThreadUsageInfo ThreadUsage = new ThreadUsageInfo();
 
