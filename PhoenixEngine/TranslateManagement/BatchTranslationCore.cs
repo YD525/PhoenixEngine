@@ -441,7 +441,7 @@ namespace PhoenixEngine.TranslateManage
 
             // --- Step 2: Initialize threads ---
             var Threads = new List<List<KeyValuePair<string, TranslationUnit>>>();
-            int ThreadCount = Math.Min(NeedTrd, Math.Max(1, (int)Math.Sqrt(N))); // 初始线程数经验公式
+            int ThreadCount = Math.Min(NeedTrd, Math.Max(1, (int)Math.Sqrt(N))); //Empirical formula for initial thread count
             for (int i = 0; i < ThreadCount; i++)
                 Threads.Add(new List<KeyValuePair<string, TranslationUnit>>());
 
