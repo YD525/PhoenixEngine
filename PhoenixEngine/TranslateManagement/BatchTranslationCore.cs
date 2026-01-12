@@ -250,7 +250,7 @@ namespace PhoenixEngine.TranslateManage
         #region Words Analysis
 
         public double MarkLeadersPercent = 0;
-
+        public int AutoLeaderTrd = 0;
         public void MarkLeadersAndSort(List<TranslationUnit> SetItems, Languages Lang)
         {
             MarkLeadersPercent = 0;
@@ -265,7 +265,6 @@ namespace PhoenixEngine.TranslateManage
             int MaxCharsForLeaderSelection = EngineConfig.Config.ContextLimit;
 
             var FilteredItems = new List<int>();
-            var LeaderIndexSet = new HashSet<int>();
 
             for (int i = 0; i < N; i++)
             {
@@ -325,10 +324,16 @@ namespace PhoenixEngine.TranslateManage
                 if (bucket.Count == 0)
                     continue;
 
-                int leaderIdx = PickContextLeader(bucket, SetItems, TokensCache);
-                LeaderIndexSet.Add(leaderIdx);
+                if (bucket.Count == 1)
+                {
+                    UnitsToTranslate.Add(SetItems[bucket[0]]);
+                    ProcessedCount++;
+                    continue;
+                }
 
+                int leaderIdx = PickContextLeader(bucket, SetItems, TokensCache);
                 var leaderItem = SetItems[leaderIdx];
+
                 leaderItem.TempSim = bucket.Count - 1;
 
                 if (!string.IsNullOrEmpty(leaderItem.Key))
@@ -378,9 +383,134 @@ namespace PhoenixEngine.TranslateManage
             }
 
             foreach (var k in RemoveLeaders)
+            {
                 UnitsLeaderToTranslate.Remove(k);
+            }
 
+            AutoLeaderTrd = SortLeadersAndCalculateThreads(DetectSourceLang, EngineConfig.Config.MaxThreadCount, ref UnitsLeaderToTranslate);
             MarkLeadersPercent = 100;
+        }
+
+        private int SortLeadersAndCalculateThreads(Languages Lang, int NeedTrd, ref Dictionary<string, TranslationUnit> Leaders)
+        {
+            var SortedPairs = new List<KeyValuePair<string, TranslationUnit>>();
+            var TokenMap = new Dictionary<TranslationUnit, HashSet<string>>();
+
+            foreach (var kv in Leaders)
+            {
+                var Unit = kv.Value;
+                SortedPairs.Add(kv);
+
+                TokenMap[Unit] = TextTokenizer
+                    .Tokenize(Lang, Unit.SourceText)
+                    .Where(t => t.Length >= 3)
+                    .Select(t => t.ToLowerInvariant())
+                    .ToHashSet();
+            }
+
+            // Sort leaders by priority (Tokens count -> TempSim -> Length)
+            SortedPairs.Sort((A, B) =>
+            {
+                var UA = A.Value;
+                var UB = B.Value;
+
+                int C = TokenMap[UB].Count.CompareTo(TokenMap[UA].Count);
+                if (C != 0) return C;
+
+                C = UB.TempSim.CompareTo(UA.TempSim);
+                if (C != 0) return C;
+
+                return UB.SourceText.Length.CompareTo(UA.SourceText.Length);
+            });
+
+            // --- Step 1: Build conflict matrix ---
+            int N = SortedPairs.Count;
+            bool[,] ConflictMatrix = new bool[N, N];
+
+            for (int i = 0; i < N; i++)
+            {
+                var Ti = TokenMap[SortedPairs[i].Value];
+                for (int j = i + 1; j < N; j++)
+                {
+                    var Tj = TokenMap[SortedPairs[j].Value];
+                    int overlap = Ti.Count(t => Tj.Contains(t));
+                    if (overlap >= 2) // Strong conflict threshold
+                        ConflictMatrix[i, j] = ConflictMatrix[j, i] = true;
+                }
+            }
+
+            // --- Step 2: Initialize threads ---
+            var Threads = new List<List<KeyValuePair<string, TranslationUnit>>>();
+            int ThreadCount = Math.Min(NeedTrd, Math.Max(1, (int)Math.Sqrt(N))); // 初始线程数经验公式
+            for (int i = 0; i < ThreadCount; i++)
+                Threads.Add(new List<KeyValuePair<string, TranslationUnit>>());
+
+            // --- Step 3: Greedy assignment with global minimal conflict ---
+            for (int idx = 0; idx < N; idx++)
+            {
+                var LeaderPair = SortedPairs[idx];
+
+                int BestThread = 0;
+                int MinConflictCount = int.MaxValue;
+
+                for (int t = 0; t < Threads.Count; t++)
+                {
+                    int ConflictCount = 0;
+                    foreach (var Existing in Threads[t])
+                    {
+                        int existingIdx = SortedPairs.IndexOf(Existing);
+                        if (ConflictMatrix[idx, existingIdx])
+                            ConflictCount++;
+                    }
+
+                    if (ConflictCount < MinConflictCount)
+                    {
+                        MinConflictCount = ConflictCount;
+                        BestThread = t;
+                    }
+                }
+
+                Threads[BestThread].Add(LeaderPair);
+            }
+
+            // --- Step 4: Optional: redistribute to fill <= NeedTrd threads ---
+            while (Threads.Count > NeedTrd)
+            {
+                int mergeA = 0, mergeB = 1;
+                int minOverlap = int.MaxValue;
+
+                for (int i = 0; i < Threads.Count; i++)
+                {
+                    for (int j = i + 1; j < Threads.Count; j++)
+                    {
+                        int overlap = 0;
+                        foreach (var a in Threads[i])
+                            foreach (var b in Threads[j])
+                                if (ConflictMatrix[SortedPairs.IndexOf(a), SortedPairs.IndexOf(b)])
+                                    overlap++;
+                        if (overlap < minOverlap)
+                        {
+                            minOverlap = overlap;
+                            mergeA = i;
+                            mergeB = j;
+                        }
+                    }
+                }
+
+                Threads[mergeA].AddRange(Threads[mergeB]);
+                Threads.RemoveAt(mergeB);
+            }
+
+            // --- Step 5: Rebuild Leaders dictionary in sorted order ---
+            var NewLeaders = new Dictionary<string, TranslationUnit>(Leaders.Count);
+            foreach (var thread in Threads)
+                foreach (var kv in thread)
+                    NewLeaders[kv.Key] = kv.Value;
+
+            Leaders = NewLeaders;
+
+            // Return approximate minimal thread count, with slight tolerated conflicts
+            return Threads.Count;
         }
 
         private static int CountWords(string text)
@@ -488,6 +618,7 @@ namespace PhoenixEngine.TranslateManage
 
         #endregion
 
+
         public ThreadUsageInfo ThreadUsage = new ThreadUsageInfo();
 
         public readonly object TranslatedAddLocker = new object();
@@ -510,7 +641,7 @@ namespace PhoenixEngine.TranslateManage
                 }
                 catch
                 {
-                NextTry:
+                    NextTry:
 
                     if (!HasAdd)
                     {
@@ -712,6 +843,7 @@ namespace PhoenixEngine.TranslateManage
             if (!SkipWordAnalysis)
             {
                 WorkState = 0;
+                DetectSource();
                 MarkLeadersAndSort(new List<TranslationUnit>(this.UnitsToTranslate), this.DetectSourceLang);
                 WorkState = 1;
             }
@@ -743,6 +875,27 @@ namespace PhoenixEngine.TranslateManage
             }
         }
 
+        public void DetectSource()
+        {
+            if (this.From != Languages.Auto)
+            {
+                this.DetectSourceLang = this.From;
+            }
+            else
+            {
+                FileLanguageDetect LangDetecter = new FileLanguageDetect();
+
+                for (int i = 0; i < this.UnitsToTranslate.Count; i++)
+                {
+                    LangDetecter.DetectLanguageByFile(this.UnitsToTranslate[i].SourceText);
+                }
+
+                this.DetectSourceLang = LangDetecter.GetLang();
+
+                LangDetecter = null;
+            }
+        }
+
         public void Start()
         {
             if (IsWork || TransMainTrd == null)
@@ -754,23 +907,7 @@ namespace PhoenixEngine.TranslateManage
 
                     ReSet();
 
-                    if (this.From != Languages.Auto)
-                    {
-                        this.DetectSourceLang = this.From;
-                    }
-                    else
-                    {
-                        FileLanguageDetect LangDetecter = new FileLanguageDetect();
-
-                        for (int i = 0; i < this.UnitsToTranslate.Count; i++)
-                        {
-                            LangDetecter.DetectLanguageByFile(this.UnitsToTranslate[i].SourceText);
-                        }
-
-                        this.DetectSourceLang = LangDetecter.GetLang();
-
-                        LangDetecter = null;
-                    }
+                    DetectSource();
 
                     if (ExitAny)
                     {
@@ -806,7 +943,11 @@ namespace PhoenixEngine.TranslateManage
 
                                 if (IsLeader)
                                 {
-                                    AutoTrd = 1;
+                                    if (AutoLeaderTrd <= 0)
+                                    {
+                                        AutoLeaderTrd = 1;
+                                    }
+                                    AutoTrd = AutoLeaderTrd;
                                 }
 
                                 if (CurrentTrds < AutoTrd)
@@ -941,16 +1082,39 @@ namespace PhoenixEngine.TranslateManage
                         UnitsToTranslate[i].CancelWorkThread();
                     }
                     catch { }
+
+                    try
+                    {
+                        if (UnitsToTranslate[i].CurrentTrd != null)
+                        {
+                            UnitsToTranslate[i].CurrentTrd.Abort();
+                        }
+
+                        UnitsToTranslate[i].CurrentTrd = null;
+                    }
+                    catch { }
                 }
             }
 
-            foreach (var kvp in UnitsLeaderToTranslate)
+            foreach (var Kvp in UnitsLeaderToTranslate)
             {
-                if (kvp.Value.Transing)
+                if (Kvp.Value.Transing)
                 {
                     try
                     {
-                        kvp.Value.CancelWorkThread();
+                        Kvp.Value.CancelWorkThread();
+                       
+                    }
+                    catch { }
+
+                    try
+                    {
+                        if (Kvp.Value.CurrentTrd != null)
+                        {
+                            Kvp.Value.CurrentTrd.Abort();
+                        }
+
+                        Kvp.Value.CurrentTrd = null;
                     }
                     catch { }
                 }
