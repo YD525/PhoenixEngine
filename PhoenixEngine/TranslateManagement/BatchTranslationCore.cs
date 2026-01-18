@@ -387,7 +387,15 @@ namespace PhoenixEngine.TranslateManage
                 UnitsLeaderToTranslate.Remove(k);
             }
 
-            AutoLeaderTrd = SortLeadersAndCalculateThreads(DetectSourceLang, EngineConfig.Config.MaxThreadCount, ref UnitsLeaderToTranslate);
+            if (UnitsLeaderToTranslate.Count < 1500)
+            {
+                AutoLeaderTrd = SortLeadersAndCalculateThreads(DetectSourceLang, EngineConfig.Config.MaxThreadCount, ref UnitsLeaderToTranslate);
+            }
+            else
+            {
+                AutoLeaderTrd = 3;
+            }
+           
             MarkLeadersPercent = 100;
         }
 
