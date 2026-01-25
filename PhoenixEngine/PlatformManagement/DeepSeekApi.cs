@@ -151,7 +151,7 @@ namespace PhoenixEngine.PlatformManagement
         {
             string GetJson = JsonConvert.SerializeObject(Item);
             WebHeaderCollection Headers = new WebHeaderCollection();
-            Headers.Add("Authorization", string.Format("Bearer {0}", Engine.KeyData.GetData(DeepSeekApi.Type).GetFristKey()));
+            Headers.Add("Authorization", string.Format("Bearer {0}", Engine.KeyData.GetData(DeepSeekApi.Type).GetFirstKey()));
             HttpItem Http = new HttpItem()
             {
                 URL = "https://api.deepseek.com/chat/completions",

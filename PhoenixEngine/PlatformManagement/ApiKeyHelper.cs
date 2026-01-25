@@ -75,7 +75,7 @@ namespace PhoenixEngine.PlatformManagement
         {
             ApiKeys.Sort(new ApiKeyComparer());
         }
-        public string GetFristKey()
+        public string GetFirstKey()
         {
             lock (ArrayQueryLock)
             {
@@ -87,6 +87,15 @@ namespace PhoenixEngine.PlatformManagement
 
                 return string.Empty;
             }
+        }
+        public bool HaveKey()
+        {
+            if (this.ApiKeys.Count > 0)
+            {
+                return true;
+            }
+
+            return false;
         }
     }
     public class KeyManage

@@ -49,35 +49,41 @@ namespace PhoenixEngine.TranslateManage
                 EngineSelects.Clear();
 
                 // ChatGPT support
-                if (EngineConfig.Config.ChatGptApiEnable &&
-                    !string.IsNullOrWhiteSpace(EngineConfig.Config.ChatGptKey))
+                var ChatGptConfig = EngineConfig.Config.GetPlatformData(ChatGptApi.Type);
+
+                if (ChatGptConfig.Enable && Engine.KeyData.GetData(ChatGptApi.Type).HaveKey())
                 {
                     EngineSelects.Add(new EngineSelect(new ChatGptApi(), 1));
                 }
 
                 // Gemini support
-                if (EngineConfig.Config.GeminiApiEnable &&
-                    !string.IsNullOrWhiteSpace(EngineConfig.Config.GeminiKey))
+                var GeminiConfig = EngineConfig.Config.GetPlatformData(GeminiApi.Type);
+
+                if (GeminiConfig.Enable && Engine.KeyData.GetData(GeminiApi.Type).HaveKey())
                 {
                     EngineSelects.Add(new EngineSelect(new GeminiApi(), 1));
                 }
 
                 // DeepSeek support
-                if (EngineConfig.Config.DeepSeekApiEnable &&
-                    !string.IsNullOrWhiteSpace(EngineConfig.Config.DeepSeekKey))
+                var DeepSeekConfig = EngineConfig.Config.GetPlatformData(DeepSeekApi.Type);
+
+                if (DeepSeekConfig.Enable && Engine.KeyData.GetData(DeepSeekApi.Type).HaveKey())
                 {
                     EngineSelects.Add(new EngineSelect(new DeepSeekApi(), 1));
                 }
 
                 //LocalAI(LM) support
-                if (EngineConfig.Config.LMLocalAIEnable)
+                var LMLocalAIConfig = EngineConfig.Config.GetPlatformData(LMStudio.Type);
+
+                if (LMLocalAIConfig.Enable)
                 {
                     EngineSelects.Add(new EngineSelect(new LMStudio(), 1));
                 }
 
                 // DeepL support
-                if (EngineConfig.Config.DeepLApiEnable &&
-                    !string.IsNullOrWhiteSpace(EngineConfig.Config.DeepLKey))
+                var DeepLConfig = EngineConfig.Config.GetPlatformData(DeepLApi.Type);
+
+                if (DeepLConfig.Enable && Engine.KeyData.GetData(DeepLApi.Type).HaveKey())
                 {
                     EngineSelects.Add(new EngineSelect(new DeepLApi(), 1));
                 }
@@ -378,7 +384,7 @@ namespace PhoenixEngine.TranslateManage
                         {
                             if (this.TransEngine is DeepLApi)
                             {
-                                if (EngineConfig.Config.DeepLApiEnable)
+                                if (EngineConfig.Config.GetPlatformData(DeepLApi.Type).Enable)
                                 {
                                     PlatformCall Call = new PlatformCall();
 
@@ -479,7 +485,7 @@ namespace PhoenixEngine.TranslateManage
                         {
                             if (this.TransEngine is LMStudio)
                             {
-                                if (EngineConfig.Config.LMLocalAIEnable)
+                                if (EngineConfig.Config.GetPlatformData(LMStudio.Type).Enable)
                                 {
                                     AICall Call = new AICall();
 
@@ -528,7 +534,7 @@ namespace PhoenixEngine.TranslateManage
                             else
                             if (this.TransEngine is ChatGptApi)
                             {
-                                if (EngineConfig.Config.ChatGptApiEnable)
+                                if (EngineConfig.Config.GetPlatformData(ChatGptApi.Type).Enable)
                                 {
                                     AICall Call = new AICall();
 
@@ -578,7 +584,7 @@ namespace PhoenixEngine.TranslateManage
                             else
                             if (this.TransEngine is GeminiApi)
                             {
-                                if (EngineConfig.Config.GeminiApiEnable)
+                                if (EngineConfig.Config.GetPlatformData(GeminiApi.Type).Enable)
                                 {
                                     AICall Call = new AICall();
 
@@ -628,7 +634,7 @@ namespace PhoenixEngine.TranslateManage
                             else
                             if (this.TransEngine is DeepSeekApi)
                             {
-                                if (EngineConfig.Config.DeepSeekApiEnable)
+                                if (EngineConfig.Config.GetPlatformData(DeepSeekApi.Type).Enable)
                                 {
                                     AICall Call = new AICall();
 

@@ -47,7 +47,7 @@ namespace PhoenixEngine.PlatformManagement
         public void GetModes()
         {
             WebHeaderCollection Headers = new WebHeaderCollection();
-            Headers.Add("Authorization", string.Format("Bearer {0}", Engine.KeyData.GetData(ChatGptApi.Type).GetFristKey()));
+            Headers.Add("Authorization", string.Format("Bearer {0}", Engine.KeyData.GetData(ChatGptApi.Type).GetFirstKey()));
             HttpItem Http = new HttpItem()
             {
                 URL = "https://api.openai.com/v1/models",
@@ -74,7 +74,7 @@ namespace PhoenixEngine.PlatformManagement
             //GetModes();
             string GetJson = JsonConvert.SerializeObject(Item);
             WebHeaderCollection Headers = new WebHeaderCollection();
-            Headers.Add("Authorization", string.Format("Bearer {0}", Engine.KeyData.GetData(ChatGptApi.Type).GetFristKey()));
+            Headers.Add("Authorization", string.Format("Bearer {0}", Engine.KeyData.GetData(ChatGptApi.Type).GetFirstKey()));
             HttpItem Http = new HttpItem()
             {
                 URL = "https://api.openai.com/v1/chat/completions",

@@ -75,7 +75,7 @@ namespace PhoenixEngine.PlatformManagement
         {
             string GetJson = JsonConvert.SerializeObject(Item);
             WebHeaderCollection Headers = new WebHeaderCollection();
-            Headers.Add("Authorization", string.Format("DeepL-Auth-Key {0}",Engine.KeyData.GetData(DeepLApi.Type).GetFristKey()));
+            Headers.Add("Authorization", string.Format("DeepL-Auth-Key {0}",Engine.KeyData.GetData(DeepLApi.Type).GetFirstKey()));
             string AutoHost = "";
 
             if (EngineConfig.Config.GetPlatformData(DeepLApi.Type).IsFree)

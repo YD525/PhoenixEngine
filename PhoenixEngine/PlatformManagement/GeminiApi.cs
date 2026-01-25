@@ -161,7 +161,7 @@ namespace PhoenixEngine.PlatformManagement
             WebHeaderCollection Headers = new WebHeaderCollection();
             HttpItem Http = new HttpItem()
             {
-                URL = $"https://generativelanguage.googleapis.com/v1beta/models/{EngineConfig.Config.GetPlatformData(GeminiApi.Type).Model}:generateContent?key={Engine.KeyData.GetData(GeminiApi.Type).GetFristKey()}",
+                URL = $"https://generativelanguage.googleapis.com/v1beta/models/{EngineConfig.Config.GetPlatformData(GeminiApi.Type).Model}:generateContent?key={Engine.KeyData.GetData(GeminiApi.Type).GetFirstKey()}",
                 UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
                 Method = "Post",
                 Header = Headers,
