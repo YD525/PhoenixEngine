@@ -76,7 +76,7 @@ namespace PhoenixEngine.EngineManagement
 
         #region ApiKey Set
 
-        public Dictionary<PlatformType,PlatformConfig> PlatformConfigs { get; set; } = null;
+        public Dictionary<int, PlatformConfig> PlatformConfigs { get; set; } = null;
 
         ///// <summary>
         ///// Stores API keys and model names for various translation and AI platforms.
@@ -197,6 +197,16 @@ namespace PhoenixEngine.EngineManagement
         /// This prompt can be used to guide the AI's behavior or translation style.
         /// </summary>
         public string UserCustomAIPrompt { get; set; } = "";
+
+        public PlatformConfig GetPlatformData(PlatformType Type)
+        {
+            return this.PlatformConfigs[(int)Type];
+        }
+
+        public PlatformConfig GetPlatformData(int CustomID)
+        {
+            return this.PlatformConfigs[CustomID];
+        }
     }
 
     public class EngineConfig
@@ -206,8 +216,12 @@ namespace PhoenixEngine.EngineManagement
         public static void SetDefaultModel()
         {
             if (Config.PlatformConfigs == null)
-            { 
-            
+            {
+                Config.PlatformConfigs.Add((int)PlatformType.ChatGpt,new PlatformConfig());
+                Config.PlatformConfigs.Add((int)PlatformType.Gemini, new PlatformConfig());
+                Config.PlatformConfigs.Add((int)PlatformType.LMLocalAI, new PlatformConfig());
+                Config.PlatformConfigs.Add((int)PlatformType.DeepSeek, new PlatformConfig());
+                Config.PlatformConfigs.Add((int)PlatformType.DeepL, new PlatformConfig());
             }
         }
 
@@ -227,40 +241,13 @@ namespace PhoenixEngine.EngineManagement
         {
             int AutoThread = 0;
 
-            AutoThread += Config.ChatGptApiEnable && !string.IsNullOrWhiteSpace(Config.ChatGptKey) ? 2 : 0;
-
-            AutoThread += Config.GeminiApiEnable && !string.IsNullOrWhiteSpace(Config.GeminiKey) ? 2 : 0;
-
-            AutoThread += Config.DeepSeekApiEnable && !string.IsNullOrWhiteSpace(Config.DeepSeekKey) ? 2 : 0;
-
-            AutoThread += Config.LMLocalAIEnable ? 2 : 0;
-
-            AutoThread += Config.DeepLApiEnable && !string.IsNullOrWhiteSpace(Config.DeepLKey) ? 2 : 0;
-
-            if (AutoThread == 2)
-            {
-                if (Config.LMLocalAIEnable)
+            for (int i = 0; i < EngineConfig.Config.PlatformConfigs.Count; i++)
+            { 
+                int GetKey = EngineConfig.Config.PlatformConfigs.ElementAt(i).Key;
+                var GetConfig = EngineConfig.Config.PlatformConfigs[GetKey];
+                if (GetConfig.ApiKeys.Count > 0 && GetConfig.Enable)
                 {
-                    try
-                    {
-                        AutoThread = Environment.ProcessorCount;
-                        AutoThread = AutoThread / 2;
-
-                        if (AutoThread <= 0)
-                        {
-                            AutoThread = Environment.ProcessorCount;
-                        }
-                    }
-                    catch
-                    {
-
-                    }
-
-                    if (AutoThread <= 0)
-                    {
-                        AutoThread = 3;
-                    }
-
+                    AutoThread++;
                 }
             }
 

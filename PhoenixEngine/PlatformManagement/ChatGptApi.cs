@@ -32,11 +32,12 @@ namespace PhoenixEngine.PlatformManagement
 
     public class ChatGptApi
     {
+        public static PlatformType Type = PlatformType.ChatGpt;
         public ChatGptRootobject CallAI(string Msg,ref string Recv)
         {
             int GetCount = Msg.Length; 
             ChatGptItem NChatGptItem = new ChatGptItem();
-            NChatGptItem.model = EngineConfig.Config.ChatGptModel;
+            NChatGptItem.model = EngineConfig.Config.GetPlatformData(ChatGptApi.Type).Model;
             NChatGptItem.store = true;
             NChatGptItem.messages = new List<ChatGptMessage>();
             NChatGptItem.messages.Add(new ChatGptMessage("user", Msg));
@@ -46,7 +47,7 @@ namespace PhoenixEngine.PlatformManagement
         public void GetModes()
         {
             WebHeaderCollection Headers = new WebHeaderCollection();
-            Headers.Add("Authorization", string.Format("Bearer {0}", EngineConfig.Config.ChatGptKey));
+            Headers.Add("Authorization", string.Format("Bearer {0}", Engine.KeyData.GetData(ChatGptApi.Type).GetFristKey()));
             HttpItem Http = new HttpItem()
             {
                 URL = "https://api.openai.com/v1/models",
@@ -73,7 +74,7 @@ namespace PhoenixEngine.PlatformManagement
             //GetModes();
             string GetJson = JsonConvert.SerializeObject(Item);
             WebHeaderCollection Headers = new WebHeaderCollection();
-            Headers.Add("Authorization", string.Format("Bearer {0}", EngineConfig.Config.ChatGptKey));
+            Headers.Add("Authorization", string.Format("Bearer {0}", Engine.KeyData.GetData(ChatGptApi.Type).GetFristKey()));
             HttpItem Http = new HttpItem()
             {
                 URL = "https://api.openai.com/v1/chat/completions",

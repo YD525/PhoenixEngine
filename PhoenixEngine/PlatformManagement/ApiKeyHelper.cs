@@ -35,7 +35,7 @@ namespace PhoenixEngine.PlatformManagement
         }
         public void CallError()
         {
-            if (this.ErrorCount < KeyManager.MaxErrorCount)
+            if (this.ErrorCount < KeyManage.MaxErrorCount)
             {
                 this.ErrorCount++;
             }
@@ -61,7 +61,15 @@ namespace PhoenixEngine.PlatformManagement
     public class PlatformApiKeys
     {
         public object ArrayQueryLock = new object();
-        public List<ApiKey> ApiKeys = new List<ApiKey>();
+        public PlatformType Type = new PlatformType();
+        private List<ApiKey> ApiKeys = new List<ApiKey>();
+        public void AddKeys(List<string> Keys)
+        {
+            foreach (var Key in Keys)
+            {
+                this.ApiKeys.Add(new ApiKey(Key));
+            }
+        }
         private void Sort()
         {
             ApiKeys.Sort(new ApiKeyComparer());
@@ -82,16 +90,31 @@ namespace PhoenixEngine.PlatformManagement
     }
     public class KeyManage
     {
-        public Dictionary<PlatformType, PlatformApiKeys> KeysData = new Dictionary<PlatformType, PlatformApiKeys>();
+        private Dictionary<int, PlatformApiKeys> KeysData = new Dictionary<int, PlatformApiKeys>();
         public static int MaxErrorCount = 10;
         public void Init()
         {
-           
+            for (int i = 0; i < EngineConfig.Config.PlatformConfigs.Count; i++)
+            { 
+                int GetKey = EngineConfig.Config.PlatformConfigs.ElementAt(i).Key;
+                var GetConfig = EngineConfig.Config.PlatformConfigs[GetKey];
+
+                PlatformApiKeys NPlatformApiKeys = new PlatformApiKeys();
+                NPlatformApiKeys.Type = GetConfig.Platform;
+                NPlatformApiKeys.AddKeys(GetConfig.ApiKeys);
+
+                KeysData.Add(GetKey, NPlatformApiKeys);
+            }
         }
 
-        public KeyManage(PlatformType Type)
-        { 
-        
+        public PlatformApiKeys GetData(PlatformType Type)
+        {
+            return KeysData[(int)Type];
+        }
+
+        public PlatformApiKeys GetData(int CustomID)
+        {
+            return KeysData[CustomID];
         }
     }
 }

@@ -4,6 +4,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.DataBaseManagement;
+using PhoenixEngine.PlatformManagement;
 using PhoenixEngine.RequestManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
@@ -21,6 +22,7 @@ namespace PhoenixEngine.EngineManagement
         /// Represents the pointer/reference to the current local database.
         /// </summary>
         public static SQLiteHelper LocalDB = new SQLiteHelper();
+        public static KeyManage KeyData = new KeyManage();
 
         public static void Init()
         {
@@ -45,6 +47,8 @@ namespace PhoenixEngine.EngineManagement
 
             EngineConfig.Load();
             ProxyCenter.UsingProxy();
+
+            ReSetKeyData();
         }
 
         public static void Vacuum()
@@ -142,13 +146,20 @@ FROM (
             Start(false);
         }
 
+        public static void ReSetKeyData()
+        {
+            KeyData = new KeyManage();
+            KeyData.Init();
+        }
+
         public static void Start(bool ClearCache)
         {
+            ReSetKeyData();
+
             if (From != Languages.Null && To != Languages.Null)
             {
                 if (TranslationCore == null)
                 {
-
                     TranslationCore = new BatchTranslationCore(Engine.From, Engine.To, new List<TranslationUnit>() { }, ClearCache);
                 }
 
