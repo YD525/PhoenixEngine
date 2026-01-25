@@ -213,6 +213,37 @@ namespace PhoenixEngine.EngineManagement
                 return this.PlatformConfigs[CustomID];
             }
         }
+
+        public string GetPlatformKeysStr(PlatformConfig Config)
+        {
+            lock (EngineConfig.QueryPlatformDataLock)
+            {
+                string KeysStr = "";
+
+                for (int i = 0; i < Config.ApiKeys.Count; i++)
+                {
+                    KeysStr += Config.ApiKeys[i] + ";\n";
+                }
+
+                return KeysStr;
+            }
+        }
+
+        public List<string> KeysStrToArray(string KeysStr)
+        {
+            KeysStr = KeysStr.Replace("\r\n", "");
+            KeysStr = KeysStr.Replace("\n", "");
+            
+            List<string> Keys = new List<string>();
+            foreach (var GetLine in KeysStr.Split(';'))
+            {
+                if (GetLine.Trim().Length > 0)
+                {
+                    Keys.Add(GetLine.Trim());
+                }
+            }
+            return Keys;
+        }
     }
 
     public class EngineConfig
