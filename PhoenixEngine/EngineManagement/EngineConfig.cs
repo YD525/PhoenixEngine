@@ -256,6 +256,8 @@ namespace PhoenixEngine.EngineManagement
         {
             if (Config.PlatformConfigs == null)
             {
+                Config.PlatformConfigs = new Dictionary<int, PlatformConfig>();
+
                 Config.PlatformConfigs.Add((int)PlatformType.ChatGpt,new PlatformConfig());
                 Config.PlatformConfigs.Add((int)PlatformType.Gemini, new PlatformConfig());
                 Config.PlatformConfigs.Add((int)PlatformType.LMLocalAI, new PlatformConfig());
