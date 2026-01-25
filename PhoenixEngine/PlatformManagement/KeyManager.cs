@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateManage;
 
 namespace PhoenixEngine.PlatformManagement
@@ -21,8 +22,16 @@ namespace PhoenixEngine.PlatformManagement
         }
         public string GetKey()
         {
-            this.CallCount++;
-            return Key;
+            if (this.Enable)
+            {
+                this.CallCount++;
+                return Key;
+            }
+            else
+            {
+                return string.Empty;
+            }
+  
         }
         public void CallError()
         {
@@ -51,28 +60,33 @@ namespace PhoenixEngine.PlatformManagement
     }
     public class PlatformApiKeys
     {
+        public object ArrayQueryLock = new object();
         public List<ApiKey> ApiKeys = new List<ApiKey>();
-
         private void Sort()
         {
             ApiKeys.Sort(new ApiKeyComparer());
         }
         public string GetFristKey()
         {
-            if (ApiKeys.Count > 0)
+            lock (ArrayQueryLock)
             {
-                Sort();
-                return ApiKeys[0].GetKey();
+                if (ApiKeys.Count > 0)
+                {
+                    Sort();
+                    return ApiKeys[0].GetKey();
+                }
+
+                return string.Empty;
             }
-            return string.Empty;
         }
     }
     public class KeyManager
     {
+        public Dictionary<PlatformType, PlatformApiKeys> KeysData = new Dictionary<PlatformType, PlatformApiKeys>();
         public static int MaxErrorCount = 10;
         public void Init()
-        { 
-        
+        {
+           
         }
 
         public KeyManager(PlatformType Type)
