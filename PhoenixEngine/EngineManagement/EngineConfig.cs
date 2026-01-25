@@ -76,7 +76,7 @@ namespace PhoenixEngine.EngineManagement
         /// <summary>
         /// OpenAI ChatGPT API key.
         /// </summary>
-        public string ChatGptKey { get; set; } = "";
+        public List<string> ChatGptKey { get; set; } = new List<string>();
 
         /// <summary>
         /// Model name for ChatGPT (e.g., gpt-4o-mini).
@@ -86,7 +86,7 @@ namespace PhoenixEngine.EngineManagement
         /// <summary>
         /// Google Gemini API key.
         /// </summary>
-        public string GeminiKey { get; set; } = "";
+        public List<string> GeminiKey { get; set; } = new List<string>();
 
         /// <summary>
         /// Model name for Gemini (e.g., gemini-2.0-flash).
@@ -96,7 +96,7 @@ namespace PhoenixEngine.EngineManagement
         /// <summary>
         /// DeepSeek API key.
         /// </summary>
-        public string DeepSeekKey { get; set; } = "";
+        public List<string> DeepSeekKey { get; set; } = new List<string>();
 
         /// <summary>
         /// Model name for DeepSeek (e.g., deepseek-chat).
