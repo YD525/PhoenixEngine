@@ -21,9 +21,9 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
         public static string CurrentModel = "";
         public void GetCurrentModel()
         {
-            if (CurrentModel == null)
+            if (LMStudio.CurrentModel == "")
             {
-                CurrentModel = GetCurrentModelName();
+                LMStudio.CurrentModel = GetCurrentModelName();
             }
         }
         public OpenAIResponse CallAI(string Msg,ref string Recv)
@@ -61,7 +61,7 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
                 Accept = "*/*",
                 Postdata = "",
                 Cookie = "",
-                Timeout = 7000,
+                Timeout = 5000,
                 ContentType = "application/json",
                 //ProxyIp = ProxyCenter.GlobalProxyIP // Uncomment if a proxy is needed
             };
