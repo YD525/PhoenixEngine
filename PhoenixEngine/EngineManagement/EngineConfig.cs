@@ -200,17 +200,25 @@ namespace PhoenixEngine.EngineManagement
 
         public PlatformConfig GetPlatformData(PlatformType Type)
         {
-            return this.PlatformConfigs[(int)Type];
+            lock (EngineConfig.QueryPlatformDataLock)
+            {
+                return this.PlatformConfigs[(int)Type];
+            }
         }
 
         public PlatformConfig GetPlatformData(int CustomID)
         {
-            return this.PlatformConfigs[CustomID];
+            lock (EngineConfig.QueryPlatformDataLock)
+            {
+                return this.PlatformConfigs[CustomID];
+            }
         }
     }
 
     public class EngineConfig
     {
+        public static object QueryPlatformDataLock = new object();
+
         public static EngineConfigJson Config = new EngineConfigJson();
 
         public static void SetDefaultModel()
