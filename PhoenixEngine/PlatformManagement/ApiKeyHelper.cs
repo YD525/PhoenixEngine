@@ -60,11 +60,12 @@ namespace PhoenixEngine.PlatformManagement
     }
     public class PlatformApiKeys
     {
-        public object ArrayQueryLock = new object();
+        private object ArrayQueryLock = new object();
         public PlatformType Type = new PlatformType();
         private List<ApiKey> ApiKeys = new List<ApiKey>();
         public void AddKeys(List<string> Keys)
         {
+            ApiKeys.Clear();
             foreach (var Key in Keys)
             {
                 this.ApiKeys.Add(new ApiKey(Key));

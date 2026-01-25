@@ -31,6 +31,8 @@ namespace PhoenixEngine.PlatformManagement
 
     public class DeepLApi
     {
+        public static PlatformType Type = PlatformType.DeepL;
+
         private static string DeepLFreeHost = "https://api-free.deepl.com/v2/translate";
         private static string DeepLHost = "https://api.deepl.com/v2/translate";
        
@@ -73,10 +75,10 @@ namespace PhoenixEngine.PlatformManagement
         {
             string GetJson = JsonConvert.SerializeObject(Item);
             WebHeaderCollection Headers = new WebHeaderCollection();
-            Headers.Add("Authorization", string.Format("DeepL-Auth-Key {0}", EngineConfig.Config.DeepLKey));
+            Headers.Add("Authorization", string.Format("DeepL-Auth-Key {0}",Engine.KeyData.GetData(DeepLApi.Type).GetFristKey()));
             string AutoHost = "";
 
-            if (EngineConfig.Config.IsFreeDeepL)
+            if (EngineConfig.Config.GetPlatformData(DeepLApi.Type).IsFree)
             {
                 AutoHost = DeepLFreeHost;
             }

@@ -17,24 +17,29 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
 {
     public class LMStudio
     {
+        public static PlatformType Type = PlatformType.LMLocalAI;
+        public static string CurrentModel = "";
         public void GetCurrentModel()
         {
-            EngineConfig.Config.LMModel = string.Empty;
-
-            new Thread(() => {
-                EngineConfig.Config.LMModel = GetCurrentModelName();
-                EngineConfig.Save();
-            }).Start();
+            if (CurrentModel == null)
+            {
+                CurrentModel = GetCurrentModelName();
+            }
         }
         public OpenAIResponse CallAI(string Msg,ref string Recv)
         {
-            if (EngineConfig.Config.LMModel == string.Empty)
+            if (CurrentModel == string.Empty)
+            {
+                GetCurrentModel();
+            }
+
+            if (CurrentModel == string.Empty)
             {
                 return new OpenAIResponse();
             }
 
             int GetCount = Msg.Length;
-            OpenAIItem NOpenAIItem = new OpenAIItem(EngineConfig.Config.LMModel);
+            OpenAIItem NOpenAIItem = new OpenAIItem(CurrentModel);
             NOpenAIItem.store = true;
             NOpenAIItem.messages.Add(new OpenAIMessage("user", Msg));
             var GetResult = CallAI(NOpenAIItem,ref Recv);
@@ -44,7 +49,7 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
         public string GetCurrentModelName()
         {
             // Construct the URL for the request
-            string GenUrl = EngineConfig.Config.LMHost + ":" + EngineConfig.Config.LMPort + "/v1/models";
+            string GenUrl = "http://localhost" + ":" + EngineConfig.Config.GetPlatformData(LMStudio.Type).LocalPort + "/v1/models";
 
             WebHeaderCollection Headers = new WebHeaderCollection();
             HttpItem Http = new HttpItem()
@@ -83,7 +88,7 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
         }
         public OpenAIResponse CallAI(OpenAIItem Item,ref string Recv)
         {
-            string GenUrl = EngineConfig.Config.LMHost + ":" + EngineConfig.Config.LMPort + "/v1/chat/completions";
+            string GenUrl = "http://localhost" + ":" + EngineConfig.Config.GetPlatformData(LMStudio.Type).LocalPort + "/v1/chat/completions";
             string GetJson = JsonConvert.SerializeObject(Item);
             WebHeaderCollection Headers = new WebHeaderCollection();
             //Headers.Add("Authorization", string.Format("Bearer {0}", DeFine.GlobalLocalSetting.LMKey));

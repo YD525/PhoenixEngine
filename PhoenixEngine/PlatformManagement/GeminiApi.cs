@@ -76,7 +76,7 @@ namespace PhoenixEngine.PlatformManagement
 
     public class GeminiApi
     {
-        //"Important: When translating, strictly keep any text inside angle brackets (< >) or square brackets ([ ]) unchanged. Do not modify, translate, or remove them.\n\n"
+        public static PlatformType Type = PlatformType.Gemini;
         public string QuickTrans(List<ReplaceTag> CustomWords,string TransSource, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam, ref AICall Call,string Type)
         {
             List<string> Related = new List<string>();
@@ -161,7 +161,7 @@ namespace PhoenixEngine.PlatformManagement
             WebHeaderCollection Headers = new WebHeaderCollection();
             HttpItem Http = new HttpItem()
             {
-                URL = $"https://generativelanguage.googleapis.com/v1beta/models/{EngineConfig.Config.GeminiModel}:generateContent?key={EngineConfig.Config.GeminiKey}",
+                URL = $"https://generativelanguage.googleapis.com/v1beta/models/{EngineConfig.Config.GetPlatformData(GeminiApi.Type).Model}:generateContent?key={Engine.KeyData.GetData(GeminiApi.Type).GetFristKey()}",
                 UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
                 Method = "Post",
                 Header = Headers,
