@@ -34,6 +34,14 @@ namespace PhoenixEngine.EngineManagement
         public int LocalPort = 0;
 
         public bool IsFree = false;
+
+        public PlatformConfig()
+        { 
+        }
+        public PlatformConfig(PlatformType Type)
+        { 
+            this.Platform = Type;
+        }
     }
     public class EngineConfigJson
     {
@@ -258,11 +266,16 @@ namespace PhoenixEngine.EngineManagement
             {
                 Config.PlatformConfigs = new Dictionary<int, PlatformConfig>();
 
-                Config.PlatformConfigs.Add((int)PlatformType.ChatGpt,new PlatformConfig());
-                Config.PlatformConfigs.Add((int)PlatformType.Gemini, new PlatformConfig());
-                Config.PlatformConfigs.Add((int)PlatformType.LMLocalAI, new PlatformConfig());
-                Config.PlatformConfigs.Add((int)PlatformType.DeepSeek, new PlatformConfig());
-                Config.PlatformConfigs.Add((int)PlatformType.DeepL, new PlatformConfig());
+                Config.PlatformConfigs.Add((int)PlatformType.ChatGpt,new PlatformConfig(PlatformType.ChatGpt));
+                Config.PlatformConfigs.Add((int)PlatformType.Gemini, new PlatformConfig(PlatformType.Gemini));
+                Config.PlatformConfigs.Add((int)PlatformType.LMLocalAI, new PlatformConfig(PlatformType.LMLocalAI));
+                Config.PlatformConfigs.Add((int)PlatformType.DeepSeek, new PlatformConfig(PlatformType.DeepSeek));
+                Config.PlatformConfigs.Add((int)PlatformType.DeepL, new PlatformConfig(PlatformType.DeepL));
+
+                if (Config.PlatformConfigs[(int)PlatformType.LMLocalAI].LocalPort == 0)
+                {
+                    Config.PlatformConfigs[(int)PlatformType.LMLocalAI].LocalPort = 1234;
+                }
             }
         }
 
