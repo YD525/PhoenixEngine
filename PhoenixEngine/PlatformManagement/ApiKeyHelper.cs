@@ -80,7 +80,7 @@ namespace PhoenixEngine.PlatformManagement
             }
         }
     }
-    public class KeyManager
+    public class KeyManage
     {
         public Dictionary<PlatformType, PlatformApiKeys> KeysData = new Dictionary<PlatformType, PlatformApiKeys>();
         public static int MaxErrorCount = 10;
@@ -89,7 +89,7 @@ namespace PhoenixEngine.PlatformManagement
            
         }
 
-        public KeyManager(PlatformType Type)
+        public KeyManage(PlatformType Type)
         { 
         
         }

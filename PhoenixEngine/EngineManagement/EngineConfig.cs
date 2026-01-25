@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using PhoenixEngine.DataBaseManagement;
 using PhoenixEngine.TranslateCore;
+using PhoenixEngine.TranslateManage;
 
 namespace PhoenixEngine.EngineManagement
 {
@@ -16,7 +17,24 @@ namespace PhoenixEngine.EngineManagement
         public int CurrentThreads { get; set; } = 0;
         public int MaxThreads { get; set; } = 0;
     }
+    public class CustomPlatformInFo
+    { 
+    
+    }
+    public class PlatformConfig
+    {
+        public List<string> ApiKeys { get; set; } = new List<string>();
+        public PlatformType Platform { get; set; } = PlatformType.Null;
 
+        public bool Enable = false;
+        public string CustomName { get; set; } = "";
+        public string Model { get; set; } = "";
+        public CustomPlatformInFo PlatformInFo { get; set; } = null;
+
+        public int LocalPort = 0;
+
+        public bool IsFree = false;
+    }
     public class EngineConfigJson
     {
         #region RequestConfig
@@ -51,72 +69,64 @@ namespace PhoenixEngine.EngineManagement
         public bool PreTranslateEnable { get; set; } = true;
 
 
-        #region Platform Enable State
+        #region Platform Cls
 
-        /// <summary>
-        /// Flags indicating whether each AI or translation platform is enabled.
-        /// Multiple platforms can be enabled simultaneously, and the system will perform load balancing among them.
-        /// </summary>
-
-        public bool ChatGptApiEnable { get; set; } = false;
-        public bool GeminiApiEnable { get; set; } = false;
-        public bool DeepSeekApiEnable { get; set; } = false;
-        public bool LMLocalAIEnable { get; set; } = false;
-        public bool DeepLApiEnable { get; set; } = false;
 
         #endregion
 
         #region ApiKey Set
 
-        /// <summary>
-        /// Stores API keys and model names for various translation and AI platforms.
-        /// These keys must be obtained from the respective service providers.
-        /// </summary>
+        public Dictionary<PlatformType,PlatformConfig> PlatformConfigs { get; set; } = null;
 
-        /// <summary>
-        /// OpenAI ChatGPT API key.
-        /// </summary>
-        public List<string> ChatGptKey { get; set; } = new List<string>();
+        ///// <summary>
+        ///// Stores API keys and model names for various translation and AI platforms.
+        ///// These keys must be obtained from the respective service providers.
+        ///// </summary>
 
-        /// <summary>
-        /// Model name for ChatGPT (e.g., gpt-4o-mini).
-        /// </summary>
-        public string ChatGptModel { get; set; } = "gpt-4.1-nano";
+        ///// <summary>
+        ///// OpenAI ChatGPT API key.
+        ///// </summary>
+        //public List<string> ChatGptKey { get; set; } = new List<string>();
 
-        /// <summary>
-        /// Google Gemini API key.
-        /// </summary>
-        public List<string> GeminiKey { get; set; } = new List<string>();
+        ///// <summary>
+        ///// Model name for ChatGPT (e.g., gpt-4o-mini).
+        ///// </summary>
+        //public string ChatGptModel { get; set; } = "gpt-4.1-nano";
 
-        /// <summary>
-        /// Model name for Gemini (e.g., gemini-2.0-flash).
-        /// </summary>
-        public string GeminiModel { get; set; } = "gemini-2.5-flash";
+        ///// <summary>
+        ///// Google Gemini API key.
+        ///// </summary>
+        //public List<string> GeminiKey { get; set; } = new List<string>();
 
-        /// <summary>
-        /// DeepSeek API key.
-        /// </summary>
-        public List<string> DeepSeekKey { get; set; } = new List<string>();
+        ///// <summary>
+        ///// Model name for Gemini (e.g., gemini-2.0-flash).
+        ///// </summary>
+        //public string GeminiModel { get; set; } = "gemini-2.5-flash";
 
-        /// <summary>
-        /// Model name for DeepSeek (e.g., deepseek-chat).
-        /// </summary>
-        public string DeepSeekModel { get; set; } = "deepseek-chat";
+        ///// <summary>
+        ///// DeepSeek API key.
+        ///// </summary>
+        //public List<string> DeepSeekKey { get; set; } = new List<string>();
 
-        /// <summary>
-        /// DeepL Translate API key.
-        /// </summary>
-        public string DeepLKey { get; set; } = "";
+        ///// <summary>
+        ///// Model name for DeepSeek (e.g., deepseek-chat).
+        ///// </summary>
+        //public string DeepSeekModel { get; set; } = "deepseek-chat";
+
+        ///// <summary>
+        ///// DeepL Translate API key.
+        ///// </summary>
+        //public string DeepLKey { get; set; } = "";
 
 
-        public bool IsFreeDeepL { get; set; } = true;
+        //public bool IsFreeDeepL { get; set; } = true;
 
-        /// <summary>
-        /// LM Studio
-        /// </summary>
-        public string LMHost { get; set; } = "http://localhost";
-        public int LMPort { get; set; } = 1234;
-        public string LMModel { get; set; } = "google/gemma-3-12b";
+        ///// <summary>
+        ///// LM Studio
+        ///// </summary>
+        //public string LMHost { get; set; } = "http://localhost";
+        //public int LMPort { get; set; } = 1234;
+        //public string LMModel { get; set; } = "google/gemma-3-12b";
 
         #endregion
 
@@ -192,6 +202,14 @@ namespace PhoenixEngine.EngineManagement
     public class EngineConfig
     {
         public static EngineConfigJson Config = new EngineConfigJson();
+
+        public static void SetDefaultModel()
+        {
+            if (Config.PlatformConfigs == null)
+            { 
+            
+            }
+        }
 
         public static void SyncTrdCount()
         {
@@ -291,7 +309,8 @@ namespace PhoenixEngine.EngineManagement
             { 
                 var DecryptedBytes = XORDecrypt(File.ReadAllBytes(SetFullPath));
                 EngineConfig.Config = JsonConvert.DeserializeObject<EngineConfigJson>(Encoding.UTF8.GetString(DecryptedBytes));
-                EngineConfig.Config.LMModel = "(Auto)";
+
+                SetDefaultModel();
             }
             catch 
             {
