@@ -342,22 +342,25 @@ namespace PhoenixEngine.EngineManagement
             string SetFullPath = Engine.CurrentPath + "EngineConfig.data";
             if (!File.Exists(SetFullPath))
             {
+                SetDefaultModel();
                 Save();
                 return;
             }
-
-            try 
-            { 
-                var DecryptedBytes = XORDecrypt(File.ReadAllBytes(SetFullPath));
-                EngineConfig.Config = JsonConvert.DeserializeObject<EngineConfigJson>(Encoding.UTF8.GetString(DecryptedBytes));
-
-                SetDefaultModel();
-            }
-            catch 
+            else
             {
-                Save();
-                goto NextCall;
-            }
+                try
+                {
+                    var DecryptedBytes = XORDecrypt(File.ReadAllBytes(SetFullPath));
+                    EngineConfig.Config = JsonConvert.DeserializeObject<EngineConfigJson>(Encoding.UTF8.GetString(DecryptedBytes));
+
+                    SetDefaultModel();
+                }
+                catch
+                {
+                    Save();
+                    goto NextCall;
+                }
+            }  
         }
     }
 }
