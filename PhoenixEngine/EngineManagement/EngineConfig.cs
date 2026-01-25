@@ -86,56 +86,6 @@ namespace PhoenixEngine.EngineManagement
 
         public Dictionary<int, PlatformConfig> PlatformConfigs { get; set; } = null;
 
-        ///// <summary>
-        ///// Stores API keys and model names for various translation and AI platforms.
-        ///// These keys must be obtained from the respective service providers.
-        ///// </summary>
-
-        ///// <summary>
-        ///// OpenAI ChatGPT API key.
-        ///// </summary>
-        //public List<string> ChatGptKey { get; set; } = new List<string>();
-
-        ///// <summary>
-        ///// Model name for ChatGPT (e.g., gpt-4o-mini).
-        ///// </summary>
-        //public string ChatGptModel { get; set; } = "gpt-4.1-nano";
-
-        ///// <summary>
-        ///// Google Gemini API key.
-        ///// </summary>
-        //public List<string> GeminiKey { get; set; } = new List<string>();
-
-        ///// <summary>
-        ///// Model name for Gemini (e.g., gemini-2.0-flash).
-        ///// </summary>
-        //public string GeminiModel { get; set; } = "gemini-2.5-flash";
-
-        ///// <summary>
-        ///// DeepSeek API key.
-        ///// </summary>
-        //public List<string> DeepSeekKey { get; set; } = new List<string>();
-
-        ///// <summary>
-        ///// Model name for DeepSeek (e.g., deepseek-chat).
-        ///// </summary>
-        //public string DeepSeekModel { get; set; } = "deepseek-chat";
-
-        ///// <summary>
-        ///// DeepL Translate API key.
-        ///// </summary>
-        //public string DeepLKey { get; set; } = "";
-
-
-        //public bool IsFreeDeepL { get; set; } = true;
-
-        ///// <summary>
-        ///// LM Studio
-        ///// </summary>
-        //public string LMHost { get; set; } = "http://localhost";
-        //public int LMPort { get; set; } = 1234;
-        //public string LMModel { get; set; } = "google/gemma-3-12b";
-
         #endregion
 
         #region EngineSetting
@@ -276,6 +226,20 @@ namespace PhoenixEngine.EngineManagement
                 {
                     Config.PlatformConfigs[(int)PlatformType.LMLocalAI].LocalPort = 1234;
                 }
+                if (Config.PlatformConfigs[(int)PlatformType.ChatGpt].Model == "")
+                {
+                    Config.PlatformConfigs[(int)PlatformType.ChatGpt].Model = "gpt-4.1-nano";
+                }
+                if (Config.PlatformConfigs[(int)PlatformType.Gemini].Model == "")
+                {
+                    Config.PlatformConfigs[(int)PlatformType.Gemini].Model = "gemini-2.5-flash";
+                }
+                if (Config.PlatformConfigs[(int)PlatformType.DeepSeek].Model == "")
+                {
+                    Config.PlatformConfigs[(int)PlatformType.DeepSeek].Model = "deepseek-chat";
+                }
+
+                Config.PlatformConfigs[(int)PlatformType.DeepL].IsFree = true;
             }
         }
 
