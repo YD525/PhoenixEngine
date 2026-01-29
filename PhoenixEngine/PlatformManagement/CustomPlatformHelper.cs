@@ -558,6 +558,12 @@ namespace PhoenixEngine.PlatformManagement
             return this.Value;
         }
 
+        public void SetValue(string Value, ReqEncodeType Type)
+        { 
+            this.Value = Value;
+            this.EncodeType = Type;
+        }
+
         public ReqReplaceTag(string Key, string Value)
         {
             this.Key = Key;
