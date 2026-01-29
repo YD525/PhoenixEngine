@@ -77,6 +77,11 @@ namespace PhoenixEngine.PlatformManagement
     public class GeminiApi: I_AITranslationNode
     {
         public static PlatformType Type = PlatformType.Gemini;
+        public string ApiKey { get; set; } = "";
+        public void SetApiKey(string Key)
+        {
+            this.ApiKey = Key;
+        }
         public string QuickTrans(List<ReplaceTag> CustomWords,string TransSource, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam, ref AICall Call,string Type)
         {
             List<string> Related = new List<string>();

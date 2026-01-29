@@ -33,6 +33,11 @@ namespace PhoenixEngine.PlatformManagement
     public class ChatGptApi: I_AITranslationNode
     {
         public static PlatformType Type = PlatformType.ChatGpt;
+        public string ApiKey { get; set; } = "";
+        public void SetApiKey(string Key)
+        { 
+           this.ApiKey = Key;
+        }
         public ChatGptRootobject CallAI(string Msg,ref string Recv)
         {
             int GetCount = Msg.Length; 

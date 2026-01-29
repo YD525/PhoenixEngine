@@ -32,6 +32,11 @@ namespace PhoenixEngine.PlatformManagement
     public class DeepLApi: I_TranslationNode
     {
         public static PlatformType Type = PlatformType.DeepL;
+        public string ApiKey { get; set; } = "";
+        public void SetApiKey(string Key)
+        {
+            this.ApiKey = Key;
+        }
 
         private static string DeepLFreeHost = "https://api-free.deepl.com/v2/translate";
         private static string DeepLHost = "https://api.deepl.com/v2/translate";
