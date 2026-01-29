@@ -64,6 +64,23 @@ namespace PhoenixEngine.PlatformManagement
             }
             return NewContent;
         }
+
+        public static List<ReqCustomKeyValue> GetJsonValues(string Json)
+        {
+            var Result = new List<ReqCustomKeyValue>();
+
+            try
+            {
+                var Token = JToken.Parse(Json);
+                ParseJsonElement(Token, "", Result);
+            }
+            catch
+            {
+               
+            }
+
+            return Result;
+        }
         public static List<ReqCustomKeyValue> GetPayLoadKeyValues(PayLoad PayLoad)
         {
             string Payload = PayLoad.Content;
@@ -370,6 +387,11 @@ namespace PhoenixEngine.PlatformManagement
             }
 
             return string.Join("&", Params);
+        }
+
+        public void SetQueryRule(ReqQueryRuleItem QueryRule)
+        { 
+            this.QueryRule = QueryRule;
         }
     }
     

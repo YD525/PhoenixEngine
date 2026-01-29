@@ -28,6 +28,8 @@ namespace PhoenixEngine.EngineManagement
         public bool IsPost = true;
 
         public CustomPlatformType Type = CustomPlatformType.Null;
+
+        public ReqQueryRuleItem QueryRule = new ReqQueryRuleItem();
     }
     public class PlatformConfig
     {
