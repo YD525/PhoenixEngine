@@ -78,10 +78,21 @@ namespace PhoenixEngine.PlatformManagement
     {
         public static PlatformType Type = PlatformType.Gemini;
         public string ApiKey { get; set; } = "";
+        public string Model { get; set; } = "";
         public void SetApiKey(string Key)
         {
             this.ApiKey = Key;
         }
+        public AITranslationMemory AIMemoryRef { get; set; } = null;
+        public EngineConfigJson ConfigRef { get; set; } = null;
+        public WebProxy ProxyRef { get; set; } = null;
+        public void Init(AITranslationMemory AIMemory, EngineConfigJson Config, WebProxy Proxy)
+        {
+            this.AIMemoryRef = AIMemory;
+            this.ConfigRef = Config;
+            this.ProxyRef = Proxy;
+        }
+
         public string QuickTrans(List<ReplaceTag> CustomWords,string TransSource, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam, ref AICall Call,string Type)
         {
             List<string> Related = new List<string>();
@@ -166,7 +177,7 @@ namespace PhoenixEngine.PlatformManagement
             WebHeaderCollection Headers = new WebHeaderCollection();
             HttpItem Http = new HttpItem()
             {
-                URL = $"https://generativelanguage.googleapis.com/v1beta/models/{EngineConfig.Config.GetPlatformData(GeminiApi.Type).Model}:generateContent?key={Engine.KeyData.GetData(GeminiApi.Type).GetFirstKey()}",
+                URL = $"https://generativelanguage.googleapis.com/v1beta/models/{Model}:generateContent?key={ApiKey}",
                 UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
                 Method = "Post",
                 Header = Headers,
@@ -175,8 +186,8 @@ namespace PhoenixEngine.PlatformManagement
                 Cookie = "",
                 ContentType = "application/json; charset=utf-8",
                 Encoding = Encoding.UTF8,
-                Timeout = EngineConfig.Config.GlobalRequestTimeOut,
-                WebProxy = ProxyCenter.CurrentProxy
+                Timeout = ConfigRef.GlobalRequestTimeOut,
+                WebProxy = ProxyRef
             };
             try
             {

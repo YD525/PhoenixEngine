@@ -27,8 +27,6 @@ namespace PhoenixEngine.PlatformManagement
         public string text { get; set; }
     }
 
-
-
     public class DeepLApi: I_TranslationNode
     {
         public static PlatformType Type = PlatformType.DeepL;
@@ -36,6 +34,15 @@ namespace PhoenixEngine.PlatformManagement
         public void SetApiKey(string Key)
         {
             this.ApiKey = Key;
+        }
+        public AITranslationMemory AIMemoryRef { get; set; } = null;
+        public EngineConfigJson ConfigRef { get; set; } = null;
+        public WebProxy ProxyRef { get; set; } = null;
+        public void Init(AITranslationMemory AIMemory, EngineConfigJson Config, WebProxy Proxy)
+        {
+            this.AIMemoryRef = AIMemory;
+            this.ConfigRef = Config;
+            this.ProxyRef = Proxy;
         }
 
         private static string DeepLFreeHost = "https://api-free.deepl.com/v2/translate";
@@ -80,7 +87,7 @@ namespace PhoenixEngine.PlatformManagement
         {
             string GetJson = JsonConvert.SerializeObject(Item);
             WebHeaderCollection Headers = new WebHeaderCollection();
-            Headers.Add("Authorization", string.Format("DeepL-Auth-Key {0}",Engine.KeyData.GetData(DeepLApi.Type).GetFirstKey()));
+            Headers.Add("Authorization", string.Format("DeepL-Auth-Key {0}", ApiKey));
             string AutoHost = "";
 
             if (EngineConfig.Config.GetPlatformData(DeepLApi.Type).IsFree)
@@ -103,8 +110,8 @@ namespace PhoenixEngine.PlatformManagement
                 Cookie = "",
                 ContentType = "application/json; charset=utf-8",
                 Encoding = Encoding.UTF8,
-                Timeout = EngineConfig.Config.GlobalRequestTimeOut,
-                WebProxy = ProxyCenter.CurrentProxy
+                Timeout = ConfigRef.GlobalRequestTimeOut,
+                WebProxy = ProxyRef
             };
             try
             {

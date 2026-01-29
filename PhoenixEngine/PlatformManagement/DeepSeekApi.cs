@@ -71,14 +71,23 @@ namespace PhoenixEngine.PlatformManagement
         public string content { get; set; }
     }
 
-
     public class DeepSeekApi: I_AITranslationNode
     {
         public static PlatformType Type = PlatformType.DeepSeek;
         public string ApiKey { get; set; } = "";
+        public string Model { get; set; } = "";
         public void SetApiKey(string Key)
         {
             this.ApiKey = Key;
+        }
+        public AITranslationMemory AIMemoryRef { get; set; } = null;
+        public EngineConfigJson ConfigRef { get; set; } = null;
+        public WebProxy ProxyRef { get; set; } = null;
+        public void Init(AITranslationMemory AIMemory, EngineConfigJson Config, WebProxy Proxy)
+        {
+            this.AIMemoryRef = AIMemory;
+            this.ConfigRef = Config;
+            this.ProxyRef = Proxy;
         }
         public string QuickTrans(List<ReplaceTag> CustomWords,string TransSource, Languages FromLang, Languages ToLang,bool UseAIMemory,int AIMemoryCountLimit, string AIParam, ref AICall Call,string Type)
         {
@@ -144,7 +153,7 @@ namespace PhoenixEngine.PlatformManagement
         {
             int GetCount = Msg.Length;
             DeepSeekItem NDeepSeekItem = new DeepSeekItem();
-            NDeepSeekItem.model = EngineConfig.Config.GetPlatformData(DeepSeekApi.Type).Model;
+            NDeepSeekItem.model = Model;
             NDeepSeekItem.messages = new List<DeepSeekMessage>();
             NDeepSeekItem.messages.Add(new DeepSeekMessage("user", Msg));
             NDeepSeekItem.stream = false;
@@ -156,7 +165,7 @@ namespace PhoenixEngine.PlatformManagement
         {
             string GetJson = JsonConvert.SerializeObject(Item);
             WebHeaderCollection Headers = new WebHeaderCollection();
-            Headers.Add("Authorization", string.Format("Bearer {0}", Engine.KeyData.GetData(DeepSeekApi.Type).GetFirstKey()));
+            Headers.Add("Authorization", string.Format("Bearer {0}", ApiKey));
             HttpItem Http = new HttpItem()
             {
                 URL = "https://api.deepseek.com/chat/completions",
@@ -168,8 +177,8 @@ namespace PhoenixEngine.PlatformManagement
                 Cookie = "",
                 ContentType = "application/json; charset=utf-8",
                 Encoding = Encoding.UTF8,
-                Timeout = EngineConfig.Config.GlobalRequestTimeOut,
-                WebProxy = ProxyCenter.CurrentProxy
+                Timeout = ConfigRef.GlobalRequestTimeOut,
+                WebProxy = ProxyRef
             };
             try
             {
