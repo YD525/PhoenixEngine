@@ -19,11 +19,11 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
         public AITranslationMemory AIMemoryRef { get; set; } = null;
         public EngineConfigJson ConfigRef { get; set; } = null;
         public int LocalPort { get; set; } = 0;
-        public void Init(AITranslationMemory AIMemory,EngineConfigJson Config, int Port)
+        public void Init(AITranslationMemory AIMemory,EngineConfigJson Config)
         {
             this.AIMemoryRef = AIMemory;
             this.ConfigRef = Config;
-            this.LocalPort = Port;
+            this.LocalPort = ConfigRef.GetPlatformData(LMStudio.Type).LocalPort;
         }
 
         public static PlatformType Type = PlatformType.LMLocalAI;

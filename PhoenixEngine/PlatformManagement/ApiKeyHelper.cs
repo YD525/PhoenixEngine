@@ -89,6 +89,14 @@ namespace PhoenixEngine.PlatformManagement
             }
         }
 
+        public int GetKeyCount()
+        {
+            lock (ArrayQueryLock)
+            {
+                return ApiKeys.Count;
+            }
+        }
+
         public void ReportError(string ApiKey)
         {
             lock (ArrayQueryLock)

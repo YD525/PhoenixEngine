@@ -28,7 +28,7 @@ namespace PhoenixEngine.PlatformManagement
         AITranslationMemory AIMemoryRef { get; set; }
         EngineConfigJson ConfigRef { get; set; }
         int LocalPort { get; set; }
-        void Init(AITranslationMemory AIMemory, EngineConfigJson Config, int Port);
+        void Init(AITranslationMemory AIMemory, EngineConfigJson Config);
         string QuickTrans(List<ReplaceTag> CustomWords, string TransSource, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam, ref AICall Call, string Type);
     }
 

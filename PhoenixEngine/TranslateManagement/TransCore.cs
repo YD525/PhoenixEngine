@@ -8,6 +8,7 @@ using PhoenixEngine.DelegateManagement;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.PlatformManagement;
 using PhoenixEngine.PlatformManagement.LocalAI;
+using PhoenixEngine.RequestManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManagement;
 using static PhoenixEngine.EngineManagement.DataTransmission;
@@ -47,46 +48,59 @@ namespace PhoenixEngine.TranslateManage
             lock (_EngineLock)
             {
                 EngineSelects.Clear();
+                PlatformApiKeys KeyData = null;
 
                 // ChatGPT support
                 var ChatGptConfig = EngineConfig.Config.GetPlatformData(ChatGptApi.Type);
-
-                if (ChatGptConfig.Enable && Engine.KeyData.GetData(ChatGptApi.Type).HaveKey())
+                KeyData = Engine.KeyData.GetData(ChatGptApi.Type);
+                if (ChatGptConfig.Enable && KeyData.HaveKey())
                 {
-                    EngineSelects.Add(new EngineSelect(new ChatGptApi(), 1));
+                    ChatGptApi NChatGptApi = new ChatGptApi();
+                    NChatGptApi.Init(EngineSelect.AIMemory,EngineConfig.Config,ProxyCenter.CurrentProxy);
+                    EngineSelects.Add(new EngineSelect(NChatGptApi, KeyData.GetKeyCount()));
                 }
 
                 // Gemini support
                 var GeminiConfig = EngineConfig.Config.GetPlatformData(GeminiApi.Type);
-
-                if (GeminiConfig.Enable && Engine.KeyData.GetData(GeminiApi.Type).HaveKey())
+                KeyData = Engine.KeyData.GetData(GeminiApi.Type);
+                if (GeminiConfig.Enable && KeyData.HaveKey())
                 {
-                    EngineSelects.Add(new EngineSelect(new GeminiApi(), 1));
+                    GeminiApi NGeminiApi = new GeminiApi();
+                    NGeminiApi.Init(EngineSelect.AIMemory, EngineConfig.Config, ProxyCenter.CurrentProxy);
+                    EngineSelects.Add(new EngineSelect(NGeminiApi, KeyData.GetKeyCount()));
                 }
 
                 // DeepSeek support
                 var DeepSeekConfig = EngineConfig.Config.GetPlatformData(DeepSeekApi.Type);
-
-                if (DeepSeekConfig.Enable && Engine.KeyData.GetData(DeepSeekApi.Type).HaveKey())
+                KeyData = Engine.KeyData.GetData(DeepSeekApi.Type);
+                if (DeepSeekConfig.Enable && KeyData.HaveKey())
                 {
-                    EngineSelects.Add(new EngineSelect(new DeepSeekApi(), 1));
+                    DeepSeekApi NDeepSeekApi = new DeepSeekApi();
+                    NDeepSeekApi.Init(EngineSelect.AIMemory, EngineConfig.Config, ProxyCenter.CurrentProxy);
+                    EngineSelects.Add(new EngineSelect(NDeepSeekApi, KeyData.GetKeyCount()));
                 }
 
                 //LocalAI(LM) support
                 var LMLocalAIConfig = EngineConfig.Config.GetPlatformData(LMStudio.Type);
-
+                KeyData = null;
                 if (LMLocalAIConfig.Enable)
                 {
-                    EngineSelects.Add(new EngineSelect(new LMStudio(), 1));
+                    LMStudio NLMStudio = new LMStudio();
+                    NLMStudio.Init(EngineSelect.AIMemory, EngineConfig.Config);
+                    EngineSelects.Add(new EngineSelect(NLMStudio, 1));
                 }
 
                 // DeepL support
                 var DeepLConfig = EngineConfig.Config.GetPlatformData(DeepLApi.Type);
-
-                if (DeepLConfig.Enable && Engine.KeyData.GetData(DeepLApi.Type).HaveKey())
+                KeyData = Engine.KeyData.GetData(DeepLApi.Type);
+                if (DeepLConfig.Enable && KeyData.HaveKey())
                 {
-                    EngineSelects.Add(new EngineSelect(new DeepLApi(), 1));
+                    DeepLApi NDeepLApi = new DeepLApi();
+                    NDeepLApi.Init(EngineConfig.Config, ProxyCenter.CurrentProxy);
+                    EngineSelects.Add(new EngineSelect(NDeepLApi, KeyData.GetKeyCount()));
                 }
+
+                KeyData = null;
             }
         }
 
