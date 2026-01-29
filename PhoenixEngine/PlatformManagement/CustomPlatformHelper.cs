@@ -6,7 +6,12 @@ using System.Threading.Tasks;
 
 namespace PhoenixEngine.PlatformManagement
 {
-    public class CustomAI : I_TranslationNode
+    public class CustomPlatformHelper
     {
+    }
+
+    public enum CustomPlatformType
+    { 
+        Null = 0, LocalAI = 1, CloudAI = 2 ,Traditional = 3
     }
 }

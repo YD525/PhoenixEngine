@@ -7,10 +7,10 @@ using PhoenixEngine.TranslateManage;
 
 namespace PhoenixEngine.PlatformManagement
 {
-    public class CustomAIApi : I_AI_TranslationNode
+    public class CustomApi : I_TranslationNode
     {
         public static PlatformType Type = PlatformType.CustomPlatform;
 
-        public CustomPlatformType CustomType = CustomPlatformType.CloudAI;
+        public CustomPlatformType CustomType = CustomPlatformType.Traditional;
     }
 }
