@@ -442,8 +442,8 @@ namespace PhoenixEngine.PlatformManagement
 
         public ReqCustomKeyValue(string Key, string Value)
         {
-            this.Key = Key;
-            this.Value = Value;
+            this.Key = Key.Trim();
+            this.Value = Value.Trim();
         }
     }
 
