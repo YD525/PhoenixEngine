@@ -438,6 +438,7 @@ namespace PhoenixEngine.TranslateManage
                             {
                                 if (EngineConfig.Config.GetPlatformData(DeepLApi.Type).Enable)
                                 {
+                                    var Type = DeepLApi.Type;
                                     DeepLApi SetApi = (DeepLApi)this.ApiRef;
                                     PlatformCall Call = new PlatformCall();
 
@@ -449,10 +450,14 @@ namespace PhoenixEngine.TranslateManage
                                     string GetData = null;
                                     bool Passed = false;
                                     int MaxTry = MaxTranslationAttempts;
+                                    string CurrentApiKey = "";
 
                                     //Detecting the quality of AI-translated content
                                     do
                                     {
+                                        CurrentApiKey = Engine.KeyData.GetData(Type).GetFirstKey();
+                                        SetApi.SetApiKey(CurrentApiKey);
+
                                         GetData = SetApi.QuickTrans(GetSource, Item.From, Item.To, ref Call).Trim();
                                         Passed = SecondaryQualityInspection(GetData, CustomWords);
 
@@ -470,6 +475,11 @@ namespace PhoenixEngine.TranslateManage
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
                                         AIMemory.AddTranslation(Item.From,Item.To, GetSource, GetData);
+                                    }
+
+                                    if (GetData.Length == 0)
+                                    {
+                                        Engine.KeyData.GetData(Type).ReportError(CurrentApiKey);
                                     }
 
                                     GetData = NTranslationPreprocessor.RestoreFromPlaceholder(GetData, Item.To);
@@ -590,15 +600,20 @@ namespace PhoenixEngine.TranslateManage
                             {
                                 if (EngineConfig.Config.GetPlatformData(ChatGptApi.Type).Enable)
                                 {
+                                    var Type = ChatGptApi.Type;
                                     ChatGptApi SetApi = ((ChatGptApi)this.ApiRef);
                                     AICall Call = new AICall();
 
                                     string GetData = null;
                                     bool Passed = false;
                                     int MaxTry = MaxTranslationAttempts;
+                                    string CurrentApiKey = "";
 
                                     do
                                     {
+                                        CurrentApiKey = Engine.KeyData.GetData(Type).GetFirstKey();
+                                        SetApi.SetApiKey(CurrentApiKey);
+
                                         GetData = SetApi.QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
                                         Passed = SecondaryQualityInspection(GetData, CustomWords);
 
@@ -615,7 +630,12 @@ namespace PhoenixEngine.TranslateManage
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
-                                        AIMemory.AddTranslation(Item.From,Item.To, GetSource, GetData);
+                                        AIMemory.AddTranslation(Item.From, Item.To, GetSource, GetData);
+                                    }
+
+                                    if (GetData.Length == 0)
+                                    {
+                                        Engine.KeyData.GetData(Type).ReportError(CurrentApiKey);
                                     }
 
                                     GetData = NTranslationPreprocessor.RestoreFromPlaceholder(GetData, Item.To);
@@ -641,6 +661,7 @@ namespace PhoenixEngine.TranslateManage
                             {
                                 if (EngineConfig.Config.GetPlatformData(GeminiApi.Type).Enable)
                                 {
+                                    var Type = GeminiApi.Type;
                                     GeminiApi SetApi = ((GeminiApi)this.ApiRef);
 
                                     AICall Call = new AICall();
@@ -648,9 +669,13 @@ namespace PhoenixEngine.TranslateManage
                                     string GetData = null;
                                     bool Passed = false;
                                     int MaxTry = MaxTranslationAttempts;
+                                    string CurrentApiKey = "";
 
                                     do
                                     {
+                                        CurrentApiKey = Engine.KeyData.GetData(Type).GetFirstKey();
+                                        SetApi.SetApiKey(CurrentApiKey);
+
                                         GetData = SetApi.QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
                                         Passed = SecondaryQualityInspection(GetData, CustomWords);
 
@@ -668,6 +693,11 @@ namespace PhoenixEngine.TranslateManage
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
                                         AIMemory.AddTranslation(Item.From,Item.To, GetSource, GetData);
+                                    }
+
+                                    if (GetData.Length == 0)
+                                    {
+                                        Engine.KeyData.GetData(Type).ReportError(CurrentApiKey);
                                     }
 
                                     GetData = NTranslationPreprocessor.RestoreFromPlaceholder(GetData, Item.To);
@@ -693,16 +723,21 @@ namespace PhoenixEngine.TranslateManage
                             {
                                 if (EngineConfig.Config.GetPlatformData(DeepSeekApi.Type).Enable)
                                 {
+                                    var Type = DeepSeekApi.Type;
                                     DeepSeekApi SetApi = ((DeepSeekApi)this.ApiRef);
                                     AICall Call = new AICall();
 
                                     string GetData = null;
                                     bool Passed = false;
                                     int MaxTry = MaxTranslationAttempts;
+                                    string CurrentApiKey = "";
 
                                     //Detecting the quality of AI-translated content
                                     do
                                     {
+                                        CurrentApiKey = Engine.KeyData.GetData(Type).GetFirstKey();
+                                        SetApi.SetApiKey(CurrentApiKey);
+
                                         GetData = SetApi.QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
                                         Passed = SecondaryQualityInspection(GetData, CustomWords);
 
@@ -720,6 +755,11 @@ namespace PhoenixEngine.TranslateManage
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
                                         AIMemory.AddTranslation(Item.From,Item.To, GetSource, GetData);
+                                    }
+                                    
+                                    if(GetData.Length == 0)
+                                    {
+                                        Engine.KeyData.GetData(Type).ReportError(CurrentApiKey);
                                     }
 
                                     GetData = NTranslationPreprocessor.RestoreFromPlaceholder(GetData, Item.To);
