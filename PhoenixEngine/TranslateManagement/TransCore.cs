@@ -508,7 +508,7 @@ namespace PhoenixEngine.TranslateManage
 
                                 if (EngineConfig.Config.GetPlatformData(SetApi.CustomID).Enable)
                                 {
-                                    var Type = CustomApi.Type;
+                                    var Type = SetApi.CustomID;
                                     PlatformCall Call = new PlatformCall();
 
                                     if (Item.From == Languages.Auto)
@@ -829,6 +829,123 @@ namespace PhoenixEngine.TranslateManage
                                     if(GetData.Length == 0)
                                     {
                                         Engine.KeyData.GetData(Type).ReportError(CurrentApiKey);
+                                    }
+
+                                    GetData = NTranslationPreprocessor.RestoreFromPlaceholder(GetData, Item.To);
+
+                                    TransText = GetData;
+
+                                    CurrentPlatform = PlatformType.DeepSeek;
+
+                                    if (GetData.Trim().Length == 0)
+                                    {
+                                        this.CallCountDown = 0;
+                                    }
+
+                                    Call.Output();
+                                }
+                                else
+                                {
+                                    this.CallCountDown = 0;
+                                }
+                            }
+                            else
+                            if (this.ApiRef is CustomAIApi)
+                            {
+                                CustomAIApi SetApi = ((CustomAIApi)this.ApiRef);
+
+                                if (EngineConfig.Config.GetPlatformData(SetApi.CustomID).Enable)
+                                {
+                                    var Type = SetApi.CustomID;
+                                    AICall Call = new AICall();
+
+                                    string GetData = null;
+                                    bool Passed = false;
+                                    int MaxTry = MaxTranslationAttempts;
+                                    string CurrentApiKey = "";
+
+                                    //Detecting the quality of AI-translated content
+                                    do
+                                    {
+                                        CurrentApiKey = Engine.KeyData.GetData(Type).GetFirstKey();
+                                        SetApi.SetApiKey(CurrentApiKey);
+
+                                        GetData = SetApi.QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
+                                        Passed = SecondaryQualityInspection(GetData, CustomWords);
+
+                                        if (!Passed && MaxTry > 0)
+                                        {
+                                            Thread.Sleep(EngineConfig.Config.ReTryWaitTime);
+                                            MaxTry--;
+                                        }
+                                        else
+                                        {
+                                            break;
+                                        }
+                                    } while (!Passed);
+
+                                    if (GetData.Trim().Length > 0 && UseAIMemory)
+                                    {
+                                        AIMemory.AddTranslation(Item.From, Item.To, GetSource, GetData);
+                                    }
+
+                                    if (GetData.Length == 0)
+                                    {
+                                        Engine.KeyData.GetData(Type).ReportError(CurrentApiKey);
+                                    }
+
+                                    GetData = NTranslationPreprocessor.RestoreFromPlaceholder(GetData, Item.To);
+
+                                    TransText = GetData;
+
+                                    CurrentPlatform = PlatformType.DeepSeek;
+
+                                    if (GetData.Trim().Length == 0)
+                                    {
+                                        this.CallCountDown = 0;
+                                    }
+
+                                    Call.Output();
+                                }
+                                else
+                                {
+                                    this.CallCountDown = 0;
+                                }
+                            }
+                            else
+                            if (this.ApiRef is CustomLocalAIApi)
+                            {
+                                CustomLocalAIApi SetApi = ((CustomLocalAIApi)this.ApiRef);
+
+                                if (EngineConfig.Config.GetPlatformData(SetApi.CustomID).Enable)
+                                {
+                                    var Type = SetApi.CustomID;
+                                    AICall Call = new AICall();
+
+                                    string GetData = null;
+                                    bool Passed = false;
+                                    int MaxTry = MaxTranslationAttempts;
+
+                                    //Detecting the quality of AI-translated content
+                                    do
+                                    {
+                                        GetData = SetApi.QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
+                                        Passed = SecondaryQualityInspection(GetData, CustomWords);
+
+                                        if (!Passed && MaxTry > 0)
+                                        {
+                                            Thread.Sleep(EngineConfig.Config.ReTryWaitTime);
+                                            MaxTry--;
+                                        }
+                                        else
+                                        {
+                                            break;
+                                        }
+                                    } while (!Passed);
+
+                                    if (GetData.Trim().Length > 0 && UseAIMemory)
+                                    {
+                                        AIMemory.AddTranslation(Item.From, Item.To, GetSource, GetData);
                                     }
 
                                     GetData = NTranslationPreprocessor.RestoreFromPlaceholder(GetData, Item.To);
