@@ -8,7 +8,7 @@ namespace PhoenixEngine.DataBaseManagement
     {
         public static int GetPageCount(string TableName, string Where)
         {
-            int GetCount = ConvertHelper.ObjToInt(Engine.LocalDB.ExecuteScalar(string.Format("Select Count(*) From {0} ", TableName) + Where));
+            int GetCount = ConvertHelper.ObjToInt(Phoenix.LocalDB.ExecuteScalar(string.Format("Select Count(*) From {0} ", TableName) + Where));
             int PageCount = GetCount / Phoenix.Config.DefPageSize;
             if (GetCount % Phoenix.Config.DefPageSize > 0)
             {
@@ -24,7 +24,7 @@ namespace PhoenixEngine.DataBaseManagement
                 Where += " ";
             }
             string SqlOrder = string.Format("Select Rowid,* From {0} ", TableName) + Where + string.Format("Order BY Rowid Desc Limit (({0}-1)*{1}),{1};", PageNo, Count);
-            return Engine.LocalDB.ExecuteQuery(SqlOrder);
+            return Phoenix.LocalDB.ExecuteQuery(SqlOrder);
         }
 
     }

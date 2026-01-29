@@ -52,7 +52,7 @@ namespace PhoenixEngine.TranslateManage
 
                 // ChatGPT support
                 var ChatGptConfig = Phoenix.Config.GetPlatformData(ChatGptApi.Type);
-                KeyData = Engine.KeyData.GetData(ChatGptApi.Type);
+                KeyData = Phoenix.KeyData.GetData(ChatGptApi.Type);
                 if (ChatGptConfig.Enable && KeyData.HaveKey())
                 {
                     ChatGptApi NChatGptApi = new ChatGptApi();
@@ -62,7 +62,7 @@ namespace PhoenixEngine.TranslateManage
 
                 // Gemini support
                 var GeminiConfig = Phoenix.Config.GetPlatformData(GeminiApi.Type);
-                KeyData = Engine.KeyData.GetData(GeminiApi.Type);
+                KeyData = Phoenix.KeyData.GetData(GeminiApi.Type);
                 if (GeminiConfig.Enable && KeyData.HaveKey())
                 {
                     GeminiApi NGeminiApi = new GeminiApi();
@@ -72,7 +72,7 @@ namespace PhoenixEngine.TranslateManage
 
                 // DeepSeek support
                 var DeepSeekConfig = Phoenix.Config.GetPlatformData(DeepSeekApi.Type);
-                KeyData = Engine.KeyData.GetData(DeepSeekApi.Type);
+                KeyData = Phoenix.KeyData.GetData(DeepSeekApi.Type);
                 if (DeepSeekConfig.Enable && KeyData.HaveKey())
                 {
                     DeepSeekApi NDeepSeekApi = new DeepSeekApi();
@@ -92,7 +92,7 @@ namespace PhoenixEngine.TranslateManage
 
                 // DeepL support
                 var DeepLConfig = Phoenix.Config.GetPlatformData(DeepLApi.Type);
-                KeyData = Engine.KeyData.GetData(DeepLApi.Type);
+                KeyData = Phoenix.KeyData.GetData(DeepLApi.Type);
                 if (DeepLConfig.Enable && KeyData.HaveKey())
                 {
                     DeepLApi NDeepLApi = new DeepLApi();
@@ -110,7 +110,7 @@ namespace PhoenixEngine.TranslateManage
                     {
                         if (CustomInFo.CustomID > 0)
                         {
-                            KeyData = Engine.KeyData.GetData(CustomInFo.CustomID);
+                            KeyData = Phoenix.KeyData.GetData(CustomInFo.CustomID);
                             switch (CustomInFo.Type)
                             {
                                 case CustomPlatformType.LocalAI:
@@ -172,7 +172,7 @@ namespace PhoenixEngine.TranslateManage
             }
 
             Call.SendString = Item.SourceText;
-            string GetCacheStr = CloudDBCache.FindCache(Engine.GetFileUniqueKey(), Item.Key, Item.To);
+            string GetCacheStr = CloudDBCache.FindCache(Phoenix.GetFileUniqueKey(), Item.Key, Item.To);
 
             if (GetCacheStr.Trim().Length > 0)
             {
@@ -414,7 +414,7 @@ namespace PhoenixEngine.TranslateManage
 
                             NPreTranslateCall.SendString = GetDefSource;
 
-                            GetSource = NTranslationPreprocessor.GeneratePlaceholderText(Engine.LastLoadFileName,Item.From,Item.To, GetDefSource, Item.Type, out CanTrans);
+                            GetSource = NTranslationPreprocessor.GeneratePlaceholderText(Phoenix.LastLoadFileName,Item.From,Item.To, GetDefSource, Item.Type, out CanTrans);
 
                             CustomWords.Clear();
                             foreach (var GetWord in NTranslationPreprocessor.ReplaceTags)
@@ -456,7 +456,7 @@ namespace PhoenixEngine.TranslateManage
                                     //Detecting the quality of AI-translated content
                                     do
                                     {
-                                        CurrentApiKey = Engine.KeyData.GetData(Type).GetFirstKey();
+                                        CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
                                         SetApi.SetApiKey(CurrentApiKey);
 
                                         GetData = SetApi.QuickTrans(GetSource, Item.From, Item.To, ref Call).Trim();
@@ -480,7 +480,7 @@ namespace PhoenixEngine.TranslateManage
 
                                     if (GetData.Length == 0)
                                     {
-                                        Engine.KeyData.GetData(Type).ReportError(CurrentApiKey);
+                                        Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
                                     }
 
                                     GetData = NTranslationPreprocessor.RestoreFromPlaceholder(GetData, Item.To);
@@ -524,7 +524,7 @@ namespace PhoenixEngine.TranslateManage
                                     //Detecting the quality of AI-translated content
                                     do
                                     {
-                                        CurrentApiKey = Engine.KeyData.GetData(Type).GetFirstKey();
+                                        CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
                                         SetApi.SetApiKey(CurrentApiKey);
 
                                         GetData = SetApi.QuickTrans(GetSource, Item.From, Item.To, ref Call).Trim();
@@ -548,7 +548,7 @@ namespace PhoenixEngine.TranslateManage
 
                                     if (GetData.Length == 0)
                                     {
-                                        Engine.KeyData.GetData(Type).ReportError(CurrentApiKey);
+                                        Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
                                     }
 
                                     GetData = NTranslationPreprocessor.RestoreFromPlaceholder(GetData, Item.To);
@@ -594,7 +594,7 @@ namespace PhoenixEngine.TranslateManage
 
                             NPreTranslateCall.SendString = GetDefSource;
 
-                            GetSource = NTranslationPreprocessor.GeneratePlaceholderText(Engine.LastLoadFileName, Item.From, Item.To, GetDefSource, Item.Type, out CanTrans);
+                            GetSource = NTranslationPreprocessor.GeneratePlaceholderText(Phoenix.LastLoadFileName, Item.From, Item.To, GetDefSource, Item.Type, out CanTrans);
 
                             CustomWords.Clear();
                             foreach (var GetWord in NTranslationPreprocessor.ReplaceTags)
@@ -680,7 +680,7 @@ namespace PhoenixEngine.TranslateManage
 
                                     do
                                     {
-                                        CurrentApiKey = Engine.KeyData.GetData(Type).GetFirstKey();
+                                        CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
                                         SetApi.SetApiKey(CurrentApiKey);
 
                                         GetData = SetApi.QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
@@ -704,7 +704,7 @@ namespace PhoenixEngine.TranslateManage
 
                                     if (GetData.Length == 0)
                                     {
-                                        Engine.KeyData.GetData(Type).ReportError(CurrentApiKey);
+                                        Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
                                     }
 
                                     GetData = NTranslationPreprocessor.RestoreFromPlaceholder(GetData, Item.To);
@@ -742,7 +742,7 @@ namespace PhoenixEngine.TranslateManage
 
                                     do
                                     {
-                                        CurrentApiKey = Engine.KeyData.GetData(Type).GetFirstKey();
+                                        CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
                                         SetApi.SetApiKey(CurrentApiKey);
 
                                         GetData = SetApi.QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
@@ -766,7 +766,7 @@ namespace PhoenixEngine.TranslateManage
 
                                     if (GetData.Length == 0)
                                     {
-                                        Engine.KeyData.GetData(Type).ReportError(CurrentApiKey);
+                                        Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
                                     }
 
                                     GetData = NTranslationPreprocessor.RestoreFromPlaceholder(GetData, Item.To);
@@ -804,7 +804,7 @@ namespace PhoenixEngine.TranslateManage
                                     //Detecting the quality of AI-translated content
                                     do
                                     {
-                                        CurrentApiKey = Engine.KeyData.GetData(Type).GetFirstKey();
+                                        CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
                                         SetApi.SetApiKey(CurrentApiKey);
 
                                         GetData = SetApi.QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
@@ -828,7 +828,7 @@ namespace PhoenixEngine.TranslateManage
                                     
                                     if(GetData.Length == 0)
                                     {
-                                        Engine.KeyData.GetData(Type).ReportError(CurrentApiKey);
+                                        Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
                                     }
 
                                     GetData = NTranslationPreprocessor.RestoreFromPlaceholder(GetData, Item.To);
@@ -867,7 +867,7 @@ namespace PhoenixEngine.TranslateManage
                                     //Detecting the quality of AI-translated content
                                     do
                                     {
-                                        CurrentApiKey = Engine.KeyData.GetData(Type).GetFirstKey();
+                                        CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
                                         SetApi.SetApiKey(CurrentApiKey);
 
                                         GetData = SetApi.QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
@@ -891,7 +891,7 @@ namespace PhoenixEngine.TranslateManage
 
                                     if (GetData.Length == 0)
                                     {
-                                        Engine.KeyData.GetData(Type).ReportError(CurrentApiKey);
+                                        Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
                                     }
 
                                     GetData = NTranslationPreprocessor.RestoreFromPlaceholder(GetData, Item.To);

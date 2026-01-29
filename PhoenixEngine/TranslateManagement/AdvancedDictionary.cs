@@ -58,7 +58,7 @@ namespace PhoenixEngine.TranslateManagement
         public static void Init()
         {
             string CheckTableSql = "SELECT name FROM sqlite_master WHERE type='table' AND name='AdvancedDictionary';";
-            var Result = Engine.LocalDB.ExecuteScalar(CheckTableSql);
+            var Result = Phoenix.LocalDB.ExecuteScalar(CheckTableSql);
 
             if (Result == null || Result == DBNull.Value)
             {
@@ -69,7 +69,7 @@ namespace PhoenixEngine.TranslateManagement
             {
                 //Table exists, check whether it's the old structure (has TargetModName instead of TargetFileName)
                 string CheckOldColumnSql = "PRAGMA table_info(AdvancedDictionary);";
-                var dt = Engine.LocalDB.ExecuteQuery(CheckOldColumnSql);
+                var dt = Phoenix.LocalDB.ExecuteQuery(CheckOldColumnSql);
 
                 bool HasTargetFileName = dt.Any(r => r["name"].ToString() == "TargetFileName");
                 bool HasTargetModName = dt.Any(r => r["name"].ToString() == "TargetModName");
@@ -101,13 +101,13 @@ CREATE TABLE [AdvancedDictionary](
   [IgnoreCase] INT, 
   [Regex] TEXT
 );";
-            Engine.LocalDB.ExecuteNonQuery(SqlOrder);
+            Phoenix.LocalDB.ExecuteNonQuery(SqlOrder);
         }
 
         private static void MigrateOldTable()
         {
             //Rename the old table
-            Engine.LocalDB.ExecuteNonQuery("ALTER TABLE AdvancedDictionary RENAME TO AdvancedDictionary_Old;");
+            Phoenix.LocalDB.ExecuteNonQuery("ALTER TABLE AdvancedDictionary RENAME TO AdvancedDictionary_Old;");
 
             //Create a new table with the updated structure
             CreateNewTable();
@@ -119,23 +119,23 @@ INSERT INTO AdvancedDictionary
 SELECT TargetModName, Type, Source, Result, [From], [To], ExactMatch, IgnoreCase, Regex
 FROM AdvancedDictionary_Old;";
 
-            Engine.LocalDB.ExecuteNonQuery(SqlOrder);
+            Phoenix.LocalDB.ExecuteNonQuery(SqlOrder);
 
             //Drop the old table after migration
-            Engine.LocalDB.ExecuteNonQuery("DROP TABLE AdvancedDictionary_Old;");
+            Phoenix.LocalDB.ExecuteNonQuery("DROP TABLE AdvancedDictionary_Old;");
         }
 
         private static void RecreateNewTable()
         {
             //Defensive fallback: drop the broken table and recreate it
-            Engine.LocalDB.ExecuteNonQuery("DROP TABLE IF EXISTS AdvancedDictionary;");
+            Phoenix.LocalDB.ExecuteNonQuery("DROP TABLE IF EXISTS AdvancedDictionary;");
             CreateNewTable();
         }
 
         public static string GetSourceByRowid(int Rowid)
         {
             string SqlOrder = "Select [Source] From AdvancedDictionary Where Rowid = {0}";
-            return SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Engine.LocalDB.ExecuteScalar(string.Format(SqlOrder,Rowid))));
+            return SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Phoenix.LocalDB.ExecuteScalar(string.Format(SqlOrder,Rowid))));
         }
         public static bool IsRegexMatch(string Input, string SetRegex)
         {
@@ -153,7 +153,7 @@ FROM AdvancedDictionary_Old;";
         {
             string SqlOrder = "Select Rowid,* From AdvancedDictionary Where [ExactMatch] = 1 And [From] = {0} And [To] = {1} And ([Type] Is NULL OR [Type] = '' OR [Type] = '{2}') And [Source] = '{3}' And [IgnoreCase] = 1 Limit 1";
 
-            List<Dictionary<string, object>> NTable = Engine.LocalDB.ExecuteQuery(string.Format(SqlOrder,(int)From,(int)To,SqlSafeCodec.Encode(Type),SqlSafeCodec.Encode(Source)));
+            List<Dictionary<string, object>> NTable = Phoenix.LocalDB.ExecuteQuery(string.Format(SqlOrder,(int)From,(int)To,SqlSafeCodec.Encode(Type),SqlSafeCodec.Encode(Source)));
             if (NTable.Count > 0)
             {
                 var Row = NTable[0]; // row is Dictionary<string, object>
@@ -326,7 +326,7 @@ WHERE
 ";
             }
 
-                List<Dictionary<string, object>> NTable = Engine.LocalDB.ExecuteQuery(string.Format(
+                List<Dictionary<string, object>> NTable = Phoenix.LocalDB.ExecuteQuery(string.Format(
                 SqlOrder,
                 SqlSafeCodec.Encode(FileName),
                 SqlSafeCodec.Encode(Type),
@@ -380,7 +380,7 @@ WHERE
 [From] = {item.From} AND
 [To] = {item.To}";
 
-            int Count = Convert.ToInt32(Engine.LocalDB.ExecuteScalar(CheckSql));
+            int Count = Convert.ToInt32(Phoenix.LocalDB.ExecuteScalar(CheckSql));
             return Count > 0;
         }
 
@@ -402,7 +402,7 @@ VALUES (
 {Item.IgnoreCase},
 '{SqlSafeCodec.Encode(Item.Regex)}'
 )";
-                int State = Engine.LocalDB.ExecuteNonQuery(sql);
+                int State = Phoenix.LocalDB.ExecuteNonQuery(sql);
                 if (State != 0)
                 {
                     return true;
@@ -427,7 +427,7 @@ Result = '{SqlSafeCodec.Encode(item.Result)}' AND
 ExactMatch = {item.ExactMatch} AND
 IgnoreCase = {item.IgnoreCase} AND
 Regex = '{SqlSafeCodec.Encode(item.Regex)}'";
-            Engine.LocalDB.ExecuteNonQuery(sql);
+            Phoenix.LocalDB.ExecuteNonQuery(sql);
         }
 
         public static PageItem<List<AdvancedDictionaryItem>> QueryByPage(int From, int To, int PageNo)
@@ -492,7 +492,7 @@ Regex = '{SqlSafeCodec.Encode(item.Regex)}'";
         public static bool DeleteByRowid(int Rowid)
         {
             string SqlOrder = "Delete From AdvancedDictionary Where Rowid = {0}";
-            int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,Rowid));
+            int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,Rowid));
             if (State != 0)
             {
                 return true;

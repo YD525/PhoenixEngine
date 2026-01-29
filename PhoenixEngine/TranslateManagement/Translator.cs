@@ -285,7 +285,7 @@ namespace PhoenixEngine.TranslateManage
         public static bool ClearCloudCache(int FileUniqueKey)
         {
             string SqlOrder = "Delete From CloudTranslation Where FileUniqueKey = " + FileUniqueKey + "";
-            int State = Engine.LocalDB.ExecuteNonQuery(SqlOrder);
+            int State = Phoenix.LocalDB.ExecuteNonQuery(SqlOrder);
             if (State != 0)
             {
                 return true;

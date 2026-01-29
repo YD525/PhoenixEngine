@@ -49,12 +49,12 @@ CREATE TABLE [FontColors](
 
             // Check if table exists
             string CheckTableSql = $"SELECT name FROM sqlite_master WHERE type='table' AND name='{TableName}';";
-            var Result = Engine.LocalDB.ExecuteScalar(CheckTableSql);
+            var Result = Phoenix.LocalDB.ExecuteScalar(CheckTableSql);
 
             if (Result != null && Result != DBNull.Value)
             {
                 // Table exists, check structure
-                List<Dictionary<string, object>> Columns = Engine.LocalDB.ExecuteQuery($"PRAGMA table_info({TableName});");
+                List<Dictionary<string, object>> Columns = Phoenix.LocalDB.ExecuteQuery($"PRAGMA table_info({TableName});");
                 var ExistingCols = new HashSet<string>(
                       Columns.Select(R => R["name"].ToString()),
                     StringComparer.OrdinalIgnoreCase
@@ -67,21 +67,21 @@ CREATE TABLE [FontColors](
 
                 if (StructureChanged)
                 {
-                    Engine.LocalDB.ExecuteNonQuery($"DROP TABLE IF EXISTS [{TableName}];");
-                    Engine.LocalDB.ExecuteNonQuery(CreateSql);
+                    Phoenix.LocalDB.ExecuteNonQuery($"DROP TABLE IF EXISTS [{TableName}];");
+                    Phoenix.LocalDB.ExecuteNonQuery(CreateSql);
                 }
             }
             else
             {
                 // Create if not exists
-                Engine.LocalDB.ExecuteNonQuery(CreateSql);
+                Phoenix.LocalDB.ExecuteNonQuery(CreateSql);
             }
         }
 
         public static FontColor FindColor(int FileUniqueKey, string Key)
         {
             string SqlOrder = "Select * From FontColors Where FileUniqueKey = {0} And Key = '{1}'";
-            List<Dictionary<string, object>> NTable = Engine.LocalDB.ExecuteQuery(string.Format(SqlOrder,FileUniqueKey, Key));
+            List<Dictionary<string, object>> NTable = Phoenix.LocalDB.ExecuteQuery(string.Format(SqlOrder,FileUniqueKey, Key));
             if (NTable.Count > 0)
             {
                 var Row = NTable[0]; // Dictionary<string, object>
@@ -101,7 +101,7 @@ CREATE TABLE [FontColors](
         public static bool DeleteColor(int FileUniqueKey, string Key)
         {
             string SqlOrder = "Delete From FontColors Where FileUniqueKey = {0} And Key = '{1}'";
-            int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, Key));
+            int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, Key));
             if (State != 0)
             {
                 return true;
@@ -114,12 +114,12 @@ CREATE TABLE [FontColors](
         {
             if ((R == 255 && G == 255 && B == 255) == false)
             {
-                int GetRowID = ConvertHelper.ObjToInt(Engine.LocalDB.ExecuteScalar(String.Format("Select Rowid From FontColors Where [FileUniqueKey] = {0} And [Key] = '{1}'", FileUniqueKey, Key)));
+                int GetRowID = ConvertHelper.ObjToInt(Phoenix.LocalDB.ExecuteScalar(String.Format("Select Rowid From FontColors Where [FileUniqueKey] = {0} And [Key] = '{1}'", FileUniqueKey, Key)));
 
                 if (GetRowID < 0)
                 {
                     string SqlOrder = "Insert Into FontColors([FileUniqueKey],[Key],[R],[G],[B])Values({0},'{1}',{2},{3},{4})";
-                    int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, Key, R, G, B));
+                    int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, Key, R, G, B));
                     if (State != 0)
                     {
                         return true;
@@ -128,7 +128,7 @@ CREATE TABLE [FontColors](
                 else
                 {
                     string SqlOrder = "UPDate FontColors Set [R] = {1},[G] = {2},[B] = {3} Where Rowid = {0}";
-                    int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, GetRowID, R, G, B));
+                    int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, GetRowID, R, G, B));
                     if (State != 0)
                     {
                         return true;

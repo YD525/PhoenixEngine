@@ -78,8 +78,7 @@
     <Compile Include="DataBaseManagement\SqlSafeCodec.cs" />
     <Compile Include="DelegateManagement\DelegateHelper.cs" />
     <Compile Include="EngineManagement\DataTransmission.cs" />
-    <Compile Include="EngineManagement\Engine.cs" />
-    <Compile Include="EngineManagement\EngineConfig.cs" />
+    <Compile Include="EngineManagement\Phoenix.cs" />
     <Compile Include="EngineManagement\PapyrusHeurCore.cs" />
     <Compile Include="FileManagement\BlockHashComparer.cs" />
     <Compile Include="GameManagement\GameHelper.cs" />

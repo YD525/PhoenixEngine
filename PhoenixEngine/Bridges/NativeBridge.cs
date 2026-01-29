@@ -14,7 +14,7 @@ namespace PhoenixEngine.Bridges
         {
             public static string GetVersion()
             {
-                return Engine.Version;
+                return Phoenix.Version;
             }
             public static void FormatData()
             {
@@ -89,7 +89,7 @@ namespace PhoenixEngine.Bridges
 
             public static QueryTransItem QueryTransData(string Key, string SourceText)
             {
-                int FileUniqueKey = Engine.GetFileUniqueKey();
+                int FileUniqueKey = Phoenix.GetFileUniqueKey();
 
                 QueryTransItem NQueryTransItem = new QueryTransItem();
 
@@ -103,7 +103,7 @@ namespace PhoenixEngine.Bridges
 
                 if (GetRamSource.Trim().Length == 0)
                 {
-                    TransText = LocalDBCache.GetCacheText(FileUniqueKey, Key, Engine.To);
+                    TransText = LocalDBCache.GetCacheText(FileUniqueKey, Key, Phoenix.To);
 
                     if (TransText.Trim().Length > 0)
                     {
@@ -111,7 +111,7 @@ namespace PhoenixEngine.Bridges
                     }
                     else
                     {
-                        TransText = CloudDBCache.FindCache(FileUniqueKey, Key, Engine.To);
+                        TransText = CloudDBCache.FindCache(FileUniqueKey, Key, Phoenix.To);
 
                         if (TransText.Trim().Length > 0)
                         {
@@ -124,7 +124,7 @@ namespace PhoenixEngine.Bridges
                 }
                 else
                 {
-                    var GetStr = CloudDBCache.FindCache(FileUniqueKey, Key, Engine.To);
+                    var GetStr = CloudDBCache.FindCache(FileUniqueKey, Key, Phoenix.To);
                     TransText = GetRamSource;
 
                     if (GetStr.Equals(GetRamSource))
@@ -147,7 +147,7 @@ namespace PhoenixEngine.Bridges
 
             public static bool SetTransData(string Key, string SourceText,string TransText)
             {
-                int FileUniqueKey = Engine.GetFileUniqueKey();
+                int FileUniqueKey = Phoenix.GetFileUniqueKey();
 
                 if (TransText.Trim().Length > 0)
                 {
@@ -160,22 +160,22 @@ namespace PhoenixEngine.Bridges
                         Translator.TransData.Remove(Key);
                     }
 
-                    CloudDBCache.DeleteCache(FileUniqueKey, Key, Engine.To);
-                    LocalDBCache.DeleteCache(FileUniqueKey, Key, Engine.To);
+                    CloudDBCache.DeleteCache(FileUniqueKey, Key, Phoenix.To);
+                    LocalDBCache.DeleteCache(FileUniqueKey, Key, Phoenix.To);
 
                     return true;
                 }
 
-                var GetState = LocalDBCache.UPDateLocalTransItem(FileUniqueKey, Key, (int)Engine.To, SourceText,TransText, 0);
+                var GetState = LocalDBCache.UPDateLocalTransItem(FileUniqueKey, Key, (int)Phoenix.To, SourceText,TransText, 0);
 
-                Engine.GetTranslatedCount(Engine.GetFileUniqueKey());
+                Phoenix.GetTranslatedCount(Phoenix.GetFileUniqueKey());
 
                 return GetState;
             }
 
             public static bool SetCloudTransData(string Key, string SourceText, string TransText)
             {
-                int FileUniqueKey = Engine.GetFileUniqueKey();
+                int FileUniqueKey = Phoenix.GetFileUniqueKey();
 
                 if (TransText.Trim().Length <= 0)
                 {
@@ -184,15 +184,15 @@ namespace PhoenixEngine.Bridges
                         Translator.TransData.Remove(Key);
                     }
 
-                    CloudDBCache.DeleteCache(FileUniqueKey, Key, Engine.To);
-                    LocalDBCache.DeleteCache(FileUniqueKey, Key, Engine.To);
+                    CloudDBCache.DeleteCache(FileUniqueKey, Key, Phoenix.To);
+                    LocalDBCache.DeleteCache(FileUniqueKey, Key, Phoenix.To);
 
                     return true;
                 }
 
-                var GetState = CloudDBCache.AddCache(FileUniqueKey, Key, (int)Engine.To,SourceText, TransText);
+                var GetState = CloudDBCache.AddCache(FileUniqueKey, Key, (int)Phoenix.To,SourceText, TransText);
 
-                Engine.GetTranslatedCount(Engine.GetFileUniqueKey());
+                Phoenix.GetTranslatedCount(Phoenix.GetFileUniqueKey());
 
                 return GetState;
             }

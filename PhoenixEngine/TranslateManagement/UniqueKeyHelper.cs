@@ -43,7 +43,7 @@ namespace PhoenixEngine.TranslateManagement
         public static void Init()
         {
             string CheckTableSql = "SELECT name FROM sqlite_master WHERE type='table' AND name='UniqueKeys';";
-            var Result = Engine.LocalDB.ExecuteScalar(CheckTableSql);
+            var Result = Phoenix.LocalDB.ExecuteScalar(CheckTableSql);
 
             if (Result == null || Result == DBNull.Value)
             {
@@ -55,14 +55,14 @@ CREATE TABLE [UniqueKeys](
     [UpdateTime] TEXT,
     [CreatTime] TEXT
 );";
-                Engine.LocalDB.ExecuteNonQuery(CreateTableSql);
+                Phoenix.LocalDB.ExecuteNonQuery(CreateTableSql);
             }
         }
 
         public static string RowidToOriginalKey(int RowID)
         {
             string SqlOrder = "Select OriginalKey From UniqueKeys Where Rowid = {0}";
-            string GetOriginalKey = SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Engine.LocalDB.ExecuteScalar(string.Format(SqlOrder,RowID))));
+            string GetOriginalKey = SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Phoenix.LocalDB.ExecuteScalar(string.Format(SqlOrder,RowID))));
             return GetOriginalKey;
         }
 
@@ -113,7 +113,7 @@ CREATE TABLE [UniqueKeys](
         public static int GetUniqueKeysCount()
         {
             string SqlOrder = "SELECT COUNT(*) FROM UniqueKeys;";
-            int Count = ConvertHelper.ObjToInt(Engine.LocalDB.ExecuteScalar(SqlOrder));
+            int Count = ConvertHelper.ObjToInt(Phoenix.LocalDB.ExecuteScalar(SqlOrder));
             return Count;
         }
 
@@ -167,7 +167,7 @@ CREATE TABLE [UniqueKeys](
 
                 SqlOrder = "Insert Into UniqueKeys(OriginalKey,FileName,FileExtension,UpdateTime,CreatTime)Values('{0}','{1}','{2}','{3}','{4}')";
 
-                int State = ConvertHelper.ObjToInt(Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,
+                int State = ConvertHelper.ObjToInt(Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,
                     SqlSafeCodec.Encode(GenUniqueKeyItem.OriginalKey),
                     SqlSafeCodec.Encode(GenUniqueKeyItem.FileName),
                     GenUniqueKeyItem.FileExtension,
@@ -178,7 +178,7 @@ CREATE TABLE [UniqueKeys](
                 if (State != 0)
                 {
                     int NewRowid = ConvertHelper.ObjToInt(
-                    Engine.LocalDB.ExecuteScalar(
+                    Phoenix.LocalDB.ExecuteScalar(
                      $"Select Rowid From UniqueKeys Where OriginalKey = '{SqlSafeCodec.Encode(GenUniqueKeyItem.OriginalKey)}';"
                     ));
                     return NewRowid;
@@ -201,7 +201,7 @@ CREATE TABLE [UniqueKeys](
         public static bool UpdateOldFiles(string OriginalKey, UniqueKeyItem KeyItem)
         {
             string SqlOrder = "UPDate UniqueKeys Set FileName = '{1}',FileExtension = '{2}',UpdateTime = '{3}' Where OriginalKey = '{0}';";
-            int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,SqlSafeCodec.Encode(OriginalKey),SqlSafeCodec.Encode(KeyItem.FileName),KeyItem.FileExtension,KeyItem.UpdateTime));
+            int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,SqlSafeCodec.Encode(OriginalKey),SqlSafeCodec.Encode(KeyItem.FileName),KeyItem.FileExtension,KeyItem.UpdateTime));
             if (State != 0)
             {
                 return true;
@@ -223,7 +223,7 @@ CREATE TABLE [UniqueKeys](
 
             string SqlOrder = "Select Rowid From UniqueKeys Where [OriginalKey] = '{0}';";
 
-            int GetRowid = ConvertHelper.ObjToInt(Engine.LocalDB.ExecuteScalar(string.Format(SqlOrder, SqlSafeCodec.Encode(GenUniqueKeyItem.OriginalKey))));
+            int GetRowid = ConvertHelper.ObjToInt(Phoenix.LocalDB.ExecuteScalar(string.Format(SqlOrder, SqlSafeCodec.Encode(GenUniqueKeyItem.OriginalKey))));
 
             if (GetRowid > 0)
             {
@@ -231,7 +231,7 @@ CREATE TABLE [UniqueKeys](
 
                 SqlOrder = "UPDate UniqueKeys Set FileName = '{1}',FileExtension = '{2}',UpdateTime = '{3}',CreatTime = '{4}' Where [OriginalKey] = '{0}';";
 
-                int State = Engine.LocalDB.ExecuteNonQuery(
+                int State = Phoenix.LocalDB.ExecuteNonQuery(
                     string.Format(SqlOrder,
                     SqlSafeCodec.Encode(GenUniqueKeyItem.OriginalKey),
                     SqlSafeCodec.Encode(GenUniqueKeyItem.FileName),
@@ -254,7 +254,7 @@ CREATE TABLE [UniqueKeys](
         public UniqueKeyItem QueryUniqueKey(int Rowid)
         {
             string SqlOrder = "Select Rowid,* From UniqueKeys Where Rowid = {0}";
-            List<Dictionary<string, object>> NTable = Engine.LocalDB.ExecuteQuery(string.Format(SqlOrder,Rowid));
+            List<Dictionary<string, object>> NTable = Phoenix.LocalDB.ExecuteQuery(string.Format(SqlOrder,Rowid));
 
             if (NTable.Count > 0)
             {
@@ -289,7 +289,7 @@ CREATE TABLE [UniqueKeys](
 
             string SqlOrder = "SELECT Rowid, * FROM UniqueKeys ORDER BY Rowid DESC LIMIT " + Limit.ToString() + ";";
 
-            List<Dictionary<string, object>> NTable = Engine.LocalDB.ExecuteQuery(SqlOrder);
+            List<Dictionary<string, object>> NTable = Phoenix.LocalDB.ExecuteQuery(SqlOrder);
 
             if (NTable.Count > 0)
             {
@@ -320,7 +320,7 @@ CREATE TABLE [UniqueKeys](
             List<UniqueKeyItem> UniqueKeyItems = new List<UniqueKeyItem>();
 
             string SqlOrder = "Select Rowid,* From UniqueKeys Where 1 = 1";
-            List<Dictionary<string, object>> NTable = Engine.LocalDB.ExecuteQuery(SqlOrder);
+            List<Dictionary<string, object>> NTable = Phoenix.LocalDB.ExecuteQuery(SqlOrder);
 
             if (NTable.Count > 0)
             {
@@ -350,7 +350,7 @@ CREATE TABLE [UniqueKeys](
         public bool DeleteUniqueKeyByRowid(int Rowid)
         {
             string SqlOrder = "Delete From UniqueKeys Where Rowid = {0}";
-            int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,Rowid));
+            int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,Rowid));
             if (State != 0)
             {
                 return true;

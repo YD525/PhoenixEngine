@@ -43,12 +43,12 @@ CREATE TABLE [CloudTranslation](
 
             // Check if table exists
             string CheckTableSql = $"SELECT name FROM sqlite_master WHERE type='table' AND name='{TableName}';";
-            var Result = Engine.LocalDB.ExecuteScalar(CheckTableSql);
+            var Result = Phoenix.LocalDB.ExecuteScalar(CheckTableSql);
 
             if (Result != null && Result != DBNull.Value)
             {
                 // Table exists, check structure
-                List<Dictionary<string, object>> Columns = Engine.LocalDB.ExecuteQuery($"PRAGMA table_info({TableName});");
+                List<Dictionary<string, object>> Columns = Phoenix.LocalDB.ExecuteQuery($"PRAGMA table_info({TableName});");
                 var ExistingCols = new HashSet<string>(
                     Columns.Select(R => R["name"].ToString()),
                     StringComparer.OrdinalIgnoreCase
@@ -61,14 +61,14 @@ CREATE TABLE [CloudTranslation](
 
                 if (StructureChanged)
                 {
-                    Engine.LocalDB.ExecuteNonQuery($"DROP TABLE IF EXISTS [{TableName}];");
-                    Engine.LocalDB.ExecuteNonQuery(CreateSql);
+                    Phoenix.LocalDB.ExecuteNonQuery($"DROP TABLE IF EXISTS [{TableName}];");
+                    Phoenix.LocalDB.ExecuteNonQuery(CreateSql);
                 }
             }
             else
             {
                 // Create if not exists
-                Engine.LocalDB.ExecuteNonQuery(CreateSql);
+                Phoenix.LocalDB.ExecuteNonQuery(CreateSql);
             }
         }
 
@@ -78,7 +78,7 @@ CREATE TABLE [CloudTranslation](
             {
                 string SqlOrder = "Delete From CloudTranslation Where [FileUniqueKey] = {0} And [Key] = '{1}' And [To] = {2}";
 
-                int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, Key, (int)TargetLanguage));
+                int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, Key, (int)TargetLanguage));
 
                 if (State != 0)
                 {
@@ -95,7 +95,7 @@ CREATE TABLE [CloudTranslation](
             {
                 string SqlOrder = "Select Result From CloudTranslation Where [FileUniqueKey] = '{0}' And [Key] = '{1}' And [To] = {2}";
 
-                string GetResult = ConvertHelper.ObjToStr(Engine.LocalDB.ExecuteScalar(string.Format(SqlOrder, FileUniqueKey, Key, (int)TargetLanguage)));
+                string GetResult = ConvertHelper.ObjToStr(Phoenix.LocalDB.ExecuteScalar(string.Format(SqlOrder, FileUniqueKey, Key, (int)TargetLanguage)));
 
                 if (GetResult.Trim().Length > 0)
                 {
@@ -112,13 +112,13 @@ CREATE TABLE [CloudTranslation](
             try
             {
 
-                int GetRowID = ConvertHelper.ObjToInt(Engine.LocalDB.ExecuteScalar(String.Format("Select Rowid From CloudTranslation Where [FileUniqueKey] = {0} And [Key] = '{1}' And [To] = {2}", FileUniqueKey, Key, To)));
+                int GetRowID = ConvertHelper.ObjToInt(Phoenix.LocalDB.ExecuteScalar(String.Format("Select Rowid From CloudTranslation Where [FileUniqueKey] = {0} And [Key] = '{1}' And [To] = {2}", FileUniqueKey, Key, To)));
 
                 if (GetRowID <= 0)
                 {
                     string SqlOrder = "Insert Into CloudTranslation([FileUniqueKey],[Key],[To],[Source],[Result])Values({0},'{1}',{2},'{3}','{4}')";
 
-                    int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, Key, To, SqlSafeCodec.Encode(Source), SqlSafeCodec.Encode(Result)));
+                    int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, Key, To, SqlSafeCodec.Encode(Source), SqlSafeCodec.Encode(Result)));
 
                     if (State != 0)
                     {
@@ -140,7 +140,7 @@ CREATE TABLE [CloudTranslation](
                 List<CloudTranslationItem> CloudTranslationItems = new List<CloudTranslationItem>();
 
                 string SqlOrder = "Select * From CloudTranslation Where [To] = {0} And [Source] = '{1}' Limit 5";
-                List<Dictionary<string, object>> NTable = Engine.LocalDB.ExecuteQuery(string.Format(SqlOrder, To, SqlSafeCodec.Encode(Source)));
+                List<Dictionary<string, object>> NTable = Phoenix.LocalDB.ExecuteQuery(string.Format(SqlOrder, To, SqlSafeCodec.Encode(Source)));
                 if (NTable.Count > 0)
                 {
                     for (int i = 0; i < NTable.Count; i++)
@@ -170,7 +170,7 @@ CREATE TABLE [CloudTranslation](
             {
 
                 string SqlOrder = "Select * From CloudTranslation Where [To] = {0} And [Source] = '{1}' Limit 1";
-                List<Dictionary<string, object>> NTable = Engine.LocalDB.ExecuteQuery(string.Format(SqlOrder, To, SqlSafeCodec.Encode(Source)));
+                List<Dictionary<string, object>> NTable = Phoenix.LocalDB.ExecuteQuery(string.Format(SqlOrder, To, SqlSafeCodec.Encode(Source)));
                 if (NTable.Count > 0)
                 {
                     for (int i = 0; i < NTable.Count; i++)
@@ -201,7 +201,7 @@ CREATE TABLE [CloudTranslation](
                 List<CloudTranslationItem> CloudTranslationItems = new List<CloudTranslationItem>();
 
                 string SqlOrder = "Select * From CloudTranslation Where [To] = {0} And [Source] = '{1}' And Rowid != {2} Limit 5";
-                List<Dictionary<string, object>> NTable = Engine.LocalDB.ExecuteQuery(string.Format(SqlOrder, To, SqlSafeCodec.Encode(Source),Rowid));
+                List<Dictionary<string, object>> NTable = Phoenix.LocalDB.ExecuteQuery(string.Format(SqlOrder, To, SqlSafeCodec.Encode(Source),Rowid));
                 if (NTable.Count > 0)
                 {
                     for (int i = 0; i < NTable.Count; i++)
@@ -232,7 +232,7 @@ CREATE TABLE [CloudTranslation](
             {
                 string SqlOrder = "Select Rowid,Result From CloudTranslation Where [FileUniqueKey] = {0} And [Key] = '{1}' And [To] = {2}";
 
-                List<Dictionary<string, object>> GetResult = Engine.LocalDB.ExecuteQuery(string.Format(SqlOrder, FileUniqueKey, Key, To));
+                List<Dictionary<string, object>> GetResult = Phoenix.LocalDB.ExecuteQuery(string.Format(SqlOrder, FileUniqueKey, Key, To));
 
                 if (GetResult.Count > 0)
                 {
@@ -252,7 +252,7 @@ CREATE TABLE [CloudTranslation](
             try
             {
                 string SqlOrder = "Delete From CloudTranslation Where Rowid = {0}";
-                int State = Engine.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, Rowid));
+                int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, Rowid));
                 if (State != 0)
                 {
                     return true;
@@ -265,7 +265,7 @@ CREATE TABLE [CloudTranslation](
         public static bool ClearCloudCache(int FileUniqueKey)
         {
             string SqlOrder = "Delete From CloudTranslation Where [FileUniqueKey] = " + FileUniqueKey + "";
-            int State = Engine.LocalDB.ExecuteNonQuery(SqlOrder);
+            int State = Phoenix.LocalDB.ExecuteNonQuery(SqlOrder);
             if (State != 0)
             {
                 return true;
