@@ -19,9 +19,10 @@ namespace PhoenixEngine.PlatformManagement
         public AITranslationMemory AIMemoryRef { get; set; } = null;
         public EngineConfigJson ConfigRef { get; set; } = null;
         public int LocalPort { get; set; } = 0;
-
-        public void Init(AITranslationMemory AIMemory, EngineConfigJson Config)
+        public int CustomID { get; set; } = 0;
+        public void Init(int CustomID, AITranslationMemory AIMemory, EngineConfigJson Config)
         { 
+            this.CustomID = CustomID;
             this.AIMemoryRef = AIMemory;
             this.ConfigRef = Config;
         }

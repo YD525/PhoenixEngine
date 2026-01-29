@@ -82,10 +82,14 @@ namespace PhoenixEngine.PlatformManagement
         public AITranslationMemory AIMemoryRef { get; set; } = null;
         public EngineConfigJson ConfigRef { get; set; } = null;
         public WebProxy ProxyRef { get; set; } = null;
-        public void Init(AITranslationMemory AIMemory, EngineConfigJson Config, WebProxy Proxy)
+
+        public int CustomID { get; set; } = 0;
+        public void Init(int CustomID, AITranslationMemory AIMemory, EngineConfigJson Config, WebProxy Proxy)
         {
+            this.CustomID = CustomID;
             this.AIMemoryRef = AIMemory;
             this.ConfigRef = Config;
+
             this.ProxyRef = Proxy;
         }
         public string QuickTrans(List<ReplaceTag> CustomWords,string TransSource, Languages FromLang, Languages ToLang,bool UseAIMemory,int AIMemoryCountLimit, string AIParam, ref AICall Call,string Type)

@@ -56,7 +56,7 @@ namespace PhoenixEngine.TranslateManage
                 if (ChatGptConfig.Enable && KeyData.HaveKey())
                 {
                     ChatGptApi NChatGptApi = new ChatGptApi();
-                    NChatGptApi.Init(EngineSelect.AIMemory,EngineConfig.Config,ProxyCenter.CurrentProxy);
+                    NChatGptApi.Init((int)ChatGptApi.Type, EngineSelect.AIMemory,EngineConfig.Config,ProxyCenter.CurrentProxy);
                     EngineSelects.Add(new EngineSelect(NChatGptApi, KeyData.GetKeyCount()));
                 }
 
@@ -66,7 +66,7 @@ namespace PhoenixEngine.TranslateManage
                 if (GeminiConfig.Enable && KeyData.HaveKey())
                 {
                     GeminiApi NGeminiApi = new GeminiApi();
-                    NGeminiApi.Init(EngineSelect.AIMemory, EngineConfig.Config, ProxyCenter.CurrentProxy);
+                    NGeminiApi.Init((int)GeminiApi.Type, EngineSelect.AIMemory, EngineConfig.Config, ProxyCenter.CurrentProxy);
                     EngineSelects.Add(new EngineSelect(NGeminiApi, KeyData.GetKeyCount()));
                 }
 
@@ -76,7 +76,7 @@ namespace PhoenixEngine.TranslateManage
                 if (DeepSeekConfig.Enable && KeyData.HaveKey())
                 {
                     DeepSeekApi NDeepSeekApi = new DeepSeekApi();
-                    NDeepSeekApi.Init(EngineSelect.AIMemory, EngineConfig.Config, ProxyCenter.CurrentProxy);
+                    NDeepSeekApi.Init((int)DeepSeekApi.Type, EngineSelect.AIMemory, EngineConfig.Config, ProxyCenter.CurrentProxy);
                     EngineSelects.Add(new EngineSelect(NDeepSeekApi, KeyData.GetKeyCount()));
                 }
 
@@ -86,7 +86,7 @@ namespace PhoenixEngine.TranslateManage
                 if (LMLocalAIConfig.Enable)
                 {
                     LMStudio NLMStudio = new LMStudio();
-                    NLMStudio.Init(EngineSelect.AIMemory, EngineConfig.Config);
+                    NLMStudio.Init((int)LMStudio.Type, EngineSelect.AIMemory, EngineConfig.Config);
                     EngineSelects.Add(new EngineSelect(NLMStudio, 1));
                 }
 
@@ -96,7 +96,7 @@ namespace PhoenixEngine.TranslateManage
                 if (DeepLConfig.Enable && KeyData.HaveKey())
                 {
                     DeepLApi NDeepLApi = new DeepLApi();
-                    NDeepLApi.Init(EngineConfig.Config, ProxyCenter.CurrentProxy);
+                    NDeepLApi.Init((int)DeepLApi.Type, EngineConfig.Config, ProxyCenter.CurrentProxy);
                     EngineSelects.Add(new EngineSelect(NDeepLApi, KeyData.GetKeyCount()));
                 }
 
@@ -115,21 +115,21 @@ namespace PhoenixEngine.TranslateManage
                                 case CustomPlatformType.LocalAI:
                                     {
                                         CustomLocalAIApi NCustomLocalAIApi = new CustomLocalAIApi();
-                                        NCustomLocalAIApi.Init(EngineSelect.AIMemory, EngineConfig.Config);
+                                        NCustomLocalAIApi.Init(CustomInFo.CustomID, EngineSelect.AIMemory, EngineConfig.Config);
                                         EngineSelects.Add(new EngineSelect(NCustomLocalAIApi, 1));
                                     }
                                 break;
                                 case CustomPlatformType.CloudAI:
                                     {
                                         CustomAIApi NCustomAIApi = new CustomAIApi();
-                                        NCustomAIApi.Init(EngineSelect.AIMemory, EngineConfig.Config, ProxyCenter.CurrentProxy);
+                                        NCustomAIApi.Init(CustomInFo.CustomID, EngineSelect.AIMemory, EngineConfig.Config, ProxyCenter.CurrentProxy);
                                         EngineSelects.Add(new EngineSelect(NCustomAIApi, KeyData.GetKeyCount()));
                                     }
                                 break;
                                 case CustomPlatformType.Traditional:
                                     {
                                         CustomApi NCustomApi = new CustomApi();
-                                        NCustomApi.Init(EngineConfig.Config, ProxyCenter.CurrentProxy);
+                                        NCustomApi.Init(CustomInFo.CustomID, EngineConfig.Config, ProxyCenter.CurrentProxy);
                                         EngineSelects.Add(new EngineSelect(NCustomApi, KeyData.GetKeyCount()));
                                     }
                                 break;

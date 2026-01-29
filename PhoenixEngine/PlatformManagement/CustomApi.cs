@@ -25,8 +25,10 @@ namespace PhoenixEngine.PlatformManagement
         { 
             this.ApiKey = Key;
         }
-        public void Init(EngineConfigJson Config, WebProxy Proxy)
+        public int CustomID { get; set; } = 0;
+        public void Init(int CustomID,EngineConfigJson Config, WebProxy Proxy)
         { 
+            this.CustomID = CustomID;
             this.ConfigRef = Config;
             this.ProxyRef = Proxy;
         }

@@ -16,7 +16,8 @@ namespace PhoenixEngine.PlatformManagement
         AITranslationMemory AIMemoryRef { get; set; }
         EngineConfigJson ConfigRef { get; set; }
         WebProxy ProxyRef { get; set; }
-        void Init(AITranslationMemory AIMemory, EngineConfigJson Config, WebProxy Proxy);
+        int CustomID { get; set; }
+        void Init(int CustomID,AITranslationMemory AIMemory, EngineConfigJson Config, WebProxy Proxy);
         string ApiKey { get; set; }
         void SetApiKey(string Key);
         string Model { get; set; }
@@ -28,7 +29,8 @@ namespace PhoenixEngine.PlatformManagement
         AITranslationMemory AIMemoryRef { get; set; }
         EngineConfigJson ConfigRef { get; set; }
         int LocalPort { get; set; }
-        void Init(AITranslationMemory AIMemory, EngineConfigJson Config);
+        int CustomID { get; set; }
+        void Init(int CustomID, AITranslationMemory AIMemory, EngineConfigJson Config);
         string QuickTrans(List<ReplaceTag> CustomWords, string TransSource, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam, ref AICall Call, string Type);
     }
 
@@ -36,7 +38,8 @@ namespace PhoenixEngine.PlatformManagement
     {
         EngineConfigJson ConfigRef { get; set; }
         WebProxy ProxyRef { get; set; }
-        void Init(EngineConfigJson Config, WebProxy Proxy);
+        int CustomID { get; set; }
+        void Init(int CustomID,EngineConfigJson Config, WebProxy Proxy);
         string ApiKey { get; set; }
         void SetApiKey(string Key);
         string QuickTrans(string TransSource, Languages FromLang, Languages ToLang, ref PlatformCall Call);
