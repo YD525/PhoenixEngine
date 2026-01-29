@@ -16,6 +16,8 @@ namespace PhoenixEngine.PlatformManagement
         public string Url = "";
         public string PayLoad { get; set; }
         public bool IsPost { get; set; }
+
+        public QueryRuleItem QueryRule = new QueryRuleItem();
         public string MakeUrl(string Url, List<ReplaceTag> Tags)
         { 
             
@@ -28,6 +30,21 @@ namespace PhoenixEngine.PlatformManagement
         { 
         
         }
+
+        public string QueryReturn(string ReturnStr, QueryRuleItem QueryRule)
+        { 
+        
+        }
+    }
+    
+    public class QueryRuleItem
+    {
+        public string FieldName { get; set; }
+        public bool ByJson = true;
+        public bool IgnoreCase = true;
+
+        public string LeftStr = "";
+        public string RightStr = "";
     }
 
     public class ReplaceTag
