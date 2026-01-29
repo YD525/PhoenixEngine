@@ -56,7 +56,7 @@ namespace PhoenixEngine.TranslateManage
                 if (ChatGptConfig.Enable && KeyData.HaveKey())
                 {
                     ChatGptApi NChatGptApi = new ChatGptApi();
-                    NChatGptApi.Init(-1, EngineSelect.AIMemory,EngineConfig.Config,ProxyCenter.CurrentProxy);
+                    NChatGptApi.Init(0, EngineSelect.AIMemory,EngineConfig.Config,ProxyCenter.CurrentProxy);
                     EngineSelects.Add(new EngineSelect(NChatGptApi, KeyData.GetKeyCount()));
                 }
 
@@ -66,7 +66,7 @@ namespace PhoenixEngine.TranslateManage
                 if (GeminiConfig.Enable && KeyData.HaveKey())
                 {
                     GeminiApi NGeminiApi = new GeminiApi();
-                    NGeminiApi.Init(-1, EngineSelect.AIMemory, EngineConfig.Config, ProxyCenter.CurrentProxy);
+                    NGeminiApi.Init(0, EngineSelect.AIMemory, EngineConfig.Config, ProxyCenter.CurrentProxy);
                     EngineSelects.Add(new EngineSelect(NGeminiApi, KeyData.GetKeyCount()));
                 }
 
@@ -76,7 +76,7 @@ namespace PhoenixEngine.TranslateManage
                 if (DeepSeekConfig.Enable && KeyData.HaveKey())
                 {
                     DeepSeekApi NDeepSeekApi = new DeepSeekApi();
-                    NDeepSeekApi.Init(-1, EngineSelect.AIMemory, EngineConfig.Config, ProxyCenter.CurrentProxy);
+                    NDeepSeekApi.Init(0, EngineSelect.AIMemory, EngineConfig.Config, ProxyCenter.CurrentProxy);
                     EngineSelects.Add(new EngineSelect(NDeepSeekApi, KeyData.GetKeyCount()));
                 }
 
@@ -86,7 +86,7 @@ namespace PhoenixEngine.TranslateManage
                 if (LMLocalAIConfig.Enable)
                 {
                     LMStudio NLMStudio = new LMStudio();
-                    NLMStudio.Init(-1, EngineSelect.AIMemory, EngineConfig.Config);
+                    NLMStudio.Init(0, EngineSelect.AIMemory, EngineConfig.Config);
                     EngineSelects.Add(new EngineSelect(NLMStudio, 1));
                 }
 
@@ -96,10 +96,11 @@ namespace PhoenixEngine.TranslateManage
                 if (DeepLConfig.Enable && KeyData.HaveKey())
                 {
                     DeepLApi NDeepLApi = new DeepLApi();
-                    NDeepLApi.Init(-1, EngineConfig.Config, ProxyCenter.CurrentProxy);
+                    NDeepLApi.Init(0, EngineConfig.Config, ProxyCenter.CurrentProxy);
                     EngineSelects.Add(new EngineSelect(NDeepLApi, KeyData.GetKeyCount()));
                 }
 
+                //Custom support
                 for (int i = 0; i < EngineConfig.Config.PlatformConfigs.Count; i++)
                 { 
                     int GetKey = EngineConfig.Config.PlatformConfigs.ElementAt(i).Key;
@@ -475,6 +476,74 @@ namespace PhoenixEngine.TranslateManage
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
                                         AIMemory.AddTranslation(Item.From,Item.To, GetSource, GetData);
+                                    }
+
+                                    if (GetData.Length == 0)
+                                    {
+                                        Engine.KeyData.GetData(Type).ReportError(CurrentApiKey);
+                                    }
+
+                                    GetData = NTranslationPreprocessor.RestoreFromPlaceholder(GetData, Item.To);
+
+                                    TransText = GetData;
+
+                                    Call.Output();
+
+                                    CurrentPlatform = PlatformType.DeepL;
+
+                                    if (GetData.Trim().Length == 0)
+                                    {
+                                        this.CallCountDown = 0;
+                                    }
+                                }
+                                else
+                                {
+                                    this.CallCountDown = 0;
+                                }
+                            }
+                            else
+                            if (this.ApiRef is CustomApi)
+                            {
+                                CustomApi SetApi = (CustomApi)this.ApiRef;
+
+                                if (EngineConfig.Config.GetPlatformData(SetApi.CustomID).Enable)
+                                {
+                                    var Type = CustomApi.Type;
+                                    PlatformCall Call = new PlatformCall();
+
+                                    if (Item.From == Languages.Auto)
+                                    {
+                                        Item.From = LanguageHelper.DetectLanguageByLine(GetSource);
+                                    }
+
+                                    string GetData = null;
+                                    bool Passed = false;
+                                    int MaxTry = MaxTranslationAttempts;
+                                    string CurrentApiKey = "";
+
+                                    //Detecting the quality of AI-translated content
+                                    do
+                                    {
+                                        CurrentApiKey = Engine.KeyData.GetData(Type).GetFirstKey();
+                                        SetApi.SetApiKey(CurrentApiKey);
+
+                                        GetData = SetApi.QuickTrans(GetSource, Item.From, Item.To, ref Call).Trim();
+                                        Passed = SecondaryQualityInspection(GetData, CustomWords);
+
+                                        if (!Passed && MaxTry > 0)
+                                        {
+                                            Thread.Sleep(EngineConfig.Config.ReTryWaitTime);
+                                            MaxTry--;
+                                        }
+                                        else
+                                        {
+                                            break;
+                                        }
+                                    } while (!Passed);
+
+                                    if (GetData.Trim().Length > 0 && UseAIMemory)
+                                    {
+                                        AIMemory.AddTranslation(Item.From, Item.To, GetSource, GetData);
                                     }
 
                                     if (GetData.Length == 0)
