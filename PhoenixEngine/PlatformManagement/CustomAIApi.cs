@@ -50,7 +50,8 @@ namespace PhoenixEngine.PlatformManagement
         }
         public void SetApiKey(string Key)
         { 
-           this.ApiKey = Key;
+            this.ApiKey = Key;
+            this.Core.SetApiKey(this.ApiKey);
         }
 
         public string QuickTrans(List<ReplaceTag> CustomWords, string TransSource, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam, ref AICall Call, string Type)

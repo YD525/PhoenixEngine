@@ -166,6 +166,24 @@ namespace PhoenixEngine.PlatformManagement
         private PayLoad _PayLoad = null;
         public bool IsPost { get; set; }
 
+        private string ApiKey = "";
+        public static string ApiKeySign = "{API_KEY}";
+
+        public string GetTagValue(ReqReplaceTag Tag)
+        {
+            string Value = Tag.GetValue();
+            if (Value.Equals(ApiKeySign))
+            {
+                return ApiKey;
+            }
+            return Value;
+        }
+
+        public void SetApiKey(string ApiKey)
+        { 
+           this.ApiKey = ApiKey;
+        }
+
         public void SetUrl(string Url)
         {
             this._Url = HttpUtility.UrlDecode(Url);
@@ -187,7 +205,7 @@ namespace PhoenixEngine.PlatformManagement
                 var Tag = Tags.FirstOrDefault(T => T.Key == Param.Key);
                 if (Tag != null)
                 {
-                    Params[i].Value = CustomPlatformHelper.EnCodeValue(Tag.Value, Tag.EncodeType);
+                    Params[i].Value = CustomPlatformHelper.EnCodeValue(GetTagValue(Tag), Tag.EncodeType);
                 }
             }
 
@@ -237,7 +255,7 @@ namespace PhoenixEngine.PlatformManagement
                     {
                         if (GetTag.Key.Equals(GetKey))
                         {
-                            GetValue = CustomPlatformHelper.EnCodeValue(GetTag.Value, GetTag.EncodeType); ;
+                            GetValue = CustomPlatformHelper.EnCodeValue(GetTagValue(GetTag), GetTag.EncodeType); ;
                             break;
                         }
                     }
@@ -339,7 +357,7 @@ namespace PhoenixEngine.PlatformManagement
 
                         var Tag = Tags.FirstOrDefault(T => T.Key == FullKey);
                         if (Tag != null)
-                            Prop.Value = CustomPlatformHelper.EnCodeValue(Tag.Value,Tag.EncodeType);
+                            Prop.Value = CustomPlatformHelper.EnCodeValue(GetTagValue(Tag),Tag.EncodeType);
 
                         ReplaceJsonTokens(Prop.Value, Tags, FullKey);
                     }
@@ -354,7 +372,7 @@ namespace PhoenixEngine.PlatformManagement
                         var Tag = Tags.FirstOrDefault(t => t.Key == ArrayKey);
                         if (Tag != null && Item.Type != JTokenType.Object && Item.Type != JTokenType.Array)
                         {
-                            Item.Replace(CustomPlatformHelper.EnCodeValue(Tag.Value, Tag.EncodeType));
+                            Item.Replace(CustomPlatformHelper.EnCodeValue(GetTagValue(Tag), Tag.EncodeType));
                         }
 
                         ReplaceJsonTokens(Item, Tags, ArrayKey);
@@ -379,7 +397,7 @@ namespace PhoenixEngine.PlatformManagement
 
                 var Tag = Tags.FirstOrDefault(t => t.Key == Key || t.Key == char.ToUpper(Key[0]) + Key.Substring(1));
                 if (Tag != null)
-                    Value = CustomPlatformHelper.EnCodeValue(Tag.Value, Tag.EncodeType);
+                    Value = CustomPlatformHelper.EnCodeValue(GetTagValue(Tag), Tag.EncodeType);
 
                 Key = char.ToUpper(Key[0]) + Key.Substring(1);
 
@@ -504,7 +522,12 @@ namespace PhoenixEngine.PlatformManagement
     {
         public string Key = "";
         public ReqEncodeType EncodeType = ReqEncodeType.Null;
-        public string Value = "";
+        private string Value = "";
+
+        public string GetValue()
+        {
+            return this.Value;
+        }
 
         public ReqReplaceTag(string Key, string Value)
         {
