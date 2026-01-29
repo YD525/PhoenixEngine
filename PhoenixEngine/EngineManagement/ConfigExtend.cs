@@ -16,14 +16,14 @@ namespace PhoenixEngine.EngineManagement
         public int CustomID = 0;
 
         public string Url = "";
-        public List<CReplaceTag> Url_Tags = new List<CReplaceTag>();
+        public List<ReqReplaceTag> Url_Tags = new List<ReqReplaceTag>();
 
         public string PayLoad = "";
         public CEncodeType PayLoadEncode = CEncodeType.Null;
-        public List<CReplaceTag> PayLoad_Tags = new List<CReplaceTag>();
+        public List<ReqReplaceTag> PayLoad_Tags = new List<ReqReplaceTag>();
 
         public string Header = "";
-        public List<CReplaceTag> Header_Tags = new List<CReplaceTag>();
+        public List<ReqReplaceTag> Header_Tags = new List<ReqReplaceTag>();
 
         public CustomPlatformType Type = CustomPlatformType.Null;
     }
@@ -209,7 +209,7 @@ namespace PhoenixEngine.EngineManagement
         }
     }
 
-    public class ConfigExtend
+    public abstract class ConfigExtend
     {
         public static EngineConfigJson Config = new EngineConfigJson();
 

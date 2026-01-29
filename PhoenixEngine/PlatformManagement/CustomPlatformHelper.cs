@@ -26,8 +26,8 @@ namespace PhoenixEngine.PlatformManagement
             this._Url = HttpUtility.UrlDecode(Url);
         }
 
-        public QueryRuleItem QueryRule = new QueryRuleItem();
-        public string GenUrl(List<CReplaceTag> Tags)
+        public ReqQueryRuleItem QueryRule = new ReqQueryRuleItem();
+        public string GenUrl(List<ReqReplaceTag> Tags)
         {
             if (!_Url.Contains("?"))
                 return _Url;
@@ -50,9 +50,9 @@ namespace PhoenixEngine.PlatformManagement
 
             return UrlBase + "?" + NewQuery;
         }
-        public List<CustomKeyValue> GetUrlKeyValues()
+        public List<ReqCustomKeyValue> GetUrlKeyValues()
         {
-            List<CustomKeyValue> CustomKeyValues = new List<CustomKeyValue>();
+            List<ReqCustomKeyValue> CustomKeyValues = new List<ReqCustomKeyValue>();
             if (_Url.Contains("?"))
             {
                 string GetRightStr = _Url.Substring(_Url.IndexOf("?") + "?".Length);
@@ -62,7 +62,7 @@ namespace PhoenixEngine.PlatformManagement
                     {
                         string GetKey = GetParam.Split('=')[0];
                         string GetValue = GetParam.Split('=')[1];
-                        CustomKeyValues.Add(new CustomKeyValue(GetKey,GetValue));
+                        CustomKeyValues.Add(new ReqCustomKeyValue(GetKey,GetValue));
                     }
                 }
             }
@@ -77,7 +77,7 @@ namespace PhoenixEngine.PlatformManagement
         public string ContentType { get; private set; } = "";
         public string Accept { get; private set; } = "";
 
-        public WebHeaderCollection GenHeader(List<CReplaceTag> Tags)
+        public WebHeaderCollection GenHeader(List<ReqReplaceTag> Tags)
         {
             WebHeaderCollection Header = new WebHeaderCollection();
             foreach (var GetLine in _Header.Split(new char[2] { '\r', '\n' }))
@@ -119,9 +119,9 @@ namespace PhoenixEngine.PlatformManagement
             }
             return Header;
         }
-        public List<CustomKeyValue> GetHeaderKeyValues()
+        public List<ReqCustomKeyValue> GetHeaderKeyValues()
         {
-            List<CustomKeyValue> CustomKeyValues = new List<CustomKeyValue>();
+            List<ReqCustomKeyValue> CustomKeyValues = new List<ReqCustomKeyValue>();
 
             foreach (var GetLine in _Header.Split(new char[2] { '\r', '\n' }))
             {
@@ -129,7 +129,7 @@ namespace PhoenixEngine.PlatformManagement
                 {
                     string GetKey = GetLine.Split(':')[0];
                     string GetValue = GetLine.Split(':')[1];
-                    CustomKeyValues.Add(new CustomKeyValue(GetKey, GetValue));
+                    CustomKeyValues.Add(new ReqCustomKeyValue(GetKey, GetValue));
                 }
             }
 
@@ -141,11 +141,11 @@ namespace PhoenixEngine.PlatformManagement
             _PayLoad = new PayLoad(PayLoad);
             _PayLoad.EncodeType = Encoding;
         }
-        public List<CustomKeyValue> GetPayLoadKeyValues()
+        public List<ReqCustomKeyValue> GetPayLoadKeyValues()
         {
             string Payload = _PayLoad.GetEncodedValue();
 
-            var Result = new List<CustomKeyValue>();
+            var Result = new List<ReqCustomKeyValue>();
 
             if (string.IsNullOrEmpty(Payload))
             {
@@ -174,7 +174,7 @@ namespace PhoenixEngine.PlatformManagement
 
             return Result;
         }
-        private void ParseJsonElement(JToken Token, string ParentKey, List<CustomKeyValue> Result)
+        private void ParseJsonElement(JToken Token, string ParentKey, List<ReqCustomKeyValue> Result)
         {
             if (Token == null)
                 return;
@@ -202,22 +202,22 @@ namespace PhoenixEngine.PlatformManagement
                     break;
 
                 default:
-                    Result.Add(new CustomKeyValue(ParentKey, Token.ToString()));
+                    Result.Add(new ReqCustomKeyValue(ParentKey, Token.ToString()));
                     break;
             }
         }
-        private void ParseForm(string Payload, List<CustomKeyValue> Result)
+        private void ParseForm(string Payload, List<ReqCustomKeyValue> Result)
         {
             var Params = Payload.Split('&');
             foreach (var Param in Params)
             {
                 if (Param.Contains("="))
                 {
-                    Result.Add(new CustomKeyValue(Param.Split('=')[0], Param.Split('=')[1]));
+                    Result.Add(new ReqCustomKeyValue(Param.Split('=')[0], Param.Split('=')[1]));
                 }
             }
         }
-        public string GenPayLoad(string PayLoad, List<CReplaceTag> Tags)
+        public string GenPayLoad(string PayLoad, List<ReqReplaceTag> Tags)
         {
             if (string.IsNullOrEmpty(PayLoad))
                 return PayLoad;
@@ -245,7 +245,7 @@ namespace PhoenixEngine.PlatformManagement
                 return GenFormPayLoad(PayLoad, Tags);
             }
         }
-        private void ReplaceJsonTokens(JToken Token, List<CReplaceTag> Tags, string ParentKey = "")
+        private void ReplaceJsonTokens(JToken Token, List<ReqReplaceTag> Tags, string ParentKey = "")
         {
             if (Token == null) return;
 
@@ -285,7 +285,7 @@ namespace PhoenixEngine.PlatformManagement
                     break; 
             }
         }
-        private string GenFormPayLoad(string Payload, List<CReplaceTag> Tags)
+        private string GenFormPayLoad(string Payload, List<ReqReplaceTag> Tags)
         {
             var Params = Payload.Split('&');
             for (int i = 0; i < Params.Length; i++)
@@ -309,7 +309,7 @@ namespace PhoenixEngine.PlatformManagement
         }
     }
     
-    public class QueryRuleItem
+    public class ReqQueryRuleItem
     {
         public string FieldName { get; set; }
         public bool ByJson = true;
@@ -319,12 +319,12 @@ namespace PhoenixEngine.PlatformManagement
         public string SplitStr = "";
     }
 
-    public class CustomKeyValue
+    public class ReqCustomKeyValue
     {
         public string Key = "";
         public string Value = "";
 
-        public CustomKeyValue(string Key, string Value)
+        public ReqCustomKeyValue(string Key, string Value)
         {
             this.Key = Key;
             this.Value = Value;
@@ -336,9 +336,9 @@ namespace PhoenixEngine.PlatformManagement
         Null = 0, UrlEncode = 1, HtmlEncode = 2, UnicodeEscape = 3, Base64 = 5
     }
 
-    public class CEncodeHelper
+    internal class ReqEncodeHelper
     {
-        public string EncodeUnicode(string Input)
+        public static string EncodeUnicode(string Input)
         {
             if (string.IsNullOrEmpty(Input))
             {
@@ -363,7 +363,7 @@ namespace PhoenixEngine.PlatformManagement
         }
     }
 
-    public class PayLoad : CEncodeHelper
+    public class PayLoad
     {
         private string Content = "";
 
@@ -381,7 +381,7 @@ namespace PhoenixEngine.PlatformManagement
                 case CEncodeType.HtmlEncode:
                     return System.Net.WebUtility.HtmlEncode(Content);
                 case CEncodeType.UnicodeEscape:
-                    return EncodeUnicode(Content);
+                    return ReqEncodeHelper.EncodeUnicode(Content);
                 case CEncodeType.Base64:
                     return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(Content));
                 default:
@@ -404,7 +404,7 @@ namespace PhoenixEngine.PlatformManagement
                 break;
                 case CEncodeType.UnicodeEscape:
                     {
-                        Content = EncodeUnicode(PayLoad);
+                        Content = ReqEncodeHelper.EncodeUnicode(PayLoad);
                     }
                 break;
                 case CEncodeType.Base64:
@@ -422,13 +422,13 @@ namespace PhoenixEngine.PlatformManagement
         }
     }
 
-    public class CReplaceTag : CEncodeHelper
+    public class ReqReplaceTag
     {
         public string Key = "";
         public CEncodeType EncodeType = CEncodeType.Null;
         public string Value = "";
 
-        public CReplaceTag(string Key, string Value)
+        public ReqReplaceTag(string Key, string Value)
         {
             this.Key = Key;
             this.Value = Value;
@@ -442,7 +442,7 @@ namespace PhoenixEngine.PlatformManagement
                 case CEncodeType.HtmlEncode:
                     return System.Net.WebUtility.HtmlEncode(Value);
                 case CEncodeType.UnicodeEscape:
-                    return EncodeUnicode(Value);
+                    return ReqEncodeHelper.EncodeUnicode(Value);
                 case CEncodeType.Base64:
                     return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(Value));
                 default:
