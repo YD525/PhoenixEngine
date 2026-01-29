@@ -108,7 +108,7 @@ namespace PhoenixEngine.TranslateManage
                     var CustomInFo = Phoenix.Config.PlatformConfigs[GetKey].CustomInFo;
                     if (CustomInFo != null)
                     {
-                        if (CustomInFo.CustomID > 0)
+                        if (CustomInFo.CustomID > 0 && Phoenix.Config.PlatformConfigs[GetKey].Enable)
                         {
                             KeyData = Phoenix.KeyData.GetData(CustomInFo.CustomID);
                             switch (CustomInFo.Type)

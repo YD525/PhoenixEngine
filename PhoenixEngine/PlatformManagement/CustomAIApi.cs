@@ -43,9 +43,6 @@ namespace PhoenixEngine.PlatformManagement
             InFo = Phoenix.Config.GetPlatformData(CustomID).CustomInFo;
 
             Core.SetApiKey(ApiKey);
-            Core.SetUrl(InFo.Url);
-            Core.SetHeader(InFo.Header);
-            Core.SetPayLoad(InFo.PayLoad, InFo.PayLoadEncode);
             Core.SetQueryRule(InFo.QueryRule);
 
             List<string> Related = new List<string>();
