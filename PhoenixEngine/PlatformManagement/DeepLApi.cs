@@ -35,12 +35,10 @@ namespace PhoenixEngine.PlatformManagement
         {
             this.ApiKey = Key;
         }
-        public AITranslationMemory AIMemoryRef { get; set; } = null;
         public EngineConfigJson ConfigRef { get; set; } = null;
         public WebProxy ProxyRef { get; set; } = null;
-        public void Init(AITranslationMemory AIMemory, EngineConfigJson Config, WebProxy Proxy)
+        public void Init(EngineConfigJson Config, WebProxy Proxy)
         {
-            this.AIMemoryRef = AIMemory;
             this.ConfigRef = Config;
             this.ProxyRef = Proxy;
         }
@@ -90,7 +88,7 @@ namespace PhoenixEngine.PlatformManagement
             Headers.Add("Authorization", string.Format("DeepL-Auth-Key {0}", ApiKey));
             string AutoHost = "";
 
-            if (EngineConfig.Config.GetPlatformData(DeepLApi.Type).IsFree)
+            if (ConfigRef.GetPlatformData(DeepLApi.Type).IsFree)
             {
                 AutoHost = DeepLFreeHost;
             }

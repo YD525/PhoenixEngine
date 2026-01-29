@@ -30,7 +30,7 @@ namespace PhoenixEngine.PlatformManagement
         }
     }
 
-    public class ChatGptApi: I_AITranslationNode
+    public class ChatGptApi: I_AI_TranslationNode
     {
         public static PlatformType Type = PlatformType.ChatGpt;
         public string ApiKey { get; set; } = "";
@@ -127,14 +127,14 @@ namespace PhoenixEngine.PlatformManagement
         {
             List<string> Related = new List<string>();
 
-            if (EngineConfig.Config.ContextEnable && UseAIMemory)
+            if (ConfigRef.ContextEnable && UseAIMemory)
             {
-                Related = EngineSelect.AIMemory.FindRelevantTranslations(FromLang, ToLang, TransSource, AIMemoryCountLimit);
+                Related = AIMemoryRef.FindRelevantTranslations(FromLang, ToLang, TransSource, AIMemoryCountLimit);
             }
 
-            if (EngineConfig.Config.UserCustomAIPrompt.Trim().Length > 0)
+            if (ConfigRef.UserCustomAIPrompt.Trim().Length > 0)
             {
-                AIParam = AIParam + "\n" + EngineConfig.Config.UserCustomAIPrompt;
+                AIParam = AIParam + "\n" + ConfigRef.UserCustomAIPrompt;
             }
 
             var GetTransSource = AIPrompt.GenerateTranslationPrompt(FromLang, ToLang, TransSource, Type, Related, CustomWords, AIParam);

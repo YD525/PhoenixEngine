@@ -15,8 +15,18 @@ using static PhoenixEngine.TranslateManage.TransCore;
 
 namespace PhoenixEngine.PlatformManagement.LocalAI
 {
-    public class LMStudio
+    public class LMStudio : I_Local_AI_TranslationNode
     {
+        public AITranslationMemory AIMemoryRef { get; set; } = null;
+        public EngineConfigJson ConfigRef { get; set; } = null;
+        public int LocalPort { get; set; } = 0;
+        public void Init(AITranslationMemory AIMemory,EngineConfigJson Config, int Port)
+        {
+            this.AIMemoryRef = AIMemory;
+            this.ConfigRef = Config;
+            this.LocalPort = Port;
+        }
+
         public static PlatformType Type = PlatformType.LMLocalAI;
         public static string CurrentModel = "";
         public void GetCurrentModel()
@@ -49,7 +59,7 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
         public string GetCurrentModelName()
         {
             // Construct the URL for the request
-            string GenUrl = "http://localhost" + ":" + EngineConfig.Config.GetPlatformData(LMStudio.Type).LocalPort + "/v1/models";
+            string GenUrl = "http://localhost" + ":" + LocalPort + "/v1/models";
 
             WebHeaderCollection Headers = new WebHeaderCollection();
             HttpItem Http = new HttpItem()
@@ -88,7 +98,7 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
         }
         public OpenAIResponse CallAI(OpenAIItem Item,ref string Recv)
         {
-            string GenUrl = "http://localhost" + ":" + EngineConfig.Config.GetPlatformData(LMStudio.Type).LocalPort + "/v1/chat/completions";
+            string GenUrl = "http://localhost" + ":" + LocalPort + "/v1/chat/completions";
             string GetJson = JsonConvert.SerializeObject(Item);
             WebHeaderCollection Headers = new WebHeaderCollection();
             //Headers.Add("Authorization", string.Format("Bearer {0}", DeFine.GlobalLocalSetting.LMKey));
@@ -128,14 +138,14 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
         {
             List<string> Related = new List<string>();
 
-            if (EngineConfig.Config.ContextEnable && UseAIMemory)
+            if (ConfigRef.ContextEnable && UseAIMemory)
             {
-                Related = EngineSelect.AIMemory.FindRelevantTranslations(FromLang, ToLang, TransSource, AIMemoryCountLimit);
+                Related = AIMemoryRef.FindRelevantTranslations(FromLang, ToLang, TransSource, AIMemoryCountLimit);
             }
 
-            if (EngineConfig.Config.UserCustomAIPrompt.Trim().Length > 0)
+            if (ConfigRef.UserCustomAIPrompt.Trim().Length > 0)
             {
-                AIParam = AIParam + "\n" + EngineConfig.Config.UserCustomAIPrompt;
+                AIParam = AIParam + "\n" + ConfigRef.UserCustomAIPrompt;
             }
 
             var GetTransSource = AIPrompt.GenerateTranslationPrompt(FromLang,ToLang,TransSource,Type, Related,CustomWords, AIParam);

@@ -11,24 +11,35 @@ using static PhoenixEngine.EngineManagement.DataTransmission;
 
 namespace PhoenixEngine.PlatformManagement
 {
-    public interface I_BaseNode
+    public interface I_AI_TranslationNode
     {
-        string ApiKey { get; set; }
         AITranslationMemory AIMemoryRef { get; set; }
         EngineConfigJson ConfigRef { get; set; }
-        void SetApiKey(string Key);
         WebProxy ProxyRef { get; set; }
         void Init(AITranslationMemory AIMemory, EngineConfigJson Config, WebProxy Proxy);
-    }
-
-    public interface I_AITranslationNode: I_BaseNode
-    {
+        string ApiKey { get; set; }
+        void SetApiKey(string Key);
         string Model { get; set; }
         string QuickTrans(List<ReplaceTag> CustomWords, string TransSource, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam, ref AICall Call, string Type);
     }
 
-    public interface I_TranslationNode: I_BaseNode
+    public interface I_Local_AI_TranslationNode
     {
+        AITranslationMemory AIMemoryRef { get; set; }
+        EngineConfigJson ConfigRef { get; set; }
+        int LocalPort { get; set; }
+        void Init(AITranslationMemory AIMemory, EngineConfigJson Config, int Port);
+        string QuickTrans(List<ReplaceTag> CustomWords, string TransSource, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam, ref AICall Call, string Type);
+   
+    }
+
+    public interface I_TranslationNode
+    {
+        EngineConfigJson ConfigRef { get; set; }
+        WebProxy ProxyRef { get; set; }
+        void Init(EngineConfigJson Config, WebProxy Proxy);
+        string ApiKey { get; set; }
+        void SetApiKey(string Key);
         string QuickTrans(string TransSource, Languages FromLang, Languages ToLang, ref PlatformCall Call);
     }
 }
