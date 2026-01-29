@@ -31,7 +31,7 @@ namespace PhoenixEngine.PlatformManagement
 
             foreach (var GetTag in Tags)
             {
-                NewUrl.Replace(GetTag.Tag,GetTag.Value);
+                NewUrl.Replace(GetTag.Tag,GetTag.GetEncodedValue());
             }
 
             return NewUrl;
@@ -73,7 +73,7 @@ namespace PhoenixEngine.PlatformManagement
                     {
                         if (GetTag.Key.Equals(GetKey))
                         {
-                            GetValue = GetTag.Value;
+                            GetValue = GetTag.GetEncodedValue();
                             break;
                         }
                     }
@@ -102,7 +102,9 @@ namespace PhoenixEngine.PlatformManagement
        
         public string MakePayLoad(string PayLoad, List<ReplaceTag> Tags)
         { 
-        
+            //x=1&xx=2
+            //or
+            //Json {xxx:}
         }
     }
     
@@ -128,17 +130,62 @@ namespace PhoenixEngine.PlatformManagement
         }
     }
 
+    public enum ReplaceTagEncodeType
+    { 
+        Null = 0, UrlEncode = 1, HtmlEncode = 2, UnicodeEscape = 3, Base64 = 5
+    }
+
     public class ReplaceTag
     {
         public string Tag = "";
         public string Key = "";
-        public string Value = "";
+        public ReplaceTagEncodeType EncodeType = ReplaceTagEncodeType.Null;
+        private string Value = "";
 
         public ReplaceTag(string Key, string Value)
         {
             this.Key = Key;
             this.Value = Value;
             this.Tag = "{" + Key + "}";
+        }
+        public string GetEncodedValue()
+        {
+            switch (EncodeType)
+            {
+                case ReplaceTagEncodeType.UrlEncode:
+                    return System.Web.HttpUtility.UrlEncode(Value);
+                case ReplaceTagEncodeType.HtmlEncode:
+                    return System.Net.WebUtility.HtmlEncode(Value);
+                case ReplaceTagEncodeType.UnicodeEscape:
+                    return EncodeUnicode(Value);
+                case ReplaceTagEncodeType.Base64:
+                    return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(Value));
+                default:
+                    return Value;
+            }
+        }
+        private string EncodeUnicode(string Input)
+        {
+            if (string.IsNullOrEmpty(Input))
+            {
+                return Input;
+            }
+              
+            var NStringBuilder = new StringBuilder();
+
+            foreach (char C in Input)
+            {
+                if (C <= 127)
+                {
+                    NStringBuilder.Append(C);
+                }
+                else
+                {
+                    NStringBuilder.AppendFormat("\\u{0:X4}", (int)C);
+                }
+            }
+
+            return NStringBuilder.ToString();
         }
     }
 
