@@ -17,7 +17,7 @@ namespace PhoenixEngine.PlatformManagement
 
         public CustomPlatformType CustomType = CustomPlatformType.Traditional;
 
-        public CustomCore Core = new CustomCore();
+        public CustomReqCore Core = new CustomReqCore();
         public string ApiKey { get; set; } = "";
         public EngineConfigJson ConfigRef { get; set; } = null;
         public WebProxy ProxyRef { get; set; } = null;

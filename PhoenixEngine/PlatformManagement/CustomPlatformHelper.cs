@@ -14,7 +14,7 @@ namespace PhoenixEngine.PlatformManagement
     {
     }
 
-    public class CustomCore
+    public class CustomReqCore
     {
         private string _Url = "";
         private string _Header = "";

@@ -51,61 +51,61 @@ namespace PhoenixEngine.TranslateManage
                 PlatformApiKeys KeyData = null;
 
                 // ChatGPT support
-                var ChatGptConfig = EngineConfig.Config.GetPlatformData(ChatGptApi.Type);
+                var ChatGptConfig = Phoenix.Config.GetPlatformData(ChatGptApi.Type);
                 KeyData = Engine.KeyData.GetData(ChatGptApi.Type);
                 if (ChatGptConfig.Enable && KeyData.HaveKey())
                 {
                     ChatGptApi NChatGptApi = new ChatGptApi();
-                    NChatGptApi.Init(0, EngineSelect.AIMemory,EngineConfig.Config,ProxyCenter.CurrentProxy);
+                    NChatGptApi.Init(0, EngineSelect.AIMemory, Phoenix.Config,ProxyCenter.CurrentProxy);
                     EngineSelects.Add(new EngineSelect(NChatGptApi, KeyData.GetKeyCount()));
                 }
 
                 // Gemini support
-                var GeminiConfig = EngineConfig.Config.GetPlatformData(GeminiApi.Type);
+                var GeminiConfig = Phoenix.Config.GetPlatformData(GeminiApi.Type);
                 KeyData = Engine.KeyData.GetData(GeminiApi.Type);
                 if (GeminiConfig.Enable && KeyData.HaveKey())
                 {
                     GeminiApi NGeminiApi = new GeminiApi();
-                    NGeminiApi.Init(0, EngineSelect.AIMemory, EngineConfig.Config, ProxyCenter.CurrentProxy);
+                    NGeminiApi.Init(0, EngineSelect.AIMemory, Phoenix.Config, ProxyCenter.CurrentProxy);
                     EngineSelects.Add(new EngineSelect(NGeminiApi, KeyData.GetKeyCount()));
                 }
 
                 // DeepSeek support
-                var DeepSeekConfig = EngineConfig.Config.GetPlatformData(DeepSeekApi.Type);
+                var DeepSeekConfig = Phoenix.Config.GetPlatformData(DeepSeekApi.Type);
                 KeyData = Engine.KeyData.GetData(DeepSeekApi.Type);
                 if (DeepSeekConfig.Enable && KeyData.HaveKey())
                 {
                     DeepSeekApi NDeepSeekApi = new DeepSeekApi();
-                    NDeepSeekApi.Init(0, EngineSelect.AIMemory, EngineConfig.Config, ProxyCenter.CurrentProxy);
+                    NDeepSeekApi.Init(0, EngineSelect.AIMemory, Phoenix.Config, ProxyCenter.CurrentProxy);
                     EngineSelects.Add(new EngineSelect(NDeepSeekApi, KeyData.GetKeyCount()));
                 }
 
                 //LocalAI(LM) support
-                var LMLocalAIConfig = EngineConfig.Config.GetPlatformData(LMStudio.Type);
+                var LMLocalAIConfig = Phoenix.Config.GetPlatformData(LMStudio.Type);
                 KeyData = null;
                 if (LMLocalAIConfig.Enable)
                 {
                     LMStudio NLMStudio = new LMStudio();
-                    NLMStudio.Init(0, EngineSelect.AIMemory, EngineConfig.Config);
+                    NLMStudio.Init(0, EngineSelect.AIMemory, Phoenix.Config);
                     EngineSelects.Add(new EngineSelect(NLMStudio, 1));
                 }
 
                 // DeepL support
-                var DeepLConfig = EngineConfig.Config.GetPlatformData(DeepLApi.Type);
+                var DeepLConfig = Phoenix.Config.GetPlatformData(DeepLApi.Type);
                 KeyData = Engine.KeyData.GetData(DeepLApi.Type);
                 if (DeepLConfig.Enable && KeyData.HaveKey())
                 {
                     DeepLApi NDeepLApi = new DeepLApi();
-                    NDeepLApi.Init(0, EngineConfig.Config, ProxyCenter.CurrentProxy);
+                    NDeepLApi.Init(0, Phoenix.Config, ProxyCenter.CurrentProxy);
                     EngineSelects.Add(new EngineSelect(NDeepLApi, KeyData.GetKeyCount()));
                 }
 
                 //Custom support
-                for (int i = 0; i < EngineConfig.Config.PlatformConfigs.Count; i++)
+                for (int i = 0; i < Phoenix.Config.PlatformConfigs.Count; i++)
                 { 
-                    int GetKey = EngineConfig.Config.PlatformConfigs.ElementAt(i).Key;
+                    int GetKey = Phoenix.Config.PlatformConfigs.ElementAt(i).Key;
 
-                    var CustomInFo = EngineConfig.Config.PlatformConfigs[GetKey].CustomInFo;
+                    var CustomInFo = Phoenix.Config.PlatformConfigs[GetKey].CustomInFo;
                     if (CustomInFo != null)
                     {
                         if (CustomInFo.CustomID > 0)
@@ -116,21 +116,21 @@ namespace PhoenixEngine.TranslateManage
                                 case CustomPlatformType.LocalAI:
                                     {
                                         CustomLocalAIApi NCustomLocalAIApi = new CustomLocalAIApi();
-                                        NCustomLocalAIApi.Init(CustomInFo.CustomID, EngineSelect.AIMemory, EngineConfig.Config);
+                                        NCustomLocalAIApi.Init(CustomInFo.CustomID, EngineSelect.AIMemory, Phoenix.Config);
                                         EngineSelects.Add(new EngineSelect(NCustomLocalAIApi, 1));
                                     }
                                 break;
                                 case CustomPlatformType.CloudAI:
                                     {
                                         CustomAIApi NCustomAIApi = new CustomAIApi();
-                                        NCustomAIApi.Init(CustomInFo.CustomID, EngineSelect.AIMemory, EngineConfig.Config, ProxyCenter.CurrentProxy);
+                                        NCustomAIApi.Init(CustomInFo.CustomID, EngineSelect.AIMemory, Phoenix.Config, ProxyCenter.CurrentProxy);
                                         EngineSelects.Add(new EngineSelect(NCustomAIApi, KeyData.GetKeyCount()));
                                     }
                                 break;
                                 case CustomPlatformType.Traditional:
                                     {
                                         CustomApi NCustomApi = new CustomApi();
-                                        NCustomApi.Init(CustomInFo.CustomID, EngineConfig.Config, ProxyCenter.CurrentProxy);
+                                        NCustomApi.Init(CustomInFo.CustomID, Phoenix.Config, ProxyCenter.CurrentProxy);
                                         EngineSelects.Add(new EngineSelect(NCustomApi, KeyData.GetKeyCount()));
                                     }
                                 break;
@@ -184,7 +184,7 @@ namespace PhoenixEngine.TranslateManage
 
                 CanSleep = false;
 
-                if (Item.SourceText.Length > 0 && EngineConfig.Config.ContextEnable)
+                if (Item.SourceText.Length > 0 && Phoenix.Config.ContextEnable)
                 {
                     EngineSelect.AIMemory.AddTranslation(Item.From, Item.To, Item.SourceText, GetCacheStr);
                 }
@@ -192,7 +192,7 @@ namespace PhoenixEngine.TranslateManage
                 return GetCacheStr;
             }
 
-            if (EngineConfig.Config.EnableGlobalSearch)
+            if (Phoenix.Config.EnableGlobalSearch)
             {
                 var MatchItem = CloudDBCache.Match((int)Item.To, Item.SourceText);
                 if (MatchItem != null)
@@ -208,7 +208,7 @@ namespace PhoenixEngine.TranslateManage
 
                     CanSleep = false;
 
-                    if (Item.SourceText.Length > 0 && EngineConfig.Config.ContextEnable)
+                    if (Item.SourceText.Length > 0 && Phoenix.Config.ContextEnable)
                     {
                         EngineSelect.AIMemory.AddTranslation(Item.From, Item.To, Item.SourceText, MatchItem.Result);
                     }  
@@ -244,7 +244,7 @@ namespace PhoenixEngine.TranslateManage
 
                 if (CurrentEngine != null)
                 {
-                    string AIParam = EngineConfig.Config.UserCustomAIPrompt;
+                    string AIParam = Phoenix.Config.UserCustomAIPrompt;
                     if (Item.AIParam?.Length > 0)
                     {
                         AIParam = Item.AIParam;
@@ -254,7 +254,7 @@ namespace PhoenixEngine.TranslateManage
 
                     if (!IsBook)
                     {
-                        GetTrans = CurrentEngine.Call(Item, true, EngineConfig.Config.ContextLimit, AIParam);
+                        GetTrans = CurrentEngine.Call(Item, true, Phoenix.Config.ContextLimit, AIParam);
                     }
                     else
                     {
@@ -387,7 +387,7 @@ namespace PhoenixEngine.TranslateManage
             }
             public string Call(TranslationUnit Item,bool UseAIMemory, int AIMemoryCountLimit, string AIParam)
             {
-                int MaxTranslationAttempts = EngineConfig.Config.MaxTranslationAttempts;
+                int MaxTranslationAttempts = Phoenix.Config.MaxTranslationAttempts;
 
                 TranslationPreprocessor NTranslationPreprocessor = new TranslationPreprocessor();
 
@@ -403,7 +403,7 @@ namespace PhoenixEngine.TranslateManage
                     {
                         bool CanTrans = false;
 
-                        if (EngineConfig.Config.PreTranslateEnable)
+                        if (Phoenix.Config.PreTranslateEnable)
                         {
                             PreTranslateCall NPreTranslateCall = new PreTranslateCall();
                             NPreTranslateCall.Platform = PlatformType.PhoenixEngine;
@@ -437,7 +437,7 @@ namespace PhoenixEngine.TranslateManage
                         {
                             if (this.ApiRef is DeepLApi)
                             {
-                                if (EngineConfig.Config.GetPlatformData(DeepLApi.Type).Enable)
+                                if (Phoenix.Config.GetPlatformData(DeepLApi.Type).Enable)
                                 {
                                     var Type = DeepLApi.Type;
                                     DeepLApi SetApi = (DeepLApi)this.ApiRef;
@@ -464,7 +464,7 @@ namespace PhoenixEngine.TranslateManage
 
                                         if (!Passed && MaxTry > 0)
                                         {
-                                            Thread.Sleep(EngineConfig.Config.ReTryWaitTime);
+                                            Thread.Sleep(Phoenix.Config.ReTryWaitTime);
                                             MaxTry--;
                                         }
                                         else
@@ -506,7 +506,7 @@ namespace PhoenixEngine.TranslateManage
                             {
                                 CustomApi SetApi = (CustomApi)this.ApiRef;
 
-                                if (EngineConfig.Config.GetPlatformData(SetApi.CustomID).Enable)
+                                if (Phoenix.Config.GetPlatformData(SetApi.CustomID).Enable)
                                 {
                                     var Type = SetApi.CustomID;
                                     PlatformCall Call = new PlatformCall();
@@ -532,7 +532,7 @@ namespace PhoenixEngine.TranslateManage
 
                                         if (!Passed && MaxTry > 0)
                                         {
-                                            Thread.Sleep(EngineConfig.Config.ReTryWaitTime);
+                                            Thread.Sleep(Phoenix.Config.ReTryWaitTime);
                                             MaxTry--;
                                         }
                                         else
@@ -583,7 +583,7 @@ namespace PhoenixEngine.TranslateManage
                         bool CanTrans = false;
                 
 
-                        if (EngineConfig.Config.PreTranslateEnable)
+                        if (Phoenix.Config.PreTranslateEnable)
                         {
                             PreTranslateCall NPreTranslateCall = new PreTranslateCall();
                             NPreTranslateCall.Platform = PlatformType.PhoenixEngine;
@@ -617,7 +617,7 @@ namespace PhoenixEngine.TranslateManage
                         {
                             if (this.ApiRef is LMStudio)
                             {
-                                if (EngineConfig.Config.GetPlatformData(LMStudio.Type).Enable)
+                                if (Phoenix.Config.GetPlatformData(LMStudio.Type).Enable)
                                 {
                                     LMStudio SetApi = ((LMStudio)this.ApiRef);
                                     AICall Call = new AICall();
@@ -633,7 +633,7 @@ namespace PhoenixEngine.TranslateManage
 
                                         if (!Passed && MaxTry > 0)
                                         {
-                                            Thread.Sleep(EngineConfig.Config.ReTryWaitTime);
+                                            Thread.Sleep(Phoenix.Config.ReTryWaitTime);
                                             MaxTry--;
                                         }
                                         else
@@ -667,7 +667,7 @@ namespace PhoenixEngine.TranslateManage
                             else
                             if (this.ApiRef is ChatGptApi)
                             {
-                                if (EngineConfig.Config.GetPlatformData(ChatGptApi.Type).Enable)
+                                if (Phoenix.Config.GetPlatformData(ChatGptApi.Type).Enable)
                                 {
                                     var Type = ChatGptApi.Type;
                                     ChatGptApi SetApi = ((ChatGptApi)this.ApiRef);
@@ -688,7 +688,7 @@ namespace PhoenixEngine.TranslateManage
 
                                         if (!Passed && MaxTry > 0)
                                         {
-                                            Thread.Sleep(EngineConfig.Config.ReTryWaitTime);
+                                            Thread.Sleep(Phoenix.Config.ReTryWaitTime);
                                             MaxTry--;
                                         }
                                         else
@@ -728,7 +728,7 @@ namespace PhoenixEngine.TranslateManage
                             else
                             if (this.ApiRef is GeminiApi)
                             {
-                                if (EngineConfig.Config.GetPlatformData(GeminiApi.Type).Enable)
+                                if (Phoenix.Config.GetPlatformData(GeminiApi.Type).Enable)
                                 {
                                     var Type = GeminiApi.Type;
                                     GeminiApi SetApi = ((GeminiApi)this.ApiRef);
@@ -750,7 +750,7 @@ namespace PhoenixEngine.TranslateManage
 
                                         if (!Passed && MaxTry > 0)
                                         {
-                                            Thread.Sleep(EngineConfig.Config.ReTryWaitTime);
+                                            Thread.Sleep(Phoenix.Config.ReTryWaitTime);
                                             MaxTry--;
                                         }
                                         else
@@ -790,7 +790,7 @@ namespace PhoenixEngine.TranslateManage
                             else
                             if (this.ApiRef is DeepSeekApi)
                             {
-                                if (EngineConfig.Config.GetPlatformData(DeepSeekApi.Type).Enable)
+                                if (Phoenix.Config.GetPlatformData(DeepSeekApi.Type).Enable)
                                 {
                                     var Type = DeepSeekApi.Type;
                                     DeepSeekApi SetApi = ((DeepSeekApi)this.ApiRef);
@@ -812,7 +812,7 @@ namespace PhoenixEngine.TranslateManage
 
                                         if (!Passed && MaxTry > 0)
                                         {
-                                            Thread.Sleep(EngineConfig.Config.ReTryWaitTime);
+                                            Thread.Sleep(Phoenix.Config.ReTryWaitTime);
                                             MaxTry--;
                                         }
                                         else
@@ -854,7 +854,7 @@ namespace PhoenixEngine.TranslateManage
                             {
                                 CustomAIApi SetApi = ((CustomAIApi)this.ApiRef);
 
-                                if (EngineConfig.Config.GetPlatformData(SetApi.CustomID).Enable)
+                                if (Phoenix.Config.GetPlatformData(SetApi.CustomID).Enable)
                                 {
                                     var Type = SetApi.CustomID;
                                     AICall Call = new AICall();
@@ -875,7 +875,7 @@ namespace PhoenixEngine.TranslateManage
 
                                         if (!Passed && MaxTry > 0)
                                         {
-                                            Thread.Sleep(EngineConfig.Config.ReTryWaitTime);
+                                            Thread.Sleep(Phoenix.Config.ReTryWaitTime);
                                             MaxTry--;
                                         }
                                         else
@@ -917,7 +917,7 @@ namespace PhoenixEngine.TranslateManage
                             {
                                 CustomLocalAIApi SetApi = ((CustomLocalAIApi)this.ApiRef);
 
-                                if (EngineConfig.Config.GetPlatformData(SetApi.CustomID).Enable)
+                                if (Phoenix.Config.GetPlatformData(SetApi.CustomID).Enable)
                                 {
                                     var Type = SetApi.CustomID;
                                     AICall Call = new AICall();
@@ -934,7 +934,7 @@ namespace PhoenixEngine.TranslateManage
 
                                         if (!Passed && MaxTry > 0)
                                         {
-                                            Thread.Sleep(EngineConfig.Config.ReTryWaitTime);
+                                            Thread.Sleep(Phoenix.Config.ReTryWaitTime);
                                             MaxTry--;
                                         }
                                         else

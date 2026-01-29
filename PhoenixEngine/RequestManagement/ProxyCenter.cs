@@ -14,16 +14,16 @@ namespace PhoenixEngine.RequestManagement
 
         public static void UsingProxy()
         {
-            if (!string.IsNullOrWhiteSpace(EngineConfig.Config.ProxyUrl))
+            if (!string.IsNullOrWhiteSpace(Phoenix.Config.ProxyUrl))
             {
-                WebProxy NewProxy = new WebProxy(EngineConfig.Config.ProxyUrl);
+                WebProxy NewProxy = new WebProxy(Phoenix.Config.ProxyUrl);
 
-                if (!string.IsNullOrEmpty(EngineConfig.Config.ProxyUserName) &&
-               !string.IsNullOrEmpty(EngineConfig.Config.ProxyPassword))
+                if (!string.IsNullOrEmpty(Phoenix.Config.ProxyUserName) &&
+               !string.IsNullOrEmpty(Phoenix.Config.ProxyPassword))
                 {
                     NewProxy.Credentials = new NetworkCredential(
-                        EngineConfig.Config.ProxyUserName,
-                        EngineConfig.Config.ProxyPassword
+                        Phoenix.Config.ProxyUserName,
+                        Phoenix.Config.ProxyPassword
                     );
                 }
 

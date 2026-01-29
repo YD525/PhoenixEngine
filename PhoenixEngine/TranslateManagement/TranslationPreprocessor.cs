@@ -42,7 +42,7 @@ namespace PhoenixEngine.TranslateManage
             var Tags = new List<ReplaceTag>();
             int Index = 0;
 
-            foreach (var Pattern in EngineConfig.Config.ProtectedPatterns)
+            foreach (var Pattern in Phoenix.Config.ProtectedPatterns)
             {
                 var Matches = Regex.Matches(Source, Pattern);
                 foreach (Match Match in Matches)

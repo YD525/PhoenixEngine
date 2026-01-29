@@ -262,7 +262,7 @@ namespace PhoenixEngine.TranslateManage
             UnitsLeaderToTranslate.Clear();
             UnitsToTranslate.Clear();
 
-            int MaxCharsForLeaderSelection = EngineConfig.Config.ContextLimit;
+            int MaxCharsForLeaderSelection = Phoenix.Config.ContextLimit;
 
             var FilteredItems = new List<int>();
 
@@ -389,7 +389,7 @@ namespace PhoenixEngine.TranslateManage
 
             if (UnitsLeaderToTranslate.Count < 1500)
             {
-                AutoLeaderTrd = SortLeadersAndCalculateThreads(DetectSourceLang, EngineConfig.Config.MaxThreadCount, ref UnitsLeaderToTranslate);
+                AutoLeaderTrd = SortLeadersAndCalculateThreads(DetectSourceLang, Phoenix.Config.MaxThreadCount, ref UnitsLeaderToTranslate);
             }
             else
             {
@@ -751,9 +751,9 @@ namespace PhoenixEngine.TranslateManage
 
             MarkDuplicates(UnitsToTranslate);
 
-            if (EngineConfig.Config.MaxThreadCount <= 0)
+            if (Phoenix.Config.MaxThreadCount <= 0)
             {
-                EngineConfig.Config.MaxThreadCount = 1;
+                Phoenix.Config.MaxThreadCount = 1;
             }
 
             AutoSleep = 1;
@@ -941,13 +941,13 @@ namespace PhoenixEngine.TranslateManage
                                 NextFind:
 
                                 ThreadUsage.CurrentThreads = CurrentTrds;
-                                ThreadUsage.MaxThreads = EngineConfig.Config.MaxThreadCount;
+                                ThreadUsage.MaxThreads = Phoenix.Config.MaxThreadCount;
 
                                 bool CanExit = true;
                                 Token.ThrowIfCancellationRequested();
                                 CurrentTrds = GetWorkCount();
                                 
-                                int AutoTrd = EngineConfig.Config.MaxThreadCount;
+                                int AutoTrd = Phoenix.Config.MaxThreadCount;
 
                                 if (IsLeader)
                                 {
@@ -980,9 +980,9 @@ namespace PhoenixEngine.TranslateManage
 
                                     Next:
 
-                                    if (CurrentTrds > EngineConfig.Config.MaxThreadCount * EngineConfig.Config.ThrottleRatio)
+                                    if (CurrentTrds > Phoenix.Config.MaxThreadCount * Phoenix.Config.ThrottleRatio)
                                     {
-                                        AutoSleep = EngineConfig.Config.ThrottleDelayMs;
+                                        AutoSleep = Phoenix.Config.ThrottleDelayMs;
                                     }
                                     else
                                     {

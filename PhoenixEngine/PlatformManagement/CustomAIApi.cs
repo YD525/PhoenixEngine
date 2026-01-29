@@ -17,7 +17,7 @@ namespace PhoenixEngine.PlatformManagement
 
         public CustomPlatformType CustomType = CustomPlatformType.CloudAI;
 
-        public CustomCore Core = new CustomCore();
+        public CustomReqCore Core = new CustomReqCore();
         public string ApiKey { get; set; } = "";
         public string Model { get; set; } = "";
         public AITranslationMemory AIMemoryRef { get; set; } = null;

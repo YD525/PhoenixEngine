@@ -45,7 +45,7 @@ namespace PhoenixEngine.EngineManagement
 
             UniqueKeyHelper.Init();
 
-            EngineConfig.Load();
+            Phoenix.Load();
             ProxyCenter.UsingProxy();
 
             ReSetKeyData();

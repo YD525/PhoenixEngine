@@ -166,7 +166,7 @@ namespace PhoenixEngine.EngineManagement
 
         public PlatformConfig GetPlatformData(PlatformType Type)
         {
-            lock (EngineConfig.QueryPlatformDataLock)
+            lock (Phoenix.QueryPlatformDataLock)
             {
                 return this.PlatformConfigs[(int)Type];
             }
@@ -174,7 +174,7 @@ namespace PhoenixEngine.EngineManagement
 
         public PlatformConfig GetPlatformData(int CustomID)
         {
-            lock (EngineConfig.QueryPlatformDataLock)
+            lock (Phoenix.QueryPlatformDataLock)
             {
                 return this.PlatformConfigs[CustomID];
             }
@@ -182,7 +182,7 @@ namespace PhoenixEngine.EngineManagement
 
         public string GetPlatformKeysStr(PlatformConfig Config)
         {
-            lock (EngineConfig.QueryPlatformDataLock)
+            lock (Phoenix.QueryPlatformDataLock)
             {
                 string KeysStr = "";
 
@@ -212,7 +212,7 @@ namespace PhoenixEngine.EngineManagement
         }
     }
 
-    public class EngineConfig
+    public class Phoenix
     {
         public static object QueryPlatformDataLock = new object();
 
@@ -255,7 +255,7 @@ namespace PhoenixEngine.EngineManagement
         {
             if (Config.AutoSetThreadLimit)
             {
-                Config.MaxThreadCount = EngineConfig.AutoCalcThreadLimit();
+                Config.MaxThreadCount = Phoenix.AutoCalcThreadLimit();
             }
         }
 
@@ -267,10 +267,10 @@ namespace PhoenixEngine.EngineManagement
         {
             int AutoThread = 0;
 
-            for (int i = 0; i < EngineConfig.Config.PlatformConfigs.Count; i++)
+            for (int i = 0; i < Phoenix.Config.PlatformConfigs.Count; i++)
             { 
-                int GetKey = EngineConfig.Config.PlatformConfigs.ElementAt(i).Key;
-                var GetConfig = EngineConfig.Config.PlatformConfigs[GetKey];
+                int GetKey = Phoenix.Config.PlatformConfigs.ElementAt(i).Key;
+                var GetConfig = Phoenix.Config.PlatformConfigs[GetKey];
                 if (GetConfig.ApiKeys.Count > 0 && GetConfig.Enable)
                 {
                     AutoThread++;
@@ -323,7 +323,7 @@ namespace PhoenixEngine.EngineManagement
                 try
                 {
                     var DecryptedBytes = XORDecrypt(File.ReadAllBytes(SetFullPath));
-                    EngineConfig.Config = JsonConvert.DeserializeObject<EngineConfigJson>(Encoding.UTF8.GetString(DecryptedBytes));
+                    Phoenix.Config = JsonConvert.DeserializeObject<EngineConfigJson>(Encoding.UTF8.GetString(DecryptedBytes));
 
                     SetDefaultModel();
                 }

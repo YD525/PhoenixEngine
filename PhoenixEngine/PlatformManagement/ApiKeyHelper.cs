@@ -128,10 +128,10 @@ namespace PhoenixEngine.PlatformManagement
         public static int MaxErrorCount = 10;
         public void Init()
         {
-            for (int i = 0; i < EngineConfig.Config.PlatformConfigs.Count; i++)
+            for (int i = 0; i < Phoenix.Config.PlatformConfigs.Count; i++)
             { 
-                int GetKey = EngineConfig.Config.PlatformConfigs.ElementAt(i).Key;
-                var GetConfig = EngineConfig.Config.PlatformConfigs[GetKey];
+                int GetKey = Phoenix.Config.PlatformConfigs.ElementAt(i).Key;
+                var GetConfig = Phoenix.Config.PlatformConfigs[GetKey];
 
                 PlatformApiKeys NPlatformApiKeys = new PlatformApiKeys();
                 NPlatformApiKeys.Type = GetConfig.Platform;
