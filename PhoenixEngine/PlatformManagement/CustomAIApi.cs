@@ -4,10 +4,13 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using PhoenixEngine.EngineManagement;
+using PhoenixEngine.RequestManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
 using static PhoenixEngine.EngineManagement.DataTransmission;
+using static PhoenixEngine.PlatformManagement.ChatGptApi;
 
 namespace PhoenixEngine.PlatformManagement
 {
@@ -17,7 +20,7 @@ namespace PhoenixEngine.PlatformManagement
 
         public CustomPlatformType CustomType = CustomPlatformType.CloudAI;
 
-        public CustomReqCore Core = new CustomReqCore();
+        public CustomReqCore Core = null;
         public string ApiKey { get; set; } = "";
         public string Model { get; set; } = "";
         public AITranslationMemory AIMemoryRef { get; set; } = null;
@@ -31,6 +34,14 @@ namespace PhoenixEngine.PlatformManagement
             this.ConfigRef = Config;
 
             this.ProxyRef = Proxy;
+
+            Core = new CustomReqCore();
+
+            CustomPlatformInFo QueryInFo = Phoenix.Config.GetPlatformData(CustomID).CustomInFo;
+
+            Core.SetUrl(QueryInFo.Url);
+            Core.SetHeader(QueryInFo.Header);
+            Core.SetPayLoad(QueryInFo.PayLoad);
         }
         public void SetApiKey(string Key)
         { 
@@ -40,6 +51,39 @@ namespace PhoenixEngine.PlatformManagement
         public string QuickTrans(List<ReplaceTag> CustomWords, string TransSource, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam, ref AICall Call, string Type)
         {
             return string.Empty;
+        }
+
+        public void CallAI()
+        {
+            CustomPlatformInFo QueryInFo = Phoenix.Config.GetPlatformData(CustomID).CustomInFo;
+
+            string Url = Core.GenUrl(QueryInFo.Url_Tags);
+            string PayLoad = Core.GenPayLoad(QueryInFo.PayLoad_Tags);
+            WebHeaderCollection Headers = Core.GenHeader(QueryInFo.Header_Tags);
+
+            string Method = "Get";
+
+            if (QueryInFo.IsPost)
+            {
+                Method = "Post";
+            }
+
+            HttpItem Http = new HttpItem()
+            {
+                URL = Url,
+                UserAgent = Core.UserAgent,
+                Method = Method,
+                Header = Headers,
+                Accept = Core.Accept,
+                Postdata = PayLoad,
+                Cookie = "",
+                ContentType = Core.ContentType,
+                Encoding = Encoding.UTF8,
+                Timeout = ConfigRef.GlobalRequestTimeOut,
+                WebProxy = ProxyRef
+            };
+
+            string GetResult = new HttpHelper().GetHtml(Http).Html;
         }
     }
 }

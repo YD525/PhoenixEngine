@@ -217,8 +217,13 @@ namespace PhoenixEngine.PlatformManagement
                 }
             }
         }
-        public string GenPayLoad(string PayLoad, List<ReqReplaceTag> Tags)
+        public string GenPayLoad(List<ReqReplaceTag> Tags)
         {
+            PayLoad NewPayLoad = new PayLoad(_PayLoad.Content);
+            NewPayLoad.EncodeType = _PayLoad.EncodeType;
+
+            string PayLoad = NewPayLoad.Content;
+
             if (string.IsNullOrEmpty(PayLoad))
                 return PayLoad;
 
@@ -233,17 +238,19 @@ namespace PhoenixEngine.PlatformManagement
                 {
                     var Token = JToken.Parse(PayLoad);
                     ReplaceJsonTokens(Token, Tags);
-                    return Token.ToString(Newtonsoft.Json.Formatting.None);
+                    NewPayLoad.Content = Token.ToString(Newtonsoft.Json.Formatting.None);
                 }
                 catch
                 {
-                    return GenFormPayLoad(PayLoad, Tags);
+                    NewPayLoad.Content = GenFormPayLoad(PayLoad, Tags);
                 }
             }
             else
             {
-                return GenFormPayLoad(PayLoad, Tags);
+                NewPayLoad.Content = GenFormPayLoad(PayLoad, Tags);
             }
+
+            return NewPayLoad.GetEncodedValue();
         }
         private void ReplaceJsonTokens(JToken Token, List<ReqReplaceTag> Tags, string ParentKey = "")
         {
@@ -365,7 +372,7 @@ namespace PhoenixEngine.PlatformManagement
 
     public class PayLoad
     {
-        private string Content = "";
+        public string Content = "";
 
         public CEncodeType EncodeType = CEncodeType.Null;
         public PayLoad(string Content)

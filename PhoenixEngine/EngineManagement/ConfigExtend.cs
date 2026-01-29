@@ -25,6 +25,8 @@ namespace PhoenixEngine.EngineManagement
         public string Header = "";
         public List<ReqReplaceTag> Header_Tags = new List<ReqReplaceTag>();
 
+        public bool IsPost = true;
+
         public CustomPlatformType Type = CustomPlatformType.Null;
     }
     public class PlatformConfig
