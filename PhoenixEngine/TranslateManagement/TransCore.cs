@@ -100,6 +100,44 @@ namespace PhoenixEngine.TranslateManage
                     EngineSelects.Add(new EngineSelect(NDeepLApi, KeyData.GetKeyCount()));
                 }
 
+                for (int i = 0; i < EngineConfig.Config.PlatformConfigs.Count; i++)
+                { 
+                    int GetKey = EngineConfig.Config.PlatformConfigs.ElementAt(i).Key;
+
+                    var CustomInFo = EngineConfig.Config.PlatformConfigs[GetKey].CustomInFo;
+                    if (CustomInFo != null)
+                    {
+                        if (CustomInFo.CustomID > 0)
+                        {
+                            KeyData = Engine.KeyData.GetData(CustomInFo.CustomID);
+                            switch (CustomInFo.Type)
+                            {
+                                case CustomPlatformType.LocalAI:
+                                    {
+                                        CustomLocalAIApi NCustomLocalAIApi = new CustomLocalAIApi();
+                                        NCustomLocalAIApi.Init(EngineSelect.AIMemory, EngineConfig.Config);
+                                        EngineSelects.Add(new EngineSelect(NCustomLocalAIApi, 1));
+                                    }
+                                break;
+                                case CustomPlatformType.CloudAI:
+                                    {
+                                        CustomAIApi NCustomAIApi = new CustomAIApi();
+                                        NCustomAIApi.Init(EngineSelect.AIMemory, EngineConfig.Config, ProxyCenter.CurrentProxy);
+                                        EngineSelects.Add(new EngineSelect(NCustomAIApi, KeyData.GetKeyCount()));
+                                    }
+                                break;
+                                case CustomPlatformType.Traditional:
+                                    {
+                                        CustomApi NCustomApi = new CustomApi();
+                                        NCustomApi.Init(EngineConfig.Config, ProxyCenter.CurrentProxy);
+                                        EngineSelects.Add(new EngineSelect(NCustomApi, KeyData.GetKeyCount()));
+                                    }
+                                break;
+                            }
+                        }
+                    }
+                }
+
                 KeyData = null;
             }
         }

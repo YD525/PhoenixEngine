@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
-using PhoenixEngine.DataBaseManagement;
-using PhoenixEngine.TranslateCore;
+using PhoenixEngine.PlatformManagement;
 using PhoenixEngine.TranslateManage;
 
 namespace PhoenixEngine.EngineManagement
@@ -18,8 +14,21 @@ namespace PhoenixEngine.EngineManagement
         public int MaxThreads { get; set; } = 0;
     }
     public class CustomPlatformInFo
-    { 
-    
+    {
+        public string Name = "";
+        public int CustomID = 0;
+
+        public string Url = "";
+        public List<CReplaceTag> Url_Tags = new List<CReplaceTag>();
+
+        public string PayLoad = "";
+        public CEncodeType PayLoadEncode = CEncodeType.Null;
+        public List<CReplaceTag> PayLoad_Tags = new List<CReplaceTag>();
+
+        public string Header = "";
+        public List<CReplaceTag> Header_Tags = new List<CReplaceTag>();
+
+        public CustomPlatformType Type = CustomPlatformType.Null;
     }
     public class PlatformConfig
     {
@@ -27,9 +36,8 @@ namespace PhoenixEngine.EngineManagement
         public PlatformType Platform { get; set; } = PlatformType.Null;
 
         public bool Enable = false;
-        public string CustomName { get; set; } = "";
         public string Model { get; set; } = "";
-        public CustomPlatformInFo PlatformInFo { get; set; } = null;
+        public CustomPlatformInFo CustomInFo { get; set; } = null;
 
         public int LocalPort = 0;
 
