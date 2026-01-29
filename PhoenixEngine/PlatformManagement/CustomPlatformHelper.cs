@@ -83,6 +83,9 @@ namespace PhoenixEngine.PlatformManagement
         }
         public static List<ReqCustomKeyValue> GetPayLoadKeyValues(PayLoad PayLoad)
         {
+            if (PayLoad == null) return new List<ReqCustomKeyValue>();
+            if (PayLoad.Content == null) return new List<ReqCustomKeyValue>();
+
             string Payload = PayLoad.Content;
 
             var Result = new List<ReqCustomKeyValue>();
@@ -284,7 +287,23 @@ namespace PhoenixEngine.PlatformManagement
                     {
                         if (GetTag.Key.Equals(GetKey))
                         {
-                            GetValue = CustomPlatformHelper.EnCodeValue(GetTagValue(GetTag), GetTag.EncodeType); ;
+                            GetValue = CustomPlatformHelper.EnCodeValue(GetTagValue(GetTag), GetTag.EncodeType);
+
+                            foreach (var GetParam in GetHeaderKeyValues())
+                            {
+                                if (GetParam.Key.Equals(GetTag.Key))
+                                {
+                                    if (GetParam.Value.StartsWith("Bearer "))
+                                    {
+                                        if (!GetValue.StartsWith("Bearer "))
+                                        {
+                                            GetValue = "Bearer " + GetValue;
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+                            
                             break;
                         }
                     }
@@ -373,6 +392,33 @@ namespace PhoenixEngine.PlatformManagement
 
             return CustomPlatformHelper.EnCodeValue(NewPayLoad.Content,NewPayLoad.EncodeType);
         }
+        private JToken BuildJsonValue(ReqReplaceTag tag, JToken originalToken)
+        {
+            string raw = GetTagValue(tag);
+
+            if (originalToken == null || originalToken.Type == JTokenType.Null)
+                return JValue.CreateNull();
+
+            switch (originalToken.Type)
+            {
+                case JTokenType.Boolean:
+                    return new JValue(bool.Parse(raw));
+
+                case JTokenType.Integer:
+                    return new JValue(long.Parse(raw));
+
+                case JTokenType.Float:
+                    return new JValue(double.Parse(raw));
+
+                case JTokenType.String:
+                    return new JValue(
+                        CustomPlatformHelper.EnCodeValue(raw, tag.EncodeType)
+                    );
+
+                default:
+                    return new JValue(raw);
+            }
+        }
         private void ReplaceJsonTokens(JToken Token, List<ReqReplaceTag> Tags, string ParentKey = "")
         {
             if (Token == null) return;
@@ -386,7 +432,7 @@ namespace PhoenixEngine.PlatformManagement
 
                         var Tag = Tags.FirstOrDefault(T => T.Key == FullKey);
                         if (Tag != null)
-                            Prop.Value = CustomPlatformHelper.EnCodeValue(GetTagValue(Tag),Tag.EncodeType);
+                            Prop.Value = BuildJsonValue(Tag,Prop.Value);
 
                         ReplaceJsonTokens(Prop.Value, Tags, FullKey);
                     }
@@ -401,7 +447,7 @@ namespace PhoenixEngine.PlatformManagement
                         var Tag = Tags.FirstOrDefault(t => t.Key == ArrayKey);
                         if (Tag != null && Item.Type != JTokenType.Object && Item.Type != JTokenType.Array)
                         {
-                            Item.Replace(CustomPlatformHelper.EnCodeValue(GetTagValue(Tag), Tag.EncodeType));
+                            Item.Replace(BuildJsonValue(Tag,Item));
                         }
 
                         ReplaceJsonTokens(Item, Tags, ArrayKey);
