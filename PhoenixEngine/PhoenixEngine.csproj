@@ -77,6 +77,7 @@
     <Compile Include="DataBaseManagement\SQLiteHelper.cs" />
     <Compile Include="DataBaseManagement\SqlSafeCodec.cs" />
     <Compile Include="DelegateManagement\DelegateHelper.cs" />
+    <Compile Include="EngineManagement\ConfigExtend.cs" />
     <Compile Include="EngineManagement\DataTransmission.cs" />
     <Compile Include="EngineManagement\Phoenix.cs" />
     <Compile Include="EngineManagement\PapyrusHeurCore.cs" />
