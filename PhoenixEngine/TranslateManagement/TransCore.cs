@@ -56,7 +56,7 @@ namespace PhoenixEngine.TranslateManage
                 if (ChatGptConfig.Enable && KeyData.HaveKey())
                 {
                     ChatGptApi NChatGptApi = new ChatGptApi();
-                    NChatGptApi.Init((int)ChatGptApi.Type, EngineSelect.AIMemory,EngineConfig.Config,ProxyCenter.CurrentProxy);
+                    NChatGptApi.Init(-1, EngineSelect.AIMemory,EngineConfig.Config,ProxyCenter.CurrentProxy);
                     EngineSelects.Add(new EngineSelect(NChatGptApi, KeyData.GetKeyCount()));
                 }
 
@@ -66,7 +66,7 @@ namespace PhoenixEngine.TranslateManage
                 if (GeminiConfig.Enable && KeyData.HaveKey())
                 {
                     GeminiApi NGeminiApi = new GeminiApi();
-                    NGeminiApi.Init((int)GeminiApi.Type, EngineSelect.AIMemory, EngineConfig.Config, ProxyCenter.CurrentProxy);
+                    NGeminiApi.Init(-1, EngineSelect.AIMemory, EngineConfig.Config, ProxyCenter.CurrentProxy);
                     EngineSelects.Add(new EngineSelect(NGeminiApi, KeyData.GetKeyCount()));
                 }
 
@@ -76,7 +76,7 @@ namespace PhoenixEngine.TranslateManage
                 if (DeepSeekConfig.Enable && KeyData.HaveKey())
                 {
                     DeepSeekApi NDeepSeekApi = new DeepSeekApi();
-                    NDeepSeekApi.Init((int)DeepSeekApi.Type, EngineSelect.AIMemory, EngineConfig.Config, ProxyCenter.CurrentProxy);
+                    NDeepSeekApi.Init(-1, EngineSelect.AIMemory, EngineConfig.Config, ProxyCenter.CurrentProxy);
                     EngineSelects.Add(new EngineSelect(NDeepSeekApi, KeyData.GetKeyCount()));
                 }
 
@@ -86,7 +86,7 @@ namespace PhoenixEngine.TranslateManage
                 if (LMLocalAIConfig.Enable)
                 {
                     LMStudio NLMStudio = new LMStudio();
-                    NLMStudio.Init((int)LMStudio.Type, EngineSelect.AIMemory, EngineConfig.Config);
+                    NLMStudio.Init(-1, EngineSelect.AIMemory, EngineConfig.Config);
                     EngineSelects.Add(new EngineSelect(NLMStudio, 1));
                 }
 
@@ -96,7 +96,7 @@ namespace PhoenixEngine.TranslateManage
                 if (DeepLConfig.Enable && KeyData.HaveKey())
                 {
                     DeepLApi NDeepLApi = new DeepLApi();
-                    NDeepLApi.Init((int)DeepLApi.Type, EngineConfig.Config, ProxyCenter.CurrentProxy);
+                    NDeepLApi.Init(-1, EngineConfig.Config, ProxyCenter.CurrentProxy);
                     EngineSelects.Add(new EngineSelect(NDeepLApi, KeyData.GetKeyCount()));
                 }
 
@@ -283,24 +283,24 @@ namespace PhoenixEngine.TranslateManage
         {
             public static AITranslationMemory AIMemory = new AITranslationMemory();
 
-            public object TransEngine = new object();
+            public object ApiRef = new object();
             public int CallCountDown = 0;
             public int MaxCallCount = 0;
 
             public int SleepBySec = 0;
 
-            public EngineSelect(object Engine, int MaxCallCount)
+            public EngineSelect(object Api, int MaxCallCount)
             {
-                this.TransEngine = Engine;
+                this.ApiRef = Api;
                 this.MaxCallCount = MaxCallCount;
                 this.CallCountDown = this.MaxCallCount;
 
                 this.SleepBySec = 1;
             }
 
-            public EngineSelect(object Engine, int MaxCallCount, int SleepBySec)
+            public EngineSelect(object Api, int MaxCallCount, int SleepBySec)
             {
-                this.TransEngine = Engine;
+                this.ApiRef = Api;
                 this.MaxCallCount = MaxCallCount;
                 this.CallCountDown = this.MaxCallCount;
 
@@ -398,7 +398,7 @@ namespace PhoenixEngine.TranslateManage
                 {
                     List<ReplaceTag> CustomWords = new List<ReplaceTag>();
 
-                    if (this.TransEngine is DeepLApi)
+                    if (this.ApiRef is DeepLApi || this.ApiRef is CustomApi)
                     {
                         bool CanTrans = false;
 
@@ -434,10 +434,11 @@ namespace PhoenixEngine.TranslateManage
 
                         if (CanTrans)
                         {
-                            if (this.TransEngine is DeepLApi)
+                            if (this.ApiRef is DeepLApi)
                             {
                                 if (EngineConfig.Config.GetPlatformData(DeepLApi.Type).Enable)
                                 {
+                                    DeepLApi SetApi = (DeepLApi)this.ApiRef;
                                     PlatformCall Call = new PlatformCall();
 
                                     if (Item.From == Languages.Auto)
@@ -452,7 +453,7 @@ namespace PhoenixEngine.TranslateManage
                                     //Detecting the quality of AI-translated content
                                     do
                                     {
-                                        GetData = ((DeepLApi)this.TransEngine).QuickTrans(GetSource, Item.From, Item.To, ref Call).Trim();
+                                        GetData = SetApi.QuickTrans(GetSource, Item.From, Item.To, ref Call).Trim();
                                         Passed = SecondaryQualityInspection(GetData, CustomWords);
 
                                         if (!Passed && MaxTry > 0)
@@ -498,7 +499,7 @@ namespace PhoenixEngine.TranslateManage
                         }
                     }
                     else
-                    if (this.TransEngine is ChatGptApi || this.TransEngine is GeminiApi || this.TransEngine is DeepSeekApi || this.TransEngine is LMStudio)
+                    if (this.ApiRef is ChatGptApi || this.ApiRef is GeminiApi || this.ApiRef is DeepSeekApi || this.ApiRef is LMStudio || this.ApiRef is CustomAIApi || this.ApiRef is CustomLocalAIApi)
                     {
                         bool CanTrans = false;
                 
@@ -535,10 +536,11 @@ namespace PhoenixEngine.TranslateManage
 
                         if (CanTrans)
                         {
-                            if (this.TransEngine is LMStudio)
+                            if (this.ApiRef is LMStudio)
                             {
                                 if (EngineConfig.Config.GetPlatformData(LMStudio.Type).Enable)
                                 {
+                                    LMStudio SetApi = ((LMStudio)this.ApiRef);
                                     AICall Call = new AICall();
 
                                     string GetData = null;
@@ -547,7 +549,7 @@ namespace PhoenixEngine.TranslateManage
 
                                     do
                                     {
-                                        GetData = ((LMStudio)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
+                                        GetData = SetApi.QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
                                         Passed = SecondaryQualityInspection(GetData, CustomWords);
 
                                         if (!Passed && MaxTry > 0)
@@ -584,10 +586,11 @@ namespace PhoenixEngine.TranslateManage
                                 }
                             }
                             else
-                            if (this.TransEngine is ChatGptApi)
+                            if (this.ApiRef is ChatGptApi)
                             {
                                 if (EngineConfig.Config.GetPlatformData(ChatGptApi.Type).Enable)
                                 {
+                                    ChatGptApi SetApi = ((ChatGptApi)this.ApiRef);
                                     AICall Call = new AICall();
 
                                     string GetData = null;
@@ -596,7 +599,7 @@ namespace PhoenixEngine.TranslateManage
 
                                     do
                                     {
-                                        GetData = ((ChatGptApi)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
+                                        GetData = SetApi.QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
                                         Passed = SecondaryQualityInspection(GetData, CustomWords);
 
                                         if (!Passed && MaxTry > 0)
@@ -634,10 +637,12 @@ namespace PhoenixEngine.TranslateManage
                                 }
                             }
                             else
-                            if (this.TransEngine is GeminiApi)
+                            if (this.ApiRef is GeminiApi)
                             {
                                 if (EngineConfig.Config.GetPlatformData(GeminiApi.Type).Enable)
                                 {
+                                    GeminiApi SetApi = ((GeminiApi)this.ApiRef);
+
                                     AICall Call = new AICall();
 
                                     string GetData = null;
@@ -646,7 +651,7 @@ namespace PhoenixEngine.TranslateManage
 
                                     do
                                     {
-                                        GetData = ((GeminiApi)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
+                                        GetData = SetApi.QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
                                         Passed = SecondaryQualityInspection(GetData, CustomWords);
 
                                         if (!Passed && MaxTry > 0)
@@ -684,10 +689,11 @@ namespace PhoenixEngine.TranslateManage
                                 }
                             }
                             else
-                            if (this.TransEngine is DeepSeekApi)
+                            if (this.ApiRef is DeepSeekApi)
                             {
                                 if (EngineConfig.Config.GetPlatformData(DeepSeekApi.Type).Enable)
                                 {
+                                    DeepSeekApi SetApi = ((DeepSeekApi)this.ApiRef);
                                     AICall Call = new AICall();
 
                                     string GetData = null;
@@ -697,7 +703,7 @@ namespace PhoenixEngine.TranslateManage
                                     //Detecting the quality of AI-translated content
                                     do
                                     {
-                                        GetData = ((DeepSeekApi)this.TransEngine).QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
+                                        GetData = SetApi.QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
                                         Passed = SecondaryQualityInspection(GetData, CustomWords);
 
                                         if (!Passed && MaxTry > 0)
