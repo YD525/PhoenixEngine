@@ -32,12 +32,7 @@ namespace PhoenixEngine.PlatformManagement
     public class ChatGptApi: I_AI_TranslationNode
     {
         public static PlatformType Type = PlatformType.ChatGpt;
-        public string ApiKey { get; set; } = "";
         public string Model { get; set; } = "";
-        public void SetApiKey(string Key)
-        { 
-           this.ApiKey = Key;
-        }
         public AITranslationMemory AIMemoryRef { get; set; } = null;
         public EngineConfigJson ConfigRef { get; set; } = null;
         public WebProxy ProxyRef { get; set; } = null;
@@ -51,7 +46,7 @@ namespace PhoenixEngine.PlatformManagement
 
             this.ProxyRef = Proxy;
         }
-        public ChatGptRootobject CallAI(string Msg,ref string Recv)
+        public ChatGptRootobject CallAI(string ApiKey, string Msg,ref string Recv)
         {
             int GetCount = Msg.Length; 
             ChatGptItem NChatGptItem = new ChatGptItem();
@@ -59,10 +54,10 @@ namespace PhoenixEngine.PlatformManagement
             NChatGptItem.store = true;
             NChatGptItem.messages = new List<ChatGptMessage>();
             NChatGptItem.messages.Add(new ChatGptMessage("user", Msg));
-            var GetResult = CallAI(NChatGptItem,ref Recv);
+            var GetResult = CallAI(ApiKey, NChatGptItem,ref Recv);
             return GetResult;
         }
-        public void GetModes()
+        public void GetModes(string ApiKey)
         {
             WebHeaderCollection Headers = new WebHeaderCollection();
             Headers.Add("Authorization", string.Format("Bearer {0}", ApiKey));
@@ -87,12 +82,12 @@ namespace PhoenixEngine.PlatformManagement
 
             string GetResult = new HttpHelper().GetHtml(Http).Html;
         }
-        public ChatGptRootobject CallAI(ChatGptItem Item,ref string Recv)
+        public ChatGptRootobject CallAI(string ApiKey, ChatGptItem Item,ref string Recv)
         {
             //GetModes();
             string GetJson = JsonConvert.SerializeObject(Item);
             WebHeaderCollection Headers = new WebHeaderCollection();
-            Headers.Add("Authorization", string.Format("Bearer {0}", Phoenix.KeyData.GetData(ChatGptApi.Type).GetFirstKey()));
+            Headers.Add("Authorization", string.Format("Bearer {0}", ApiKey));
             HttpItem Http = new HttpItem()
             {
                 URL = "https://api.openai.com/v1/chat/completions",
@@ -126,7 +121,7 @@ namespace PhoenixEngine.PlatformManagement
             }
         }
         //"Important: When translating, strictly keep any text inside angle brackets (< >) or square brackets ([ ]) unchanged. Do not modify, translate, or remove them.\n\n"
-        public string QuickTrans(List<ReplaceTag> CustomWords,string TransSource, Languages FromLang, Languages ToLang,bool UseAIMemory,int AIMemoryCountLimit, string AIParam, ref AICall Call,string Type)
+        public string QuickTrans(string ApiKey,List<ReplaceTag> CustomWords,string TransSource, Languages FromLang, Languages ToLang,bool UseAIMemory,int AIMemoryCountLimit, string AIParam, ref AICall Call,string Type)
         {
             List<string> Related = new List<string>();
 
@@ -144,7 +139,7 @@ namespace PhoenixEngine.PlatformManagement
 
             string Send = GetTransSource;
             string Recv = "";
-            var GetResult = CallAI(Send, ref Recv);
+            var GetResult = CallAI(ApiKey, Send, ref Recv);
 
             Call = new AICall(PlatformType.ChatGpt, Send, Recv);
 

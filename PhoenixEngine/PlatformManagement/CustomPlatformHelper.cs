@@ -167,8 +167,10 @@ namespace PhoenixEngine.PlatformManagement
         public bool IsPost { get; set; }
 
         private string ApiKey = "";
+        private string Prompt = "";
         public static string ApiKeySign = "{API_KEY}";
-
+        public static string PromptSign = "{AI_Prompt}";
+          
         public string GetTagValue(ReqReplaceTag Tag)
         {
             string Value = Tag.GetValue();
@@ -176,12 +178,22 @@ namespace PhoenixEngine.PlatformManagement
             {
                 return ApiKey;
             }
+            else
+            if (Value.Equals(PromptSign))
+            {
+                return Prompt;
+            }
             return Value;
         }
 
         public void SetApiKey(string ApiKey)
         { 
            this.ApiKey = ApiKey;
+        }
+
+        public void SetPrompt(string Prompt)
+        {
+            this.Prompt = Prompt;
         }
 
         public void SetUrl(string Url)

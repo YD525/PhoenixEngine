@@ -18,13 +18,8 @@ namespace PhoenixEngine.PlatformManagement
         public CustomPlatformType CustomType = CustomPlatformType.Traditional;
 
         public CustomReqCore Core = new CustomReqCore();
-        public string ApiKey { get; set; } = "";
         public EngineConfigJson ConfigRef { get; set; } = null;
         public WebProxy ProxyRef { get; set; } = null;
-        public void SetApiKey(string Key)
-        { 
-            this.ApiKey = Key;
-        }
         public int CustomID { get; set; } = 0;
         public void Init(int CustomID,EngineConfigJson Config, WebProxy Proxy)
         { 
@@ -33,7 +28,7 @@ namespace PhoenixEngine.PlatformManagement
             this.ProxyRef = Proxy;
         }
 
-        public string QuickTrans(string TransSource, Languages FromLang, Languages ToLang, ref PlatformCall Call)
+        public string QuickTrans(string ApiKey, string TransSource, Languages FromLang, Languages ToLang, ref PlatformCall Call)
         {
             return "";
         }

@@ -73,12 +73,7 @@ namespace PhoenixEngine.PlatformManagement
     public class DeepSeekApi: I_AI_TranslationNode
     {
         public static PlatformType Type = PlatformType.DeepSeek;
-        public string ApiKey { get; set; } = "";
         public string Model { get; set; } = "";
-        public void SetApiKey(string Key)
-        {
-            this.ApiKey = Key;
-        }
         public AITranslationMemory AIMemoryRef { get; set; } = null;
         public EngineConfigJson ConfigRef { get; set; } = null;
         public WebProxy ProxyRef { get; set; } = null;
@@ -92,7 +87,7 @@ namespace PhoenixEngine.PlatformManagement
 
             this.ProxyRef = Proxy;
         }
-        public string QuickTrans(List<ReplaceTag> CustomWords,string TransSource, Languages FromLang, Languages ToLang,bool UseAIMemory,int AIMemoryCountLimit, string AIParam, ref AICall Call,string Type)
+        public string QuickTrans(string ApiKey,List<ReplaceTag> CustomWords,string TransSource, Languages FromLang, Languages ToLang,bool UseAIMemory,int AIMemoryCountLimit, string AIParam, ref AICall Call,string Type)
         {
             List<string> Related = new List<string>();
 
@@ -110,7 +105,7 @@ namespace PhoenixEngine.PlatformManagement
 
             string Send = GetTransSource;
             string Recv = "";
-            var GetResult = CallAI(Send, ref Recv);
+            var GetResult = CallAI(ApiKey,Send, ref Recv);
 
             Call = new AICall(PlatformType.DeepSeek, Send, Recv);
 
@@ -152,7 +147,7 @@ namespace PhoenixEngine.PlatformManagement
             return string.Empty;
         }
 
-        public DeepSeekRootobject CallAI(string Msg, ref string Recv)
+        public DeepSeekRootobject CallAI(string ApiKey,string Msg, ref string Recv)
         {
             int GetCount = Msg.Length;
             DeepSeekItem NDeepSeekItem = new DeepSeekItem();
@@ -160,11 +155,11 @@ namespace PhoenixEngine.PlatformManagement
             NDeepSeekItem.messages = new List<DeepSeekMessage>();
             NDeepSeekItem.messages.Add(new DeepSeekMessage("user", Msg));
             NDeepSeekItem.stream = false;
-            var GetResult = CallAI(NDeepSeekItem,ref Recv);
+            var GetResult = CallAI(ApiKey,NDeepSeekItem,ref Recv);
             return GetResult;
         }
 
-        public DeepSeekRootobject CallAI(DeepSeekItem Item, ref string Recv)
+        public DeepSeekRootobject CallAI(string ApiKey,DeepSeekItem Item, ref string Recv)
         {
             string GetJson = JsonConvert.SerializeObject(Item);
             WebHeaderCollection Headers = new WebHeaderCollection();

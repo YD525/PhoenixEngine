@@ -30,11 +30,6 @@ namespace PhoenixEngine.PlatformManagement
     public class DeepLApi: I_TranslationNode
     {
         public static PlatformType Type = PlatformType.DeepL;
-        public string ApiKey { get; set; } = "";
-        public void SetApiKey(string Key)
-        {
-            this.ApiKey = Key;
-        }
         public EngineConfigJson ConfigRef { get; set; } = null;
         public WebProxy ProxyRef { get; set; } = null;
 
@@ -49,7 +44,7 @@ namespace PhoenixEngine.PlatformManagement
         private static string DeepLFreeHost = "https://api-free.deepl.com/v2/translate";
         private static string DeepLHost = "https://api.deepl.com/v2/translate";
        
-        public string QuickTrans(string TransSource, Languages FromLang, Languages ToLang,ref PlatformCall Call)
+        public string QuickTrans(string ApiKey,string TransSource, Languages FromLang, Languages ToLang,ref PlatformCall Call)
         {
             try
             {
@@ -60,7 +55,7 @@ namespace PhoenixEngine.PlatformManagement
                 string Send = JsonConvert.SerializeObject(NDeepLItem);
                 string Recv = "";
 
-                var GetResult = CallPlatform(NDeepLItem, ref Recv);
+                var GetResult = CallPlatform(ApiKey,NDeepLItem, ref Recv);
 
                 Call = new PlatformCall(PlatformType.DeepL, FromLang,ToLang,Send,Recv);
 
@@ -84,7 +79,7 @@ namespace PhoenixEngine.PlatformManagement
                 return string.Empty;
             }
         }
-        public DeepLResult CallPlatform(DeepLItem Item,ref string Recv)
+        public DeepLResult CallPlatform(string ApiKey,DeepLItem Item,ref string Recv)
         {
             string GetJson = JsonConvert.SerializeObject(Item);
             WebHeaderCollection Headers = new WebHeaderCollection();

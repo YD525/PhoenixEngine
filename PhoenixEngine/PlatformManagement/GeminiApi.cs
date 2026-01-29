@@ -76,12 +76,7 @@ namespace PhoenixEngine.PlatformManagement
     public class GeminiApi: I_AI_TranslationNode
     {
         public static PlatformType Type = PlatformType.Gemini;
-        public string ApiKey { get; set; } = "";
         public string Model { get; set; } = "";
-        public void SetApiKey(string Key)
-        {
-            this.ApiKey = Key;
-        }
         public AITranslationMemory AIMemoryRef { get; set; } = null;
         public EngineConfigJson ConfigRef { get; set; } = null;
         public WebProxy ProxyRef { get; set; } = null;
@@ -96,7 +91,7 @@ namespace PhoenixEngine.PlatformManagement
             this.ProxyRef = Proxy;
         }
 
-        public string QuickTrans(List<ReplaceTag> CustomWords,string TransSource, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam, ref AICall Call,string Type)
+        public string QuickTrans(string ApiKey,List<ReplaceTag> CustomWords,string TransSource, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam, ref AICall Call,string Type)
         {
             List<string> Related = new List<string>();
 
@@ -114,7 +109,7 @@ namespace PhoenixEngine.PlatformManagement
 
             string Send = GetTransSource;
             string Recv = "";
-            var GetResult = CallAI(Send, ref Recv);
+            var GetResult = CallAI(ApiKey,Send, ref Recv);
 
             Call = new AICall(PlatformType.Gemini, Send, Recv);
 
@@ -163,18 +158,18 @@ namespace PhoenixEngine.PlatformManagement
             return string.Empty;
         }
 
-        public GeminiRootobject CallAI(string Msg, ref string Recv)
+        public GeminiRootobject CallAI(string ApiKey,string Msg, ref string Recv)
         {
             int GetCount = Msg.Length;
             GeminiItem NGeminiItem = new GeminiItem();
             NGeminiItem.contents.Add(new GeminiContent());
             NGeminiItem.contents[0].parts.Add(new GeminiPart());
             NGeminiItem.contents[0].parts[0].text = Msg;
-            var GetResult = CallAI(NGeminiItem,ref Recv);
+            var GetResult = CallAI(ApiKey,NGeminiItem,ref Recv);
             return GetResult;
         }
 
-        public GeminiRootobject CallAI(GeminiItem Item, ref string Recv)
+        public GeminiRootobject CallAI(string ApiKey,GeminiItem Item, ref string Recv)
         {
             string GetJson = JsonConvert.SerializeObject(Item);
             WebHeaderCollection Headers = new WebHeaderCollection();
