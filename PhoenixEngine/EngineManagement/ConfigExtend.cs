@@ -19,7 +19,7 @@ namespace PhoenixEngine.EngineManagement
         public List<ReqReplaceTag> Url_Tags = new List<ReqReplaceTag>();
 
         public string PayLoad = "";
-        public CEncodeType PayLoadEncode = CEncodeType.Null;
+        public ReqEncodeType PayLoadEncode = ReqEncodeType.Null;
         public List<ReqReplaceTag> PayLoad_Tags = new List<ReqReplaceTag>();
 
         public string Header = "";

@@ -1,17 +1,145 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
+using System.Reflection.Emit;
 using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.UI.WebControls;
 using Newtonsoft.Json.Linq;
 
 namespace PhoenixEngine.PlatformManagement
 {
     public class CustomPlatformHelper
     {
+        public static string EnCodeValue(string Content,ReqEncodeType EncodeType)
+        {
+            switch (EncodeType)
+            {
+                case ReqEncodeType.UrlEncode:
+                    return System.Web.HttpUtility.UrlEncode(Content);
+                case ReqEncodeType.HtmlEncode:
+                    return System.Net.WebUtility.HtmlEncode(Content);
+                case ReqEncodeType.UnicodeEscape:
+                    return ReqEncodeHelper.EncodeUnicode(Content);
+                case ReqEncodeType.Base64:
+                    return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(Content));
+                default:
+                    return Content;
+            }
+        }
+        public static string DeCodeValue(string Content, ReqEncodeType DecodeType)
+        {
+            string NewContent = "";
+            switch (DecodeType)
+            {
+                case ReqEncodeType.UrlEncode:
+                    {
+                        NewContent = System.Web.HttpUtility.UrlDecode(Content);
+                    }
+                    break;
+                case ReqEncodeType.HtmlEncode:
+                    {
+                        NewContent = System.Net.WebUtility.HtmlDecode(Content);
+                    }
+                    break;
+                case ReqEncodeType.UnicodeEscape:
+                    {
+                        NewContent = ReqEncodeHelper.DecodeUnicode(Content);
+                    }
+                    break;
+                case ReqEncodeType.Base64:
+                    {
+                        NewContent = ReqEncodeHelper.DecodeBase64(Content);
+                    }
+                    break;
+                default:
+                    { 
+                    
+                    }
+                break;
+            }
+            return NewContent;
+        }
+        public static List<ReqCustomKeyValue> GetPayLoadKeyValues(PayLoad PayLoad)
+        {
+            string Payload = PayLoad.Content;
+
+            var Result = new List<ReqCustomKeyValue>();
+
+            if (string.IsNullOrEmpty(Payload))
+            {
+                return Result;
+            }
+
+            Payload = Payload.Trim();
+
+            if ((Payload.StartsWith("{") && Payload.EndsWith("}")) ||
+                (Payload.StartsWith("[") && Payload.EndsWith("]")))
+            {
+                try
+                {
+                    var Token = JToken.Parse(Payload);
+                    ParseJsonElement(Token, "", Result);
+                }
+                catch
+                {
+                    ParseForm(Payload, Result);
+                }
+            }
+            else
+            {
+                ParseForm(Payload, Result);
+            }
+
+            return Result;
+        }
+        private static void ParseJsonElement(JToken Token, string ParentKey, List<ReqCustomKeyValue> Result)
+        {
+            if (Token == null)
+                return;
+
+            switch (Token.Type)
+            {
+                case JTokenType.Object:
+                    foreach (var Prop in Token.Children<JProperty>())
+                    {
+                        string NewKey = string.IsNullOrEmpty(ParentKey) ? Prop.Name : ParentKey + "." + Prop.Name;
+
+                        ParseJsonElement(Prop.Value, NewKey, Result);
+                    }
+                    break;
+
+                case JTokenType.Array:
+                    int Index = 0;
+                    foreach (var Item in Token.Children())
+                    {
+                        string NewKey = ParentKey + "[" + Index + "]";
+
+                        ParseJsonElement(Item, NewKey, Result);
+                        Index++;
+                    }
+                    break;
+
+                default:
+                    Result.Add(new ReqCustomKeyValue(ParentKey, Token.ToString()));
+                    break;
+            }
+        }
+        private static void ParseForm(string Payload, List<ReqCustomKeyValue> Result)
+        {
+            var Params = Payload.Split('&');
+            foreach (var Param in Params)
+            {
+                if (Param.Contains("="))
+                {
+                    Result.Add(new ReqCustomKeyValue(Param.Split('=')[0], Param.Split('=')[1]));
+                }
+            }
+        }
     }
 
     public class CustomReqCore
@@ -42,7 +170,7 @@ namespace PhoenixEngine.PlatformManagement
                 var Tag = Tags.FirstOrDefault(T => T.Key == Param.Key);
                 if (Tag != null)
                 {
-                    Params[i].Value = Tag.GetEncodedValue();
+                    Params[i].Value = CustomPlatformHelper.EnCodeValue(Tag.Value, Tag.EncodeType);
                 }
             }
 
@@ -92,7 +220,7 @@ namespace PhoenixEngine.PlatformManagement
                     {
                         if (GetTag.Key.Equals(GetKey))
                         {
-                            GetValue = GetTag.GetEncodedValue();
+                            GetValue = CustomPlatformHelper.EnCodeValue(GetTag.Value, GetTag.EncodeType); ;
                             break;
                         }
                     }
@@ -136,87 +264,16 @@ namespace PhoenixEngine.PlatformManagement
             return CustomKeyValues;
         }
 
-        public void SetPayLoad(string PayLoad, CEncodeType Encoding = CEncodeType.Null)
+        public void SetPayLoad(string PayLoad, ReqEncodeType Encoding = ReqEncodeType.Null)
         {
             _PayLoad = new PayLoad(PayLoad);
             _PayLoad.EncodeType = Encoding;
         }
         public List<ReqCustomKeyValue> GetPayLoadKeyValues()
         {
-            string Payload = _PayLoad.GetEncodedValue();
-
-            var Result = new List<ReqCustomKeyValue>();
-
-            if (string.IsNullOrEmpty(Payload))
-            {
-                return Result;
-            }
-
-            Payload = Payload.Trim();
-
-            if ((Payload.StartsWith("{") && Payload.EndsWith("}")) ||
-                (Payload.StartsWith("[") && Payload.EndsWith("]")))
-            {
-                try
-                {
-                    var Token = JToken.Parse(Payload);
-                    ParseJsonElement(Token, "", Result);
-                }
-                catch
-                {
-                    ParseForm(Payload, Result);
-                }
-            }
-            else
-            {
-                ParseForm(Payload, Result);
-            }
-
-            return Result;
+            return CustomPlatformHelper.GetPayLoadKeyValues(_PayLoad);
         }
-        private void ParseJsonElement(JToken Token, string ParentKey, List<ReqCustomKeyValue> Result)
-        {
-            if (Token == null)
-                return;
-
-            switch (Token.Type)
-            {
-                case JTokenType.Object:
-                    foreach (var Prop in Token.Children<JProperty>())
-                    {
-                        string NewKey = string.IsNullOrEmpty(ParentKey) ? Prop.Name : ParentKey + "." + Prop.Name;
-
-                        ParseJsonElement(Prop.Value, NewKey, Result);
-                    }
-                    break;
-
-                case JTokenType.Array:
-                    int Index = 0;
-                    foreach (var Item in Token.Children())
-                    {
-                        string NewKey = ParentKey + "[" + Index + "]";
-
-                        ParseJsonElement(Item, NewKey, Result);
-                        Index++;
-                    }
-                    break;
-
-                default:
-                    Result.Add(new ReqCustomKeyValue(ParentKey, Token.ToString()));
-                    break;
-            }
-        }
-        private void ParseForm(string Payload, List<ReqCustomKeyValue> Result)
-        {
-            var Params = Payload.Split('&');
-            foreach (var Param in Params)
-            {
-                if (Param.Contains("="))
-                {
-                    Result.Add(new ReqCustomKeyValue(Param.Split('=')[0], Param.Split('=')[1]));
-                }
-            }
-        }
+   
         public string GenPayLoad(List<ReqReplaceTag> Tags)
         {
             PayLoad NewPayLoad = new PayLoad(_PayLoad.Content);
@@ -250,7 +307,7 @@ namespace PhoenixEngine.PlatformManagement
                 NewPayLoad.Content = GenFormPayLoad(PayLoad, Tags);
             }
 
-            return NewPayLoad.GetEncodedValue();
+            return CustomPlatformHelper.EnCodeValue(NewPayLoad.Content,NewPayLoad.EncodeType);
         }
         private void ReplaceJsonTokens(JToken Token, List<ReqReplaceTag> Tags, string ParentKey = "")
         {
@@ -265,7 +322,7 @@ namespace PhoenixEngine.PlatformManagement
 
                         var Tag = Tags.FirstOrDefault(T => T.Key == FullKey);
                         if (Tag != null)
-                            Prop.Value = Tag.GetEncodedValue();
+                            Prop.Value = CustomPlatformHelper.EnCodeValue(Tag.Value,Tag.EncodeType);
 
                         ReplaceJsonTokens(Prop.Value, Tags, FullKey);
                     }
@@ -280,7 +337,7 @@ namespace PhoenixEngine.PlatformManagement
                         var Tag = Tags.FirstOrDefault(t => t.Key == ArrayKey);
                         if (Tag != null && Item.Type != JTokenType.Object && Item.Type != JTokenType.Array)
                         {
-                            Item.Replace(Tag.GetEncodedValue());
+                            Item.Replace(CustomPlatformHelper.EnCodeValue(Tag.Value, Tag.EncodeType));
                         }
 
                         ReplaceJsonTokens(Item, Tags, ArrayKey);
@@ -305,7 +362,7 @@ namespace PhoenixEngine.PlatformManagement
 
                 var Tag = Tags.FirstOrDefault(t => t.Key == Key || t.Key == char.ToUpper(Key[0]) + Key.Substring(1));
                 if (Tag != null)
-                    Value = Tag.GetEncodedValue();
+                    Value = CustomPlatformHelper.EnCodeValue(Tag.Value, Tag.EncodeType);
 
                 Key = char.ToUpper(Key[0]) + Key.Substring(1);
 
@@ -319,7 +376,7 @@ namespace PhoenixEngine.PlatformManagement
     public class ReqQueryRuleItem
     {
         public string FieldName { get; set; }
-        public bool ByJson = true;
+        public bool ByJson = false;
 
         public string LeftStr = "";
         public string RightStr = "";
@@ -338,7 +395,7 @@ namespace PhoenixEngine.PlatformManagement
         }
     }
 
-    public enum CEncodeType
+    public enum ReqEncodeType
     { 
         Null = 0, UrlEncode = 1, HtmlEncode = 2, UnicodeEscape = 3, Base64 = 5
     }
@@ -368,93 +425,69 @@ namespace PhoenixEngine.PlatformManagement
 
             return NStringBuilder.ToString();
         }
+
+        public static string DecodeUnicode(string Input)
+        {
+            if (string.IsNullOrEmpty(Input))
+            {
+                return Input;
+            }
+
+            var NStringBuilder = new StringBuilder(Input.Length);
+
+            for (int i = 0; i < Input.Length; i++)
+            {
+                char C = Input[i];
+
+                if (C == '\\' && i + 5 < Input.Length && Input[i + 1] == 'u')
+                {
+                    string Hex = Input.Substring(i + 2, 4);
+
+                    if (int.TryParse(Hex, NumberStyles.HexNumber, null, out int code))
+                    {
+                        NStringBuilder.Append((char)code);
+                        i += 5; 
+                        continue;
+                    }
+                }
+
+                NStringBuilder.Append(C);
+            }
+
+            return NStringBuilder.ToString();
+        }
+
+        public static string DecodeBase64(string Content)
+        {
+            if (string.IsNullOrEmpty(Content))
+                return Content;
+
+            byte[] Bytes = Convert.FromBase64String(Content);
+            return Encoding.UTF8.GetString(Bytes);
+        }
     }
 
     public class PayLoad
     {
         public string Content = "";
 
-        public CEncodeType EncodeType = CEncodeType.Null;
+        public ReqEncodeType EncodeType = ReqEncodeType.Null;
         public PayLoad(string Content)
         { 
           this.Content = Content;
-        }
-        public string GetEncodedValue()
-        {
-            switch (EncodeType)
-            {
-                case CEncodeType.UrlEncode:
-                    return System.Web.HttpUtility.UrlEncode(Content);
-                case CEncodeType.HtmlEncode:
-                    return System.Net.WebUtility.HtmlEncode(Content);
-                case CEncodeType.UnicodeEscape:
-                    return ReqEncodeHelper.EncodeUnicode(Content);
-                case CEncodeType.Base64:
-                    return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(Content));
-                default:
-                    return Content;
-            }
-        }
-        public void EncodedValue(string PayLoad)
-        {
-            switch (EncodeType)
-            {
-                case CEncodeType.UrlEncode:
-                    {
-                        Content = System.Web.HttpUtility.UrlEncode(PayLoad);
-                    }
-                break;
-                case CEncodeType.HtmlEncode:
-                    {
-                        Content = System.Net.WebUtility.HtmlEncode(PayLoad);
-                    }
-                break;
-                case CEncodeType.UnicodeEscape:
-                    {
-                        Content = ReqEncodeHelper.EncodeUnicode(PayLoad);
-                    }
-                break;
-                case CEncodeType.Base64:
-                    {
-                        Content = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(PayLoad));
-                    }
-                break;
-                default:
-                    {
-                        Content = PayLoad;
-                    }
-                break;
-                   
-            }
         }
     }
 
     public class ReqReplaceTag
     {
         public string Key = "";
-        public CEncodeType EncodeType = CEncodeType.Null;
+        public ReqEncodeType EncodeType = ReqEncodeType.Null;
         public string Value = "";
 
         public ReqReplaceTag(string Key, string Value)
         {
             this.Key = Key;
             this.Value = Value;
-        }
-        public string GetEncodedValue()
-        {
-            switch (EncodeType)
-            {
-                case CEncodeType.UrlEncode:
-                    return System.Web.HttpUtility.UrlEncode(Value);
-                case CEncodeType.HtmlEncode:
-                    return System.Net.WebUtility.HtmlEncode(Value);
-                case CEncodeType.UnicodeEscape:
-                    return ReqEncodeHelper.EncodeUnicode(Value);
-                case CEncodeType.Base64:
-                    return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(Value));
-                default:
-                    return Value;
-            }
         }
     }
 
