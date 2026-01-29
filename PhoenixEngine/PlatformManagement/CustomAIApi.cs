@@ -144,6 +144,7 @@ namespace PhoenixEngine.PlatformManagement
 
             InFo = Phoenix.Config.GetPlatformData(CustomID).CustomInFo;
 
+            Core.SetModel(Model);
             Core.SetApiKey(ApiKey);
             Core.SetUrl(InFo.Url);
             Core.SetHeader(InFo.Header);

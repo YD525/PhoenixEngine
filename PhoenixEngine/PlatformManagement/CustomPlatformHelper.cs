@@ -168,9 +168,14 @@ namespace PhoenixEngine.PlatformManagement
 
         private string ApiKey = "";
         private string Prompt = "";
+        private string Model = "";
+
         public static string ApiKeySign = "{API_KEY}";
         public static string PromptSign = "{AI_Prompt}";
-          
+        public static string ModelSign = "{AI_Model}";
+        public static string FromSign = "{P_From}";
+        public static string ToSign = "{P_To}";
+
         public string GetTagValue(ReqReplaceTag Tag)
         {
             string Value = Tag.GetValue();
@@ -183,7 +188,15 @@ namespace PhoenixEngine.PlatformManagement
             {
                 return Prompt;
             }
-            return Value;
+            else
+            if (Value.Equals(ModelSign))
+            {
+                return Model;
+            }
+            else
+            {
+                return Value;
+            }
         }
 
         public void SetApiKey(string ApiKey)
@@ -194,6 +207,11 @@ namespace PhoenixEngine.PlatformManagement
         public void SetPrompt(string Prompt)
         {
             this.Prompt = Prompt;
+        }
+
+        public void SetModel(string Model)
+        { 
+            this.Model = Model;
         }
 
         public void SetUrl(string Url)
@@ -247,7 +265,6 @@ namespace PhoenixEngine.PlatformManagement
         { 
             this._Header = Header;
         }
-
         public string UserAgent { get; private set; } = "";
         public string ContentType { get; private set; } = "";
         public string Accept { get; private set; } = "";
@@ -277,7 +294,7 @@ namespace PhoenixEngine.PlatformManagement
                         UserAgent = GetValue;
                     }
                     else
-                    if (GetKey.ToLower().Equals("ContentType".ToLower()))
+                    if (GetKey.ToLower().Equals("ContentType".ToLower()) || GetKey.ToLower().Equals("Content-Type".ToLower()))
                     {
                         ContentType = GetValue;
                     }
