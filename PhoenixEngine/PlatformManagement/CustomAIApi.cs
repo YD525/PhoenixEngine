@@ -87,7 +87,7 @@ namespace PhoenixEngine.PlatformManagement
                     else
                     if (Core.QueryRule.SplitStr.Trim().Length > 0)
                     {
-                        TransStr = Result.Split(Core.QueryRule.SplitStr[0])[1];
+                        TransStr = Result.Substring(Result.LastIndexOf(Core.QueryRule.SplitStr) + Core.QueryRule.SplitStr.Length);
                     }
                     else
                     if (Core.QueryRule.LeftStr.Trim().Length > 0)
