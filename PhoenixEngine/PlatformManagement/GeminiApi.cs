@@ -7,7 +7,6 @@ using PhoenixEngine.RequestManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
 using static PhoenixEngine.EngineManagement.DataTransmission;
-using static PhoenixEngine.TranslateManage.TransCore;
 
 namespace PhoenixEngine.PlatformManagement
 {
@@ -99,7 +98,7 @@ namespace PhoenixEngine.PlatformManagement
 
             if (ConfigRef.ContextEnable && UseAIMemory)
             {
-                Related = EngineSelect.AIMemory.FindRelevantTranslations(FromLang, ToLang, TransSource, AIMemoryCountLimit);
+                Related = AIMemoryRef.FindRelevantTranslations(FromLang, ToLang, TransSource, AIMemoryCountLimit);
             }
 
             if (ConfigRef.UserCustomAIPrompt.Trim().Length > 0)
