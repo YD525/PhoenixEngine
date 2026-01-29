@@ -88,6 +88,22 @@ namespace PhoenixEngine.PlatformManagement
                 return string.Empty;
             }
         }
+
+        public void ReportError(string ApiKey)
+        {
+            lock (ArrayQueryLock)
+            {
+                for (int i = ApiKeys.Count - 1; i >= 0; i--)
+                {
+                    var GetKey = ApiKeys[i];
+                    if (GetKey.GetKey().Equals(ApiKey))
+                    {
+                        GetKey.ErrorCount++;
+                        break;
+                    }
+                }
+            }
+        }
         public bool HaveKey()
         {
             if (this.ApiKeys.Count > 0)

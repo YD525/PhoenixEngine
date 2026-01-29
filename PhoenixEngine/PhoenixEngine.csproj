@@ -112,6 +112,7 @@
     <Compile Include="PlatformManagement\DeepSeekApi.cs" />
     <Compile Include="PlatformManagement\GeminiApi.cs" />
     <Compile Include="PlatformManagement\ApiKeyHelper.cs" />
+    <Compile Include="PlatformManagement\ITranslationNode.cs" />
     <Compile Include="PlatformManagement\LocalAI\LMStudio.cs" />
     <Compile Include="PlatformManagement\LocalAI\LocalAIJson.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
