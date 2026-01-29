@@ -29,7 +29,7 @@ namespace PhoenixEngine.PlatformManagement
 
 
 
-    public class DeepLApi
+    public class DeepLApi: I_TranslationNode
     {
         public static PlatformType Type = PlatformType.DeepL;
 

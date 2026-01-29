@@ -30,7 +30,7 @@ namespace PhoenixEngine.PlatformManagement
         }
     }
 
-    public class ChatGptApi
+    public class ChatGptApi: I_AITranslationNode
     {
         public static PlatformType Type = PlatformType.ChatGpt;
         public ChatGptRootobject CallAI(string Msg,ref string Recv)

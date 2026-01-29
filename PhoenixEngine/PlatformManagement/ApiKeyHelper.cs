@@ -95,10 +95,10 @@ namespace PhoenixEngine.PlatformManagement
             {
                 for (int i = ApiKeys.Count - 1; i >= 0; i--)
                 {
-                    var GetKey = ApiKeys[i];
-                    if (GetKey.GetKey().Equals(ApiKey))
+                    var ApiKeyItem = ApiKeys[i];
+                    if (ApiKeyItem.GetKey().Equals(ApiKey))
                     {
-                        GetKey.ErrorCount++;
+                        ApiKeyItem.ErrorCount++;
                         break;
                     }
                 }

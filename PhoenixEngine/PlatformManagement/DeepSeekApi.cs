@@ -72,7 +72,7 @@ namespace PhoenixEngine.PlatformManagement
     }
 
 
-    public class DeepSeekApi
+    public class DeepSeekApi: I_AITranslationNode
     {
         public static PlatformType Type = PlatformType.DeepSeek;
         public string QuickTrans(List<ReplaceTag> CustomWords,string TransSource, Languages FromLang, Languages ToLang,bool UseAIMemory,int AIMemoryCountLimit, string AIParam, ref AICall Call,string Type)
