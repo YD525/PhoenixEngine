@@ -30,7 +30,12 @@ namespace PhoenixEngine.PlatformManagement
         int LocalPort { get; set; }
         void Init(AITranslationMemory AIMemory, EngineConfigJson Config, int Port);
         string QuickTrans(List<ReplaceTag> CustomWords, string TransSource, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam, ref AICall Call, string Type);
-   
+        string Url { get; set; }
+        string PayLoad { get; set; }
+        bool IsPost { get; set; }
+        string MakeUrl(string Url, List<ReplaceTag> Tags);
+        WebHeaderCollection MakeHeader(string HeaderStr,List<ReplaceTag> Tags);
+        string MakePayLoad(string PayLoad,List<ReplaceTag> Tags);
     }
 
     public interface I_TranslationNode
