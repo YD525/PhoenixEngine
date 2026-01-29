@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using Newtonsoft.Json.Linq;
 
 namespace PhoenixEngine.PlatformManagement
 {
@@ -16,7 +18,7 @@ namespace PhoenixEngine.PlatformManagement
     {
         private string _Url = "";
         private string _Header = "";
-        private string _PayLoad = "";
+        private PayLoad _PayLoad = null;
         public bool IsPost { get; set; }
 
         public void SetUrl(string Url)
@@ -25,16 +27,28 @@ namespace PhoenixEngine.PlatformManagement
         }
 
         public QueryRuleItem QueryRule = new QueryRuleItem();
-        public string GenUrl(List<ReplaceTag> Tags)
+        public string GenUrl(List<CReplaceTag> Tags)
         {
-            string NewUrl = string.Copy(_Url);
+            if (!_Url.Contains("?"))
+                return _Url;
 
-            foreach (var GetTag in Tags)
+            string UrlBase = _Url.Split('?')[0];
+
+            var Params = GetUrlKeyValues();
+
+            for (int i = 0; i < Params.Count; i++)
             {
-                NewUrl.Replace(GetTag.Tag,GetTag.GetEncodedValue());
+                var Param = Params[i];
+                var Tag = Tags.FirstOrDefault(T => T.Key == Param.Key);
+                if (Tag != null)
+                {
+                    Params[i].Value = Tag.GetEncodedValue();
+                }
             }
 
-            return NewUrl;
+            string NewQuery = string.Join("&", Params.Select(KV => KV.Key + "=" + KV.Value));
+
+            return UrlBase + "?" + NewQuery;
         }
         public List<CustomKeyValue> GetUrlKeyValues()
         {
@@ -58,7 +72,12 @@ namespace PhoenixEngine.PlatformManagement
         { 
             this._Header = Header;
         }
-        public WebHeaderCollection GenHeader(List<ReplaceTag> Tags)
+
+        public string UserAgent { get; private set; } = "";
+        public string ContentType { get; private set; } = "";
+        public string Accept { get; private set; } = "";
+
+        public WebHeaderCollection GenHeader(List<CReplaceTag> Tags)
         {
             WebHeaderCollection Header = new WebHeaderCollection();
             foreach (var GetLine in _Header.Split(new char[2] { '\r', '\n' }))
@@ -77,8 +96,25 @@ namespace PhoenixEngine.PlatformManagement
                             break;
                         }
                     }
-                    
-                    Header.Add(GetKey, GetValue);
+
+                    if (GetKey.ToLower().Equals("UserAgent".ToLower()))
+                    {
+                        UserAgent = GetValue;
+                    }
+                    else
+                    if (GetKey.ToLower().Equals("ContentType".ToLower()))
+                    {
+                        ContentType = GetValue;
+                    }
+                    else
+                    if (GetKey.ToLower().Equals("Accept".ToLower()))
+                    {
+                        Accept = GetValue;
+                    }
+                    else
+                    {
+                        Header.Add(GetKey, GetValue);
+                    }
                 }
             }
             return Header;
@@ -99,12 +135,177 @@ namespace PhoenixEngine.PlatformManagement
 
             return CustomKeyValues;
         }
-       
-        public string MakePayLoad(string PayLoad, List<ReplaceTag> Tags)
-        { 
-            //x=1&xx=2
-            //or
-            //Json {xxx:}
+
+        public void SetPayLoad(string PayLoad, CEncodeType Encoding = CEncodeType.Null)
+        {
+            _PayLoad = new PayLoad(PayLoad);
+            _PayLoad.EncodeType = Encoding;
+        }
+        public List<CustomKeyValue> GetPayLoadKeyValues()
+        {
+            string Payload = _PayLoad.GetEncodedValue();
+
+            var Result = new List<CustomKeyValue>();
+
+            if (string.IsNullOrEmpty(Payload))
+            {
+                return Result;
+            }
+
+            Payload = Payload.Trim();
+
+            if ((Payload.StartsWith("{") && Payload.EndsWith("}")) ||
+                (Payload.StartsWith("[") && Payload.EndsWith("]")))
+            {
+                try
+                {
+                    var Token = JToken.Parse(Payload);
+                    ParseJsonElement(Token, "", Result);
+                }
+                catch
+                {
+                    ParseForm(Payload, Result);
+                }
+            }
+            else
+            {
+                ParseForm(Payload, Result);
+            }
+
+            return Result;
+        }
+        private void ParseJsonElement(JToken Token, string ParentKey, List<CustomKeyValue> Result)
+        {
+            if (Token == null)
+                return;
+
+            switch (Token.Type)
+            {
+                case JTokenType.Object:
+                    foreach (var Prop in Token.Children<JProperty>())
+                    {
+                        string NewKey = string.IsNullOrEmpty(ParentKey) ? Prop.Name : ParentKey + "." + Prop.Name;
+
+                        ParseJsonElement(Prop.Value, NewKey, Result);
+                    }
+                    break;
+
+                case JTokenType.Array:
+                    int Index = 0;
+                    foreach (var Item in Token.Children())
+                    {
+                        string NewKey = ParentKey + "[" + Index + "]";
+
+                        ParseJsonElement(Item, NewKey, Result);
+                        Index++;
+                    }
+                    break;
+
+                default:
+                    Result.Add(new CustomKeyValue(ParentKey, Token.ToString()));
+                    break;
+            }
+        }
+        private void ParseForm(string Payload, List<CustomKeyValue> Result)
+        {
+            var Params = Payload.Split('&');
+            foreach (var Param in Params)
+            {
+                if (Param.Contains("="))
+                {
+                    Result.Add(new CustomKeyValue(Param.Split('=')[0], Param.Split('=')[1]));
+                }
+            }
+        }
+        public string GenPayLoad(string PayLoad, List<CReplaceTag> Tags)
+        {
+            if (string.IsNullOrEmpty(PayLoad))
+                return PayLoad;
+
+            PayLoad = PayLoad.Trim();
+
+            bool IsJson = (PayLoad.StartsWith("{") && PayLoad.EndsWith("}")) ||
+                          (PayLoad.StartsWith("[") && PayLoad.EndsWith("]"));
+
+            if (IsJson)
+            {
+                try
+                {
+                    var Token = JToken.Parse(PayLoad);
+                    ReplaceJsonTokens(Token, Tags);
+                    return Token.ToString(Newtonsoft.Json.Formatting.None);
+                }
+                catch
+                {
+                    return GenFormPayLoad(PayLoad, Tags);
+                }
+            }
+            else
+            {
+                return GenFormPayLoad(PayLoad, Tags);
+            }
+        }
+        private void ReplaceJsonTokens(JToken Token, List<CReplaceTag> Tags, string ParentKey = "")
+        {
+            if (Token == null) return;
+
+            switch (Token.Type)
+            {
+                case JTokenType.Object:
+                    foreach (var Prop in Token.Children<JProperty>())
+                    {
+                        string FullKey = string.IsNullOrEmpty(ParentKey) ? Prop.Name : ParentKey + "." + Prop.Name;
+
+                        var Tag = Tags.FirstOrDefault(T => T.Key == FullKey);
+                        if (Tag != null)
+                            Prop.Value = Tag.GetEncodedValue();
+
+                        ReplaceJsonTokens(Prop.Value, Tags, FullKey);
+                    }
+                    break;
+
+                case JTokenType.Array:
+                    int Index = 0;
+                    foreach (var Item in Token.Children())
+                    {
+                        string ArrayKey = ParentKey + "[" + Index + "]";
+
+                        var Tag = Tags.FirstOrDefault(t => t.Key == ArrayKey);
+                        if (Tag != null && Item.Type != JTokenType.Object && Item.Type != JTokenType.Array)
+                        {
+                            Item.Replace(Tag.GetEncodedValue());
+                        }
+
+                        ReplaceJsonTokens(Item, Tags, ArrayKey);
+                        Index++;
+                    }
+                    break;
+
+                default:
+                    break; 
+            }
+        }
+        private string GenFormPayLoad(string Payload, List<CReplaceTag> Tags)
+        {
+            var Params = Payload.Split('&');
+            for (int i = 0; i < Params.Length; i++)
+            {
+                if (!Params[i].Contains("=")) continue;
+
+                var KV = Params[i].Split(new[] { '=' }, 2);
+                string Key = KV[0];
+                string Value = KV.Length > 1 ? KV[1] : "";
+
+                var Tag = Tags.FirstOrDefault(t => t.Key == Key || t.Key == char.ToUpper(Key[0]) + Key.Substring(1));
+                if (Tag != null)
+                    Value = Tag.GetEncodedValue();
+
+                Key = char.ToUpper(Key[0]) + Key.Substring(1);
+
+                Params[i] = Key + "=" + Value;
+            }
+
+            return string.Join("&", Params);
         }
     }
     
@@ -130,47 +331,20 @@ namespace PhoenixEngine.PlatformManagement
         }
     }
 
-    public enum ReplaceTagEncodeType
+    public enum CEncodeType
     { 
         Null = 0, UrlEncode = 1, HtmlEncode = 2, UnicodeEscape = 3, Base64 = 5
     }
 
-    public class ReplaceTag
+    public class CEncodeHelper
     {
-        public string Tag = "";
-        public string Key = "";
-        public ReplaceTagEncodeType EncodeType = ReplaceTagEncodeType.Null;
-        private string Value = "";
-
-        public ReplaceTag(string Key, string Value)
-        {
-            this.Key = Key;
-            this.Value = Value;
-            this.Tag = "{" + Key + "}";
-        }
-        public string GetEncodedValue()
-        {
-            switch (EncodeType)
-            {
-                case ReplaceTagEncodeType.UrlEncode:
-                    return System.Web.HttpUtility.UrlEncode(Value);
-                case ReplaceTagEncodeType.HtmlEncode:
-                    return System.Net.WebUtility.HtmlEncode(Value);
-                case ReplaceTagEncodeType.UnicodeEscape:
-                    return EncodeUnicode(Value);
-                case ReplaceTagEncodeType.Base64:
-                    return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(Value));
-                default:
-                    return Value;
-            }
-        }
-        private string EncodeUnicode(string Input)
+        public string EncodeUnicode(string Input)
         {
             if (string.IsNullOrEmpty(Input))
             {
                 return Input;
             }
-              
+
             var NStringBuilder = new StringBuilder();
 
             foreach (char C in Input)
@@ -186,6 +360,94 @@ namespace PhoenixEngine.PlatformManagement
             }
 
             return NStringBuilder.ToString();
+        }
+    }
+
+    public class PayLoad : CEncodeHelper
+    {
+        private string Content = "";
+
+        public CEncodeType EncodeType = CEncodeType.Null;
+        public PayLoad(string Content)
+        { 
+          this.Content = Content;
+        }
+        public string GetEncodedValue()
+        {
+            switch (EncodeType)
+            {
+                case CEncodeType.UrlEncode:
+                    return System.Web.HttpUtility.UrlEncode(Content);
+                case CEncodeType.HtmlEncode:
+                    return System.Net.WebUtility.HtmlEncode(Content);
+                case CEncodeType.UnicodeEscape:
+                    return EncodeUnicode(Content);
+                case CEncodeType.Base64:
+                    return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(Content));
+                default:
+                    return Content;
+            }
+        }
+        public void EncodedValue(string PayLoad)
+        {
+            switch (EncodeType)
+            {
+                case CEncodeType.UrlEncode:
+                    {
+                        Content = System.Web.HttpUtility.UrlEncode(PayLoad);
+                    }
+                break;
+                case CEncodeType.HtmlEncode:
+                    {
+                        Content = System.Net.WebUtility.HtmlEncode(PayLoad);
+                    }
+                break;
+                case CEncodeType.UnicodeEscape:
+                    {
+                        Content = EncodeUnicode(PayLoad);
+                    }
+                break;
+                case CEncodeType.Base64:
+                    {
+                        Content = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(PayLoad));
+                    }
+                break;
+                default:
+                    {
+                        Content = PayLoad;
+                    }
+                break;
+                   
+            }
+        }
+    }
+
+    public class CReplaceTag : CEncodeHelper
+    {
+        public string Key = "";
+        public CEncodeType EncodeType = CEncodeType.Null;
+        public string Value = "";
+
+        public CReplaceTag(string Key, string Value)
+        {
+            this.Key = Key;
+            this.Value = Value;
+        }
+        public string GetEncodedValue()
+        {
+            switch (EncodeType)
+            {
+                case CEncodeType.UrlEncode:
+                    return System.Web.HttpUtility.UrlEncode(Value);
+                case CEncodeType.HtmlEncode:
+                    return System.Net.WebUtility.HtmlEncode(Value);
+                case CEncodeType.UnicodeEscape:
+                    return EncodeUnicode(Value);
+                case CEncodeType.Base64:
+                    return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(Value));
+                default:
+                    return Value;
+            }
         }
     }
 

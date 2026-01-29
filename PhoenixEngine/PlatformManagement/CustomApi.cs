@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using PhoenixEngine.EngineManagement;
+using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
+using static PhoenixEngine.EngineManagement.DataTransmission;
 
 namespace PhoenixEngine.PlatformManagement
 {
@@ -14,5 +18,22 @@ namespace PhoenixEngine.PlatformManagement
         public CustomPlatformType CustomType = CustomPlatformType.Traditional;
 
         public CustomCore Core = new CustomCore();
+        public string ApiKey { get; set; } = "";
+        public EngineConfigJson ConfigRef { get; set; } = null;
+        public WebProxy ProxyRef { get; set; } = null;
+        public void SetApiKey(string Key)
+        { 
+            this.ApiKey = Key;
+        }
+        public void Init(EngineConfigJson Config, WebProxy Proxy)
+        { 
+            this.ConfigRef = Config;
+            this.ProxyRef = Proxy;
+        }
+
+        public string QuickTrans(string TransSource, Languages FromLang, Languages ToLang, ref PlatformCall Call)
+        {
+            return "";
+        }
     }
 }
