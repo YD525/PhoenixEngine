@@ -12,5 +12,7 @@ namespace PhoenixEngine.PlatformManagement
         public static PlatformType Type = PlatformType.CustomPlatform;
 
         public CustomPlatformType CustomType = CustomPlatformType.Traditional;
+
+        public CustomCore Core = new CustomCore();
     }
 }

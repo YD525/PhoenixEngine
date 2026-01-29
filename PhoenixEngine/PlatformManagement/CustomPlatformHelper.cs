@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,9 +11,28 @@ namespace PhoenixEngine.PlatformManagement
     {
     }
 
+    public class CustomCore
+    {
+        public string Url = "";
+        public string PayLoad { get; set; }
+        public bool IsPost { get; set; }
+        public string MakeUrl(string Url, List<ReplaceTag> Tags)
+        { 
+            
+        }
+        public WebHeaderCollection MakeHeader(string HeaderStr, List<ReplaceTag> Tags)
+        { 
+        
+        }
+        public string MakePayLoad(string PayLoad, List<ReplaceTag> Tags)
+        { 
+        
+        }
+    }
+
     public class ReplaceTag
     {
-        public string Tag { get; set; } = "";
+        public string Tag = "";
         public string Value = "";
     }
 

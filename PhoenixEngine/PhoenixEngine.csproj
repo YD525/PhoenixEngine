@@ -108,8 +108,9 @@
     <Compile Include="LanguageDetector\VietnameseHelper.cs" />
     <Compile Include="PlatformManagement\AIPrompt.cs" />
     <Compile Include="PlatformManagement\ChatGptApi.cs" />
-    <Compile Include="PlatformManagement\CustomAI.cs" />
+    <Compile Include="PlatformManagement\CustomApi.cs" />
     <Compile Include="PlatformManagement\CustomAIApi.cs" />
+    <Compile Include="PlatformManagement\CustomPlatformHelper.cs" />
     <Compile Include="PlatformManagement\LocalAI\CustomLocalAIApi.cs" />
     <Compile Include="PlatformManagement\DeepLApi.cs" />
     <Compile Include="PlatformManagement\DeepSeekApi.cs" />
