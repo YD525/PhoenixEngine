@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace PhoenixEngine.SSEManage
 {
-    public class PapyrusHeurCore
+    public class PEXHeuristicAnalysis
     {
         public static string Version = "1.6Beta";
         public List<ParsingItem> ParsingItems = new List<ParsingItem>();

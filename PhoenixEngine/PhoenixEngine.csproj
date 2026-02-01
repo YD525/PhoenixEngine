@@ -80,7 +80,7 @@
     <Compile Include="EngineManagement\ConfigExtend.cs" />
     <Compile Include="EngineManagement\DataTransmission.cs" />
     <Compile Include="EngineManagement\Phoenix.cs" />
-    <Compile Include="EngineManagement\PapyrusHeurCore.cs" />
+    <Compile Include="EngineManagement\PEXHeuristicAnalysis.cs" />
     <Compile Include="FileManagement\BlockHashComparer.cs" />
     <Compile Include="GameManagement\GameHelper.cs" />
     <Compile Include="GameManagement\SkyrimBookHelper.cs" />
