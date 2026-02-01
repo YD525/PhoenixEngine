@@ -25,8 +25,6 @@ namespace PhoenixEngine.PlatformManagement
         public EngineConfigJson ConfigRef { get; set; } = null;
         public WebProxy ProxyRef { get; set; } = null;
         public int CustomID { get; set; } = 0;
-
-        private CustomPlatformInFo InFo = null;
         public void Init(int CustomID, AITranslationMemory AIMemory, EngineConfigJson Config, WebProxy Proxy)
         { 
             this.CustomID = CustomID;
@@ -40,7 +38,7 @@ namespace PhoenixEngine.PlatformManagement
         {
             CustomReqCore Core = new CustomReqCore();
 
-            InFo = Phoenix.Config.GetPlatformData(CustomID).CustomInFo;
+            var InFo = Phoenix.Config.GetPlatformData(CustomID).CustomInFo;
 
             Core.SetApiKey(ApiKey);
             Core.SetQueryRule(InFo.QueryRule);
@@ -137,7 +135,7 @@ namespace PhoenixEngine.PlatformManagement
         {
             CustomReqCore Core = new CustomReqCore();
 
-            InFo = Phoenix.Config.GetPlatformData(CustomID).CustomInFo;
+            var InFo = Phoenix.Config.GetPlatformData(CustomID).CustomInFo;
 
             Core.SetModel(Model);
             Core.SetApiKey(ApiKey);

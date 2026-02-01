@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.UI.WebControls;
 using Newtonsoft.Json.Linq;
+using PhoenixEngine.TranslateCore;
 
 namespace PhoenixEngine.PlatformManagement
 {
@@ -179,6 +180,9 @@ namespace PhoenixEngine.PlatformManagement
         public static string FromSign = "{P_From}";
         public static string ToSign = "{P_To}";
 
+        public string From = "";
+        public string To = "";
+
         public string GetTagValue(ReqReplaceTag Tag)
         {
             string Value = Tag.GetValue();
@@ -197,9 +201,28 @@ namespace PhoenixEngine.PlatformManagement
                 return Model;
             }
             else
+            if (Value.Equals(FromSign))
+            {
+                return From;
+            }
+            else
+            if (Value.Equals(ToSign))
+            {
+                return To;
+            }
+            else
             {
                 return Value;
             }
+        }
+
+        public void SetFrom(Languages From)
+        {
+            this.From = LanguageHelper.ToLanguageCode(From);
+        }
+        public void SetTo(Languages To)
+        {
+            this.To = LanguageHelper.ToLanguageCode(To);
         }
 
         public void SetApiKey(string ApiKey)

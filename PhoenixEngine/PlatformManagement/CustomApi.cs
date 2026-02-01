@@ -4,7 +4,10 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using PhoenixEngine.ConvertManager;
 using PhoenixEngine.EngineManagement;
+using PhoenixEngine.RequestManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
 using static PhoenixEngine.EngineManagement.DataTransmission;
@@ -27,9 +30,104 @@ namespace PhoenixEngine.PlatformManagement
             this.ConfigRef = Config;
             this.ProxyRef = Proxy;
         }
-
         public string QuickTrans(string ApiKey, string TransSource, Languages FromLang, Languages ToLang, ref PlatformCall Call)
         {
+            CustomReqCore Core = new CustomReqCore();
+
+            var InFo = Phoenix.Config.GetPlatformData(CustomID).CustomInFo;
+
+            Core.SetApiKey(ApiKey);
+
+            Core.SetFrom(FromLang);
+            Core.SetTo(ToLang);
+
+            Core.SetUrl(InFo.Url);
+            Core.SetHeader(InFo.Header);
+            Core.SetPayLoad(InFo.PayLoad, InFo.PayLoadEncode);
+
+            Core.SetQueryRule(InFo.QueryRule);
+
+            string Send = "";
+            string Recv = "";
+
+            string Url = Core.GenUrl(InFo.Url_Tags);
+            string PayLoad = Core.GenPayLoad(InFo.PayLoad_Tags);
+
+            Send = "[Url]\n" + Url + "[Header]\n" + JsonConvert.SerializeObject(InFo.Header_Tags) + "[PayLoad]\n" + PayLoad;
+
+            WebHeaderCollection Headers = Core.GenHeader(InFo.Header_Tags);
+
+            string Method = "Get";
+
+            if (InFo.IsPost)
+            {
+                Method = "Post";
+            }
+
+            HttpItem Http = new HttpItem()
+            {
+                URL = Url,
+                UserAgent = Core.UserAgent,
+                Method = Method,
+                Header = Headers,
+                Accept = Core.Accept,
+                Postdata = PayLoad,
+                Cookie = "",
+                ContentType = Core.ContentType,
+                Encoding = Encoding.UTF8,
+                Timeout = ConfigRef.GlobalRequestTimeOut,
+                WebProxy = ProxyRef
+            };
+
+            string GetResult = new HttpHelper().GetHtml(Http).Html;
+
+            Recv = GetResult;
+
+            if (GetResult.Trim().Length > 0)
+            {
+                string TransStr = "";
+                if (Core.QueryRule.ByJson)
+                {
+                    var GetTags = CustomPlatformHelper.GetJsonValues(GetResult);
+
+                    for (int i = 0; i < GetTags.Count; i++)
+                    {
+                        if (GetTags[i].Key.Equals(Core.QueryRule.FieldName))
+                        {
+                            TransStr = GetTags[i].Value;
+                            break;
+                        }
+                    }
+                }
+                else
+                if (Core.QueryRule.SplitStr.Trim().Length > 0)
+                {
+                    TransStr = GetResult.Substring(GetResult.LastIndexOf(Core.QueryRule.SplitStr) + Core.QueryRule.SplitStr.Length);
+                }
+                else
+                if (Core.QueryRule.LeftStr.Trim().Length > 0)
+                {
+                    TransStr = ConvertHelper.StringDivision(GetResult, Core.QueryRule.LeftStr, Core.QueryRule.RightStr);
+                }
+                else
+                {
+                    TransStr = string.Empty;
+                }
+
+                if (TransStr.Trim().Length > 0)
+                {
+                    Call.Success = true;
+
+                    return TransStr;
+                }
+                else
+                {
+                    return string.Empty;
+                }
+            }
+
+            Call = new PlatformCall(PlatformType.DeepL, FromLang, ToLang, Send, Recv, 0);
+
             return "";
         }
     }
