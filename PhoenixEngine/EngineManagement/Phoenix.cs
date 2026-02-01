@@ -24,7 +24,7 @@ namespace PhoenixEngine.EngineManagement
 
     public class Phoenix : ConfigExtend
     {
-        public static string Version = "1.2.3.2";
+        public static string Version = "1.2.3.3";
         public static string CurrentPath = "";
 
         public static object QueryPlatformDataLock = new object();
