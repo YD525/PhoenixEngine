@@ -57,7 +57,7 @@ namespace PhoenixEngine.PlatformManagement
 
                 var GetResult = CallPlatform(ApiKey,NDeepLItem, ref Recv);
 
-                Call = new PlatformCall(PlatformType.DeepL, FromLang,ToLang,Send,Recv);
+                Call = new PlatformCall(PlatformType.DeepL, FromLang,ToLang,Send,Recv,0);
 
                 if (GetResult == null)
                 {

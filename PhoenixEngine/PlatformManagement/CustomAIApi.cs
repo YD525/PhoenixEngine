@@ -64,7 +64,7 @@ namespace PhoenixEngine.PlatformManagement
 
             var Result = CallAI(ApiKey,Send, ref Recv);
 
-            Call = new AICall(PlatformType.CustomPlatform, Send, Recv);
+            Call = new AICall(PlatformType.CustomPlatform, Send, Recv,this.CustomID);
 
             if (Result != null)
             {

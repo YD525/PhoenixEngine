@@ -65,24 +65,22 @@ namespace PhoenixEngine.EngineManagement
         public class PlatformCall
         {
             public PlatformType Platform = PlatformType.Null;
+            public int CustomID = 0;
             public Languages From = Languages.Null;
             public Languages To = Languages.Null;
             public string SendString = "";
             public string ReceiveString = "";
             public bool Success = false;
 
-            public PlatformCall()
-            {
-               
-            }
-
-            public PlatformCall(PlatformType Platform,Languages From,Languages To,string Send, string Recv)
+            public PlatformCall() { }
+            public PlatformCall(PlatformType Platform,Languages From,Languages To,string Send, string Recv,int CustomID)
             {
                 this.Platform = Platform;
+                this.CustomID = CustomID;
                 this.From = From;
                 this.To = To;
-                SendString = Send;
-                ReceiveString = Recv;
+                this.SendString = Send;
+                this.ReceiveString = Recv;
             }
 
             public void Output()
@@ -93,17 +91,16 @@ namespace PhoenixEngine.EngineManagement
         public class AICall
         {
             public PlatformType Platform = PlatformType.Null;
+            public int CustomID = 0;
             public string SendString = "";
             public string ReceiveString = "";
             public bool Success = false;
 
-            public AICall()
-            { 
-            }
-
-            public AICall(PlatformType Platform, string Send, string Recv)
+            public AICall() { }
+            public AICall(PlatformType Platform, string Send, string Recv, int CustomID)
             { 
                this.Platform = Platform;
+               this.CustomID = CustomID;
                SendString = Send;
                ReceiveString = Recv;
             }
