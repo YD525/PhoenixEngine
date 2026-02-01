@@ -176,12 +176,14 @@ namespace PhoenixEngine.PlatformManagement
 
         public static string ApiKeySign = "{API_KEY}";
         public static string PromptSign = "{AI_Prompt}";
+        public static string SourceSign = "{SourceStr}";
         public static string ModelSign = "{AI_Model}";
         public static string FromSign = "{P_From}";
         public static string ToSign = "{P_To}";
 
         public string From = "";
         public string To = "";
+        public string Source = "";
 
         public string GetTagValue(ReqReplaceTag Tag)
         {
@@ -194,6 +196,11 @@ namespace PhoenixEngine.PlatformManagement
             if (Value.Equals(PromptSign))
             {
                 return Prompt;
+            }
+            else
+            if (Value.Equals(SourceSign))
+            {
+                return Source;
             }
             else
             if (Value.Equals(ModelSign))
@@ -233,6 +240,10 @@ namespace PhoenixEngine.PlatformManagement
         public void SetPrompt(string Prompt)
         {
             this.Prompt = Prompt;
+        }
+        public void SetSource(string Source)
+        { 
+           this.Source = Source;
         }
 
         public void SetModel(string Model)
