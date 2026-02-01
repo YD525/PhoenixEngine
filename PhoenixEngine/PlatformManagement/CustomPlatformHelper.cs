@@ -595,9 +595,9 @@ namespace PhoenixEngine.PlatformManagement
 
     public class ReqReplaceTag
     {
-        public string Key = "";
-        public ReqEncodeType EncodeType = ReqEncodeType.Null;
-        private string Value = "";
+        public string Key { get; set; } = "";
+        public ReqEncodeType EncodeType { get; set; } = ReqEncodeType.Null;
+        public string Value { get; set; } = "";
 
         public string GetValue()
         {

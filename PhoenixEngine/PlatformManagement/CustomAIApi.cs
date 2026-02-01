@@ -105,14 +105,9 @@ namespace PhoenixEngine.PlatformManagement
                     {
                         try
                         {
-                            GetStr = JsonGeter.GetValue(GetStr);
+                            GetStr = JsonGeter.GetValue(TransStr);
                         }
                         catch
-                        {
-                            return string.Empty;
-                        }
-
-                        if (GetStr.Trim().Equals("<translated_text>"))
                         {
                             return string.Empty;
                         }
