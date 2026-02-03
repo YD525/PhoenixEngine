@@ -1072,6 +1072,33 @@ namespace PhoenixEngine.TranslateManage
 
         public bool ExitAny = false;
 
+        public void Clear()
+        {
+            for (int i = 0; i < UnitsLeaderToTranslate.Count; i++)
+            {
+                var Key = UnitsLeaderToTranslate.ElementAt(i).Key;
+                UnitsLeaderToTranslate[Key].TransText = string.Empty;
+                UnitsLeaderToTranslate[Key].Transing = false;
+                UnitsLeaderToTranslate[Key].From = Phoenix.From;
+                UnitsLeaderToTranslate[Key].To = Phoenix.To;
+                UnitsLeaderToTranslate[Key].WorkEnd = 0;
+                UnitsLeaderToTranslate[Key].Translated = false;
+                UnitsToTranslate[i].IsDuplicateSource = false;
+            }
+
+            for (int i = 0; i < UnitsToTranslate.Count; i++)
+            {
+                UnitsToTranslate[i].TransText = string.Empty;
+                UnitsToTranslate[i].Transing = false;
+                UnitsToTranslate[i].From = Phoenix.From;
+                UnitsToTranslate[i].To = Phoenix.To;
+                UnitsToTranslate[i].WorkEnd = 0;
+                UnitsToTranslate[i].Translated = false;
+                UnitsToTranslate[i].IsDuplicateSource = false;
+            }
+           
+            SameItems.Clear();
+        }
         public void Close()
         {
             ExitAny = true;
@@ -1128,6 +1155,7 @@ namespace PhoenixEngine.TranslateManage
                 }
             }
 
+            Clear();
             TransMainTrd = null;
         }
 
