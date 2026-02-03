@@ -129,9 +129,9 @@ namespace PhoenixEngine.EngineManagement
         private static BatchTranslationCore TranslationCore = null;
 
 
-        public static Languages From = Languages.Auto;
+        public static Languages From = Languages.English;
 
-        public static Languages To = Languages.Null;
+        public static Languages To = Languages.English;
 
         public static bool ConfigLanguage(Languages SetFrom, Languages SetTo)
         {
