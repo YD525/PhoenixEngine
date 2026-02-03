@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -274,6 +275,31 @@ namespace PhoenixEngine.EngineManagement
             File.WriteAllBytes(Phoenix.CurrentPath + "EngineConfig.data", EncryptedBytes);
         }
 
+        public static bool CheckAvailableNodes()
+        {
+            int EnableCount = 0;
+            for (int i = 0; i < Phoenix.Config.PlatformConfigs.Count; i++)
+            { 
+                var GetKey = Phoenix.Config.PlatformConfigs.ElementAt(i).Key;
+                if (Phoenix.Config.PlatformConfigs[GetKey].ApiKeys.Count > 0)
+                {
+                    if (Phoenix.Config.PlatformConfigs[GetKey].Enable)
+                    {
+                        EnableCount++;
+                    }
+                }
+                else
+                if (Phoenix.Config.PlatformConfigs[GetKey].Platform == PlatformType.LMLocalAI && Phoenix.Config.PlatformConfigs[GetKey].Enable)
+                {
+                    EnableCount++;
+                }
+            }
+            if (EnableCount > 0)
+            {
+                return true;
+            }
+            return false;
+        }
         public static void LoadConfig()
         {
             NextCall:
