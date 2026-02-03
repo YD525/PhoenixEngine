@@ -60,6 +60,11 @@ namespace PhoenixEngine.EngineManagement
                 {
                     AutoThread++;
                 }
+                else
+                if (GetConfig.Platform == PlatformType.LMLocalAI)
+                {
+                    AutoThread++;
+                }
             }
 
             return AutoThread;

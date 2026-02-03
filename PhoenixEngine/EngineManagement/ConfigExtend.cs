@@ -115,13 +115,13 @@ namespace PhoenixEngine.EngineManagement
         /// This value determines the upper limit of concurrent threads the system can use.
         /// </summary>
 
-        public int MaxThreadCount { get; set; } = 2;
+        public int MaxThreadCount { get; set; } = 3;
 
         /// <summary>
         /// Indicates whether to automatically set the maximum number of threads.
         /// If true, the system will determine and apply a suitable thread limit based on hardware or configuration.
         /// </summary>
-        public bool AutoSetThreadLimit { get; set; } = true;
+        public bool AutoSetThreadLimit { get; set; } = false;
 
         /// <summary>
         /// Indicates whether to enable context-based generation.
