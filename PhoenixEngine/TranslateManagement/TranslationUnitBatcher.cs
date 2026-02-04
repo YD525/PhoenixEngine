@@ -62,6 +62,7 @@ namespace PhoenixEngine.TranslateManagement
             public void AddLeader(TranslationUnit Item)
             {
                 GenKey++;
+
                 BatchTranslationUnit BatchUnit = new BatchTranslationUnit();
                 BatchUnit.Init(GenKey, Item);
                 BatchTranslationUnits.Add(BatchUnit);

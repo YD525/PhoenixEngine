@@ -268,13 +268,13 @@ namespace PhoenixEngine.TranslateManage
 
             for (int i = 0; i < N; i++)
             {
-                var item = SetItems[i];
-                item.TempSim = 0;
+                var Item = SetItems[i];
+                Item.TempSim = 0;
 
-                if (!string.IsNullOrEmpty(item.SourceText) &&
-                    item.SourceText.Length > MaxCharsForLeaderSelection)
+                if (!string.IsNullOrEmpty(Item.SourceText) &&
+                    Item.SourceText.Length > MaxCharsForLeaderSelection)
                 {
-                    UnitsToTranslate.Add(item);
+                    UnitsToTranslate.Add(Item);
                 }
                 else
                 {
@@ -290,97 +290,97 @@ namespace PhoenixEngine.TranslateManage
 
             var TokensCache = new Dictionary<int, HashSet<string>>(FilteredItems.Count);
 
-            foreach (var idx in FilteredItems)
+            foreach (var Item in FilteredItems)
             {
-                var Token = TextTokenizer.BuildTokenSignature(Lang, SetItems[idx].SourceText);
-                TokensCache[idx] = Token.Take(10).ToHashSet();
+                var Token = TextTokenizer.BuildTokenSignature(Lang, SetItems[Item].SourceText);
+                TokensCache[Item] = Token.Take(10).ToHashSet();
             }
 
             var PrefixBuckets = new Dictionary<string, List<int>>();
 
-            foreach (var idx in FilteredItems)
+            foreach (var Item in FilteredItems)
             {
-                var prefix = BuildPrefixKey(SetItems[idx].SourceText, 3);
+                var Prefix = BuildPrefixKey(SetItems[Item].SourceText, 3);
 
-                if (!PrefixBuckets.TryGetValue(prefix, out var list))
+                if (!PrefixBuckets.TryGetValue(Prefix, out var List))
                 {
-                    list = new List<int>();
-                    PrefixBuckets[prefix] = list;
+                    List = new List<int>();
+                    PrefixBuckets[Prefix] = List;
                 }
 
-                list.Add(idx);
+                List.Add(Item);
             }
 
             int ProcessedCount = UnitsToTranslate.Count;
             int TotalToProcess = N;
             int UpdateInterval = Math.Max(1, TotalToProcess / 100);
 
-            foreach (var bucket in PrefixBuckets.Values)
+            foreach (var Bucket in PrefixBuckets.Values)
             {
-                if (bucket.Count == 0)
+                if (Bucket.Count == 0)
                     continue;
 
-                if (bucket.Count == 1)
+                if (Bucket.Count == 1)
                 {
-                    UnitsToTranslate.Add(SetItems[bucket[0]]);
+                    UnitsToTranslate.Add(SetItems[Bucket[0]]);
                     ProcessedCount++;
                     continue;
                 }
 
-                int leaderIdx = PickContextLeader(bucket, SetItems, TokensCache);
-                var leaderItem = SetItems[leaderIdx];
+                int LeaderIndex = PickContextLeader(Bucket, SetItems, TokensCache);
+                var LeaderItem = SetItems[LeaderIndex];
 
-                leaderItem.TempSim = bucket.Count - 1;
+                LeaderItem.TempSim = Bucket.Count - 1;
 
-                if (!string.IsNullOrEmpty(leaderItem.Key))
+                if (!string.IsNullOrEmpty(LeaderItem.Key))
                 {
-                    UnitsLeaderToTranslate[leaderItem.Key] = leaderItem;
+                    LeaderItem.Leader = true;
+                    UnitsLeaderToTranslate[LeaderItem.Key] = LeaderItem;
                 }
                 else
                 {
-                    UnitsToTranslate.Add(leaderItem);
+                    UnitsToTranslate.Add(LeaderItem);
                 }
 
                 ProcessedCount++;
 
-                foreach (var idx in bucket)
+                foreach (var Item in Bucket)
                 {
-                    if (idx == leaderIdx)
+                    if (Item == LeaderIndex)
                         continue;
 
-                    UnitsToTranslate.Add(SetItems[idx]);
+                    UnitsToTranslate.Add(SetItems[Item]);
                     ProcessedCount++;
                 }
 
                 if (ProcessedCount % UpdateInterval == 0)
                 {
-                    MarkLeadersPercent = Math.Round(
-                        Math.Min(ProcessedCount, TotalToProcess) * 100.0 / TotalToProcess, 2);
+                    MarkLeadersPercent = Math.Round(Math.Min(ProcessedCount, TotalToProcess) * 100.0 / TotalToProcess, 2);
                 }
             }
 
             var SecondStageMap = new Dictionary<string, int>();
             var RemoveLeaders = new List<string>();
 
-            foreach (var kv in UnitsLeaderToTranslate)
+            foreach (var KV in UnitsLeaderToTranslate)
             {
-                var item = kv.Value;
-                var key2 = BuildPrefixKey(item.SourceText, 2);
+                var Item = KV.Value;
+                var Key2 = BuildPrefixKey(Item.SourceText, 2);
 
-                if (SecondStageMap.ContainsKey(key2))
+                if (SecondStageMap.ContainsKey(Key2))
                 {
-                    UnitsToTranslate.Add(item);
-                    RemoveLeaders.Add(kv.Key);
+                    UnitsToTranslate.Add(Item);
+                    RemoveLeaders.Add(KV.Key);
                 }
                 else
                 {
-                    SecondStageMap[key2] = 1;
+                    SecondStageMap[Key2] = 1;
                 }
             }
 
-            foreach (var k in RemoveLeaders)
+            foreach (var K in RemoveLeaders)
             {
-                UnitsLeaderToTranslate.Remove(k);
+                UnitsLeaderToTranslate.Remove(K);
             }
 
             if (UnitsLeaderToTranslate.Count < 1500)
