@@ -58,6 +58,14 @@ namespace PhoenixEngine.TranslateManagement
 
             public List<BatchTranslationUnit> BatchTranslationUnits = new List<BatchTranslationUnit>();
             public List<TranslationUnit> Books = new List<TranslationUnit>();
+
+            public void AddLeader(TranslationUnit Item)
+            {
+                GenKey++;
+                BatchTranslationUnit BatchUnit = new BatchTranslationUnit();
+                BatchUnit.Init(GenKey, Item);
+                BatchTranslationUnits.Add(BatchUnit);
+            }
             public void Add(TranslationUnit Item)
             {
                 GenKey++;
@@ -138,11 +146,8 @@ namespace PhoenixEngine.TranslateManagement
             {
                 var GetKey = LeaderDict.ElementAt(i).Key;
 
-                Leaders.Add(LeaderDict[GetKey]);
+                NUnitBatcher.AddLeader(LeaderDict[GetKey]);
             }
-
-            Leaders.AddRange(Units);
-            Units = Leaders;
 
             for (int i = 0; i < Units.Count; i++)
             {
