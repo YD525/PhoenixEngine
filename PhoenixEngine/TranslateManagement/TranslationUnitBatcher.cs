@@ -122,9 +122,18 @@ namespace PhoenixEngine.TranslateManagement
             return TextTokenizer.Tokenize(Unit.From, Unit.SourceText).Select(t => t.ToLowerInvariant()).ToHashSet();
         }
 
-        public static List<BatchTranslationUnit> MergeUnits(List<TranslationUnit> Leaders, List<TranslationUnit> Units)
+        public static List<BatchTranslationUnit> MergeUnits(Dictionary<string,TranslationUnit> LeaderDict, List<TranslationUnit> Units)
         {
             UnitBatcher NUnitBatcher = new UnitBatcher();
+
+            List<TranslationUnit> Leaders = new List<TranslationUnit>();
+
+            for (int i = 0;i < LeaderDict.Count;i++)
+            {
+                var GetKey = LeaderDict.ElementAt(i).Key;
+
+                Leaders.Add(LeaderDict[GetKey]);
+            }
 
             Leaders.AddRange(Units);
             Units = Leaders;

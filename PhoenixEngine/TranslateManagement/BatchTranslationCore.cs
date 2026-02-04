@@ -627,6 +627,12 @@ namespace PhoenixEngine.TranslateManage
         #endregion
 
 
+        public List<BatchTranslationUnit> MergeAll()
+        {
+            return TranslationUnitBatcher.MergeUnits(this.UnitsLeaderToTranslate, this.UnitsToTranslate);
+        }
+
+
         public ThreadUsageInfo ThreadUsage = new ThreadUsageInfo();
 
         public readonly object TranslatedAddLocker = new object();
