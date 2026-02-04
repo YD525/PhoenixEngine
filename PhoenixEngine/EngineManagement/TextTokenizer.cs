@@ -79,7 +79,7 @@ namespace PhoenixEngine.TranslateManagement
             "as","than","like","via","per"
         };
 
-        public static HashSet<string> BuildTokenSignature(Languages Lang,string Text,int MinTokenLength = 3)
+        public static HashSet<string> BuildTokenSignature(Languages Lang,string Text,int MinTokenLength = 2)
         {
             if (string.IsNullOrWhiteSpace(Text))
                 return new HashSet<string>();

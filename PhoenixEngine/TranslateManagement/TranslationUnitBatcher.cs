@@ -50,7 +50,7 @@ namespace PhoenixEngine.TranslateManagement
 
     public class TranslationUnitBatcher
     {
-        public static int TextLengthLimit = 5000;
+        public static int TextLengthLimit = 2000;
 
         public class UnitBatcher
         {
@@ -82,7 +82,7 @@ namespace PhoenixEngine.TranslateManagement
 
                 foreach (var GetBatchUnit in this.BatchTranslationUnits)
                 {
-                    if (GetBatchUnit.IsSimilarTo(GenTokens, 2))
+                    if (GetBatchUnit.IsSimilarTo(GenTokens, 1))
                     {
                         if (GetBatchUnit.TotalLength < TextLengthLimit)
                         {
@@ -134,7 +134,7 @@ namespace PhoenixEngine.TranslateManagement
 
         public static HashSet<string> ExtractTokens(TranslationUnit Unit)
         {
-            return TextTokenizer.BuildTokenSignature(Unit.From,Unit.SourceText);
+            return TextTokenizer.BuildTokenSignature(Unit.From,Unit.SourceText,0);
         }
 
         public static List<BatchTranslationUnit> MergeUnits(Dictionary<string,TranslationUnit> LeaderDict, List<TranslationUnit> Units)
