@@ -176,7 +176,7 @@ namespace PhoenixEngine.TranslateManagement
             BatchTransUnit.IsUnrelated = true;
 
 
-            foreach (var Kvp in SingleUnits.ToList())
+            foreach (var Kvp in SingleUnits)
             {
                 NUnitBatcher.BatchTranslationUnits.Remove(Kvp.Key);
                 BatchTransUnit.AddUnit(Kvp.Value);
