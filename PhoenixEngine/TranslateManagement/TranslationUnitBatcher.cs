@@ -12,6 +12,8 @@ namespace PhoenixEngine.TranslateManagement
 {
     public class BatchTranslationUnit
     {
+        public int Key = 0;
+
         public int TotalLength;
 
         public List<TranslationUnit> Units = new List<TranslationUnit>();
@@ -19,15 +21,19 @@ namespace PhoenixEngine.TranslateManagement
         public HashSet<string> AnchorTokens = new HashSet<string>();
         public HashSet<string> AllTokens = new HashSet<string>();
 
-        public void Init(TranslationUnit First)
+        public int LinkTo = 0;
+
+        public void Init(int Key,TranslationUnit First)
         {
+            this.Key = Key;
+
             AnchorTokens = TranslationUnitBatcher.ExtractTokens(First);
             AllTokens = new HashSet<string>(AnchorTokens);
 
             Units.Add(First);
             TotalLength += First.SourceText.Length;
         }
-
+        
         public bool IsSimilarTo(HashSet<string> UnitTokens, float Threshold)
         {
             return TranslationUnitBatcher.TokenCoverageRatio(this.AnchorTokens, UnitTokens) >= Threshold;
@@ -47,23 +53,44 @@ namespace PhoenixEngine.TranslateManagement
 
         public class UnitBatcher
         {
-            public List<BatchTranslationUnit> BatchTranslationUnits = new List<BatchTranslationUnit>();
+            public int GenKey = 0;
 
+            public List<BatchTranslationUnit> BatchTranslationUnits = new List<BatchTranslationUnit>();
             public void Add(TranslationUnit Item)
             {
+                GenKey++;
+
                 var GenTokens = ExtractTokens(Item);
 
                 foreach (var GetBatchUnit in this.BatchTranslationUnits)
                 {
                     if (GetBatchUnit.IsSimilarTo(GenTokens, 0.35f))
                     {
-                        GetBatchUnit.AddUnit(Item, GenTokens);
+                        if (GetBatchUnit.TotalLength < TextLengthLimit)
+                        {
+                            GetBatchUnit.AddUnit(Item, GenTokens);
+                        }
+                        else
+                        {
+                            BatchTranslationUnit NextBatchUnit = new BatchTranslationUnit();
+
+                            NextBatchUnit.Key = GenKey;
+
+                            NextBatchUnit.AnchorTokens = new HashSet<string>(GetBatchUnit.AnchorTokens);
+                            NextBatchUnit.AllTokens = new HashSet<string>(NextBatchUnit.AnchorTokens);
+
+                            NextBatchUnit.AddUnit(Item, GenTokens);
+
+                            NextBatchUnit.LinkTo = GetBatchUnit.Key;
+                            BatchTranslationUnits.Add(NextBatchUnit);
+                        }
+
                         return;
                     }
                 }
 
                 BatchTranslationUnit BatchUnit = new BatchTranslationUnit();
-                BatchUnit.Init(Item);
+                BatchUnit.Init(GenKey,Item);
                 BatchTranslationUnits.Add(BatchUnit);
             }
         }
@@ -71,13 +98,17 @@ namespace PhoenixEngine.TranslateManagement
         public static float TokenCoverageRatio(HashSet<string> A, HashSet<string> B)
         {
             if (A == null || B == null || A.Count == 0 || B.Count == 0)
-                return 0f;
-
-            int Intersection = 0;
-            foreach (var t in A)
             {
-                if (B.Contains(t))
+                return 0f;
+            }
+                
+            int Intersection = 0;
+            foreach (var T in A)
+            {
+                if (B.Contains(T))
+                {
                     Intersection++;
+                }
             }
 
             float CoverageA = (float)Intersection / A.Count;
