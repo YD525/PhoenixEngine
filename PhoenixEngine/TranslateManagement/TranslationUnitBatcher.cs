@@ -73,7 +73,7 @@ namespace PhoenixEngine.TranslateManagement
 
                 foreach (var GetBatchUnit in this.BatchTranslationUnits)
                 {
-                    if (GetBatchUnit.IsSimilarTo(GenTokens, 0.05f))
+                    if (GetBatchUnit.IsSimilarTo(GenTokens, 0.15f))
                     {
                         if (GetBatchUnit.TotalLength < TextLengthLimit)
                         {

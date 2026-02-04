@@ -134,8 +134,8 @@
     <Compile Include="TranslateManagement\SpeechHelper.cs" />
     <Compile Include="EngineManagement\TextTokenizer.cs" />
     <Compile Include="TranslateManagement\TransCore.cs" />
-    <Compile Include="TranslateManagement\TranslationPreprocessor.cs" />
-    <Compile Include="TranslateManagement\TranslationPreprocessorExtend.cs" />
+    <Compile Include="EngineManagement\TranslationPreprocessor.cs" />
+    <Compile Include="EngineManagement\TranslationPreprocessorExtend.cs" />
     <Compile Include="TranslateManagement\TranslationUnitBatcher.cs" />
     <Compile Include="TranslateManagement\Translator.cs" />
     <Compile Include="TranslateManagement\UniqueKeyHelper.cs" />
