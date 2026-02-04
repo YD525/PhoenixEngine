@@ -14,7 +14,6 @@ using static PhoenixEngine.TranslateManage.TransCore;
 
 namespace PhoenixEngine.TranslateManage
 {
-
     public class TranslationUnit
     {
         public int FileUniqueKey = 0;
@@ -626,12 +625,10 @@ namespace PhoenixEngine.TranslateManage
 
         #endregion
 
-
         public List<BatchTranslationUnit> MergeAll()
         {
             return TranslationUnitBatcher.MergeUnits(this.UnitsLeaderToTranslate, this.UnitsToTranslate);
         }
-
 
         public ThreadUsageInfo ThreadUsage = new ThreadUsageInfo();
 

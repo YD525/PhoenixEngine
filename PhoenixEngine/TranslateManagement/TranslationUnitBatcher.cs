@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.UI.WebControls;
+using PhoenixEngine.GameManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
 
@@ -49,22 +50,30 @@ namespace PhoenixEngine.TranslateManagement
 
     public class TranslationUnitBatcher
     {
-        public static int TextLengthLimit = 1000;
+        public static int TextLengthLimit = 5000;
 
         public class UnitBatcher
         {
             public int GenKey = 0;
 
             public List<BatchTranslationUnit> BatchTranslationUnits = new List<BatchTranslationUnit>();
+            public List<TranslationUnit> Books = new List<TranslationUnit>();
             public void Add(TranslationUnit Item)
             {
                 GenKey++;
+
+                Game CheckGameType = Game.Null;
+                if (Translator.IsSkyrimBook(Item,ref CheckGameType))
+                {
+                    Books.Add(Item);
+                    return;
+                }
 
                 var GenTokens = ExtractTokens(Item);
 
                 foreach (var GetBatchUnit in this.BatchTranslationUnits)
                 {
-                    if (GetBatchUnit.IsSimilarTo(GenTokens, 0.35f))
+                    if (GetBatchUnit.IsSimilarTo(GenTokens, 0.05f))
                     {
                         if (GetBatchUnit.TotalLength < TextLengthLimit)
                         {
