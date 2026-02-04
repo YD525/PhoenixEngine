@@ -35,9 +35,9 @@ namespace PhoenixEngine.TranslateManagement
             TotalLength += First.SourceText.Length;
         }
         
-        public bool IsSimilarTo(HashSet<string> UnitTokens, float Threshold)
+        public bool IsSimilarTo(HashSet<string> UnitTokens,int MatchCount)
         {
-            return TranslationUnitBatcher.TokenCoverageRatio(this.AnchorTokens, UnitTokens) >= Threshold;
+            return TranslationUnitBatcher.TokenCoverageRatio(this.AnchorTokens, UnitTokens) >= MatchCount;
         }
 
         public void AddUnit(TranslationUnit Unit, HashSet<string> UnitTokens)
@@ -73,7 +73,7 @@ namespace PhoenixEngine.TranslateManagement
 
                 foreach (var GetBatchUnit in this.BatchTranslationUnits)
                 {
-                    if (GetBatchUnit.IsSimilarTo(GenTokens, 0.15f))
+                    if (GetBatchUnit.IsSimilarTo(GenTokens, 2))
                     {
                         if (GetBatchUnit.TotalLength < TextLengthLimit)
                         {
@@ -104,13 +104,13 @@ namespace PhoenixEngine.TranslateManagement
             }
         }
 
-        public static float TokenCoverageRatio(HashSet<string> A, HashSet<string> B)
+        public static int TokenCoverageRatio(HashSet<string> A, HashSet<string> B)
         {
             if (A == null || B == null || A.Count == 0 || B.Count == 0)
             {
-                return 0f;
+                return 0;
             }
-                
+
             int Intersection = 0;
             foreach (var T in A)
             {
@@ -120,10 +120,7 @@ namespace PhoenixEngine.TranslateManagement
                 }
             }
 
-            float CoverageA = (float)Intersection / A.Count;
-            float CoverageB = (float)Intersection / B.Count;
-
-            return Math.Max(CoverageA, CoverageB);
+            return Intersection;
         }
 
         public static HashSet<string> ExtractTokens(TranslationUnit Unit)
