@@ -79,7 +79,7 @@ namespace PhoenixEngine.TranslateManagement
             "as","than","like","via","per"
         };
 
-        public const int MaxGram = 3 + 1;
+        public const int MaxGram = 3 + 3;
 
         public static string[] Tokenize(Languages Lang, string Text)
         {
@@ -126,22 +126,39 @@ namespace PhoenixEngine.TranslateManagement
                 for (int Len = 1; Len <= MaxGram && I + Len <= SingleTokens.Length; Len++)
                 {
                     bool IsContinuous = true;
+                    bool UsedOffset = false;
+
                     for (int J = I; J < I + Len - 1; J++)
                     {
-                        if (Indices[J + 1] != Indices[J] + 1)
+                        int Diff = Indices[J + 1] - Indices[J];
+
+                        if (Diff == 1)
+                        {
+                            continue;
+                        }
+                        else if (Diff == 2 && !UsedOffset)
+                        {
+                            UsedOffset = true;
+                            continue;
+                        }
+                        else
                         {
                             IsContinuous = false;
                             break;
                         }
                     }
-                    if (!IsContinuous) continue;
+
+                    if (!IsContinuous)
+                        continue;
 
                     var TokenSb = new System.Text.StringBuilder();
                     for (int K = I; K < I + Len; K++)
                     {
                         TokenSb.Append(SingleTokens[K]);
                     }
+
                     string Token = TokenSb.ToString().Replace(" ", "");
+
                     if (!string.IsNullOrWhiteSpace(Token) && Token.Length > 1)
                     {
                         Result.Add(Token);
