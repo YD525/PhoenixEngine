@@ -60,7 +60,7 @@ namespace PhoenixEngine.TranslateManage
                     var index = _WordIndex[TargetLang];
 
                     // Tokenize original using source language
-                    string[] tokens = Tokenize(SourceLang, Original);
+                    HashSet<string> tokens = Tokenize(SourceLang, Original);
 
                     foreach (string w in tokens)
                     {
@@ -120,7 +120,7 @@ namespace PhoenixEngine.TranslateManage
                     var index = _WordIndex[TargetLang];
 
                     // tokenize original using source language
-                    string[] tokens = Tokenize(SourceLang, Original);
+                    HashSet<string> tokens = Tokenize(SourceLang, Original);
 
                     foreach (string w in tokens)
                     {
@@ -178,7 +178,7 @@ namespace PhoenixEngine.TranslateManage
                         return;
 
                     // Clean up old index entries before updating
-                    string[] oldTokens = Tokenize(SourceLang, Original);
+                    HashSet<string> oldTokens = Tokenize(SourceLang, Original);
                     foreach (string word in oldTokens)
                     {
                         string key = word.ToLower();
@@ -195,7 +195,7 @@ namespace PhoenixEngine.TranslateManage
                 dict[Original] = Translated;
 
                 // TOKENIZE USING SOURCE LANGUAGE and rebuild index
-                string[] tokens = Tokenize(SourceLang, Original);
+                HashSet<string> tokens = Tokenize(SourceLang, Original);
 
                 foreach (string word in tokens)
                 {
@@ -236,7 +236,7 @@ namespace PhoenixEngine.TranslateManage
                 var index = _WordIndex[TargetLang];
 
                 // TOKENIZE QUERY USING SOURCE LANGUAGE
-                string[] words = Tokenize(SourceLang, Query);
+                HashSet<string> words = Tokenize(SourceLang, Query);
 
                 HashSet<string> CandidateSentences = new HashSet<string>();
                 Dictionary<string, int> RelevanceMap = new Dictionary<string, int>();
@@ -284,12 +284,12 @@ namespace PhoenixEngine.TranslateManage
         /// <summary>
         /// Tokenizer wrapper
         /// </summary>
-        private string[] Tokenize(Languages Lang, string Text)
+        private HashSet<string> Tokenize(Languages Lang, string Text)
         {
             if (Lang == Languages.Auto)
                 Lang = LanguageHelper.DetectLanguageByLine(Text);
 
-            return TextTokenizer.Tokenize(Lang, Text);
+            return TextTokenizer.BuildTokenSignature(Lang, Text);
         }
 
         public void TrimListByCharCount(ref List<string> ListToTrim, int MaxChars)

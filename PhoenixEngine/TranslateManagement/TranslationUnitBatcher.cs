@@ -133,7 +133,7 @@ namespace PhoenixEngine.TranslateManagement
 
         public static HashSet<string> ExtractTokens(TranslationUnit Unit)
         {
-            return TextTokenizer.Tokenize(Unit.From, Unit.SourceText).Select(t => t.ToLowerInvariant()).ToHashSet();
+            return TextTokenizer.BuildTokenSignature(Unit.From,Unit.SourceText);
         }
 
         public static List<BatchTranslationUnit> MergeUnits(Dictionary<string,TranslationUnit> LeaderDict, List<TranslationUnit> Units)

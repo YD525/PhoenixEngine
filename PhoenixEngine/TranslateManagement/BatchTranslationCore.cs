@@ -8,6 +8,7 @@ using PhoenixEngine.DelegateManagement;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManagement;
+using static System.Net.Mime.MediaTypeNames;
 using static PhoenixEngine.Bridges.NativeBridge;
 using static PhoenixEngine.TranslateCore.LanguageHelper;
 using static PhoenixEngine.TranslateManage.TransCore;
@@ -291,12 +292,8 @@ namespace PhoenixEngine.TranslateManage
 
             foreach (var idx in FilteredItems)
             {
-                TokensCache[idx] = TextTokenizer
-                    .Tokenize(Lang, SetItems[idx].SourceText)
-                    .Where(t => t.Length >= 3)
-                    .Select(t => t.ToLowerInvariant())
-                    .Take(10)
-                    .ToHashSet();
+                var Token = TextTokenizer.BuildTokenSignature(Lang, SetItems[idx].SourceText);
+                TokensCache[idx] = Token.Take(10).ToHashSet();
             }
 
             var PrefixBuckets = new Dictionary<string, List<int>>();
@@ -408,11 +405,7 @@ namespace PhoenixEngine.TranslateManage
                 var Unit = kv.Value;
                 SortedPairs.Add(kv);
 
-                TokenMap[Unit] = TextTokenizer
-                    .Tokenize(Lang, Unit.SourceText)
-                    .Where(t => t.Length >= 3)
-                    .Select(t => t.ToLowerInvariant())
-                    .ToHashSet();
+                TokenMap[Unit] = TextTokenizer.BuildTokenSignature(Lang, Unit.SourceText);
             }
 
             // Sort leaders by priority (Tokens count -> TempSim -> Length)

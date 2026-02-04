@@ -79,9 +79,29 @@ namespace PhoenixEngine.TranslateManagement
             "as","than","like","via","per"
         };
 
+        public static HashSet<string> BuildTokenSignature(Languages Lang,string Text,int MinTokenLength = 3)
+        {
+            if (string.IsNullOrWhiteSpace(Text))
+                return new HashSet<string>();
+
+            var tokens = TextTokenizer.Tokenize(Lang, Text);
+
+            HashSet<string> result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var t in tokens)
+            {
+                if (t.Length < MinTokenLength)
+                    continue;
+
+                result.Add(t.ToLowerInvariant());
+            }
+
+            return result;
+        }
+
         public const int MaxGram = 3 + 3;
 
-        public static string[] Tokenize(Languages Lang, string Text)
+        private static string[] Tokenize(Languages Lang, string Text)
         {
             if (Lang == Languages.Auto)
             {
