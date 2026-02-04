@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web.UI.WebControls;
+using PhoenixEngine.ConvertManager;
 using PhoenixEngine.GameManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
@@ -51,6 +53,53 @@ namespace PhoenixEngine.TranslateManagement
             Units.Add(Unit);
             TotalLength += Unit.SourceText.Length;
             AllTokens.UnionWith(UnitTokens);
+        }
+
+        public string GenContent()
+        {
+            return GenContent(this.Units);
+        }
+
+        public string GenContent(List<TranslationUnit> Array)
+        {
+            string Html = "";
+            for (int i = 0; i < Array.Count; i++)
+            {
+                Html += string.Format("<li id='{0}'>{1}</li>\n", i + 100, Array[i].SourceText);
+            }
+            return Html;
+        }
+
+        public void ApplyContent(string Content, ref List<int> SuccessIDs)
+        {
+            Content = Content.Replace(">", ">\n");
+
+            foreach (var Line in Content.Split(new char[2] { '\r', '\n' }))
+            {
+                if (Line.Trim().Length > 0)
+                {
+                    string Pattern = @"<\s*li\s+id\s*=\s*'([^']*)'\s*>(.*?)</\s*li\s*>";
+
+                    Match Match = Regex.Match(Line, Pattern, RegexOptions.IgnoreCase);
+
+                    if (Match.Success)
+                    {
+                        int ID = ConvertHelper.ObjToInt(Match.Groups[1].Value.Trim());
+                        string Result = Match.Groups[2].Value;
+
+                        if (ID >= 100)
+                        {
+                            int NormalID = (ID - 100);
+                            if (NormalID >= 0)
+                            {
+                                SuccessIDs.Add(NormalID);
+                                this.Units[NormalID].TransText = Result;
+                                this.Units[NormalID].Translated = true;
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
