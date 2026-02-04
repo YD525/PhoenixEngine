@@ -136,6 +136,7 @@
     <Compile Include="TranslateManagement\TransCore.cs" />
     <Compile Include="TranslateManagement\TranslationPreprocessor.cs" />
     <Compile Include="TranslateManagement\TranslationPreprocessorExtend.cs" />
+    <Compile Include="TranslateManagement\TranslationUnitMerger.cs" />
     <Compile Include="TranslateManagement\Translator.cs" />
     <Compile Include="TranslateManagement\UniqueKeyHelper.cs" />
   </ItemGroup>
