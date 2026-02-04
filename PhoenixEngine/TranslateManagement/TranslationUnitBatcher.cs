@@ -24,6 +24,8 @@ namespace PhoenixEngine.TranslateManagement
 
         public int LinkTo = 0;
 
+        public bool IsUnrelated = false;
+
         public void Init(int Key,TranslationUnit First)
         {
             this.Key = Key;
@@ -39,7 +41,11 @@ namespace PhoenixEngine.TranslateManagement
         {
             return TranslationUnitBatcher.TokenCoverageRatio(this.AnchorTokens, UnitTokens) >= MatchCount;
         }
-
+        public void AddUnit(TranslationUnit Unit)
+        {
+            Units.Add(Unit);
+            TotalLength += Unit.SourceText.Length;
+        }
         public void AddUnit(TranslationUnit Unit, HashSet<string> UnitTokens)
         {
             Units.Add(Unit);
@@ -154,6 +160,40 @@ namespace PhoenixEngine.TranslateManagement
             {
                 NUnitBatcher.Add(Units[i]);
             }
+
+            Dictionary<BatchTranslationUnit, TranslationUnit> SingleUnits = new Dictionary<BatchTranslationUnit, TranslationUnit>();
+
+            for (int i = 0; i < NUnitBatcher.BatchTranslationUnits.Count; i++)
+            {
+                if (NUnitBatcher.BatchTranslationUnits[i].Units.Count == 1)
+                {
+                    SingleUnits.Add(NUnitBatcher.BatchTranslationUnits[i], NUnitBatcher.BatchTranslationUnits[i].Units[0]);
+                }
+            }
+
+
+            BatchTranslationUnit BatchTransUnit = new BatchTranslationUnit();
+            BatchTransUnit.IsUnrelated = true;
+
+
+            foreach (var Kvp in SingleUnits.ToList())
+            {
+                NUnitBatcher.BatchTranslationUnits.Remove(Kvp.Key);
+                BatchTransUnit.AddUnit(Kvp.Value);
+
+                if (BatchTransUnit.TotalLength > TranslationUnitBatcher.TextLengthLimit)
+                {
+                    NUnitBatcher.BatchTranslationUnits.Add(BatchTransUnit);
+                    BatchTransUnit = new BatchTranslationUnit();
+                    BatchTransUnit.IsUnrelated = true;
+                }
+            }
+
+            if (BatchTransUnit.Units.Count > 0)
+            {
+                NUnitBatcher.BatchTranslationUnits.Add(BatchTransUnit);
+            }
+
 
             return NUnitBatcher.BatchTranslationUnits;
         }
