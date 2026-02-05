@@ -107,6 +107,21 @@ namespace PhoenixEngine.TranslateManagement
         public UnitUnion UnitUnionRef = null;
         public string Original = "";
 
+        public void Preprocessing(int State)
+        {
+            if (State == 0)
+            {
+                for (int i = 0; i < Units.Count; i++)
+                { 
+                
+                }
+            }
+            else
+            { 
+            
+            }
+        }
+
         public TranslationUnitGroup(UnitUnion UnitUnion)
         { 
             this.UnitUnionRef = UnitUnion;
