@@ -48,7 +48,7 @@ namespace PhoenixEngine.TranslateManage
                 N3.ToString()
             );
 
-            if (this.Optimization(A, N1,2, result,LP,true,N2,N3)>0)
+            if (this.Optimization(A, N1,2, result,LP,true,N2,N3,XIndex,YIndex)>0)
             {
                 State = true;
             }
