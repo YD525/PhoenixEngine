@@ -113,14 +113,14 @@ namespace PhoenixEngine.TranslateManagement
             {
                 for (int i = 0; i < Units.Count; i++)
                 { 
-                
+                    var GetUnit = Units[i];
                 }
             }
             else
             {
                 for (int i = 0; i < Units.Count; i++)
                 {
-
+                    var GetUnit = Units[i];
                 }
             }
         }

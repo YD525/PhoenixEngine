@@ -361,9 +361,6 @@ CREATE TABLE [UniqueKeys](
 
     public static class TranslatorR
     {
-        public static void Optimization(this Translator A, params object[] Any)
-        {
-
-        }
+        public static int Optimization(this Translator A, params object[] Any){ return 1; }
     }
 }
