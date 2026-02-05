@@ -33,29 +33,6 @@ namespace PhoenixEngine.TranslateManage
 
         public static TransCore CurrentTransCore = new TransCore();
 
-        public static string ReturnStr(string Str)
-        {
-            if (string.IsNullOrWhiteSpace(Str.Replace("　", "")))
-            {
-                return string.Empty;
-            }
-            else
-            {
-                return Str;
-            }
-        }
-
-        public static bool IsOnlySymbolsAndSpaces(string Input)
-        {
-            return Regex.IsMatch(Input, @"^[\p{P}\p{S}\s]+$");
-        }
-
-        public static string FormatStr(string Content)
-        {
-            TranslationPreprocessor.OptimizeStrings(ref Content);
-            return Content;
-        }
-
         public static bool ExactMatch(Languages From, Languages To, string Key, string Type, string Source, ref string Result)
         {
             var GetData = AdvancedDictionary.ExactMatch(From, To, Type, Source);
@@ -123,7 +100,7 @@ namespace PhoenixEngine.TranslateManage
             return Units;
         }
 
-        public static string QuickTrans(TranslationUnit Item, ref bool CanSleep)
+        public static string QuickTrans(TranslationPreprocessor Preprocessor, TranslationUnit Item, ref bool CanSleep)
         {
             List<TranslationUnit> Units = new List<TranslationUnit>();
             List<UnitChunk> Chunks = new List<UnitChunk>();
@@ -162,20 +139,13 @@ namespace PhoenixEngine.TranslateManage
 
             foreach (var GetUnit in Units)
             {
-                Regex Regex = new Regex(@"\{([A-Za-z0-9_ ]+)\}");
-
-                if (Regex.IsMatch(GetUnit.SourceText))
-                {
-                    GetUnit.SourceText = Regex.Replace(GetUnit.SourceText, @"$$$$$1$$$$");
-                }
-
                 bool CanSkip = false;
                 //Skip fields that do not need translation
 
                 Languages SourceLanguage = GetUnit.From;
                 string GetSourceStr = GetUnit.SourceText;
 
-                if (IsOnlySymbolsAndSpaces(GetSourceStr))
+                if (Preprocessor.IsOnlySymbolsAndSpaces(GetSourceStr))
                 {
                     CanSkip = true;
                 }
@@ -190,7 +160,7 @@ namespace PhoenixEngine.TranslateManage
                     CanSkip = true;
                 }
                 else
-                if (TranslationPreprocessor.IsNumeric(GetSourceStr))
+                if (Preprocessor.IsNumeric(GetSourceStr))
                 {
                     CanSkip = true;
                 }
@@ -200,15 +170,15 @@ namespace PhoenixEngine.TranslateManage
                 if (!CanSkip)
                 {
                     //Optimize strings
-                    TranslationPreprocessor.OptimizeStrings(ref Content);
+                    Preprocessor.OptimizeStrings(ref Content);
 
                     //Check OuterQuotes
-                    bool HasOuterQuotes = TranslationPreprocessor.HasOuterQuotes(Content.Trim());
+                    bool HasOuterQuotes = Preprocessor.HasOuterQuotes(Content.Trim());
 
                     //Remove OuterQuotes
                     if (HasOuterQuotes)
                     {
-                        TranslationPreprocessor.StripOuterQuotes(ref Content);
+                        Preprocessor.StripOuterQuotes(ref Content);
                     }
 
                     //Match DataBase
@@ -223,30 +193,30 @@ namespace PhoenixEngine.TranslateManage
                     {
                         GetUnit.SourceText = Content;
 
-                        Content = CurrentTransCore.TransAny(GetUnit, ref CanSleep, Book);
+                        Content = CurrentTransCore.TransAny(Preprocessor,GetUnit, ref CanSleep, Book);
 
                         try
                         {
-                            if (TranslationPreprocessor.HasUnicodeEscape(Content))
+                            if (Preprocessor.HasUnicodeEscape(Content))
                             {
                                 Content = Regex.Unescape(Content);
                             }
                         }
                         catch { Content = string.Empty; }
 
-                        TranslationPreprocessor.OptimizeStrings(ref Content);
-                        TranslationPreprocessor.StripOuterQuotes(ref Content);
+                        Preprocessor.OptimizeStrings(ref Content);
+                        Preprocessor.StripOuterQuotes(ref Content);
 
                         Content = Content.Trim();
 
-                        TranslationPreprocessor.OptimizeStrings(ref Content);
+                        Preprocessor.OptimizeStrings(ref Content);
 
                         if (HasOuterQuotes)
                         {
                             Content = "\"" + Content + "\"";
                         }
 
-                        Content = ReturnStr(Content);
+                        Content = Preprocessor.ReturnStr(Content);
                     }
                 }
 
@@ -282,19 +252,6 @@ namespace PhoenixEngine.TranslateManage
 
             return MergeLine;
         }
-        public static bool ClearCloudCache(int FileUniqueKey)
-        {
-            string SqlOrder = "Delete From CloudTranslation Where FileUniqueKey = " + FileUniqueKey + "";
-            int State = Phoenix.LocalDB.ExecuteNonQuery(SqlOrder);
-            if (State != 0)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
 
         public static void FormatData()
         {
@@ -326,7 +283,7 @@ namespace PhoenixEngine.TranslateManage
         {
             string NewStr = TransData;
 
-            TranslationPreprocessor.NormalizePunctuation(ref NewStr);
+            new TranslationPreprocessor().NormalizePunctuation(ref NewStr);
 
             if (Regex.Replace(NewStr, @"\s+", "").Length > 0)
             {

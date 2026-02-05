@@ -1,12 +1,30 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 using System.Xml;
+using PhoenixEngine.TranslateManage;
 
 namespace PhoenixEngine.TranslateManagement
 {
     public class TranslationPreprocessorExtend
     {
-        public static bool IsProbablyString(string str)
+        public static string FormatStr(string Content)
+        {
+            new TranslationPreprocessor().OptimizeStrings(ref Content);
+            return Content;
+        }
+        public string ReturnStr(string Str)
+        {
+            if (string.IsNullOrWhiteSpace(Str.Replace("　", "").Replace(" ", "")))
+            {
+                return string.Empty;
+            }
+            else
+            {
+                return Str;
+            }
+        }
+
+        public bool IsProbablyString(string str)
         {
             if (string.IsNullOrEmpty(str))
                 return false;
@@ -56,7 +74,7 @@ namespace PhoenixEngine.TranslateManagement
 
             return true;
         }
-        public static bool HasUnicodeEscape(string Text)
+        public bool HasUnicodeEscape(string Text)
         {
             return Regex.IsMatch(Text, @"\\u[0-9a-fA-F]{4}");
         }
@@ -65,7 +83,7 @@ namespace PhoenixEngine.TranslateManagement
         /// Remove invisible characters, convert full-width characters to half-width characters, and remove certain special symbols.
         /// </summary>
         /// <returns></returns>
-        public static void OptimizeStrings(ref string Input)
+        public void OptimizeStrings(ref string Input)
         {
             NormalizePunctuation(ref Input);
             RemoveInvisibleCharacters(ref Input);
@@ -73,7 +91,7 @@ namespace PhoenixEngine.TranslateManagement
             ProcessEscapeCharacters(ref Input);
             ProcessEmptyEndLine(ref Input);
         }
-        public static bool IsNullOrEmpty(string Input)
+        public bool IsNullOrEmpty(string Input)
         {
             if (Input == null)
             {
@@ -86,7 +104,7 @@ namespace PhoenixEngine.TranslateManagement
 
             return false;
         }
-        public static bool IsNumeric(string Input)
+        public bool IsNumeric(string Input)
         {
             if (string.IsNullOrWhiteSpace(Input))
                 return false;
@@ -100,7 +118,7 @@ namespace PhoenixEngine.TranslateManagement
         /// that might interfere with text processing.
         /// </summary>
         /// <param name="Input">The string to be cleaned (passed by reference).</param>
-        public static void RemoveInvisibleCharacters(ref string Input)
+        public void RemoveInvisibleCharacters(ref string Input)
         {
             if (string.IsNullOrEmpty(Input))
             {
@@ -121,7 +139,7 @@ namespace PhoenixEngine.TranslateManagement
         /// Removes either CRLF ("\r\n") or LF ("\n") at the end of the string.
         /// </summary>
         /// <param name="TransText">The translated text to process (passed by reference).</param>
-        public static void ProcessEmptyEndLine(ref string TransText)
+        public void ProcessEmptyEndLine(ref string TransText)
         {
             TransText = Regex.Replace(TransText, @"((\r\n)|\n|\\n)+$", "");
         }
@@ -131,7 +149,7 @@ namespace PhoenixEngine.TranslateManagement
         /// This ensures consistency in translated output, especially when targeting English text.
         /// </summary>
         /// <param name="Str">The string to normalize (passed by reference).</param>
-        public static void NormalizePunctuation(ref string Str)
+        public void NormalizePunctuation(ref string Str)
         {
             Str = Str.Replace("（", "(");
             Str = Str.Replace("）", ")");
@@ -162,7 +180,7 @@ namespace PhoenixEngine.TranslateManagement
             Str = Str.Replace("　", " ");
         }
 
-        public static void StripOuterQuotes(ref string Input)
+        public void StripOuterQuotes(ref string Input)
         {
             if (Input.Trim().Length == 0)
             {
@@ -183,7 +201,7 @@ namespace PhoenixEngine.TranslateManagement
             Input = Input.Substring(Start, End - Start + 1);
         }
 
-        public static bool HasOuterQuotes(string Input)
+        public bool HasOuterQuotes(string Input)
         {
             if (string.IsNullOrEmpty(Input) || Input.Length < 2)
                 return false;
@@ -192,6 +210,11 @@ namespace PhoenixEngine.TranslateManagement
             char Last = Input[Input.Length - 1];
 
             return (IsQuote(First) && IsQuote(Last));
+        }
+
+        public bool IsOnlySymbolsAndSpaces(string Input)
+        {
+            return Regex.IsMatch(Input, @"^[\p{P}\p{S}\s]+$");
         }
 
         static bool IsQuote(char c)

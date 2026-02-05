@@ -71,7 +71,7 @@ namespace PhoenixEngine.TranslateManagement
             else
             if (SetTo == Languages.Null)
             {
-                SetTo = Phoenix.From;
+                SetTo = Phoenix.To;
             }
 
             this.From = SetFrom;

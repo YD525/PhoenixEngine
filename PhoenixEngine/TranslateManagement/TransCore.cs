@@ -152,7 +152,7 @@ namespace PhoenixEngine.TranslateManage
         /// <param name="Target"></param>
         /// <param name="SourceStr"></param>
         /// <returns></returns>
-        public string TransAny(TranslationUnit Item,ref bool CanSleep,bool IsBook)
+        public string TransAny(TranslationPreprocessor Preprocessor, TranslationUnit Item,ref bool CanSleep,bool IsBook)
         {
             CacheCall Call = new CacheCall();
 
@@ -254,11 +254,11 @@ namespace PhoenixEngine.TranslateManage
 
                     if (!IsBook)
                     {
-                        GetTrans = CurrentEngine.Call(Item, true, Phoenix.Config.ContextLimit, AIParam);
+                        GetTrans = CurrentEngine.Call(Preprocessor,Item, true, Phoenix.Config.ContextLimit, AIParam);
                     }
                     else
                     {
-                        GetTrans = CurrentEngine.Call(Item, false, 1, AIParam);
+                        GetTrans = CurrentEngine.Call(Preprocessor,Item, false, 1, AIParam);
                     }
 
                     if (CanSleep)
@@ -385,11 +385,9 @@ namespace PhoenixEngine.TranslateManage
 
                 return FoundKeys.Count == CustomWords.Count;
             }
-            public string Call(TranslationUnit Item,bool UseAIMemory, int AIMemoryCountLimit, string AIParam)
+            public string Call(TranslationPreprocessor Preprocessor, TranslationUnit Item,bool UseAIMemory, int AIMemoryCountLimit, string AIParam)
             {
                 int MaxTranslationAttempts = Phoenix.Config.MaxTranslationAttempts;
-
-                TranslationPreprocessor NTranslationPreprocessor = new TranslationPreprocessor();
 
                 string GetSource = Item.SourceText;
                 string TransText = string.Empty;
@@ -414,17 +412,17 @@ namespace PhoenixEngine.TranslateManage
 
                             NPreTranslateCall.SendString = GetDefSource;
 
-                            GetSource = NTranslationPreprocessor.GeneratePlaceholderText(Phoenix.LastLoadFileName,Item.From,Item.To, GetDefSource, Item.Type, out CanTrans);
+                            GetSource = Preprocessor.GeneratePlaceholderText(Phoenix.LastLoadFileName,Item.From,Item.To, GetDefSource, Item.Type, out CanTrans);
 
                             CustomWords.Clear();
-                            foreach (var GetWord in NTranslationPreprocessor.ReplaceTags)
+                            foreach (var GetWord in Preprocessor.ReplaceTags)
                             {
                                 CustomWords.Add(GetWord);
                             }
 
                             NPreTranslateCall.ReceiveString = GetSource;
 
-                            NPreTranslateCall.ReplaceTags = NTranslationPreprocessor.ReplaceTags;
+                            NPreTranslateCall.ReplaceTags = Preprocessor.ReplaceTags;
 
                             NPreTranslateCall.Output();
                         }
@@ -482,7 +480,7 @@ namespace PhoenixEngine.TranslateManage
                                         Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
                                     }
 
-                                    GetData = NTranslationPreprocessor.RestoreFromPlaceholder(GetData, Item.To);
+                                    GetData = Preprocessor.RestoreFromPlaceholder(GetData, Item.To);
 
                                     TransText = GetData;
 
@@ -549,7 +547,7 @@ namespace PhoenixEngine.TranslateManage
                                         Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
                                     }
 
-                                    GetData = NTranslationPreprocessor.RestoreFromPlaceholder(GetData, Item.To);
+                                    GetData = Preprocessor.RestoreFromPlaceholder(GetData, Item.To);
 
                                     TransText = GetData;
 
@@ -570,7 +568,7 @@ namespace PhoenixEngine.TranslateManage
                         }
                         else
                         {
-                            TransText = NTranslationPreprocessor.RestoreFromPlaceholder(GetSource, Item.To);
+                            TransText = Preprocessor.RestoreFromPlaceholder(GetSource, Item.To);
 
                             this.CallCountDown++;
                         }
@@ -592,17 +590,17 @@ namespace PhoenixEngine.TranslateManage
 
                             NPreTranslateCall.SendString = GetDefSource;
 
-                            GetSource = NTranslationPreprocessor.GeneratePlaceholderText(Phoenix.LastLoadFileName, Item.From, Item.To, GetDefSource, Item.Type, out CanTrans);
+                            GetSource = Preprocessor.GeneratePlaceholderText(Phoenix.LastLoadFileName, Item.From, Item.To, GetDefSource, Item.Type, out CanTrans);
 
                             CustomWords.Clear();
-                            foreach (var GetWord in NTranslationPreprocessor.ReplaceTags)
+                            foreach (var GetWord in Preprocessor.ReplaceTags)
                             { 
                                 CustomWords.Add(GetWord);
                             }
 
                             NPreTranslateCall.ReceiveString = GetSource;
 
-                            NPreTranslateCall.ReplaceTags = NTranslationPreprocessor.ReplaceTags;
+                            NPreTranslateCall.ReplaceTags = Preprocessor.ReplaceTags;
 
                             NPreTranslateCall.Output();
                         }
@@ -645,7 +643,7 @@ namespace PhoenixEngine.TranslateManage
                                         AIMemory.AddTranslation(Item.From,Item.To, GetSource, GetData);
                                     }
 
-                                    GetData = NTranslationPreprocessor.RestoreFromPlaceholder(GetData, Item.To);
+                                    GetData = Preprocessor.RestoreFromPlaceholder(GetData, Item.To);
 
                                     TransText = GetData;
 
@@ -704,7 +702,7 @@ namespace PhoenixEngine.TranslateManage
                                         Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
                                     }
 
-                                    GetData = NTranslationPreprocessor.RestoreFromPlaceholder(GetData, Item.To);
+                                    GetData = Preprocessor.RestoreFromPlaceholder(GetData, Item.To);
 
                                     TransText = GetData;
 
@@ -765,7 +763,7 @@ namespace PhoenixEngine.TranslateManage
                                         Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
                                     }
 
-                                    GetData = NTranslationPreprocessor.RestoreFromPlaceholder(GetData, Item.To);
+                                    GetData = Preprocessor.RestoreFromPlaceholder(GetData, Item.To);
 
                                     TransText = GetData;
 
@@ -826,7 +824,7 @@ namespace PhoenixEngine.TranslateManage
                                         Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
                                     }
 
-                                    GetData = NTranslationPreprocessor.RestoreFromPlaceholder(GetData, Item.To);
+                                    GetData = Preprocessor.RestoreFromPlaceholder(GetData, Item.To);
 
                                     TransText = GetData;
 
@@ -888,7 +886,7 @@ namespace PhoenixEngine.TranslateManage
                                         Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
                                     }
 
-                                    GetData = NTranslationPreprocessor.RestoreFromPlaceholder(GetData, Item.To);
+                                    GetData = Preprocessor.RestoreFromPlaceholder(GetData, Item.To);
 
                                     TransText = GetData;
 
@@ -942,7 +940,7 @@ namespace PhoenixEngine.TranslateManage
                                         AIMemory.AddTranslation(Item.From, Item.To, GetSource, GetData);
                                     }
 
-                                    GetData = NTranslationPreprocessor.RestoreFromPlaceholder(GetData, Item.To);
+                                    GetData = Preprocessor.RestoreFromPlaceholder(GetData, Item.To);
 
                                     TransText = GetData;
 
@@ -963,11 +961,11 @@ namespace PhoenixEngine.TranslateManage
                         }
                         else
                         {
-                            TransText = NTranslationPreprocessor.RestoreFromPlaceholder(GetSource, Item.To);
+                            TransText = Preprocessor.RestoreFromPlaceholder(GetSource, Item.To);
 
-                            for (int i = 0; i < NTranslationPreprocessor.ReplaceTags.Count; i++)
+                            for (int i = 0; i < Preprocessor.ReplaceTags.Count; i++)
                             {
-                                TransText = TransText.Replace(NTranslationPreprocessor.ReplaceTags[i].Key, NTranslationPreprocessor.ReplaceTags[i].Value);
+                                TransText = TransText.Replace(Preprocessor.ReplaceTags[i].Key, Preprocessor.ReplaceTags[i].Value);
                             }
 
                             this.CallCountDown++;

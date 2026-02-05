@@ -502,7 +502,7 @@ namespace PhoenixEngine.TranslateManage
 
             for (int i = 0; i < UnitsToTranslate.Count; i++)
             {
-                if (UnitsToTranslate[i].Transing)
+                if (UnitsToTranslate[i].Processing)
                 {
                     WorkCount++;
                 }
@@ -510,7 +510,7 @@ namespace PhoenixEngine.TranslateManage
 
             foreach (var kvp in UnitsLeaderToTranslate)
             {
-                if (kvp.Value.Transing)
+                if (kvp.Value.Processing)
                 {
                     WorkCount++;
                 }
@@ -884,7 +884,7 @@ namespace PhoenixEngine.TranslateManage
             {
                 var Key = UnitsLeaderToTranslate.ElementAt(i).Key;
                 UnitsLeaderToTranslate[Key].TransText = string.Empty;
-                UnitsLeaderToTranslate[Key].Transing = false;
+                UnitsLeaderToTranslate[Key].Processing = false;
                 UnitsLeaderToTranslate[Key].From = Phoenix.From;
                 UnitsLeaderToTranslate[Key].To = Phoenix.To;
                 UnitsLeaderToTranslate[Key].WorkEnd = 0;
@@ -895,7 +895,7 @@ namespace PhoenixEngine.TranslateManage
             for (int i = 0; i < UnitsToTranslate.Count; i++)
             {
                 UnitsToTranslate[i].TransText = string.Empty;
-                UnitsToTranslate[i].Transing = false;
+                UnitsToTranslate[i].Processing = false;
                 UnitsToTranslate[i].From = Phoenix.From;
                 UnitsToTranslate[i].To = Phoenix.To;
                 UnitsToTranslate[i].WorkEnd = 0;
@@ -916,7 +916,7 @@ namespace PhoenixEngine.TranslateManage
 
             for (int i = 0; i < UnitsToTranslate.Count; i++)
             {
-                if (UnitsToTranslate[i].Transing)
+                if (UnitsToTranslate[i].Processing)
                 {
                     try
                     {
@@ -939,7 +939,7 @@ namespace PhoenixEngine.TranslateManage
 
             foreach (var Kvp in UnitsLeaderToTranslate)
             {
-                if (Kvp.Value.Transing)
+                if (Kvp.Value.Processing)
                 {
                     try
                     {

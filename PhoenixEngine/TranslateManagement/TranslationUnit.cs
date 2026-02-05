@@ -99,14 +99,14 @@ namespace PhoenixEngine.TranslateManagement
                             return;
                         }
 
-                        var GetResult = Translator.QuickTrans(this, ref CanSleep);
+                        var GetResult = Translator.QuickTrans(new TranslationPreprocessor(),this, ref CanSleep);
                         if (GetResult.Trim().Length > 0)
                         {
                             TransText = GetResult.Trim();
 
                             if (!CanTrans(2))
                             {
-                                EngineSelect.AIMemory.RemoveTranslation(GroupRef.From, GroupRef.To, Translator.FormatStr(this.SourceText), TransText);
+                                EngineSelect.AIMemory.RemoveTranslation(GroupRef.From, GroupRef.To, TranslationPreprocessor.FormatStr(this.SourceText), TransText);
 
                                 this.TransText = string.Empty;
                                 this.Processing = false;
