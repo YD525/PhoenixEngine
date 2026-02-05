@@ -26,6 +26,7 @@ namespace PhoenixEngine.TranslateManagement
 
         public Languages From = Languages.Auto;
         public Languages To = Languages.Auto;
+        public string AIParam = "";
 
         public int TotalLength;
 
@@ -49,7 +50,9 @@ namespace PhoenixEngine.TranslateManagement
                 AnchorTokens = TranslationUnitExtend.ExtractTokens(First);
                 AllTokens = new HashSet<string>(AnchorTokens);
 
+                First.GroupRef = this;
                 Units.Add(First);
+
                 TotalLength += First.SourceText.Length;
             }
             else
@@ -57,6 +60,7 @@ namespace PhoenixEngine.TranslateManagement
             {
                 this.Key = 0;
 
+                First.GroupRef = this;
                 Units.Add(First);
             }
 
@@ -69,6 +73,9 @@ namespace PhoenixEngine.TranslateManagement
             {
                 SetTo = Phoenix.From;
             }
+
+            this.From = SetFrom;
+            this.To = SetTo;
         }       
         public bool IsSimilarTo(HashSet<string> UnitTokens,int MatchCount)
         {

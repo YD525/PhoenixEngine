@@ -13,6 +13,7 @@ namespace PhoenixEngine.TranslateManagement
 {
     public class TranslationUnit
     {
+        public TranslationUnitGroup GroupRef = null;
         public int FileUniqueKey = 0;
         public int WorkEnd = 0;
         public Thread CurrentTrd;
@@ -22,12 +23,12 @@ namespace PhoenixEngine.TranslateManagement
         public string SourceText = "";
         public string TransText = "";
         public bool IsDuplicateSource = false;
-        public bool Transing = false;
+        public bool Processing = false;
         public bool Leader = false;
         public bool Translated = false;
         public double TempSim = 0;
         public int MaxTry = 10;
-        public string AIParam = "";
+
 
         private CancellationTokenSource TransThreadToken;
 
@@ -65,7 +66,7 @@ namespace PhoenixEngine.TranslateManagement
                     }
                     else
                     {
-                        this.Transing = false;
+                        this.Processing = false;
                         this.WorkEnd = 2;
                         CurrentTrd = null;
 
@@ -74,7 +75,7 @@ namespace PhoenixEngine.TranslateManagement
                 }
             }
             WorkEnd = 1;
-            this.Transing = true;
+            this.Processing = true;
             CurrentTrd = new Thread(() =>
             {
                 TransThreadToken = new CancellationTokenSource();
@@ -91,7 +92,7 @@ namespace PhoenixEngine.TranslateManagement
 
                         if (!CanTrans(1))
                         {
-                            this.Transing = false;
+                            this.Processing = false;
                             this.WorkEnd = 2;
                             CurrentTrd = null;
 
@@ -105,10 +106,10 @@ namespace PhoenixEngine.TranslateManagement
 
                             if (!CanTrans(2))
                             {
-                                EngineSelect.AIMemory.RemoveTranslation(this.From, this.To, Translator.FormatStr(this.SourceText), TransText);
+                                EngineSelect.AIMemory.RemoveTranslation(GroupRef.From, GroupRef.To, Translator.FormatStr(this.SourceText), TransText);
 
                                 this.TransText = string.Empty;
-                                this.Transing = false;
+                                this.Processing = false;
                                 this.WorkEnd = 0;
 
                                 CurrentTrd = null;
@@ -170,12 +171,12 @@ namespace PhoenixEngine.TranslateManagement
                 {
                     try
                     {
-                        this.Transing = false;
+                        this.Processing = false;
                         this.CurrentTrd = null;
                     }
                     catch { }
                 }
-                this.Transing = false;
+                this.Processing = false;
                 this.CurrentTrd = null;
             });
             CurrentTrd.Start();
@@ -187,16 +188,13 @@ namespace PhoenixEngine.TranslateManagement
             TransThreadToken?.Cancel();
         }
 
-        public TranslationUnit(int FileUniqueKey, string Key, string Type, string SourceText, string TransText, string AIParam, Languages From, Languages To, double Score)
+        public TranslationUnit(int FileUniqueKey, string Key, string Type, string SourceText, string TransText,double Score)
         {
             this.FileUniqueKey = FileUniqueKey;
             this.Key = Key;
             this.Type = Type;
             this.SourceText = SourceText;
             this.TransText = TransText;
-            this.AIParam = AIParam;
-            this.From = From;
-            this.To = To;
             this.Score = Score;
         }
     }
