@@ -620,7 +620,7 @@ namespace PhoenixEngine.TranslateManage
 
         public List<BatchTranslationUnit> MergeAll()
         {
-            return TranslationUnitBatcher.MergeUnits(this.UnitsLeaderToTranslate, this.UnitsToTranslate);
+            return TranslationUnitBatcher.BuildUnits(this.UnitsLeaderToTranslate, this.UnitsToTranslate);
         }
 
         public ThreadUsageInfo ThreadUsage = new ThreadUsageInfo();
