@@ -13,7 +13,7 @@ using PhoenixEngine.TranslateManage;
 
 namespace PhoenixEngine.TranslateManagement
 {
-    public class BatchTranslationUnit
+    public class TranslationUnitGroup
     {
         public int Key = 0;
 
@@ -32,7 +32,7 @@ namespace PhoenixEngine.TranslateManagement
         {
             this.Key = Key;
 
-            AnchorTokens = TranslationUnitBatcher.ExtractTokens(First);
+            AnchorTokens = TranslationUnitExtend.ExtractTokens(First);
             AllTokens = new HashSet<string>(AnchorTokens);
 
             Units.Add(First);
@@ -41,7 +41,7 @@ namespace PhoenixEngine.TranslateManagement
         
         public bool IsSimilarTo(HashSet<string> UnitTokens,int MatchCount)
         {
-            return TranslationUnitBatcher.TokenCoverageRatio(this.AnchorTokens, UnitTokens) >= MatchCount;
+            return TranslationUnitExtend.TokenCoverageRatio(this.AnchorTokens, UnitTokens) >= MatchCount;
         }
         public void AddUnit(TranslationUnit Unit)
         {
@@ -103,15 +103,15 @@ namespace PhoenixEngine.TranslateManagement
         }
     }
 
-    public class TranslationUnitBatcher
+    public class TranslationUnitExtend
     {
         public static int TextLengthLimit = 2000;
 
-        public class UnitBatcher
+        public class UnitUnion
         {
             public int GenKey = 0;
 
-            public List<BatchTranslationUnit> BatchTranslationUnits = new List<BatchTranslationUnit>();
+            public List<TranslationUnitGroup> Units = new List<TranslationUnitGroup>();
             public List<TranslationUnit> SameItems = new List<TranslationUnit>();
             public List<TranslationUnit> Books = new List<TranslationUnit>();
 
@@ -119,9 +119,9 @@ namespace PhoenixEngine.TranslateManagement
             {
                 GenKey++;
 
-                BatchTranslationUnit BatchUnit = new BatchTranslationUnit();
+                TranslationUnitGroup BatchUnit = new TranslationUnitGroup();
                 BatchUnit.Init(GenKey, Item);
-                BatchTranslationUnits.Add(BatchUnit);
+                Units.Add(BatchUnit);
             }
             public void Add(TranslationUnit Item)
             {
@@ -136,7 +136,7 @@ namespace PhoenixEngine.TranslateManagement
 
                 var GenTokens = ExtractTokens(Item);
 
-                foreach (var GetBatchUnit in this.BatchTranslationUnits)
+                foreach (var GetBatchUnit in this.Units)
                 {
                     if (GetBatchUnit.IsSimilarTo(GenTokens, 1))
                     {
@@ -146,7 +146,7 @@ namespace PhoenixEngine.TranslateManagement
                         }
                         else
                         {
-                            BatchTranslationUnit NextBatchUnit = new BatchTranslationUnit();
+                            TranslationUnitGroup NextBatchUnit = new TranslationUnitGroup();
 
                             NextBatchUnit.Key = GenKey;
 
@@ -156,16 +156,16 @@ namespace PhoenixEngine.TranslateManagement
                             NextBatchUnit.AddUnit(Item, GenTokens);
 
                             NextBatchUnit.LinkTo = GetBatchUnit.Key;
-                            BatchTranslationUnits.Add(NextBatchUnit);
+                            Units.Add(NextBatchUnit);
                         }
 
                         return;
                     }
                 }
 
-                BatchTranslationUnit BatchUnit = new BatchTranslationUnit();
+                TranslationUnitGroup BatchUnit = new TranslationUnitGroup();
                 BatchUnit.Init(GenKey,Item);
-                BatchTranslationUnits.Add(BatchUnit);
+                Units.Add(BatchUnit);
             }
         }
 
@@ -193,9 +193,9 @@ namespace PhoenixEngine.TranslateManagement
             return TextTokenizer.BuildTokenSignature(Unit.From,Unit.SourceText,0);
         }
 
-        public static List<BatchTranslationUnit> BuildUnits(Dictionary<string, TranslationUnit> LeaderDict,List<TranslationUnit> Units)
+        public static UnitUnion BuildUnits(Dictionary<string, TranslationUnit> LeaderDict,List<TranslationUnit> Units)
         {
-            UnitBatcher NUnitBatcher = new UnitBatcher();
+            UnitUnion UnitUnion = new UnitUnion();
             List<TranslationUnit> SameItems = new List<TranslationUnit>();
 
             HashSet<string> SeenTexts = new HashSet<string>();
@@ -216,7 +216,7 @@ namespace PhoenixEngine.TranslateManagement
 
             foreach (var Leader in UniqueLeaders)
             {
-                NUnitBatcher.AddLeader(Leader);
+                UnitUnion.AddLeader(Leader);
             }
 
             foreach (var Unit in Units)
@@ -224,7 +224,7 @@ namespace PhoenixEngine.TranslateManagement
                 if (!SeenTexts.Contains(Unit.SourceText))
                 {
                     SeenTexts.Add(Unit.SourceText);
-                    NUnitBatcher.Add(Unit);
+                    UnitUnion.Add(Unit);
                 }
                 else
                 {
@@ -232,39 +232,39 @@ namespace PhoenixEngine.TranslateManagement
                 }
             }
 
-            Dictionary<BatchTranslationUnit, TranslationUnit> SingleUnits = new Dictionary<BatchTranslationUnit, TranslationUnit>();
-            for (int i = 0; i < NUnitBatcher.BatchTranslationUnits.Count; i++)
+            Dictionary<TranslationUnitGroup, TranslationUnit> SingleUnits = new Dictionary<TranslationUnitGroup, TranslationUnit>();
+            for (int i = 0; i < UnitUnion.Units.Count; i++)
             {
-                if (NUnitBatcher.BatchTranslationUnits[i].Units.Count == 1)
+                if (UnitUnion.Units[i].Units.Count == 1)
                 {
-                    SingleUnits.Add(NUnitBatcher.BatchTranslationUnits[i], NUnitBatcher.BatchTranslationUnits[i].Units[0]);
+                    SingleUnits.Add(UnitUnion.Units[i], UnitUnion.Units[i].Units[0]);
                 }
             }
 
-            BatchTranslationUnit BatchTransUnit = new BatchTranslationUnit();
-            BatchTransUnit.IsUnrelated = true;
+            TranslationUnitGroup UnitGroup = new TranslationUnitGroup();
+            UnitGroup.IsUnrelated = true;
 
             foreach (var Kvp in SingleUnits)
             {
-                NUnitBatcher.BatchTranslationUnits.Remove(Kvp.Key);
-                BatchTransUnit.AddUnit(Kvp.Value);
+                UnitUnion.Units.Remove(Kvp.Key);
+                UnitGroup.AddUnit(Kvp.Value);
 
-                if (BatchTransUnit.TotalLength > TranslationUnitBatcher.TextLengthLimit)
+                if (UnitGroup.TotalLength > TranslationUnitExtend.TextLengthLimit)
                 {
-                    NUnitBatcher.BatchTranslationUnits.Add(BatchTransUnit);
-                    BatchTransUnit = new BatchTranslationUnit();
-                    BatchTransUnit.IsUnrelated = true;
+                    UnitUnion.Units.Add(UnitGroup);
+                    UnitGroup = new TranslationUnitGroup();
+                    UnitGroup.IsUnrelated = true;
                 }
             }
 
-            if (BatchTransUnit.Units.Count > 0)
+            if (UnitGroup.Units.Count > 0)
             {
-                NUnitBatcher.BatchTranslationUnits.Add(BatchTransUnit);
+                UnitUnion.Units.Add(UnitGroup);
             }
 
-            NUnitBatcher.SameItems.AddRange(SameItems);
+            UnitUnion.SameItems.AddRange(SameItems);
 
-            return NUnitBatcher.BatchTranslationUnits;
+            return UnitUnion;
         }
     }
    

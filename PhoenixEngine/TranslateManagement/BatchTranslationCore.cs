@@ -8,10 +8,10 @@ using PhoenixEngine.DelegateManagement;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManagement;
-using static System.Net.Mime.MediaTypeNames;
 using static PhoenixEngine.Bridges.NativeBridge;
 using static PhoenixEngine.TranslateCore.LanguageHelper;
 using static PhoenixEngine.TranslateManage.TransCore;
+using static PhoenixEngine.TranslateManagement.TranslationUnitExtend;
 
 namespace PhoenixEngine.TranslateManage
 {
@@ -618,9 +618,9 @@ namespace PhoenixEngine.TranslateManage
 
         #endregion
 
-        public List<BatchTranslationUnit> MergeAll()
+        public UnitUnion BuildUnits()
         {
-            return TranslationUnitBatcher.BuildUnits(this.UnitsLeaderToTranslate, this.UnitsToTranslate);
+            return TranslationUnitExtend.BuildUnits(this.UnitsLeaderToTranslate, this.UnitsToTranslate);
         }
 
         public ThreadUsageInfo ThreadUsage = new ThreadUsageInfo();
