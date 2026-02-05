@@ -1,18 +1,30 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Threading;
 using PhoenixEngine.ConvertManager;
+using PhoenixEngine.DelegateManagement;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.GameManagement;
 using PhoenixEngine.TranslateManage;
+using static PhoenixEngine.TranslateManage.EngineCore;
 using static PhoenixEngine.TranslateManagement.TranslationUnitExtend;
 
 namespace PhoenixEngine.TranslateManagement
 {
     public enum AggregationMode
-    { 
-        Null=0, Single = 1, Aggregation = 2
+    {
+        Null = 0, Single = 1, Aggregation = 2
     }
-    public class TranslationUnitGroup
+    public class TranslationTrd
+    {
+        public bool Processing = false;
+        public bool IsTranslated = false;
+        public int WorkEnd = 0;
+        public Thread CurrentTrd;
+        public CancellationTokenSource TransThreadToken;
+    }
+    public class TranslationUnitGroup : TranslationTrd
     {
         public int Key = 0;
         public int TotalLength;
@@ -27,6 +39,7 @@ namespace PhoenixEngine.TranslateManagement
         public bool IsUnrelated = false;
 
         public UnitUnion UnitUnionRef = null;
+        public string Original = "";
 
         public TranslationUnitGroup(UnitUnion UnitUnion)
         { 
@@ -131,6 +144,122 @@ namespace PhoenixEngine.TranslateManagement
                     }
                 }
             }
+        }
+
+        public bool CanTrans(int State)
+        {
+            if (DelegateHelper.SetTranslationUnitCallBack != null)
+            {
+                return DelegateHelper.SetTranslationUnitCallBack(this, State);
+            }
+
+            return true;
+        }
+
+        public void StartWork(BatchTranslationCore Source)
+        {
+            if (!CanTrans(0))
+            {
+                this.WorkEnd = 2;
+                return;
+            }
+
+            if (this.Trans.Trim().Length > 0)
+            {
+                this.WorkEnd = 2;
+                return;
+            }
+
+            WorkEnd = 1;
+            this.Processing = true;
+            CurrentTrd = new Thread(() =>
+            {
+                Translator Translator = this.UnitUnionRef.GetTranslator();
+                TransThreadToken = new CancellationTokenSource();
+                var Token = TransThreadToken.Token;
+                try
+                {
+                    NextGet:
+
+                    Token.ThrowIfCancellationRequested();
+
+                    if (this.Original.Trim().Length > 0)
+                    {
+                        bool CanSleep = true;
+
+                        if (!CanTrans(1))
+                        {
+                            this.Processing = false;
+                            this.WorkEnd = 2;
+                            CurrentTrd = null;
+
+                            return;
+                        }
+
+                        var GetResult = Translator.Translate(new TranslationPreprocessor(), this, ref CanSleep);
+                        if (GetResult.Trim().Length > 0)
+                        {
+                            this.Trans = GetResult.Trim();
+
+                            if (!CanTrans(2))
+                            {
+                                EngineNode.AIMemory.RemoveTranslation(Phoenix.From, Phoenix.To, TranslationPreprocessor.FormatStr(this.SourceText), TransText);
+
+                                this.Trans = string.Empty;
+                                this.Processing = false;
+                                this.WorkEnd = 0;
+
+                                CurrentTrd = null;
+                                return;
+                            }
+
+                            this.IsTranslated = true;
+
+                            Source.AddTranslated(this);
+
+                            WorkEnd = 2;
+
+                            Token.ThrowIfCancellationRequested();
+                        }
+                        else
+                        {
+                            if (Translator.MaxTry > 0)
+                            {
+                                Thread.Sleep(500);
+                                Translator.MaxTry--;
+
+                                goto NextGet;
+                            }
+                            else
+                            {
+                                WorkEnd = 2;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        WorkEnd = 2;
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    try
+                    {
+                        this.Processing = false;
+                        this.CurrentTrd = null;
+                    }
+                    catch { }
+                }
+                this.Processing = false;
+                this.CurrentTrd = null;
+            });
+            CurrentTrd.Start();
+        }
+
+        public void CancelWorkThread()
+        {
+            WorkEnd = 2;
+            TransThreadToken?.Cancel();
         }
     }
     public class TranslationUnitExtend

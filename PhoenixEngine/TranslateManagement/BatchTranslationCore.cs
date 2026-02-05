@@ -14,8 +14,6 @@ namespace PhoenixEngine.TranslateManage
  
     public class BatchTranslationCore
     {
-        public readonly object SameItemsLocker = new object();
-
         public Dictionary<string, string> SameItems = new Dictionary<string, string>();
 
         public Dictionary<string, TranslationUnit> UnitsLeaderToTranslate = new Dictionary<string, TranslationUnit>();
@@ -436,8 +434,20 @@ namespace PhoenixEngine.TranslateManage
 
         public readonly object TranslatedAddLocker = new object();
 
-        public void AddTranslated(TranslationUnit Item)
+        public void AddTranslated(TranslationUnitGroup Item)
         {
+            lock (Translator.TransDataLocker)
+            {
+                if (Translator.TransData.ContainsKey(this.Key))
+                {
+                    Translator.TransData[this.Key] = GetResult;
+                }
+                else
+                {
+                    Translator.TransData.Add(this.Key, GetResult);
+                }
+            }
+
             int MaxTry = 10;
             lock (TranslatedAddLocker)
             {

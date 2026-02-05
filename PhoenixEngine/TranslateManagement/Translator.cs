@@ -26,6 +26,7 @@ namespace PhoenixEngine.TranslateManage
         public readonly object TransDataLocker = new object();
 
         public Dictionary<string, string> TransData = new Dictionary<string, string>();
+        public int MaxTry = 10;
         public Translator(Languages SetFrom,Languages SetTo)
         {
             if (SetFrom != Languages.Null)
