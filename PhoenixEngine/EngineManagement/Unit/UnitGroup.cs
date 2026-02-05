@@ -102,7 +102,7 @@ namespace PhoenixEngine.EngineManagement.Unit
         public ProcContent ParentRef = null;
         public string Original = "";
 
-        public void Preprocessing(int State)
+        public void BatchProc(int State)
         {
             if (State == 0)
             {

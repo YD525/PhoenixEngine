@@ -6,7 +6,6 @@ using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManagement;
 using static PhoenixEngine.TranslateCore.LanguageHelper;
-using static PhoenixEngine.TranslateManagement.TranslationUnitExtend;
 
 namespace PhoenixEngine.TranslateManage
 {

@@ -82,7 +82,7 @@ namespace PhoenixEngine.EngineManagement.Engine
             BatchUnit.Init(GenKey, Item, AggregationMode.Aggregation);
             Units.Add(BatchUnit);
         }
-        public static ProcContent BuildUnits(Translator Translator, Dictionary<string, BaseUnit> LeaderDict, List<BaseUnit> Units)
+        public static ProcContent Build(Translator Translator, Dictionary<string, BaseUnit> LeaderDict, List<BaseUnit> Units)
         {
             ProcContent Content = new ProcContent(Translator);
             List<UnitGroup> SameItems = new List<UnitGroup>();

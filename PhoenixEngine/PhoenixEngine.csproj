@@ -138,9 +138,7 @@
     <Compile Include="EngineManagement\EngineCore.cs" />
     <Compile Include="EngineManagement\TranslationPreprocessor.cs" />
     <Compile Include="EngineManagement\TranslationPreprocessorExtend.cs" />
-    <Compile Include="TranslateManagement\BatchTranslationExtend.cs" />
     <Compile Include="EngineManagement\Unit\BaseUnit.cs" />
-    <Compile Include="TranslateManagement\TranslationUnitExtend.cs" />
     <Compile Include="TranslateManagement\Translator.cs" />
     <Compile Include="TranslateManagement\TranslatorExtend.cs" />
     <Compile Include="EngineManagement\UniqueKeyHelper.cs" />
