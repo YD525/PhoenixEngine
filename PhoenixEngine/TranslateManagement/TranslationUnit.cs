@@ -15,17 +15,17 @@ namespace PhoenixEngine.TranslateManagement
         public double Score = 100;
         public string Key = "";
         public string Type = "";
-        public string SourceText = "";
-        public string TransText = "";
+        public string Original = "";
+        public string Translated = "";
         public bool Leader = false;
         public double TempSim = 0;
-        public TranslationUnit(int FileUniqueKey, string Key, string Type, string SourceText, string TransText,double Score)
+        public TranslationUnit(int FileUniqueKey, string Key, string Type, string Original, string Translated, double Score)
         {
             this.FileUniqueKey = FileUniqueKey;
             this.Key = Key;
             this.Type = Type;
-            this.SourceText = SourceText;
-            this.TransText = TransText;
+            this.Original = Original;
+            this.Translated = Translated;
             this.Score = Score;
         }
     }

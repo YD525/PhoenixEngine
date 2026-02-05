@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text.RegularExpressions;
 using System.Threading;
 using PhoenixEngine.ConvertManager;
@@ -27,17 +28,59 @@ namespace PhoenixEngine.TranslateManagement
             this.Result = Result;
         }
     }
-    public class WaitConfirms
+    public class ConfirmPasser
     {
-        List<TranslationUnit> Units = null;
+        private List<TranslationUnit> ArrayRef = new List<TranslationUnit>();
+        public List<TranslationUnit> Units = new List<TranslationUnit>();
         public List<NeedConfirm> NeedConfirms = new List<NeedConfirm>();
-        public WaitConfirms(List<TranslationUnit> Units)
-        { 
-            this.Units = Units;
+        public ConfirmPasser(List<TranslationUnit> Units)
+        {
+            ArrayRef = Units;
+            this.Units.AddRange(Units);
         }
-        public void CanPass()
-        { 
-        
+        public bool TryPass(ref List<TranslationUnit> NotPassUnits,ref List<TranslationUnit> PassUnits)
+        {
+            for (int i = 0; i < Units.Count; i++)
+            {
+                for (int ir = 0; ir < NeedConfirms.Count; ir++)
+                {
+                    if (i == NeedConfirms[ir].Index)
+                    {
+                        this.Units[i].Translated = NeedConfirms[ir].Result;
+                    }
+                }
+            }
+
+            NotPassUnits = new List<TranslationUnit>();
+
+            foreach (var GetUnit in Units)
+            {
+                if (GetUnit.Original.Length > 0)
+                {
+                    if (GetUnit.Translated.Length == 0)
+                    {
+                        NotPassUnits.Add(GetUnit);
+                    }
+                    else
+                    {
+                        PassUnits.Add(GetUnit);
+                    }
+                }
+            }
+
+            if (NotPassUnits.Count > 0)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public void Apply(List<TranslationUnit> PassUnits)
+        {
+            for (int i = 0; i < ArrayRef.Count; i++)
+            {
+                ArrayRef[i].Translated = PassUnits[i].Translated;
+            }
         }
     }
     public class TranslationTrd
@@ -127,9 +170,9 @@ namespace PhoenixEngine.TranslateManagement
         }
         public string GenContent()
         {
-            return GenContent(this.Units);
+            return TranslationUnitGroup.GenContent(this.Units);
         }
-        public string GenContent(List<TranslationUnit> Array)
+        public static string GenContent(List<TranslationUnit> Array)
         {
             string Html = "";
             for (int i = 0; i < Array.Count; i++)
@@ -139,9 +182,9 @@ namespace PhoenixEngine.TranslateManagement
             return Html;
         }
       
-        public WaitConfirms AnalysisContent(string Content)
+        public ConfirmPasser AnalysisContent(string Content)
         {
-            WaitConfirms WaitConfirm = new WaitConfirms(this.Units);
+            ConfirmPasser WaitConfirm = new ConfirmPasser(this.Units);
             Content = Content.Replace(">", ">\n");
 
             foreach (var Line in Content.Split(new char[2] { '\r', '\n' }))

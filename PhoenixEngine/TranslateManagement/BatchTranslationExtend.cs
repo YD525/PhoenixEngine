@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
-using static PhoenixEngine.TranslateCore.LanguageHelper;
 
 namespace PhoenixEngine.TranslateManagement
 {
@@ -15,26 +14,6 @@ namespace PhoenixEngine.TranslateManagement
         public List<TranslationUnit> UnitsToTranslate = new List<TranslationUnit>();
         public Languages DetectSourceLang = Languages.Null;
 
-        public void DetectSource()
-        {
-            if (this.From != Languages.Auto)
-            {
-                this.DetectSourceLang = this.From;
-            }
-            else
-            {
-                FileLanguageDetect LangDetecter = new FileLanguageDetect();
-
-                for (int i = 0; i < this.UnitsToTranslate.Count; i++)
-                {
-                    LangDetecter.DetectLanguageByFile(this.UnitsToTranslate[i].SourceText);
-                }
-
-                this.DetectSourceLang = LangDetecter.GetLang();
-
-                LangDetecter = null;
-            }
-        }
 
         #region Words Analysis
 
