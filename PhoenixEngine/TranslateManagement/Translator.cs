@@ -5,7 +5,7 @@ using PhoenixEngine.GameManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManagement;
 using static PhoenixEngine.EngineManagement.DataTransmission;
-using static PhoenixEngine.TranslateManage.TransCore;
+using static PhoenixEngine.TranslateManage.EngineCore;
 using static PhoenixEngine.TranslateManagement.ChunkHelper;
 
 namespace PhoenixEngine.TranslateManage
@@ -14,11 +14,14 @@ namespace PhoenixEngine.TranslateManage
     {
         Null = 0, ChatGpt = 1, DeepSeek = 2, Gemini = 3, DeepL = 5, GoogleApi = 7, Baichuan = 8, Cohere = 9, LMLocalAI = 10, PhoenixEngine = 11, CustomPlatform = 12
     }
+
     public class Translator
     {
         public Languages From = Languages.Null;
         public Languages To = Languages.Null;
         public string AIParam = null;
+
+        public EngineCore Core = new EngineCore();
 
         public readonly object TransDataLocker = new object();
 
@@ -42,10 +45,8 @@ namespace PhoenixEngine.TranslateManage
 
         public void ClearAICache()
         {
-            EngineSelect.AIMemory.Clear();
+            EngineNode.AIMemory.Clear();
         }
-
-        public TransCore CurrentTransCore = new TransCore();
 
         public bool ExactMatch(Languages From, Languages To, string Key, string Type, string Source, ref string Result)
         {
@@ -112,7 +113,7 @@ namespace PhoenixEngine.TranslateManage
 
             bool Book = false;
 
-            if (IsSkyrimBook(Item,ref GameType))
+            if (SkyrimBookHelper.IsSkyrimBook(Item,ref GameType))
             {
                 GameType = Game.Skyrim;
                 Book = true;
@@ -146,7 +147,7 @@ namespace PhoenixEngine.TranslateManage
                 bool CanSkip = false;
                 //Skip fields that do not need translation
 
-                Languages SourceLanguage = GetUnit.From;
+                Languages SourceLanguage = From;
                 string GetSourceStr = GetUnit.SourceText;
 
                 if (Preprocessor.IsOnlySymbolsAndSpaces(GetSourceStr))
@@ -159,7 +160,7 @@ namespace PhoenixEngine.TranslateManage
                     CanSkip = true;
                 }
                 else
-                if (SourceLanguage == GetUnit.To)
+                if (SourceLanguage == To)
                 {
                     CanSkip = true;
                 }
@@ -187,7 +188,7 @@ namespace PhoenixEngine.TranslateManage
 
                     //Match DataBase
                     string GetMatchResult = "";
-                    if (ExactMatch(GetUnit.From, GetUnit.To, GetUnit.Key, GetUnit.Type, Content, ref GetMatchResult))
+                    if (ExactMatch(From, To, GetUnit.Key, GetUnit.Type, Content, ref GetMatchResult))
                     {
                         Content = GetMatchResult;
                         CanSkip = true;
@@ -197,7 +198,7 @@ namespace PhoenixEngine.TranslateManage
                     {
                         GetUnit.SourceText = Content;
 
-                        Content = CurrentTransCore.TransAny(Preprocessor,GetUnit);
+                        Content = Core.CallOnce(Preprocessor,GetUnit);
 
                         try
                         {
@@ -261,14 +262,14 @@ namespace PhoenixEngine.TranslateManage
         {
             try
             {
-                for (int i = 0; i < Translator.TransData.Count; i++)
+                for (int i = 0; i < TransData.Count; i++)
                 {
                     try
                     {
-                        var GetHashKey = Translator.TransData.ElementAt(i).Key;
-                        if (Translator.TransData[GetHashKey].Trim().Length > 0)
+                        var GetHashKey = TransData.ElementAt(i).Key;
+                        if (TransData[GetHashKey].Trim().Length > 0)
                         {
-                            TranslationPreprocessor.UnifiedSymbols(GetHashKey, Translator.TransData[GetHashKey].Trim());
+                            TranslationPreprocessor.UnifiedSymbols(GetHashKey, TransData[GetHashKey].Trim());
                         }
                     }
                     catch (System.Exception ex)

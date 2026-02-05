@@ -12,19 +12,20 @@ using static PhoenixEngine.EngineManagement.DataTransmission;
 
 namespace PhoenixEngine.TranslateManage
 {
-    public class TransCore
+    public class EngineCore
     {
+        public static EngineCore Instance = new EngineCore();
         private static readonly object _SortLock = new object();
 
         public static void SortByCallCountDescending()
         {
             lock (_SortLock)
             {
-                EngineSelects.Sort((a, b) => b.CallCountDown.CompareTo(a.CallCountDown));
+                EngineNodes.Sort((a, b) => b.CallCountDown.CompareTo(a.CallCountDown));
             }
         }
 
-        public static List<EngineSelect> EngineSelects = new List<EngineSelect>();
+        public static List<EngineNode> EngineNodes = new List<EngineNode>();
 
         public static void Init()
         {
@@ -36,7 +37,7 @@ namespace PhoenixEngine.TranslateManage
         {
             lock (_EngineLock)
             {
-                EngineSelects.RemoveAll(e => e is T);
+                EngineNodes.RemoveAll(e => e is T);
             }
         }
 
@@ -44,7 +45,7 @@ namespace PhoenixEngine.TranslateManage
         {
             lock (_EngineLock)
             {
-                EngineSelects.Clear();
+                EngineNodes.Clear();
                 PlatformApiKeys KeyData = null;
 
                 // ChatGPT support
@@ -53,8 +54,8 @@ namespace PhoenixEngine.TranslateManage
                 if (ChatGptConfig.Enable && KeyData.HaveKey())
                 {
                     ChatGptApi NChatGptApi = new ChatGptApi();
-                    NChatGptApi.Init(0, EngineSelect.AIMemory, Phoenix.Config,ProxyCenter.CurrentProxy);
-                    EngineSelects.Add(new EngineSelect(NChatGptApi, KeyData.GetKeyCount()));
+                    NChatGptApi.Init(0, EngineNode.AIMemory, Phoenix.Config,ProxyCenter.CurrentProxy);
+                    EngineNodes.Add(new EngineNode(NChatGptApi, KeyData.GetKeyCount()));
                 }
 
                 // Gemini support
@@ -63,8 +64,8 @@ namespace PhoenixEngine.TranslateManage
                 if (GeminiConfig.Enable && KeyData.HaveKey())
                 {
                     GeminiApi NGeminiApi = new GeminiApi();
-                    NGeminiApi.Init(0, EngineSelect.AIMemory, Phoenix.Config, ProxyCenter.CurrentProxy);
-                    EngineSelects.Add(new EngineSelect(NGeminiApi, KeyData.GetKeyCount()));
+                    NGeminiApi.Init(0, EngineNode.AIMemory, Phoenix.Config, ProxyCenter.CurrentProxy);
+                    EngineNodes.Add(new EngineNode(NGeminiApi, KeyData.GetKeyCount()));
                 }
 
                 // DeepSeek support
@@ -73,8 +74,8 @@ namespace PhoenixEngine.TranslateManage
                 if (DeepSeekConfig.Enable && KeyData.HaveKey())
                 {
                     DeepSeekApi NDeepSeekApi = new DeepSeekApi();
-                    NDeepSeekApi.Init(0, EngineSelect.AIMemory, Phoenix.Config, ProxyCenter.CurrentProxy);
-                    EngineSelects.Add(new EngineSelect(NDeepSeekApi, KeyData.GetKeyCount()));
+                    NDeepSeekApi.Init(0, EngineNode.AIMemory, Phoenix.Config, ProxyCenter.CurrentProxy);
+                    EngineNodes.Add(new EngineNode(NDeepSeekApi, KeyData.GetKeyCount()));
                 }
 
                 //LocalAI(LM) support
@@ -83,8 +84,8 @@ namespace PhoenixEngine.TranslateManage
                 if (LMLocalAIConfig.Enable)
                 {
                     LMStudio NLMStudio = new LMStudio();
-                    NLMStudio.Init(0, EngineSelect.AIMemory, Phoenix.Config);
-                    EngineSelects.Add(new EngineSelect(NLMStudio, 1));
+                    NLMStudio.Init(0, EngineNode.AIMemory, Phoenix.Config);
+                    EngineNodes.Add(new EngineNode(NLMStudio, 1));
                 }
 
                 // DeepL support
@@ -94,7 +95,7 @@ namespace PhoenixEngine.TranslateManage
                 {
                     DeepLApi NDeepLApi = new DeepLApi();
                     NDeepLApi.Init(0, Phoenix.Config, ProxyCenter.CurrentProxy);
-                    EngineSelects.Add(new EngineSelect(NDeepLApi, KeyData.GetKeyCount()));
+                    EngineNodes.Add(new EngineNode(NDeepLApi, KeyData.GetKeyCount()));
                 }
 
                 //Custom support
@@ -113,22 +114,22 @@ namespace PhoenixEngine.TranslateManage
                                 case CustomPlatformType.LocalAI:
                                     {
                                         CustomLocalAIApi NCustomLocalAIApi = new CustomLocalAIApi();
-                                        NCustomLocalAIApi.Init(CustomInFo.CustomID, EngineSelect.AIMemory, Phoenix.Config);
-                                        EngineSelects.Add(new EngineSelect(NCustomLocalAIApi, 1));
+                                        NCustomLocalAIApi.Init(CustomInFo.CustomID, EngineNode.AIMemory, Phoenix.Config);
+                                        EngineNodes.Add(new EngineNode(NCustomLocalAIApi, 1));
                                     }
                                 break;
                                 case CustomPlatformType.CloudAI:
                                     {
                                         CustomAIApi NCustomAIApi = new CustomAIApi();
-                                        NCustomAIApi.Init(CustomInFo.CustomID, EngineSelect.AIMemory, Phoenix.Config, ProxyCenter.CurrentProxy);
-                                        EngineSelects.Add(new EngineSelect(NCustomAIApi, KeyData.GetKeyCount()));
+                                        NCustomAIApi.Init(CustomInFo.CustomID, EngineNode.AIMemory, Phoenix.Config, ProxyCenter.CurrentProxy);
+                                        EngineNodes.Add(new EngineNode(NCustomAIApi, KeyData.GetKeyCount()));
                                     }
                                 break;
                                 case CustomPlatformType.Traditional:
                                     {
                                         CustomApi NCustomApi = new CustomApi();
                                         NCustomApi.Init(CustomInFo.CustomID, Phoenix.Config, ProxyCenter.CurrentProxy);
-                                        EngineSelects.Add(new EngineSelect(NCustomApi, KeyData.GetKeyCount()));
+                                        EngineNodes.Add(new EngineNode(NCustomApi, KeyData.GetKeyCount()));
                                     }
                                 break;
                             }
@@ -183,7 +184,7 @@ namespace PhoenixEngine.TranslateManage
 
                 if (Item.SourceText.Length > 0 && Phoenix.Config.ContextEnable)
                 {
-                    EngineSelect.AIMemory.AddTranslation(Phoenix.Instance.From, Phoenix.Instance.To, Item.SourceText, GetCacheStr);
+                    EngineNode.AIMemory.AddTranslation(Phoenix.Instance.From, Phoenix.Instance.To, Item.SourceText, GetCacheStr);
                 }
 
                 return GetCacheStr;
@@ -207,14 +208,14 @@ namespace PhoenixEngine.TranslateManage
 
                     if (Item.SourceText.Length > 0 && Phoenix.Config.ContextEnable)
                     {
-                        EngineSelect.AIMemory.AddTranslation(Phoenix.Instance.From, Phoenix.Instance.To, Item.SourceText, MatchItem.Result);
+                        EngineNode.AIMemory.AddTranslation(Phoenix.Instance.From, Phoenix.Instance.To, Item.SourceText, MatchItem.Result);
                     }  
 
                     return MatchItem.Result;
                 }
             }
 
-            EngineSelect CurrentEngine = null;
+            EngineNode CurrentEngine = null;
 
             while (CurrentEngine == null)
             {
@@ -222,13 +223,13 @@ namespace PhoenixEngine.TranslateManage
                 {
                     try
                     {
-                        for (int i = 0; i < TransCore.EngineSelects.Count; i++)
+                        for (int i = 0; i < EngineNodes.Count; i++)
                         {
-                            if (TransCore.EngineSelects[i].CallCountDown > 0)
+                            if (EngineNodes[i].CallCountDown > 0)
                             {
-                                TransCore.EngineSelects[i].CallCountDown--;
+                                EngineNodes[i].CallCountDown--;
 
-                                CurrentEngine = TransCore.EngineSelects[i];
+                                CurrentEngine = EngineNodes[i];
 
                                 SortByCallCountDescending();
 
@@ -261,7 +262,7 @@ namespace PhoenixEngine.TranslateManage
 
                 ReloadEngine();
 
-                if (TransCore.EngineSelects.Count == 0)
+                if (EngineNodes.Count == 0)
                 { 
                    return Item.SourceText;
                 }
@@ -270,7 +271,7 @@ namespace PhoenixEngine.TranslateManage
             return Item.SourceText;
         }
 
-        public class EngineSelect
+        public class EngineNode
         {
             public static AITranslationMemory AIMemory = new AITranslationMemory();
 
@@ -280,7 +281,7 @@ namespace PhoenixEngine.TranslateManage
 
             public int SleepBySec = 0;
 
-            public EngineSelect(object Api, int MaxCallCount)
+            public EngineNode(object Api, int MaxCallCount)
             {
                 this.ApiRef = Api;
                 this.MaxCallCount = MaxCallCount;
@@ -289,7 +290,7 @@ namespace PhoenixEngine.TranslateManage
                 this.SleepBySec = 1;
             }
 
-            public EngineSelect(object Api, int MaxCallCount, int SleepBySec)
+            public EngineNode(object Api, int MaxCallCount, int SleepBySec)
             {
                 this.ApiRef = Api;
                 this.MaxCallCount = MaxCallCount;
@@ -402,7 +403,7 @@ namespace PhoenixEngine.TranslateManage
 
                             NPreTranslateCall.SendString = GetDefSource;
 
-                            GetSource = Preprocessor.GeneratePlaceholderText(Phoenix.LastLoadFileName,Item.From,Item.To, GetDefSource, Item.Type, out CanTrans);
+                            GetSource = Preprocessor.GeneratePlaceholderText(Phoenix.LastLoadFileName,Phoenix.Instance.From, Phoenix.Instance.To, GetDefSource, Item.Type, out CanTrans);
 
                             CustomWords.Clear();
                             foreach (var GetWord in Preprocessor.ReplaceTags)
@@ -431,9 +432,9 @@ namespace PhoenixEngine.TranslateManage
                                     DeepLApi SetApi = (DeepLApi)this.ApiRef;
                                     PlatformCall Call = new PlatformCall();
 
-                                    if (Item.From == Languages.Auto)
+                                    if (Phoenix.Instance.From == Languages.Auto)
                                     {
-                                        Item.From = LanguageHelper.DetectLanguageByLine(GetSource);
+                                        Phoenix.Instance.From = LanguageHelper.DetectLanguageByLine(GetSource);
                                     }
 
                                     string GetData = null;
@@ -446,7 +447,7 @@ namespace PhoenixEngine.TranslateManage
                                     {
                                         CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
 
-                                        GetData = SetApi.QuickTrans(CurrentApiKey,GetSource, Item.From, Item.To, ref Call).Trim();
+                                        GetData = SetApi.QuickTrans(CurrentApiKey,GetSource, Phoenix.Instance.From, Phoenix.Instance.To, ref Call).Trim();
                                         Passed = SecondaryQualityInspection(GetData, CustomWords);
 
                                         if (!Passed && MaxTry > 0)
@@ -462,7 +463,7 @@ namespace PhoenixEngine.TranslateManage
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
-                                        AIMemory.AddTranslation(Item.From,Item.To, GetSource, GetData);
+                                        AIMemory.AddTranslation(Phoenix.Instance.From, Phoenix.Instance.To, GetSource, GetData);
                                     }
 
                                     if (GetData.Length == 0)
@@ -470,7 +471,7 @@ namespace PhoenixEngine.TranslateManage
                                         Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
                                     }
 
-                                    GetData = Preprocessor.RestoreFromPlaceholder(GetData, Item.To);
+                                    GetData = Preprocessor.RestoreFromPlaceholder(GetData, Phoenix.Instance.To);
 
                                     TransText = GetData;
 
@@ -498,9 +499,9 @@ namespace PhoenixEngine.TranslateManage
                                     var Type = SetApi.CustomID;
                                     PlatformCall Call = new PlatformCall();
 
-                                    if (Item.From == Languages.Auto)
+                                    if (Phoenix.Instance.From == Languages.Auto)
                                     {
-                                        Item.From = LanguageHelper.DetectLanguageByLine(GetSource);
+                                        Phoenix.Instance.From = LanguageHelper.DetectLanguageByLine(GetSource);
                                     }
 
                                     string GetData = null;
@@ -513,7 +514,7 @@ namespace PhoenixEngine.TranslateManage
                                     {
                                         CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
 
-                                        GetData = SetApi.QuickTrans(CurrentApiKey,GetSource, Item.From, Item.To, ref Call).Trim();
+                                        GetData = SetApi.QuickTrans(CurrentApiKey,GetSource, Phoenix.Instance.From, Phoenix.Instance.To, ref Call).Trim();
                                         Passed = SecondaryQualityInspection(GetData, CustomWords);
 
                                         if (!Passed && MaxTry > 0)
@@ -529,7 +530,7 @@ namespace PhoenixEngine.TranslateManage
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
-                                        AIMemory.AddTranslation(Item.From, Item.To, GetSource, GetData);
+                                        AIMemory.AddTranslation(Phoenix.Instance.From, Phoenix.Instance.To, GetSource, GetData);
                                     }
 
                                     if (GetData.Length == 0)
@@ -537,7 +538,7 @@ namespace PhoenixEngine.TranslateManage
                                         Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
                                     }
 
-                                    GetData = Preprocessor.RestoreFromPlaceholder(GetData, Item.To);
+                                    GetData = Preprocessor.RestoreFromPlaceholder(GetData, Phoenix.Instance.To);
 
                                     TransText = GetData;
 
@@ -558,7 +559,7 @@ namespace PhoenixEngine.TranslateManage
                         }
                         else
                         {
-                            TransText = Preprocessor.RestoreFromPlaceholder(GetSource, Item.To);
+                            TransText = Preprocessor.RestoreFromPlaceholder(GetSource, Phoenix.Instance.To);
 
                             this.CallCountDown++;
                         }
@@ -580,7 +581,7 @@ namespace PhoenixEngine.TranslateManage
 
                             NPreTranslateCall.SendString = GetDefSource;
 
-                            GetSource = Preprocessor.GeneratePlaceholderText(Phoenix.LastLoadFileName, Item.From, Item.To, GetDefSource, Item.Type, out CanTrans);
+                            GetSource = Preprocessor.GeneratePlaceholderText(Phoenix.LastLoadFileName, Phoenix.Instance.From, Phoenix.Instance.To, GetDefSource, Item.Type, out CanTrans);
 
                             CustomWords.Clear();
                             foreach (var GetWord in Preprocessor.ReplaceTags)
@@ -614,7 +615,7 @@ namespace PhoenixEngine.TranslateManage
 
                                     do
                                     {
-                                        GetData = SetApi.QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
+                                        GetData = SetApi.QuickTrans(CustomWords, GetSource, Phoenix.Instance.From, Phoenix.Instance.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
                                         Passed = SecondaryQualityInspection(GetData, CustomWords);
 
                                         if (!Passed && MaxTry > 0)
@@ -630,10 +631,10 @@ namespace PhoenixEngine.TranslateManage
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
-                                        AIMemory.AddTranslation(Item.From,Item.To, GetSource, GetData);
+                                        AIMemory.AddTranslation(Phoenix.Instance.From, Phoenix.Instance.To, GetSource, GetData);
                                     }
 
-                                    GetData = Preprocessor.RestoreFromPlaceholder(GetData, Item.To);
+                                    GetData = Preprocessor.RestoreFromPlaceholder(GetData, Phoenix.Instance.To);
 
                                     TransText = GetData;
 
@@ -668,7 +669,7 @@ namespace PhoenixEngine.TranslateManage
                                     {
                                         CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
 
-                                        GetData = SetApi.QuickTrans(CurrentApiKey,CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
+                                        GetData = SetApi.QuickTrans(CurrentApiKey,CustomWords, GetSource, Phoenix.Instance.From, Phoenix.Instance.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
                                         Passed = SecondaryQualityInspection(GetData, CustomWords);
 
                                         if (!Passed && MaxTry > 0)
@@ -684,7 +685,7 @@ namespace PhoenixEngine.TranslateManage
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
-                                        AIMemory.AddTranslation(Item.From, Item.To, GetSource, GetData);
+                                        AIMemory.AddTranslation(Phoenix.Instance.From, Phoenix.Instance.To, GetSource, GetData);
                                     }
 
                                     if (GetData.Length == 0)
@@ -692,7 +693,7 @@ namespace PhoenixEngine.TranslateManage
                                         Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
                                     }
 
-                                    GetData = Preprocessor.RestoreFromPlaceholder(GetData, Item.To);
+                                    GetData = Preprocessor.RestoreFromPlaceholder(GetData, Phoenix.Instance.To);
 
                                     TransText = GetData;
 
@@ -729,7 +730,7 @@ namespace PhoenixEngine.TranslateManage
                                     {
                                         CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
 
-                                        GetData = SetApi.QuickTrans(CurrentApiKey, CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
+                                        GetData = SetApi.QuickTrans(CurrentApiKey, CustomWords, GetSource, Phoenix.Instance.From, Phoenix.Instance.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
                                         Passed = SecondaryQualityInspection(GetData, CustomWords);
 
                                         if (!Passed && MaxTry > 0)
@@ -745,7 +746,7 @@ namespace PhoenixEngine.TranslateManage
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
-                                        AIMemory.AddTranslation(Item.From,Item.To, GetSource, GetData);
+                                        AIMemory.AddTranslation(Phoenix.Instance.From, Phoenix.Instance.To, GetSource, GetData);
                                     }
 
                                     if (GetData.Length == 0)
@@ -753,7 +754,7 @@ namespace PhoenixEngine.TranslateManage
                                         Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
                                     }
 
-                                    GetData = Preprocessor.RestoreFromPlaceholder(GetData, Item.To);
+                                    GetData = Preprocessor.RestoreFromPlaceholder(GetData, Phoenix.Instance.To);
 
                                     TransText = GetData;
 
@@ -790,7 +791,7 @@ namespace PhoenixEngine.TranslateManage
                                     {
                                         CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
 
-                                        GetData = SetApi.QuickTrans(CurrentApiKey,CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
+                                        GetData = SetApi.QuickTrans(CurrentApiKey,CustomWords, GetSource, Phoenix.Instance.From, Phoenix.Instance.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
                                         Passed = SecondaryQualityInspection(GetData, CustomWords);
 
                                         if (!Passed && MaxTry > 0)
@@ -806,7 +807,7 @@ namespace PhoenixEngine.TranslateManage
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
-                                        AIMemory.AddTranslation(Item.From,Item.To, GetSource, GetData);
+                                        AIMemory.AddTranslation(Phoenix.Instance.From, Phoenix.Instance.To, GetSource, GetData);
                                     }
                                     
                                     if(GetData.Length == 0)
@@ -814,7 +815,7 @@ namespace PhoenixEngine.TranslateManage
                                         Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
                                     }
 
-                                    GetData = Preprocessor.RestoreFromPlaceholder(GetData, Item.To);
+                                    GetData = Preprocessor.RestoreFromPlaceholder(GetData, Phoenix.Instance.To);
 
                                     TransText = GetData;
 
@@ -852,7 +853,7 @@ namespace PhoenixEngine.TranslateManage
                                     {
                                         CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
 
-                                        GetData = SetApi.QuickTrans(CurrentApiKey,CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
+                                        GetData = SetApi.QuickTrans(CurrentApiKey,CustomWords, GetSource, Phoenix.Instance.From, Phoenix.Instance.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
                                         Passed = SecondaryQualityInspection(GetData, CustomWords);
 
                                         if (!Passed && MaxTry > 0)
@@ -868,7 +869,7 @@ namespace PhoenixEngine.TranslateManage
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
-                                        AIMemory.AddTranslation(Item.From, Item.To, GetSource, GetData);
+                                        AIMemory.AddTranslation(Phoenix.Instance.From, Phoenix.Instance.To, GetSource, GetData);
                                     }
 
                                     if (GetData.Length == 0)
@@ -876,7 +877,7 @@ namespace PhoenixEngine.TranslateManage
                                         Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
                                     }
 
-                                    GetData = Preprocessor.RestoreFromPlaceholder(GetData, Item.To);
+                                    GetData = Preprocessor.RestoreFromPlaceholder(GetData, Phoenix.Instance.To);
 
                                     TransText = GetData;
 
@@ -911,7 +912,7 @@ namespace PhoenixEngine.TranslateManage
                                     //Detecting the quality of AI-translated content
                                     do
                                     {
-                                        GetData = SetApi.QuickTrans(CustomWords, GetSource, Item.From, Item.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
+                                        GetData = SetApi.QuickTrans(CustomWords, GetSource, Phoenix.Instance.From, Phoenix.Instance.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
                                         Passed = SecondaryQualityInspection(GetData, CustomWords);
 
                                         if (!Passed && MaxTry > 0)
@@ -927,10 +928,10 @@ namespace PhoenixEngine.TranslateManage
 
                                     if (GetData.Trim().Length > 0 && UseAIMemory)
                                     {
-                                        AIMemory.AddTranslation(Item.From, Item.To, GetSource, GetData);
+                                        AIMemory.AddTranslation(Phoenix.Instance.From, Phoenix.Instance.To, GetSource, GetData);
                                     }
 
-                                    GetData = Preprocessor.RestoreFromPlaceholder(GetData, Item.To);
+                                    GetData = Preprocessor.RestoreFromPlaceholder(GetData, Phoenix.Instance.To);
 
                                     TransText = GetData;
 
@@ -951,7 +952,7 @@ namespace PhoenixEngine.TranslateManage
                         }
                         else
                         {
-                            TransText = Preprocessor.RestoreFromPlaceholder(GetSource, Item.To);
+                            TransText = Preprocessor.RestoreFromPlaceholder(GetSource, Phoenix.Instance.To);
 
                             for (int i = 0; i < Preprocessor.ReplaceTags.Count; i++)
                             {

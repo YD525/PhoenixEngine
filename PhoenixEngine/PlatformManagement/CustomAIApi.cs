@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Net;
 using System.Text;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.RequestManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
 using static PhoenixEngine.EngineManagement.DataTransmission;
-using static PhoenixEngine.PlatformManagement.ChatGptApi;
 
 namespace PhoenixEngine.PlatformManagement
 {

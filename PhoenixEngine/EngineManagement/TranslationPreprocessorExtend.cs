@@ -7,7 +7,7 @@ namespace PhoenixEngine.TranslateManagement
 {
     public class TranslationPreprocessorExtend
     {
-        public static void UnifiedSymbols(string GetKey, string TransData)
+        public static void UnifiedSymbols(Translator Translator, string GetKey, string TransData)
         {
             string NewStr = TransData;
 

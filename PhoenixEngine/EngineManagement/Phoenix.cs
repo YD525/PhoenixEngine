@@ -10,7 +10,6 @@ using PhoenixEngine.RequestManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
 using PhoenixEngine.TranslateManagement;
-using static PhoenixEngine.TranslateManage.TransCore;
 
 namespace PhoenixEngine.EngineManagement
 {
@@ -24,8 +23,6 @@ namespace PhoenixEngine.EngineManagement
     {
         public static string Version = "1.2.3.5";
         public static string CurrentPath = "";
-
-        public static Translator Instance = null;
 
         public static object QueryPlatformDataLock = new object();
 
@@ -69,7 +66,10 @@ namespace PhoenixEngine.EngineManagement
 
             return AutoThread;
         }
-
+        public static string GetVersion()
+        {
+            return Phoenix.Version;
+        }
         public static void Init()
         {
             CurrentPath = GetFullPath(@"\");
@@ -93,8 +93,6 @@ namespace PhoenixEngine.EngineManagement
 
             Phoenix.LoadConfig();
             ProxyCenter.UsingProxy();
-
-            Instance = new Translator(Phoenix.From,Phoenix.To);
 
             ReSetKeyData();
         }
