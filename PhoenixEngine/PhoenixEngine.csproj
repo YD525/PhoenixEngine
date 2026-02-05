@@ -79,7 +79,11 @@
     <Compile Include="DelegateManagement\DelegateHelper.cs" />
     <Compile Include="EngineManagement\ConfigExtend.cs" />
     <Compile Include="DelegateManagement\DataTransmission.cs" />
+    <Compile Include="EngineManagement\Engine\EngineHelper.cs" />
+    <Compile Include="EngineManagement\Engine\ProcContent.cs" />
     <Compile Include="EngineManagement\Phoenix.cs" />
+    <Compile Include="EngineManagement\Sequence\UnitSequence.cs" />
+    <Compile Include="EngineManagement\Unit\UnitGroup.cs" />
     <Compile Include="GameManagement\GameHelper.cs" />
     <Compile Include="GameManagement\SkyrimBookHelper.cs" />
     <Compile Include="LanguageManagement\BrazilianPortugueseHelper.cs" />
@@ -121,7 +125,7 @@
     <Compile Include="RequestManagement\HttpHelper.cs" />
     <Compile Include="RequestManagement\ProxyCenter.cs" />
     <Compile Include="EngineManagement\ADO\AdvancedDictionary.cs" />
-    <Compile Include="EngineManagement\AITranslationMemory.cs" />
+    <Compile Include="EngineManagement\Memory\AITranslationMemory.cs" />
     <Compile Include="TranslateManagement\BatchTranslation.cs" />
     <Compile Include="EngineManagement\ChunkHelper.cs" />
     <Compile Include="EngineManagement\ADO\CloudDBCache.cs" />
@@ -135,7 +139,7 @@
     <Compile Include="EngineManagement\TranslationPreprocessor.cs" />
     <Compile Include="EngineManagement\TranslationPreprocessorExtend.cs" />
     <Compile Include="TranslateManagement\BatchTranslationExtend.cs" />
-    <Compile Include="TranslateManagement\TranslationUnit.cs" />
+    <Compile Include="EngineManagement\Unit\BaseUnit.cs" />
     <Compile Include="TranslateManagement\TranslationUnitExtend.cs" />
     <Compile Include="TranslateManagement\Translator.cs" />
     <Compile Include="TranslateManagement\TranslatorExtend.cs" />

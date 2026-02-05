@@ -1,16 +1,10 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-using System.Threading;
-using PhoenixEngine.DelegateManagement;
-using PhoenixEngine.EngineManagement;
-using PhoenixEngine.TranslateManage;
-using static PhoenixEngine.TranslateManage.EngineCore;
+﻿using PhoenixEngine.EngineManagement.Unit;
 
 namespace PhoenixEngine.TranslateManagement
 {
-    public class T_BaseUnit
+    public class BaseUnit
     {
-        public TranslationUnitGroup ParentRef = null;
+        public UnitGroup ParentRef = null;
         public int FileUniqueKey = 0;
         public double Score = 100;
         public string Key = "";
@@ -20,8 +14,8 @@ namespace PhoenixEngine.TranslateManagement
         public bool Leader = false;
         public double TempSim = 0;
 
-        public T_BaseUnit() { }
-        public T_BaseUnit(int FileUniqueKey, string Key, string Type, string Original, string Translated, double Score)
+        public BaseUnit() { }
+        public BaseUnit(int FileUniqueKey, string Key, string Type, string Original, string Translated, double Score)
         {
             this.FileUniqueKey = FileUniqueKey;
             this.Key = Key;

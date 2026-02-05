@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.DelegateManagement;
 using PhoenixEngine.EngineManagement.Engine;
@@ -90,8 +87,6 @@ namespace PhoenixEngine.EngineManagement.Unit
 
     public class UnitGroup : TranslationTrd
     {
-        public static int TextLengthLimit = 2000;
-
         public int Key = 0;
         public int TotalLength;
 

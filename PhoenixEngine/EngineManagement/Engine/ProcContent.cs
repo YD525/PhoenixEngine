@@ -61,7 +61,7 @@ namespace PhoenixEngine.EngineManagement.Engine
                     }
                     else
                     {
-                        TranslationUnitGroup NextBatchUnit = new TranslationUnitGroup(this);
+                        UnitGroup NextBatchUnit = new UnitGroup(this);
 
                         NextBatchUnit.Key = GenKey;
 
@@ -78,7 +78,7 @@ namespace PhoenixEngine.EngineManagement.Engine
                 }
             }
 
-            TranslationUnitGroup BatchUnit = new TranslationUnitGroup(this);
+            UnitGroup BatchUnit = new UnitGroup(this);
             BatchUnit.Init(GenKey, Item, AggregationMode.Aggregation);
             Units.Add(BatchUnit);
         }
