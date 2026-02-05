@@ -109,6 +109,7 @@ namespace PhoenixEngine.TranslateManagement
 
         public void Preprocessing(int State)
         {
+            var CheckEngine = false;
             if (State == 0)
             {
                 for (int i = 0; i < Units.Count; i++)
