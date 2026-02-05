@@ -1,16 +1,13 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using PhoenixEngine.DelegateManagement;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManagement;
 using static PhoenixEngine.Bridges.NativeBridge;
 using static PhoenixEngine.TranslateCore.LanguageHelper;
-using static PhoenixEngine.TranslateManage.TransCore;
 using static PhoenixEngine.TranslateManagement.TranslationUnitExtend;
 
 namespace PhoenixEngine.TranslateManage
@@ -47,7 +44,7 @@ namespace PhoenixEngine.TranslateManage
         {
             if (ClearCache)
             {
-                Translator.ClearCache();
+                Phoenix.Instance.ClearCache();
             }
 
             this.From = From;
@@ -672,11 +669,10 @@ namespace PhoenixEngine.TranslateManage
             for (int i = 0; i < this.UnitsLeaderToTranslate.Count; i++)
             {
                 string GetKey = this.UnitsLeaderToTranslate.ElementAt(i).Key;
+
                 this.UnitsLeaderToTranslate[GetKey].Translated = false;
                 this.UnitsLeaderToTranslate[GetKey].WorkEnd = 0;
                 this.UnitsLeaderToTranslate[GetKey].TransText = string.Empty;
-                this.UnitsLeaderToTranslate[GetKey].From = Phoenix.From;
-                this.UnitsLeaderToTranslate[GetKey].To = Phoenix.To;
             }
 
             for (int i = 0; i < this.UnitsToTranslate.Count; i++)
@@ -684,8 +680,6 @@ namespace PhoenixEngine.TranslateManage
                 this.UnitsToTranslate[i].Translated = false;
                 this.UnitsToTranslate[i].WorkEnd = 0;
                 this.UnitsToTranslate[i].TransText = string.Empty;
-                this.UnitsToTranslate[i].From = Phoenix.From;
-                this.UnitsToTranslate[i].To = Phoenix.To;
             }
         }
 
@@ -885,8 +879,6 @@ namespace PhoenixEngine.TranslateManage
                 var Key = UnitsLeaderToTranslate.ElementAt(i).Key;
                 UnitsLeaderToTranslate[Key].TransText = string.Empty;
                 UnitsLeaderToTranslate[Key].Processing = false;
-                UnitsLeaderToTranslate[Key].From = Phoenix.From;
-                UnitsLeaderToTranslate[Key].To = Phoenix.To;
                 UnitsLeaderToTranslate[Key].WorkEnd = 0;
                 UnitsLeaderToTranslate[Key].Translated = false;
                 UnitsToTranslate[i].IsDuplicateSource = false;
@@ -896,8 +888,6 @@ namespace PhoenixEngine.TranslateManage
             {
                 UnitsToTranslate[i].TransText = string.Empty;
                 UnitsToTranslate[i].Processing = false;
-                UnitsToTranslate[i].From = Phoenix.From;
-                UnitsToTranslate[i].To = Phoenix.To;
                 UnitsToTranslate[i].WorkEnd = 0;
                 UnitsToTranslate[i].Translated = false;
                 UnitsToTranslate[i].IsDuplicateSource = false;
@@ -986,9 +976,9 @@ namespace PhoenixEngine.TranslateManage
             {
                 if (Unit.SourceText == Source && !TranslatedKeys.Contains(Unit.Key))
                 {
-                    lock (Translator.TransDataLocker)
+                    lock (Phoenix.Instance.TransDataLocker)
                     {
-                        Translator.TransData[Unit.Key] = SameItems[Source];
+                        Phoenix.Instance.TransData[Unit.Key] = SameItems[Source];
                         TranslatorBridge.SetCloudTransData(Unit.Key, Source, SameItems[Source]);
                     }
 

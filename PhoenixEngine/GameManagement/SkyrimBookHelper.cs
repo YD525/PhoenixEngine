@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
-using PhoenixEngine.TranslateManage;
+﻿using System.Collections.Generic;
 using PhoenixEngine.TranslateManagement;
-using static PhoenixEngine.GameManagement.SkyrimBookHelper;
 using static PhoenixEngine.TranslateManagement.ChunkHelper;
 
 namespace PhoenixEngine.GameManagement

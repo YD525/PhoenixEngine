@@ -8,7 +8,6 @@ using PhoenixEngine.EngineManagement;
 
 namespace PhoenixEngine.TranslateCore
 {
-
     public class CloudTranslationItem
     {
         public int FileUniqueKey = 0;

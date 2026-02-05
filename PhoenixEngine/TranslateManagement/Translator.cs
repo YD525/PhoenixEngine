@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using PhoenixEngine.EngineManagement;
 using PhoenixEngine.GameManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManagement;
@@ -19,6 +18,7 @@ namespace PhoenixEngine.TranslateManage
     {
         public Languages From = Languages.Null;
         public Languages To = Languages.Null;
+        public string AIParam = null;
 
         public readonly object TransDataLocker = new object();
 
@@ -75,16 +75,6 @@ namespace PhoenixEngine.TranslateManage
             return false;
         }
 
-        public bool IsSkyrimBook(TranslationUnit Item,ref Game DetectGame)
-        {
-            if (Item.Type == "BOOK" && Item.Key.EndsWith("DESC"))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
         public List<TranslationUnit> ChunkTranslationUnit(Game GameType,TranslationUnit Unit,ref List<UnitChunk> Chunks)
         {
             if (GameType == Game.Skyrim)
@@ -114,7 +104,7 @@ namespace PhoenixEngine.TranslateManage
             return Units;
         }
 
-        public string Translate(TranslationPreprocessor Preprocessor, TranslationUnit Item, ref bool CanSleep)
+        public string Translate(TranslationPreprocessor Preprocessor, TranslationUnitGroup Item)
         {
             List<TranslationUnit> Units = new List<TranslationUnit>();
             List<UnitChunk> Chunks = new List<UnitChunk>();
@@ -207,7 +197,7 @@ namespace PhoenixEngine.TranslateManage
                     {
                         GetUnit.SourceText = Content;
 
-                        Content = CurrentTransCore.TransAny(Preprocessor,GetUnit, ref CanSleep, Book);
+                        Content = CurrentTransCore.TransAny(Preprocessor,GetUnit);
 
                         try
                         {

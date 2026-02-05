@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.DataBaseManagement;
 using PhoenixEngine.EngineManagement;
-using PhoenixEngine.FileManagement;
 
 namespace PhoenixEngine.TranslateManagement
 {

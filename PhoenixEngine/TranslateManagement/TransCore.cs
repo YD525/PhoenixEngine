@@ -1,10 +1,7 @@
-﻿
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
-using PhoenixEngine.ConvertManager;
-using PhoenixEngine.DelegateManagement;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.PlatformManagement;
 using PhoenixEngine.PlatformManagement.LocalAI;
@@ -152,7 +149,7 @@ namespace PhoenixEngine.TranslateManage
         /// <param name="Target"></param>
         /// <param name="SourceStr"></param>
         /// <returns></returns>
-        public string TransAny(TranslationPreprocessor Preprocessor, TranslationUnit Item,ref bool CanSleep,bool IsBook)
+        public string CallOnce(TranslationPreprocessor Preprocessor, TranslationUnit Item,bool CanSleep)
         {
             CacheCall Call = new CacheCall();
 
@@ -166,13 +163,13 @@ namespace PhoenixEngine.TranslateManage
                 return Item.SourceText;
             }
 
-            if (Item.From.Equals(Item.To))
+            if (Phoenix.Instance.From.Equals(Phoenix.Instance.To))
             {
                 return Item.SourceText;
             }
 
             Call.SendString = Item.SourceText;
-            string GetCacheStr = CloudDBCache.FindCache(Phoenix.GetFileUniqueKey(), Item.Key, Item.To);
+            string GetCacheStr = CloudDBCache.FindCache(Phoenix.GetFileUniqueKey(), Item.Key, Phoenix.Instance.To);
 
             if (GetCacheStr.Trim().Length > 0)
             {
@@ -186,7 +183,7 @@ namespace PhoenixEngine.TranslateManage
 
                 if (Item.SourceText.Length > 0 && Phoenix.Config.ContextEnable)
                 {
-                    EngineSelect.AIMemory.AddTranslation(Item.From, Item.To, Item.SourceText, GetCacheStr);
+                    EngineSelect.AIMemory.AddTranslation(Phoenix.Instance.From, Phoenix.Instance.To, Item.SourceText, GetCacheStr);
                 }
 
                 return GetCacheStr;
@@ -194,7 +191,7 @@ namespace PhoenixEngine.TranslateManage
 
             if (Phoenix.Config.EnableGlobalSearch)
             {
-                var MatchItem = CloudDBCache.Match((int)Item.To, Item.SourceText);
+                var MatchItem = CloudDBCache.Match((int)Phoenix.Instance.To, Item.SourceText);
                 if (MatchItem != null)
                 {
                     Call.ReceiveString = GetCacheStr;
@@ -210,7 +207,7 @@ namespace PhoenixEngine.TranslateManage
 
                     if (Item.SourceText.Length > 0 && Phoenix.Config.ContextEnable)
                     {
-                        EngineSelect.AIMemory.AddTranslation(Item.From, Item.To, Item.SourceText, MatchItem.Result);
+                        EngineSelect.AIMemory.AddTranslation(Phoenix.Instance.From, Phoenix.Instance.To, Item.SourceText, MatchItem.Result);
                     }  
 
                     return MatchItem.Result;
@@ -245,21 +242,14 @@ namespace PhoenixEngine.TranslateManage
                 if (CurrentEngine != null)
                 {
                     string AIParam = Phoenix.Config.UserCustomAIPrompt;
-                    if (Item.AIParam?.Length > 0)
+                    if (Phoenix.Instance.AIParam?.Length > 0)
                     {
-                        AIParam = Item.AIParam;
+                        AIParam = Phoenix.Instance.AIParam;
                     }
 
                     string GetTrans = "";
 
-                    if (!IsBook)
-                    {
-                        GetTrans = CurrentEngine.Call(Preprocessor,Item, true, Phoenix.Config.ContextLimit, AIParam);
-                    }
-                    else
-                    {
-                        GetTrans = CurrentEngine.Call(Preprocessor,Item, false, 1, AIParam);
-                    }
+                    GetTrans = CurrentEngine.Call(Preprocessor, Item, true, Phoenix.Config.ContextLimit, AIParam);
 
                     if (CanSleep)
                     {

@@ -1,6 +1,5 @@
 ﻿using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
-using PhoenixEngine.TranslateManage;
 using PhoenixEngine.TranslateManagement;
 
 namespace PhoenixEngine.Bridges
@@ -16,29 +15,29 @@ namespace PhoenixEngine.Bridges
             {
                 return Phoenix.Version;
             }
-            public static void FormatData()
+            public static void UnifiedSymbols()
             {
-                lock (Translator.TransDataLocker)
+                lock (Phoenix.Instance.TransDataLocker)
                 {
-                    Translator.FormatData();
+                    Phoenix.Instance.UnifiedSymbols();
                 } 
             }
 
             public static void ClearCache()
             {
-                lock (Translator.TransDataLocker)
+                lock (Phoenix.Instance.TransDataLocker)
                 {
-                    Translator.ClearCache();
+                    Phoenix.Instance.ClearCache();
                 }
             }
 
             public static string GetTranslatorCache(string Key)
             {
-                lock (Translator.TransDataLocker)
+                lock (Phoenix.Instance.TransDataLocker)
                 {
-                    if (Translator.TransData.ContainsKey(Key))
+                    if (Phoenix.Instance.TransData.ContainsKey(Key))
                     {
-                        return Translator.TransData[Key];
+                        return Phoenix.Instance.TransData[Key];
                     }
                     else
                     {
@@ -49,7 +48,7 @@ namespace PhoenixEngine.Bridges
 
             public static string GetTransCache(string Key)
             {
-                lock (Translator.TransDataLocker)
+                lock (Phoenix.Instance.TransDataLocker)
                 {
                     var GetResult = GetTranslatorCache(Key);
                     if (GetResult != null)
@@ -58,7 +57,7 @@ namespace PhoenixEngine.Bridges
                     }
                     else
                     {
-                        Translator.TransData.Add(Key, string.Empty);
+                        Phoenix.Instance.TransData.Add(Key, string.Empty);
                     }
                     return string.Empty;
                 }  
@@ -66,15 +65,15 @@ namespace PhoenixEngine.Bridges
 
             public static void SetTransCache(string Key, string Value)
             {
-                lock (Translator.TransDataLocker)
+                lock (Phoenix.Instance.TransDataLocker)
                 {
-                    if (Translator.TransData.ContainsKey(Key))
+                    if (Phoenix.Instance.TransData.ContainsKey(Key))
                     {
-                        Translator.TransData[Key] = Value;
+                        Phoenix.Instance.TransData[Key] = Value;
                     }
                     else
                     {
-                        Translator.TransData.Add(Key, Value);
+                        Phoenix.Instance.TransData.Add(Key, Value);
                     }
                 }
             }
@@ -96,9 +95,9 @@ namespace PhoenixEngine.Bridges
                 string TransText = "";
 
                 string GetRamSource = "";
-                if (Translator.TransData.ContainsKey(Key))
+                if (Phoenix.Instance.TransData.ContainsKey(Key))
                 {
-                    GetRamSource = Translator.TransData[Key];
+                    GetRamSource = Phoenix.Instance.TransData[Key];
                 }
 
                 if (GetRamSource.Trim().Length == 0)
@@ -151,13 +150,13 @@ namespace PhoenixEngine.Bridges
 
                 if (TransText.Trim().Length > 0)
                 {
-                    Translator.TransData[Key] = TransText;
+                    Phoenix.Instance.TransData[Key] = TransText;
                 }
                 else
                 {
-                    if (Translator.TransData.ContainsKey(Key))
+                    if (Phoenix.Instance.TransData.ContainsKey(Key))
                     {
-                        Translator.TransData.Remove(Key);
+                        Phoenix.Instance.TransData.Remove(Key);
                     }
 
                     CloudDBCache.DeleteCache(FileUniqueKey, Key, Phoenix.To);
@@ -179,9 +178,9 @@ namespace PhoenixEngine.Bridges
 
                 if (TransText.Trim().Length <= 0)
                 {
-                    if (Translator.TransData.ContainsKey(Key))
+                    if (Phoenix.Instance.TransData.ContainsKey(Key))
                     {
-                        Translator.TransData.Remove(Key);
+                        Phoenix.Instance.TransData.Remove(Key);
                     }
 
                     CloudDBCache.DeleteCache(FileUniqueKey, Key, Phoenix.To);

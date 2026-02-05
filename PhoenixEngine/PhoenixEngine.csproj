@@ -80,7 +80,6 @@
     <Compile Include="EngineManagement\ConfigExtend.cs" />
     <Compile Include="EngineManagement\DataTransmission.cs" />
     <Compile Include="EngineManagement\Phoenix.cs" />
-    <Compile Include="FileManagement\BlockHashComparer.cs" />
     <Compile Include="GameManagement\GameHelper.cs" />
     <Compile Include="GameManagement\SkyrimBookHelper.cs" />
     <Compile Include="LanguageDetector\BrazilianPortugueseHelper.cs" />
