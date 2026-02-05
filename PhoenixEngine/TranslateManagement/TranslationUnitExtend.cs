@@ -3,6 +3,8 @@ using System.Text.RegularExpressions;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.GameManagement;
+using PhoenixEngine.TranslateManage;
+using static PhoenixEngine.TranslateManagement.TranslationUnitExtend;
 
 namespace PhoenixEngine.TranslateManagement
 {
@@ -24,13 +26,16 @@ namespace PhoenixEngine.TranslateManagement
 
         public bool IsUnrelated = false;
 
-        public TranslationUnitGroup()
+        public UnitUnion UnitUnionRef = null;
+
+        public TranslationUnitGroup(UnitUnion UnitUnion)
         { 
-        
+            this.UnitUnionRef = UnitUnion;
         }
 
-        public TranslationUnitGroup(TranslationUnit SingleUnit)
+        public TranslationUnitGroup(UnitUnion UnitUnion, TranslationUnit SingleUnit)
         {
+            this.UnitUnionRef = UnitUnion;
             Init(0,SingleUnit,AggregationMode.Single);
         }
 
@@ -136,15 +141,25 @@ namespace PhoenixEngine.TranslateManagement
         {
             public int GenKey = 0;
 
+            private Translator TranslatorRef = null;
+
             public List<TranslationUnitGroup> Units = new List<TranslationUnitGroup>();
             public List<TranslationUnitGroup> SameItems = new List<TranslationUnitGroup>();
             public List<TranslationUnitGroup> Books = new List<TranslationUnitGroup>();
 
+            public UnitUnion(Translator Translator)
+            { 
+                this.TranslatorRef = Translator;
+            }
+            public Translator GetTranslator()
+            {
+                return this.TranslatorRef;
+            }
             public void AddLeader(TranslationUnit Item)
             {
                 GenKey++;
 
-                TranslationUnitGroup BatchUnit = new TranslationUnitGroup();
+                TranslationUnitGroup BatchUnit = new TranslationUnitGroup(this);
                 BatchUnit.Init(GenKey, Item, AggregationMode.Aggregation);
                 Units.Add(BatchUnit);
             }
@@ -155,7 +170,7 @@ namespace PhoenixEngine.TranslateManagement
                 Game CheckGameType = Game.Null;
                 if (SkyrimBookHelper.IsSkyrimBook(Item,ref CheckGameType))
                 {
-                    Books.Add(new TranslationUnitGroup(Item));
+                    Books.Add(new TranslationUnitGroup(this,Item));
                     return;
                 }
 
@@ -171,7 +186,7 @@ namespace PhoenixEngine.TranslateManagement
                         }
                         else
                         {
-                            TranslationUnitGroup NextBatchUnit = new TranslationUnitGroup();
+                            TranslationUnitGroup NextBatchUnit = new TranslationUnitGroup(this);
 
                             NextBatchUnit.Key = GenKey;
 
@@ -188,7 +203,7 @@ namespace PhoenixEngine.TranslateManagement
                     }
                 }
 
-                TranslationUnitGroup BatchUnit = new TranslationUnitGroup();
+                TranslationUnitGroup BatchUnit = new TranslationUnitGroup(this);
                 BatchUnit.Init(GenKey,Item,AggregationMode.Aggregation);
                 Units.Add(BatchUnit);
             }
@@ -218,9 +233,9 @@ namespace PhoenixEngine.TranslateManagement
             return TextTokenizer.BuildTokenSignature(Phoenix.From,Unit.SourceText,0);
         }
 
-        public static UnitUnion BuildUnits(Dictionary<string, TranslationUnit> LeaderDict,List<TranslationUnit> Units)
+        public static UnitUnion BuildUnits(Translator Translator, Dictionary<string, TranslationUnit> LeaderDict,List<TranslationUnit> Units)
         {
-            UnitUnion UnitUnion = new UnitUnion();
+            UnitUnion UnitUnion = new UnitUnion(Translator);
             List<TranslationUnitGroup> SameItems = new List<TranslationUnitGroup>();
 
             HashSet<string> SeenTexts = new HashSet<string>();
@@ -235,7 +250,7 @@ namespace PhoenixEngine.TranslateManagement
                 }
                 else
                 {
-                    SameItems.Add(new TranslationUnitGroup(Leader));
+                    SameItems.Add(new TranslationUnitGroup(UnitUnion, Leader));
                 }
             }
 
@@ -253,7 +268,7 @@ namespace PhoenixEngine.TranslateManagement
                 }
                 else
                 {
-                    SameItems.Add(new TranslationUnitGroup(Unit));
+                    SameItems.Add(new TranslationUnitGroup(UnitUnion, Unit));
                 }
             }
 
@@ -266,7 +281,7 @@ namespace PhoenixEngine.TranslateManagement
                 }
             }
 
-            TranslationUnitGroup UnitGroup = new TranslationUnitGroup();
+            TranslationUnitGroup UnitGroup = new TranslationUnitGroup(UnitUnion);
             UnitGroup.IsUnrelated = true;
 
             foreach (var Kvp in SingleUnits)
@@ -277,7 +292,7 @@ namespace PhoenixEngine.TranslateManagement
                 if (UnitGroup.TotalLength > TranslationUnitExtend.TextLengthLimit)
                 {
                     UnitUnion.Units.Add(UnitGroup);
-                    UnitGroup = new TranslationUnitGroup();
+                    UnitGroup = new TranslationUnitGroup(UnitUnion);
                     UnitGroup.IsUnrelated = true;
                 }
             }

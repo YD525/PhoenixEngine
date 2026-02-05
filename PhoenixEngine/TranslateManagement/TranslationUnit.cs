@@ -75,11 +75,12 @@ namespace PhoenixEngine.TranslateManagement
             this.Processing = true;
             CurrentTrd = new Thread(() =>
             {
+                Translator Translator = this.GroupRef.UnitUnionRef.GetTranslator();
                 TransThreadToken = new CancellationTokenSource();
                 var Token = TransThreadToken.Token;
                 try
                 {
-                NextGet:
+                    NextGet:
 
                     Token.ThrowIfCancellationRequested();
 
@@ -96,14 +97,14 @@ namespace PhoenixEngine.TranslateManagement
                             return;
                         }
 
-                        var GetResult = Phoenix.Instance.Translate(new TranslationPreprocessor(),this, ref CanSleep);
+                        var GetResult = Translator.Translate(new TranslationPreprocessor(),this, ref CanSleep);
                         if (GetResult.Trim().Length > 0)
                         {
                             TransText = GetResult.Trim();
 
                             if (!CanTrans(2))
                             {
-                                EngineNode.AIMemory.RemoveTranslation(Phoenix.Instance.From, Phoenix.Instance.To, TranslationPreprocessor.FormatStr(this.SourceText), TransText);
+                                EngineNode.AIMemory.RemoveTranslation(Phoenix.From, Phoenix.To, TranslationPreprocessor.FormatStr(this.SourceText), TransText);
 
                                 this.TransText = string.Empty;
                                 this.Processing = false;
@@ -113,15 +114,15 @@ namespace PhoenixEngine.TranslateManagement
                                 return;
                             }
 
-                            lock (Phoenix.Instance.TransDataLocker)
+                            lock (Translator.TransDataLocker)
                             {
-                                if (Phoenix.Instance.TransData.ContainsKey(this.Key))
+                                if (Translator.TransData.ContainsKey(this.Key))
                                 {
-                                    Phoenix.Instance.TransData[this.Key] = GetResult;
+                                    Translator.TransData[this.Key] = GetResult;
                                 }
                                 else
                                 {
-                                    Phoenix.Instance.TransData.Add(this.Key, GetResult);
+                                    Translator.TransData.Add(this.Key, GetResult);
                                 }
                             }
 

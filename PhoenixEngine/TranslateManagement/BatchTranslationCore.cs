@@ -6,7 +6,6 @@ using System.Threading;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManagement;
-using static PhoenixEngine.Bridges.NativeBridge;
 using static PhoenixEngine.TranslateCore.LanguageHelper;
 using static PhoenixEngine.TranslateManagement.TranslationUnitExtend;
 
@@ -40,11 +39,14 @@ namespace PhoenixEngine.TranslateManage
 
         public bool SkipWordAnalysis = false;
 
-        public BatchTranslationCore(Languages From, Languages To, List<TranslationUnit> UnitsToTranslate, bool ClearCache = false)
+        public Translator TranslatorRef = null;
+        public BatchTranslationCore(Translator SetTranslator, Languages From, Languages To, List<TranslationUnit> UnitsToTranslate, bool ClearCache = false)
         {
+            this.TranslatorRef = SetTranslator;
+
             if (ClearCache)
             {
-                Phoenix.Instance.ClearCache();
+                TranslatorRef.ClearCache();
             }
 
             this.From = From;
@@ -446,7 +448,7 @@ namespace PhoenixEngine.TranslateManage
                     //Has Add
                     UnitsTranslated.Enqueue(Item);
                     HasAdd = true;
-                    TranslatorBridge.SetCloudTransData(Item.Key, Item.SourceText, Item.TransText);
+                    this.TranslatorRef.SetCloudData(Item.Key, Item.SourceText, Item.TransText);
                     HasUPDate = true;
                     TranslatedKeys.Add(Item.Key);
                 }
@@ -474,7 +476,7 @@ namespace PhoenixEngine.TranslateManage
                         {
                             if (MaxTry > 0)
                             {
-                                TranslatorBridge.SetCloudTransData(Item.Key, Item.SourceText, Item.TransText);
+                                this.TranslatorRef.SetCloudData(Item.Key, Item.SourceText, Item.TransText);
                                 MaxTry--;
                                 HasUPDate = true;
                             }
@@ -976,10 +978,10 @@ namespace PhoenixEngine.TranslateManage
             {
                 if (Unit.SourceText == Source && !TranslatedKeys.Contains(Unit.Key))
                 {
-                    lock (Phoenix.Instance.TransDataLocker)
+                    lock (TranslatorRef.TransDataLocker)
                     {
-                        Phoenix.Instance.TransData[Unit.Key] = SameItems[Source];
-                        TranslatorBridge.SetCloudTransData(Unit.Key, Source, SameItems[Source]);
+                        TranslatorRef.TransData[Unit.Key] = SameItems[Source];
+                        TranslatorRef.SetCloudData(Unit.Key, Source, SameItems[Source]);
                     }
 
                     lock (TranslatedAddLocker)

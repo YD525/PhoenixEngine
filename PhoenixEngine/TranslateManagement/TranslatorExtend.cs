@@ -41,7 +41,7 @@ namespace PhoenixEngine.TranslateManagement
                 }
             }
         }
-        public static string GetOrAndTranslatorCache(this Translator Translator, string Key)
+        public static string GetOrAddTranslatorCache(this Translator Translator, string Key)
         {
             lock (Translator.TransDataLocker)
             {
@@ -128,7 +128,7 @@ namespace PhoenixEngine.TranslateManagement
             NQueryTransItem.TransText = TransText;
             return NQueryTransItem;
         }
-        public static bool SetData(this Translator Translator, string Key, string SourceText, string TransText)
+        public static bool SetDataR(this Translator Translator, string Key, string SourceText, string TransText)
         {
             int FileUniqueKey = Phoenix.GetFileUniqueKey();
 
