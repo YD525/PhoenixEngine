@@ -9,38 +9,67 @@ using System.Threading.Tasks;
 using System.Web.UI.WebControls;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.DelegateManagement;
+using PhoenixEngine.EngineManagement;
 using PhoenixEngine.GameManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
 
 namespace PhoenixEngine.TranslateManagement
 {
+    public enum AggregationMode
+    { 
+        Null=0, Single = 1, Aggregation = 2
+    }
     public class TranslationUnitGroup
     {
         public int Key = 0;
 
+        public Languages From = Languages.Auto;
+        public Languages To = Languages.Auto;
+
         public int TotalLength;
 
         public List<TranslationUnit> Units = new List<TranslationUnit>();
+        public AggregationMode Mode = AggregationMode.Null;
 
         public HashSet<string> AnchorTokens = new HashSet<string>();
         public HashSet<string> AllTokens = new HashSet<string>();
-
         public int LinkTo = 0;
 
         public bool IsUnrelated = false;
-
-        public void Init(int Key,TranslationUnit First)
+        public void Init(int Key,TranslationUnit First,AggregationMode SetMode,
+            Languages SetFrom = Languages.Null, Languages SetTo = Languages.Null)
         {
-            this.Key = Key;
+            this.Mode = SetMode;
 
-            AnchorTokens = TranslationUnitExtend.ExtractTokens(First);
-            AllTokens = new HashSet<string>(AnchorTokens);
+            if (SetMode == AggregationMode.Aggregation)
+            {
+                this.Key = Key;
 
-            Units.Add(First);
-            TotalLength += First.SourceText.Length;
-        }
-        
+                AnchorTokens = TranslationUnitExtend.ExtractTokens(First);
+                AllTokens = new HashSet<string>(AnchorTokens);
+
+                Units.Add(First);
+                TotalLength += First.SourceText.Length;
+            }
+            else
+            if (SetMode == AggregationMode.Single)
+            {
+                this.Key = 0;
+
+                Units.Add(First);
+            }
+
+            if (SetFrom == Languages.Null)
+            {
+                SetFrom = Phoenix.From;
+            }
+            else
+            if (SetTo == Languages.Null)
+            {
+                SetTo = Phoenix.From;
+            }
+        }       
         public bool IsSimilarTo(HashSet<string> UnitTokens,int MatchCount)
         {
             return TranslationUnitExtend.TokenCoverageRatio(this.AnchorTokens, UnitTokens) >= MatchCount;
@@ -56,12 +85,10 @@ namespace PhoenixEngine.TranslateManagement
             TotalLength += Unit.SourceText.Length;
             AllTokens.UnionWith(UnitTokens);
         }
-
         public string GenContent()
         {
             return GenContent(this.Units);
         }
-
         public string GenContent(List<TranslationUnit> Array)
         {
             string Html = "";
@@ -71,7 +98,6 @@ namespace PhoenixEngine.TranslateManagement
             }
             return Html;
         }
-
         public void ApplyContent(string Content, ref List<int> SuccessIDs)
         {
             Content = Content.Replace(">", ">\n");
@@ -122,7 +148,7 @@ namespace PhoenixEngine.TranslateManagement
                 GenKey++;
 
                 TranslationUnitGroup BatchUnit = new TranslationUnitGroup();
-                BatchUnit.Init(GenKey, Item);
+                BatchUnit.Init(GenKey, Item, AggregationMode.Aggregation);
                 Units.Add(BatchUnit);
             }
             public void Add(TranslationUnit Item)
@@ -166,7 +192,7 @@ namespace PhoenixEngine.TranslateManagement
                 }
 
                 TranslationUnitGroup BatchUnit = new TranslationUnitGroup();
-                BatchUnit.Init(GenKey,Item);
+                BatchUnit.Init(GenKey,Item,AggregationMode.Aggregation);
                 Units.Add(BatchUnit);
             }
         }

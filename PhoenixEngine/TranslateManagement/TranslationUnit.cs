@@ -28,8 +28,6 @@ namespace PhoenixEngine.TranslateManagement
         public double TempSim = 0;
         public int MaxTry = 10;
         public string AIParam = "";
-        public Languages From = Languages.Auto;
-        public Languages To = Languages.Auto;
 
         private CancellationTokenSource TransThreadToken;
 
