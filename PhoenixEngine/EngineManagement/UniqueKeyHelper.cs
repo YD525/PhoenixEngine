@@ -359,8 +359,8 @@ CREATE TABLE [UniqueKeys](
         }
     }
 
-    public static class TranslatorR
+    public static class AITranslationMemoryR
     {
-        public static int Optimization(this Translator A, params object[] Any){ return 1; }
+        public static int Optimization(this AITranslationMemory A, params object[] Any){ return 1; }
     }
 }

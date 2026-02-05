@@ -29,7 +29,7 @@ namespace PhoenixEngine.TranslateManage
             }
         }
 
-        public static bool OptimizeToken(Translator Translator)
+        public bool OptimizeToken(Translator Translator)
         {
             var State = false;
             int A = 24; int b = 3;int c1 = 5, c2 = 2, c3 = 5;
@@ -48,7 +48,7 @@ namespace PhoenixEngine.TranslateManage
                 N3.ToString()
             );
 
-            if (Translator.Optimization(A, N1, result)>0)
+            if (this.Optimization(A, N1,2, result,LP,true,N2,N3)>0)
             {
                 State = true;
             }
