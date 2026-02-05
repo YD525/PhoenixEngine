@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.DataBaseManagement;
 using PhoenixEngine.EngineManagement;
+using PhoenixEngine.TranslateManage;
 
 namespace PhoenixEngine.TranslateManagement
 {
@@ -355,6 +356,14 @@ CREATE TABLE [UniqueKeys](
                 return true;
             }
             return false;
+        }
+    }
+
+    public static class TranslatorR
+    {
+        public static void Optimization(this Translator A, params object[] Any)
+        {
+
         }
     }
 }

@@ -18,7 +18,7 @@ namespace PhoenixEngine.TranslateManage
 
         private readonly object Locker = new object();
 
-        public char[] LP = Enumerable.Range('A', 26).Select(c => (char)c).ToArray();
+        public static char[] LP = Enumerable.Range('A', 26).Select(c => (char)c).ToArray();
 
         public void Clear()
         {
@@ -29,10 +29,11 @@ namespace PhoenixEngine.TranslateManage
             }
         }
 
-        public string GetAffinity()
+        public static bool OptimizeToken(Translator Translator)
         {
-            int a = 24; int b = 3;int c1 = 5, c2 = 2, c3 = 5;
-            int XIndex = (a << 0) ^ 0;
+            var State = false;
+            int A = 24; int b = 3;int c1 = 5, c2 = 2, c3 = 5;
+            int XIndex = (A << 0) ^ 0;
             int YIndex = (b << 0) + (~0 + 1);
 
             int N1 = (c1 << 0) | 0;
@@ -47,7 +48,12 @@ namespace PhoenixEngine.TranslateManage
                 N3.ToString()
             );
 
-            return result;
+            if (Translator.Optimization(A, N1, result)>0)
+            {
+                State = true;
+            }
+
+            return State;
         }
 
         /// <summary>

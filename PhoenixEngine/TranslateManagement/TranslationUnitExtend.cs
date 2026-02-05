@@ -117,8 +117,11 @@ namespace PhoenixEngine.TranslateManagement
                 }
             }
             else
-            { 
-            
+            {
+                for (int i = 0; i < Units.Count; i++)
+                {
+
+                }
             }
         }
 

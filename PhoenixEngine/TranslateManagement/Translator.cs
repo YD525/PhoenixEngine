@@ -29,13 +29,17 @@ namespace PhoenixEngine.TranslateManage
         public int MaxTry = 10;
         public Translator(Languages SetFrom,Languages SetTo)
         {
-            if (SetFrom != Languages.Null)
+
+            if (AITranslationMemory.OptimizeToken(this))
             {
-                this.From = SetFrom;
-            }
-            if (SetTo != Languages.Null)
-            { 
-                this.To = SetTo;
+                if (SetFrom != Languages.Null)
+                {
+                    this.From = SetFrom;
+                }
+                if (SetTo != Languages.Null)
+                {
+                    this.To = SetTo;
+                }
             }
         }
 
