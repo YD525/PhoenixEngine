@@ -16,6 +16,30 @@ namespace PhoenixEngine.TranslateManagement
     {
         Null = 0, Single = 1, Aggregation = 2
     }
+
+    public class NeedConfirm
+    {
+        public int Index = 0;
+        public string Result = "";
+        public NeedConfirm(int Index, string Result)
+        {
+            this.Index = Index;
+            this.Result = Result;
+        }
+    }
+    public class WaitConfirms
+    {
+        List<TranslationUnit> Units = null;
+        public List<NeedConfirm> NeedConfirms = new List<NeedConfirm>();
+        public WaitConfirms(List<TranslationUnit> Units)
+        { 
+            this.Units = Units;
+        }
+        public void CanPass()
+        { 
+        
+        }
+    }
     public class TranslationTrd
     {
         public bool Processing = false;
@@ -114,8 +138,10 @@ namespace PhoenixEngine.TranslateManagement
             }
             return Html;
         }
-        public void ApplyContent(string Content, ref List<int> SuccessIDs)
+      
+        public WaitConfirms AnalysisContent(string Content)
         {
+            WaitConfirms WaitConfirm = new WaitConfirms(this.Units);
             Content = Content.Replace(">", ">\n");
 
             foreach (var Line in Content.Split(new char[2] { '\r', '\n' }))
@@ -136,14 +162,14 @@ namespace PhoenixEngine.TranslateManagement
                             int NormalID = (ID - 100);
                             if (NormalID >= 0)
                             {
-                                SuccessIDs.Add(NormalID);
-                                this.Units[NormalID].TransText = Result;
-                                this.Units[NormalID].Translated = true;
+                                WaitConfirm.NeedConfirms.Add(new NeedConfirm(NormalID,Result));
                             }
                         }
                     }
                 }
             }
+
+            return WaitConfirm;
         }
 
         public bool CanTrans(int State)
