@@ -10,7 +10,7 @@ namespace PhoenixEngine.TranslateManagement
 {
     public class TranslationUnit
     {
-        public TranslationUnitGroup GroupRef = null;
+        public TranslationUnitGroup ParentRef = null;
         public int FileUniqueKey = 0;
         public double Score = 100;
         public string Key = "";
