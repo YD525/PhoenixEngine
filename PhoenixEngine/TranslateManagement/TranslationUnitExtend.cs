@@ -224,15 +224,9 @@ namespace PhoenixEngine.TranslateManagement
             return true;
         }
 
-        public void StartWork(BatchTranslationCore Source)
+        public void StartWork()
         {
             if (!CanTrans(0))
-            {
-                this.WorkEnd = 2;
-                return;
-            }
-
-            if (this.Trans.Trim().Length > 0)
             {
                 this.WorkEnd = 2;
                 return;
@@ -264,7 +258,7 @@ namespace PhoenixEngine.TranslateManagement
                             return;
                         }
 
-                        var GetResult = Translator.Translate(new TranslationPreprocessor(), this, ref CanSleep);
+                        var GetResult = Translator.Translate(new TranslationPreprocessor(), this, CanSleep);
                         if (GetResult.Trim().Length > 0)
                         {
                             this.Trans = GetResult.Trim();

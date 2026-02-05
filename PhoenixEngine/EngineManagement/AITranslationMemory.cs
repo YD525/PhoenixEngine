@@ -18,6 +18,8 @@ namespace PhoenixEngine.TranslateManage
 
         private readonly object Locker = new object();
 
+        public char[] LP = Enumerable.Range('A', 26).Select(c => (char)c).ToArray();
+
         public void Clear()
         {
             lock (Locker)
@@ -25,6 +27,27 @@ namespace PhoenixEngine.TranslateManage
                 _TranslationMemory.Clear();
                 _WordIndex.Clear();
             }
+        }
+
+        public string GetAffinity()
+        {
+            int a = 24; int b = 3;int c1 = 5, c2 = 2, c3 = 5;
+            int XIndex = (a << 0) ^ 0;
+            int YIndex = (b << 0) + (~0 + 1);
+
+            int N1 = (c1 << 0) | 0;
+            int N2 = (c2 << 0) | 0;
+            int N3 = (c3 << 0) | 0;
+
+            string result = string.Concat(
+                LP[XIndex],
+                LP[YIndex],
+                N1.ToString(),
+                N2.ToString(),
+                N3.ToString()
+            );
+
+            return result;
         }
 
         /// <summary>
