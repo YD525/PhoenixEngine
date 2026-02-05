@@ -78,32 +78,32 @@
     <Compile Include="DataBaseManagement\SqlSafeCodec.cs" />
     <Compile Include="DelegateManagement\DelegateHelper.cs" />
     <Compile Include="EngineManagement\ConfigExtend.cs" />
-    <Compile Include="EngineManagement\DataTransmission.cs" />
+    <Compile Include="DelegateManagement\DataTransmission.cs" />
     <Compile Include="EngineManagement\Phoenix.cs" />
     <Compile Include="GameManagement\GameHelper.cs" />
     <Compile Include="GameManagement\SkyrimBookHelper.cs" />
-    <Compile Include="LanguageDetector\BrazilianPortugueseHelper.cs" />
-    <Compile Include="LanguageDetector\CanadianFrenchHelper.cs" />
-    <Compile Include="LanguageDetector\EnglishHelper.cs" />
-    <Compile Include="LanguageDetector\FrenchHelper.cs" />
-    <Compile Include="LanguageDetector\GermanHelper.cs" />
-    <Compile Include="LanguageDetector\HindiHelper.cs" />
-    <Compile Include="LanguageDetector\IndonesianHelper.cs" />
-    <Compile Include="LanguageDetector\ItalianHelper.cs" />
-    <Compile Include="LanguageDetector\JapaneseHelper.cs" />
-    <Compile Include="LanguageDetector\KoreanHelper.cs" />
-    <Compile Include="LanguageDetector\PersianHelper.cs" />
-    <Compile Include="LanguageDetector\PolishHelper.cs" />
-    <Compile Include="LanguageDetector\PortugueseHelper.cs" />
-    <Compile Include="LanguageDetector\RussianHelper.cs" />
-    <Compile Include="LanguageDetector\SimplifiedChineseHelper.cs" />
-    <Compile Include="LanguageDetector\SpanishHelper.cs" />
-    <Compile Include="LanguageDetector\ThaiHelper.cs" />
-    <Compile Include="LanguageDetector\TraditionalChineseHelper.cs" />
-    <Compile Include="LanguageDetector\TurkishHelper.cs" />
-    <Compile Include="LanguageDetector\UkrainianHelper.cs" />
-    <Compile Include="LanguageDetector\UrduHelper.cs" />
-    <Compile Include="LanguageDetector\VietnameseHelper.cs" />
+    <Compile Include="LanguageManagement\BrazilianPortugueseHelper.cs" />
+    <Compile Include="LanguageManagement\CanadianFrenchHelper.cs" />
+    <Compile Include="LanguageManagement\EnglishHelper.cs" />
+    <Compile Include="LanguageManagement\FrenchHelper.cs" />
+    <Compile Include="LanguageManagement\GermanHelper.cs" />
+    <Compile Include="LanguageManagement\HindiHelper.cs" />
+    <Compile Include="LanguageManagement\IndonesianHelper.cs" />
+    <Compile Include="LanguageManagement\ItalianHelper.cs" />
+    <Compile Include="LanguageManagement\JapaneseHelper.cs" />
+    <Compile Include="LanguageManagement\KoreanHelper.cs" />
+    <Compile Include="LanguageManagement\PersianHelper.cs" />
+    <Compile Include="LanguageManagement\PolishHelper.cs" />
+    <Compile Include="LanguageManagement\PortugueseHelper.cs" />
+    <Compile Include="LanguageManagement\RussianHelper.cs" />
+    <Compile Include="LanguageManagement\SimplifiedChineseHelper.cs" />
+    <Compile Include="LanguageManagement\SpanishHelper.cs" />
+    <Compile Include="LanguageManagement\ThaiHelper.cs" />
+    <Compile Include="LanguageManagement\TraditionalChineseHelper.cs" />
+    <Compile Include="LanguageManagement\TurkishHelper.cs" />
+    <Compile Include="LanguageManagement\UkrainianHelper.cs" />
+    <Compile Include="LanguageManagement\UrduHelper.cs" />
+    <Compile Include="LanguageManagement\VietnameseHelper.cs" />
     <Compile Include="PlatformManagement\AIPrompt.cs" />
     <Compile Include="PlatformManagement\ChatGptApi.cs" />
     <Compile Include="PlatformManagement\CustomApi.cs" />
@@ -120,16 +120,16 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequestManagement\HttpHelper.cs" />
     <Compile Include="RequestManagement\ProxyCenter.cs" />
-    <Compile Include="TranslateManagement\AdvancedDictionary.cs" />
-    <Compile Include="TranslateManagement\AITranslationMemory.cs" />
+    <Compile Include="EngineManagement\DBManagement\AdvancedDictionary.cs" />
+    <Compile Include="EngineManagement\AITranslationMemory.cs" />
     <Compile Include="TranslateManagement\BatchTranslationCore.cs" />
     <Compile Include="EngineManagement\ChunkHelper.cs" />
-    <Compile Include="EngineManagement\CloudDBCache.cs" />
-    <Compile Include="EngineManagement\FontColorFinder.cs" />
+    <Compile Include="EngineManagement\DBManagement\CloudDBCache.cs" />
+    <Compile Include="Additional\FontColorFinder.cs" />
     <Compile Include="PlatformManagement\JsonGeter.cs" />
-    <Compile Include="LanguageDetector\LanguageHelper.cs" />
-    <Compile Include="EngineManagement\LocalDBCache.cs" />
-    <Compile Include="EngineManagement\SpeechHelper.cs" />
+    <Compile Include="LanguageManagement\LanguageHelper.cs" />
+    <Compile Include="EngineManagement\DBManagement\LocalDBCache.cs" />
+    <Compile Include="Additional\SpeechHelper.cs" />
     <Compile Include="EngineManagement\TextTokenizer.cs" />
     <Compile Include="EngineManagement\EngineCore.cs" />
     <Compile Include="EngineManagement\TranslationPreprocessor.cs" />
@@ -138,12 +138,13 @@
     <Compile Include="TranslateManagement\TranslationUnitExtend.cs" />
     <Compile Include="TranslateManagement\Translator.cs" />
     <Compile Include="TranslateManagement\TranslatorExtend.cs" />
-    <Compile Include="TranslateManagement\UniqueKeyHelper.cs" />
+    <Compile Include="EngineManagement\UniqueKeyHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
