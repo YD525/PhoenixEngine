@@ -17,7 +17,6 @@ namespace PhoenixEngine.TranslateManagement
     {
         Null = 0, Single = 1, Aggregation = 2
     }
-
     public class NeedConfirm
     {
         public int Index = 0;
@@ -142,7 +141,7 @@ namespace PhoenixEngine.TranslateManagement
                 First.GroupRef = this;
                 Units.Add(First);
 
-                TotalLength += First.SourceText.Length;
+                TotalLength += First.Original.Length;
             }
             else
             if (SetMode == AggregationMode.Single)
@@ -160,12 +159,12 @@ namespace PhoenixEngine.TranslateManagement
         public void AddUnit(TranslationUnit Unit)
         {
             Units.Add(Unit);
-            TotalLength += Unit.SourceText.Length;
+            TotalLength += Unit.Original.Length;
         }
         public void AddUnit(TranslationUnit Unit, HashSet<string> UnitTokens)
         {
             Units.Add(Unit);
-            TotalLength += Unit.SourceText.Length;
+            TotalLength += Unit.Original.Length;
             AllTokens.UnionWith(UnitTokens);
         }
         public string GenContent()
@@ -177,7 +176,7 @@ namespace PhoenixEngine.TranslateManagement
             string Html = "";
             for (int i = 0; i < Array.Count; i++)
             {
-                Html += string.Format("<li id='{0}'>{1}</li>\n", i + 100, Array[i].SourceText);
+                Html += string.Format("<li id='{0}'>{1}</li>\n", i + 100, Array[i].Original);
             }
             return Html;
         }
@@ -428,7 +427,7 @@ namespace PhoenixEngine.TranslateManagement
 
         public static HashSet<string> ExtractTokens(TranslationUnit Unit)
         {
-            return TextTokenizer.BuildTokenSignature(Phoenix.From,Unit.SourceText,0);
+            return TextTokenizer.BuildTokenSignature(Phoenix.From,Unit.Original,0);
         }
 
         public static UnitUnion BuildUnits(Translator Translator, Dictionary<string, TranslationUnit> LeaderDict,List<TranslationUnit> Units)
@@ -441,9 +440,9 @@ namespace PhoenixEngine.TranslateManagement
 
             foreach (var Leader in LeaderDict.Values)
             {
-                if (!SeenTexts.Contains(Leader.SourceText))
+                if (!SeenTexts.Contains(Leader.Original))
                 {
-                    SeenTexts.Add(Leader.SourceText);
+                    SeenTexts.Add(Leader.Original);
                     UniqueLeaders.Add(Leader);
                 }
                 else
@@ -459,9 +458,9 @@ namespace PhoenixEngine.TranslateManagement
 
             foreach (var Unit in Units)
             {
-                if (!SeenTexts.Contains(Unit.SourceText))
+                if (!SeenTexts.Contains(Unit.Original))
                 {
-                    SeenTexts.Add(Unit.SourceText);
+                    SeenTexts.Add(Unit.Original);
                     UnitUnion.Add(Unit);
                 }
                 else

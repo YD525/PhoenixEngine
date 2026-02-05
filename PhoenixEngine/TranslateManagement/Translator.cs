@@ -106,7 +106,7 @@ namespace PhoenixEngine.TranslateManage
             return Units;
         }
 
-        public string Translate(TranslationPreprocessor Preprocessor, TranslationUnitGroup Item)
+        public string Translate(TranslationPreprocessor Preprocessor, TranslationUnitGroup Item,bool CanSleep)
         {
             List<TranslationUnit> Units = new List<TranslationUnit>();
             List<UnitChunk> Chunks = new List<UnitChunk>();
