@@ -7,17 +7,20 @@ using PhoenixEngine.TranslateManagement;
 
 namespace PhoenixEngine.EngineManagement
 {
-    
+    public enum AggregationMode
+    {
+        Null = 0, Single = 1, Aggregation = 2
+    }
+
     public class UnitSequence
     {
         public class UnionArray
         {
-            public Dictionary<string, TranslationUnit> Leaders = new Dictionary<string, TranslationUnit>();
-            public List<TranslationUnit> Units = new List<TranslationUnit>();
+            public Dictionary<string, BaseUnit> Leaders = new Dictionary<string, BaseUnit>();
+            public List<BaseUnit> Units = new List<BaseUnit>();
 
-            public UnionArray(List<TranslationUnit> Units)
+            public void Load(List<BaseUnit> BaseUnits)
             { 
-            
             
             }
         }

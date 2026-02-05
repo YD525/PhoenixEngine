@@ -1,24 +1,97 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices.WindowsRuntime;
+using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Web;
+using System.Threading.Tasks;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.DelegateManagement;
-using PhoenixEngine.EngineManagement;
-using PhoenixEngine.EngineManagement.Unit;
-using PhoenixEngine.GameManagement;
+using PhoenixEngine.EngineManagement.Engine;
 using PhoenixEngine.TranslateManage;
-using static PhoenixEngine.TranslateManage.EngineCore;
-using static PhoenixEngine.TranslateManagement.TranslationUnitExtend;
+using PhoenixEngine.TranslateManagement;
 
-namespace PhoenixEngine.TranslateManagement
+namespace PhoenixEngine.EngineManagement.Unit
 {
-  
-   
-    public class TranslationUnitGroup : TranslationTrd
+    public class NeedConfirm
     {
+        public int Index = 0;
+        public string Result = "";
+        public NeedConfirm(int Index, string Result)
+        {
+            this.Index = Index;
+            this.Result = Result;
+        }
+    }
+    public class ConfirmPasser
+    {
+        private List<BaseUnit> ParentRef = new List<BaseUnit>();
+        public List<BaseUnit> Units = new List<BaseUnit>();
+        public List<NeedConfirm> NeedConfirms = new List<NeedConfirm>();
+        public ConfirmPasser(List<BaseUnit> Units)
+        {
+            ParentRef = Units;
+            this.Units.AddRange(Units);
+        }
+        public bool TryPass(ref List<BaseUnit> NotPassUnits, ref List<BaseUnit> PassUnits)
+        {
+            for (int i = 0; i < Units.Count; i++)
+            {
+                for (int ir = 0; ir < NeedConfirms.Count; ir++)
+                {
+                    if (i == NeedConfirms[ir].Index)
+                    {
+                        this.Units[i].Translated = NeedConfirms[ir].Result;
+                    }
+                }
+            }
+
+            NotPassUnits = new List<BaseUnit>();
+
+            foreach (var GetUnit in Units)
+            {
+                if (GetUnit.Original.Length > 0)
+                {
+                    if (GetUnit.Translated.Length == 0)
+                    {
+                        NotPassUnits.Add(GetUnit);
+                    }
+                    else
+                    {
+                        PassUnits.Add(GetUnit);
+                    }
+                }
+            }
+
+            if (NotPassUnits.Count > 0)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public void Apply(List<BaseUnit> PassUnits)
+        {
+            for (int i = 0; i < ParentRef.Count; i++)
+            {
+                ParentRef[i].Translated = PassUnits[i].Translated;
+            }
+        }
+    }
+
+    public class TranslationTrd
+    {
+        public bool Processing = false;
+        public bool IsTranslated = false;
+        public int WorkEnd = 0;
+        public Thread CurrentTrd;
+        public CancellationTokenSource TransThreadToken;
+    }
+
+    public class UnitGroup : TranslationTrd
+    {
+        public static int TextLengthLimit = 2000;
+
         public int Key = 0;
         public int TotalLength;
 
@@ -31,16 +104,15 @@ namespace PhoenixEngine.TranslateManagement
 
         public bool IsUnrelated = false;
 
-        public UnitUnion UnitUnionRef = null;
+        public ProcContent ParentRef = null;
         public string Original = "";
 
         public void Preprocessing(int State)
         {
-            var CheckEngine = false;
             if (State == 0)
             {
                 for (int i = 0; i < Units.Count; i++)
-                { 
+                {
                     var GetUnit = Units[i];
                 }
             }
@@ -53,18 +125,18 @@ namespace PhoenixEngine.TranslateManagement
             }
         }
 
-        public TranslationUnitGroup(UnitUnion UnitUnion)
-        { 
-            this.UnitUnionRef = UnitUnion;
-        }
-
-        public TranslationUnitGroup(UnitUnion UnitUnion, TranslationUnit SingleUnit)
+        public UnitGroup(ProcContent ProcContent)
         {
-            this.UnitUnionRef = UnitUnion;
-            Init(0,SingleUnit,AggregationMode.Single);
+            this.ParentRef = ProcContent;
         }
 
-        public TranslationUnit GetFrist()
+        public UnitGroup(ProcContent ProcContent, BaseUnit SingleUnit)
+        {
+            this.ParentRef = ProcContent;
+            Init(0, SingleUnit, AggregationMode.Single);
+        }
+
+        public BaseUnit GetFrist()
         {
             if (Units.Count > 0)
             {
@@ -73,7 +145,7 @@ namespace PhoenixEngine.TranslateManagement
             return null;
         }
 
-        public void Init(int Key,TranslationUnit First,AggregationMode SetMode)
+        public void Init(int Key, BaseUnit First, AggregationMode SetMode)
         {
             this.Mode = SetMode;
 
@@ -81,10 +153,10 @@ namespace PhoenixEngine.TranslateManagement
             {
                 this.Key = Key;
 
-                AnchorTokens = TranslationUnitExtend.ExtractTokens(First);
+                AnchorTokens = First.ExtractTokens();
                 AllTokens = new HashSet<string>(AnchorTokens);
 
-                First.GroupRef = this;
+                First.ParentRef = this;
                 Units.Add(First);
 
                 TotalLength += First.Original.Length;
@@ -94,20 +166,20 @@ namespace PhoenixEngine.TranslateManagement
             {
                 this.Key = 0;
 
-                First.GroupRef = this;
+                First.ParentRef = this;
                 Units.Add(First);
             }
-        }       
-        public bool IsSimilarTo(HashSet<string> UnitTokens,int MatchCount)
-        {
-            return TranslationUnitExtend.TokenCoverageRatio(this.AnchorTokens, UnitTokens) >= MatchCount;
         }
-        public void AddUnit(TranslationUnit Unit)
+        public bool IsSimilarTo(HashSet<string> UnitTokens, int MatchCount)
+        {
+            return TokenCoverageRatio(this.AnchorTokens, UnitTokens) >= MatchCount;
+        }
+        public void AddUnit(BaseUnit Unit)
         {
             Units.Add(Unit);
             TotalLength += Unit.Original.Length;
         }
-        public void AddUnit(TranslationUnit Unit, HashSet<string> UnitTokens)
+        public void AddUnit(BaseUnit Unit, HashSet<string> UnitTokens)
         {
             Units.Add(Unit);
             TotalLength += Unit.Original.Length;
@@ -115,9 +187,9 @@ namespace PhoenixEngine.TranslateManagement
         }
         public string GenContent()
         {
-            return TranslationUnitGroup.GenContent(this.Units);
+            return UnitGroup.GenContent(this.Units);
         }
-        public static string GenContent(List<TranslationUnit> Array)
+        public static string GenContent(List<BaseUnit> Array)
         {
             string Html = "";
             for (int i = 0; i < Array.Count; i++)
@@ -126,7 +198,7 @@ namespace PhoenixEngine.TranslateManagement
             }
             return Html;
         }
-      
+
         public ConfirmPasser AnalysisContent(string Content)
         {
             ConfirmPasser WaitConfirm = new ConfirmPasser(this.Units);
@@ -150,7 +222,7 @@ namespace PhoenixEngine.TranslateManagement
                             int NormalID = (ID - 100);
                             if (NormalID >= 0)
                             {
-                                WaitConfirm.NeedConfirms.Add(new NeedConfirm(NormalID,Result));
+                                WaitConfirm.NeedConfirms.Add(new NeedConfirm(NormalID, Result));
                             }
                         }
                     }
@@ -182,12 +254,12 @@ namespace PhoenixEngine.TranslateManagement
             this.Processing = true;
             CurrentTrd = new Thread(() =>
             {
-                Translator Translator = this.UnitUnionRef.GetTranslator();
+                Translator Translator = this.ParentRef.GetTranslator();
                 TransThreadToken = new CancellationTokenSource();
                 var Token = TransThreadToken.Token;
                 try
                 {
-                    NextGet:
+                NextGet:
 
                     Token.ThrowIfCancellationRequested();
 
@@ -269,7 +341,24 @@ namespace PhoenixEngine.TranslateManagement
             WorkEnd = 2;
             TransThreadToken?.Cancel();
         }
+
+        private static int TokenCoverageRatio(HashSet<string> A, HashSet<string> B)
+        {
+            if (A == null || B == null || A.Count == 0 || B.Count == 0)
+            {
+                return 0;
+            }
+
+            int Intersection = 0;
+            foreach (var T in A)
+            {
+                if (B.Contains(T))
+                {
+                    Intersection++;
+                }
+            }
+
+            return Intersection;
+        }
     }
-   
-   
 }

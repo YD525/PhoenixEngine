@@ -6,7 +6,7 @@ namespace PhoenixEngine.GameManagement
 {
     public class SkyrimBookHelper
     {
-        public static bool IsSkyrimBook(TranslationUnit Item, ref Game DetectGame)
+        public static bool IsSkyrimBook(BaseUnit Item, ref Game DetectGame)
         {
             if (Item.Type == "BOOK" && Item.Key.EndsWith("DESC"))
             {
@@ -51,7 +51,7 @@ namespace PhoenixEngine.GameManagement
             }
             return null;
         }
-        public List<UnitChunk> ChunkBook(TranslationUnit Unit)
+        public List<UnitChunk> ChunkBook(BaseUnit Unit)
         {
             //Okay, I just need to take care of this.
             //My real concern is that if the user isn't using local AI, but rather cloud-based AI, SSELex, due to its context-aware generation, might waste a lot of tokens.
@@ -67,7 +67,7 @@ namespace PhoenixEngine.GameManagement
 
             string TempText = "";
 
-            string GetBookContent = Unit.SourceText;
+            string GetBookContent = Unit.Original;
 
             int Block = 0;
 
