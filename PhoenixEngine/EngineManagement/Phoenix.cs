@@ -27,6 +27,8 @@ namespace PhoenixEngine.EngineManagement
         public static string Version = "1.2.3.5";
         public static string CurrentPath = "";
 
+        public static Translator Instance = null;
+
         public static object QueryPlatformDataLock = new object();
 
         /// <summary>
@@ -94,6 +96,8 @@ namespace PhoenixEngine.EngineManagement
             Phoenix.LoadConfig();
             ProxyCenter.UsingProxy();
 
+            Instance = new Translator(Phoenix.From,Phoenix.To);
+
             ReSetKeyData();
         }
 
@@ -127,7 +131,6 @@ namespace PhoenixEngine.EngineManagement
         }
 
         private static BatchTranslationCore TranslationCore = null;
-
 
         public static Languages From = Languages.English;
 

@@ -17,23 +17,37 @@ namespace PhoenixEngine.TranslateManage
     }
     public class Translator
     {
-        public static readonly object TransDataLocker = new object();
+        public Languages From = Languages.Null;
+        public Languages To = Languages.Null;
 
-        public static Dictionary<string, string> TransData = new Dictionary<string, string>();
+        public readonly object TransDataLocker = new object();
 
-        public static void ClearCache()
+        public Dictionary<string, string> TransData = new Dictionary<string, string>();
+        public Translator(Languages SetFrom,Languages SetTo)
+        {
+            if (SetFrom != Languages.Null)
+            {
+                this.From = SetFrom;
+            }
+            if (SetTo != Languages.Null)
+            { 
+                this.To = SetTo;
+            }
+        }
+
+        public void ClearCache()
         {
             TransData.Clear();
         }
 
-        public static void ClearAICache()
+        public void ClearAICache()
         {
             EngineSelect.AIMemory.Clear();
         }
 
-        public static TransCore CurrentTransCore = new TransCore();
+        public TransCore CurrentTransCore = new TransCore();
 
-        public static bool ExactMatch(Languages From, Languages To, string Key, string Type, string Source, ref string Result)
+        public bool ExactMatch(Languages From, Languages To, string Key, string Type, string Source, ref string Result)
         {
             var GetData = AdvancedDictionary.ExactMatch(From, To, Type, Source);
             if (GetData != null)
@@ -61,7 +75,7 @@ namespace PhoenixEngine.TranslateManage
             return false;
         }
 
-        public static bool IsSkyrimBook(TranslationUnit Item,ref Game DetectGame)
+        public bool IsSkyrimBook(TranslationUnit Item,ref Game DetectGame)
         {
             if (Item.Type == "BOOK" && Item.Key.EndsWith("DESC"))
             {
@@ -71,7 +85,7 @@ namespace PhoenixEngine.TranslateManage
             return false;
         }
 
-        public static List<TranslationUnit> ChunkTranslationUnit(Game GameType,TranslationUnit Unit,ref List<UnitChunk> Chunks)
+        public List<TranslationUnit> ChunkTranslationUnit(Game GameType,TranslationUnit Unit,ref List<UnitChunk> Chunks)
         {
             if (GameType == Game.Skyrim)
             {
@@ -100,7 +114,7 @@ namespace PhoenixEngine.TranslateManage
             return Units;
         }
 
-        public static string QuickTrans(TranslationPreprocessor Preprocessor, TranslationUnit Item, ref bool CanSleep)
+        public string Translate(TranslationPreprocessor Preprocessor, TranslationUnit Item, ref bool CanSleep)
         {
             List<TranslationUnit> Units = new List<TranslationUnit>();
             List<UnitChunk> Chunks = new List<UnitChunk>();
@@ -253,7 +267,7 @@ namespace PhoenixEngine.TranslateManage
             return MergeLine;
         }
 
-        public static void FormatData()
+        public void UnifiedSymbols()
         {
             try
             {
@@ -264,7 +278,7 @@ namespace PhoenixEngine.TranslateManage
                         var GetHashKey = Translator.TransData.ElementAt(i).Key;
                         if (Translator.TransData[GetHashKey].Trim().Length > 0)
                         {
-                            FormatData(GetHashKey, Translator.TransData[GetHashKey].Trim());
+                            TranslationPreprocessor.UnifiedSymbols(GetHashKey, Translator.TransData[GetHashKey].Trim());
                         }
                     }
                     catch (System.Exception ex)
@@ -278,22 +292,5 @@ namespace PhoenixEngine.TranslateManage
                 System.Console.WriteLine($"Error in WriteAllMemoryData: {ex.Message}");
             }
         }
-
-        public static void FormatData(string GetKey, string TransData)
-        {
-            string NewStr = TransData;
-
-            new TranslationPreprocessor().NormalizePunctuation(ref NewStr);
-
-            if (Regex.Replace(NewStr, @"\s+", "").Length > 0)
-            {
-                Translator.TransData[GetKey] = NewStr;
-            }
-            else
-            {
-                Translator.TransData[GetKey] = string.Empty;
-            }
-        }
-
     }
 }

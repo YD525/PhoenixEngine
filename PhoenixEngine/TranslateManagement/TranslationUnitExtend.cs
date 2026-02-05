@@ -23,11 +23,6 @@ namespace PhoenixEngine.TranslateManagement
     public class TranslationUnitGroup
     {
         public int Key = 0;
-
-        public Languages From = Languages.Auto;
-        public Languages To = Languages.Auto;
-        public string AIParam = "";
-
         public int TotalLength;
 
         public List<TranslationUnit> Units = new List<TranslationUnit>();
@@ -38,8 +33,27 @@ namespace PhoenixEngine.TranslateManagement
         public int LinkTo = 0;
 
         public bool IsUnrelated = false;
-        public void Init(int Key,TranslationUnit First,AggregationMode SetMode,
-            Languages SetFrom = Languages.Null, Languages SetTo = Languages.Null)
+
+        public TranslationUnitGroup()
+        { 
+        
+        }
+
+        public TranslationUnitGroup(TranslationUnit SingleUnit)
+        {
+            Init(0,SingleUnit,AggregationMode.Single);
+        }
+
+        public TranslationUnit GetFrist()
+        {
+            if (Units.Count > 0)
+            {
+                return Units[0];
+            }
+            return null;
+        }
+
+        public void Init(int Key,TranslationUnit First,AggregationMode SetMode)
         {
             this.Mode = SetMode;
 
@@ -63,19 +77,6 @@ namespace PhoenixEngine.TranslateManagement
                 First.GroupRef = this;
                 Units.Add(First);
             }
-
-            if (SetFrom == Languages.Null)
-            {
-                SetFrom = Phoenix.From;
-            }
-            else
-            if (SetTo == Languages.Null)
-            {
-                SetTo = Phoenix.To;
-            }
-
-            this.From = SetFrom;
-            this.To = SetTo;
         }       
         public bool IsSimilarTo(HashSet<string> UnitTokens,int MatchCount)
         {
@@ -137,7 +138,6 @@ namespace PhoenixEngine.TranslateManagement
             }
         }
     }
-
     public class TranslationUnitExtend
     {
         public static int TextLengthLimit = 2000;
@@ -147,8 +147,8 @@ namespace PhoenixEngine.TranslateManagement
             public int GenKey = 0;
 
             public List<TranslationUnitGroup> Units = new List<TranslationUnitGroup>();
-            public List<TranslationUnit> SameItems = new List<TranslationUnit>();
-            public List<TranslationUnit> Books = new List<TranslationUnit>();
+            public List<TranslationUnitGroup> SameItems = new List<TranslationUnitGroup>();
+            public List<TranslationUnitGroup> Books = new List<TranslationUnitGroup>();
 
             public void AddLeader(TranslationUnit Item)
             {
@@ -163,9 +163,9 @@ namespace PhoenixEngine.TranslateManagement
                 GenKey++;
 
                 Game CheckGameType = Game.Null;
-                if (Translator.IsSkyrimBook(Item,ref CheckGameType))
+                if (SkyrimBookHelper.IsSkyrimBook(Item,ref CheckGameType))
                 {
-                    Books.Add(Item);
+                    Books.Add(new TranslationUnitGroup(Item));
                     return;
                 }
 
@@ -225,13 +225,13 @@ namespace PhoenixEngine.TranslateManagement
 
         public static HashSet<string> ExtractTokens(TranslationUnit Unit)
         {
-            return TextTokenizer.BuildTokenSignature(Unit.From,Unit.SourceText,0);
+            return TextTokenizer.BuildTokenSignature(Phoenix.From,Unit.SourceText,0);
         }
 
         public static UnitUnion BuildUnits(Dictionary<string, TranslationUnit> LeaderDict,List<TranslationUnit> Units)
         {
             UnitUnion UnitUnion = new UnitUnion();
-            List<TranslationUnit> SameItems = new List<TranslationUnit>();
+            List<TranslationUnitGroup> SameItems = new List<TranslationUnitGroup>();
 
             HashSet<string> SeenTexts = new HashSet<string>();
             List<TranslationUnit> UniqueLeaders = new List<TranslationUnit>();
@@ -245,7 +245,7 @@ namespace PhoenixEngine.TranslateManagement
                 }
                 else
                 {
-                    SameItems.Add(Leader);
+                    SameItems.Add(new TranslationUnitGroup(Leader));
                 }
             }
 
@@ -263,7 +263,7 @@ namespace PhoenixEngine.TranslateManagement
                 }
                 else
                 {
-                    SameItems.Add(Unit);
+                    SameItems.Add(new TranslationUnitGroup(Unit));
                 }
             }
 

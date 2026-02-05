@@ -7,6 +7,21 @@ namespace PhoenixEngine.TranslateManagement
 {
     public class TranslationPreprocessorExtend
     {
+        public static void UnifiedSymbols(string GetKey, string TransData)
+        {
+            string NewStr = TransData;
+
+            new TranslationPreprocessor().NormalizePunctuation(ref NewStr);
+
+            if (Regex.Replace(NewStr, @"\s+", "").Length > 0)
+            {
+                Translator.TransData[GetKey] = NewStr;
+            }
+            else
+            {
+                Translator.TransData[GetKey] = string.Empty;
+            }
+        }
         public static string FormatStr(string Content)
         {
             new TranslationPreprocessor().OptimizeStrings(ref Content);

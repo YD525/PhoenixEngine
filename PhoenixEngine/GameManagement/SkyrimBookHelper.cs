@@ -10,6 +10,16 @@ namespace PhoenixEngine.GameManagement
 {
     public class SkyrimBookHelper
     {
+        public static bool IsSkyrimBook(TranslationUnit Item, ref Game DetectGame)
+        {
+            if (Item.Type == "BOOK" && Item.Key.EndsWith("DESC"))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         public class CheckChar
         {
             public List<string> Chars = new List<string>();
