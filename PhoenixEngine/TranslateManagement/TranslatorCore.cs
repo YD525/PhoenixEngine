@@ -110,6 +110,8 @@ namespace PhoenixEngine.TranslateManage
 
         public void Start()
         {
+            TranslatedCount = 0;
+
             if (TrdPool == null)
             {
                 TrdPool = new PhoenixThreadPool<UnitGroup>();
@@ -222,12 +224,13 @@ namespace PhoenixEngine.TranslateManage
             IsStop = true;
             TrdPool.SuspendAll(true);
         }
-
+        public int TranslatedCount = 0;
         private void AddTranslated(UnitGroup Item)
         {
             lock (UnitsReadLock)
             {
                 Item.UPDateLink(this.TranslatorRef);
+                TranslatedCount += Item.Units.Count;
             }
                 
             TranslatedQueue.Enqueue(Item);

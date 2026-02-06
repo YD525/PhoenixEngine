@@ -150,7 +150,6 @@ namespace PhoenixEngine.EngineManagement
             GetTranslatedCount(FileUniqueKey);
         }
 
-        public static int TranslatedCount = 0;
         public static int GetTranslatedCount(int FileUniqueKey)
         {
             if (LastLoadFileName.Length == 0) return 0;
@@ -167,8 +166,6 @@ FROM (
 ) AS Combined;";
 
             int GetCount = ConvertHelper.ObjToInt(Phoenix.LocalDB.ExecuteScalar(SqlOrder));
-
-            TranslatedCount = GetCount;
 
             return GetCount;
         }
