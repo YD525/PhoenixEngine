@@ -126,11 +126,11 @@ namespace PhoenixEngine.EngineManagement.EThread
     {
         public int ID = 0;
         public WorkState State = WorkState.Null;
-        public Action<T1> Job;
-        public Action<T2> OnDestroyed;
+        public Action<T1> JobFunc;
+        public Action<T2> OnDestroyedFunc;
 
-        public T1 JobFunc;
-        public T2 DestroyedFunc;
+        public T1 JobParam;
+        public T2 DestroyedParam;
         public PhoenixThreadPool<T1, T2> ThreadPoolRef = null;
 
         public bool SuspendTrd = false;
@@ -144,12 +144,12 @@ namespace PhoenixEngine.EngineManagement.EThread
                 CurrentTrd = new Thread(() =>
                 {
                     State = WorkState.Working;
-                    Job.Invoke(JobFunc);
+                    JobFunc?.Invoke(JobParam);
                     while (this.SuspendTrd)
                     {
                         Thread.Sleep(500);
                     }
-                    OnDestroyed.Invoke(DestroyedFunc);
+                    OnDestroyedFunc?.Invoke(DestroyedParam);
                     State = WorkState.WorkEnd;
 
                     if (this.ThreadPoolRef != null)
@@ -177,10 +177,10 @@ namespace PhoenixEngine.EngineManagement.EThread
             State = WorkState.WaitToCreated;
             GenThread();
         }
-        public void SetCall(T1 Job, T2 Destroyed)
+        public void SetParam(T1 SetJob, T2 SetDestroyed)
         {
-            this.JobFunc = Job;
-            this.DestroyedFunc = Destroyed;
+            this.JobParam = SetJob;
+            this.DestroyedParam = SetDestroyed;
         }
         public bool Start(bool IsBackground = false)
         {
