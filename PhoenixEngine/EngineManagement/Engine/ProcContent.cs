@@ -62,7 +62,7 @@ namespace PhoenixEngine.EngineManagement.Engine
                     {
                         UnitGroup NextBatchUnit = new UnitGroup(this);
 
-                        NextBatchUnit.Key = GenKey;
+                        NextBatchUnit.Key = GenKey.ToString();
 
                         NextBatchUnit.AnchorTokens = new HashSet<string>(GetBatchUnit.AnchorTokens);
                         NextBatchUnit.AllTokens = new HashSet<string>(NextBatchUnit.AnchorTokens);

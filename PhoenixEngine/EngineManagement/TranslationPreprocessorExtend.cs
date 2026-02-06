@@ -15,11 +15,11 @@ namespace PhoenixEngine.TranslateManagement
 
             if (Regex.Replace(NewStr, @"\s+", "").Length > 0)
             {
-                Translator.TransData[GetKey] = NewStr;
+                Translator.TranslatedLink[GetKey] = NewStr;
             }
             else
             {
-                Translator.TransData[GetKey] = string.Empty;
+                Translator.TranslatedLink[GetKey] = string.Empty;
             }
         }
         public static string FormatStr(string Content)

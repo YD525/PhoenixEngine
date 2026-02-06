@@ -119,6 +119,17 @@ namespace PhoenixEngine.EngineManagement.EThread
                 }
             }
         }
+
+        public void SuspendAll(bool Check)
+        {
+            lock (SyncLock)
+            {
+                for (int i = 0; i < Threads.Count; i++)
+                {
+                    Threads[i].Suspend(Check);
+                }
+            }
+        }
     }
     public class PhoenixThread<T1, T2>
     where T1 : class

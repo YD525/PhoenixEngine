@@ -96,7 +96,7 @@ namespace PhoenixEngine.EngineManagement.Unit
 
         public HashSet<string> AnchorTokens = new HashSet<string>();
         public HashSet<string> AllTokens = new HashSet<string>();
-        public int LinkTo = 0;
+        public string LinkTo = "";
 
         public bool IsUnrelated = false;
 
@@ -251,102 +251,96 @@ namespace PhoenixEngine.EngineManagement.Unit
 
         public void StartWork()
         {
-            if (!CanTrans(0))
-            {
-                this.WorkEnd = 2;
-                return;
-            }
+            //if (!CanTrans(0))
+            //{
+            //    this.WorkEnd = 2;
+            //    return;
+            //}
 
-            WorkEnd = 1;
-            this.Processing = true;
-            CurrentTrd = new Thread(() =>
-            {
-                Translator Translator = this.ParentRef.GetTranslator();
-                TransThreadToken = new CancellationTokenSource();
-                var Token = TransThreadToken.Token;
-                try
-                {
-                NextGet:
+            //WorkEnd = 1;
+            //this.Processing = true;
+            //CurrentTrd = new Thread(() =>
+            //{
+            //    Translator Translator = this.ParentRef.GetTranslator();
+            //    TransThreadToken = new CancellationTokenSource();
+            //    var Token = TransThreadToken.Token;
+            //    try
+            //    {
+            //    NextGet:
 
-                    Token.ThrowIfCancellationRequested();
+            //        Token.ThrowIfCancellationRequested();
 
-                    if (this.Original.Trim().Length > 0)
-                    {
-                        bool CanSleep = true;
+            //        if (this.Original.Trim().Length > 0)
+            //        {
+            //            bool CanSleep = true;
 
-                        if (!CanTrans(1))
-                        {
-                            this.Processing = false;
-                            this.WorkEnd = 2;
-                            CurrentTrd = null;
+            //            if (!CanTrans(1))
+            //            {
+            //                this.Processing = false;
+            //                this.WorkEnd = 2;
+            //                CurrentTrd = null;
 
-                            return;
-                        }
+            //                return;
+            //            }
 
-                        var GetResult = Translator.Translate(new TranslationPreprocessor(), this, CanSleep);
-                        if (GetResult.Trim().Length > 0)
-                        {
-                            this.Trans = GetResult.Trim();
+            //            var GetResult = Translator.Translate(new TranslationPreprocessor(), this, CanSleep);
+            //            if (GetResult.Trim().Length > 0)
+            //            {
+            //                this.Trans = GetResult.Trim();
 
-                            if (!CanTrans(2))
-                            {
-                                EngineNode.AIMemory.RemoveTranslation(Phoenix.From, Phoenix.To, TranslationPreprocessor.FormatStr(this.SourceText), TransText);
+            //                if (!CanTrans(2))
+            //                {
+            //                    EngineNode.AIMemory.RemoveTranslation(Phoenix.From, Phoenix.To, TranslationPreprocessor.FormatStr(this.SourceText), TransText);
 
-                                this.Trans = string.Empty;
-                                this.Processing = false;
-                                this.WorkEnd = 0;
+            //                    this.Trans = string.Empty;
+            //                    this.Processing = false;
+            //                    this.WorkEnd = 0;
 
-                                CurrentTrd = null;
-                                return;
-                            }
+            //                    CurrentTrd = null;
+            //                    return;
+            //                }
 
-                            this.IsTranslated = true;
+            //                this.IsTranslated = true;
 
-                            Source.AddTranslated(this);
+            //                Source.AddTranslated(this);
 
-                            WorkEnd = 2;
+            //                WorkEnd = 2;
 
-                            Token.ThrowIfCancellationRequested();
-                        }
-                        else
-                        {
-                            if (Translator.MaxTry > 0)
-                            {
-                                Thread.Sleep(500);
-                                Translator.MaxTry--;
+            //                Token.ThrowIfCancellationRequested();
+            //            }
+            //            else
+            //            {
+            //                if (Translator.MaxTry > 0)
+            //                {
+            //                    Thread.Sleep(500);
+            //                    Translator.MaxTry--;
 
-                                goto NextGet;
-                            }
-                            else
-                            {
-                                WorkEnd = 2;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        WorkEnd = 2;
-                    }
-                }
-                catch (OperationCanceledException)
-                {
-                    try
-                    {
-                        this.Processing = false;
-                        this.CurrentTrd = null;
-                    }
-                    catch { }
-                }
-                this.Processing = false;
-                this.CurrentTrd = null;
-            });
-            CurrentTrd.Start();
-        }
-
-        public void CancelWorkThread()
-        {
-            WorkEnd = 2;
-            TransThreadToken?.Cancel();
+            //                    goto NextGet;
+            //                }
+            //                else
+            //                {
+            //                    WorkEnd = 2;
+            //                }
+            //            }
+            //        }
+            //        else
+            //        {
+            //            WorkEnd = 2;
+            //        }
+            //    }
+            //    catch (OperationCanceledException)
+            //    {
+            //        try
+            //        {
+            //            this.Processing = false;
+            //            this.CurrentTrd = null;
+            //        }
+            //        catch { }
+            //    }
+            //    this.Processing = false;
+            //    this.CurrentTrd = null;
+            //});
+            //CurrentTrd.Start();
         }
 
         private static int TokenCoverageRatio(HashSet<string> A, HashSet<string> B)
