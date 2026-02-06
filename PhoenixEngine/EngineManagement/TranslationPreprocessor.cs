@@ -38,6 +38,15 @@ namespace PhoenixEngine.TranslateManage
         {
         
         }
+
+        public static TranslationPreprocessor Clone(TranslationPreprocessor Preprocessor)
+        {
+            TranslationPreprocessor NTranslationPreprocessor = new TranslationPreprocessor();
+            NTranslationPreprocessor.HasPlaceholder = Preprocessor.HasPlaceholder;
+            NTranslationPreprocessor.SourceStr = Preprocessor.SourceStr;
+            NTranslationPreprocessor.ReplaceTags.AddRange(Preprocessor.ReplaceTags);
+            return NTranslationPreprocessor;
+        }
         private List<ReplaceTag> GenerateProtectedTags(string Source, bool IsAIPlatform)
         {
             var Tags = new List<ReplaceTag>();
@@ -263,7 +272,6 @@ namespace PhoenixEngine.TranslateManage
             }
             return Sb.ToString();
         }
-
         public bool ExactMatch(Languages From, Languages To, string Key, string Type, string Source, ref string Result)
         {
             var GetData = AdvancedDictionary.ExactMatch(From, To, Type, Source);

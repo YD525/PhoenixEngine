@@ -20,7 +20,9 @@ namespace PhoenixEngine.EngineManagement
         public bool CanSkip = false;//This indicates that the specified object can be skipped.
         public bool HasOuterQuotes = false;
         public bool CanSkipSleep = false;
+        public bool HavePlaceholder = false;
         public int Step = 0;
+        public TranslationPreprocessor Preprocessor = null;
 
         public UnitSequence(bool CanSkip)
         { 
@@ -71,6 +73,7 @@ namespace PhoenixEngine.EngineManagement
                 string Source = string.Copy(GetUnit.Original);
 
                 Sequences[GetUnit.Key].Step = 0;
+                Sequences[GetUnit.Key].Preprocessor = TranslationPreprocessor.Clone(Preprocessor);
 
                 if (Preprocessor.IsOnlySymbolsAndSpaces(Source))//Skip pure symbol content.
                 {
@@ -111,7 +114,12 @@ namespace PhoenixEngine.EngineManagement
                         Sequences[GetUnit.Key].Data = GetMatchResult;
                         Sequences[GetUnit.Key].CanSkip = true;
                     }
+                    else
+                    {
+                        Sequences[GetUnit.Key].Data = Content;
+                    }
                 }
+
             }
         }
         /// <summary>
@@ -124,7 +132,6 @@ namespace PhoenixEngine.EngineManagement
         /// <param name="Sequences"></param>
         /// <param name="CanSkipSleep"></param>
         public static void CenterPreProcess(this UnitGroup Item,
-          TranslationPreprocessor Preprocessor,
           Languages From, Languages To,
           ref Dictionary<string, UnitSequence> Sequences)
         {
@@ -133,6 +140,7 @@ namespace PhoenixEngine.EngineManagement
                 var GetUnit = Item.Units[i];
 
                 string Source = Sequences[GetUnit.Key].Data;
+                var Preprocessor = Sequences[GetUnit.Key].Preprocessor;
 
                 Sequences[GetUnit.Key].Step = 2;
 
@@ -190,6 +198,84 @@ namespace PhoenixEngine.EngineManagement
                             return;
                         }
                     }
+                }
+            }
+        }
+
+        public static void StartGeneratePlaceholder(this UnitGroup Item,
+            Languages From, Languages To,
+            ref Dictionary<string, UnitSequence> Sequences)
+        {
+            for (int i = 0; i < Item.Units.Count; i++)
+            {
+                var GetUnit = Item.Units[i];
+                var Preprocessor = Sequences[GetUnit.Key].Preprocessor;
+
+                List<ReplaceTag> CustomWords = new List<ReplaceTag>();
+
+                bool CanTrans = false;
+
+                string Source = Sequences[GetUnit.Key].Data;
+
+                if (Phoenix.Config.PreTranslateEnable)
+                {
+                    PreTranslateCall NPreTranslateCall = new PreTranslateCall();
+                    NPreTranslateCall.Platform = PlatformType.PhoenixEngine;
+                    NPreTranslateCall.FromAI = false;
+                    NPreTranslateCall.Key = Item.Key;
+
+                    NPreTranslateCall.SendString = Source;
+
+                    Source = Preprocessor.GeneratePlaceholderText(Phoenix.LastLoadFileName, From, To, Source, GetUnit.Type, out CanTrans);
+
+                    CustomWords.Clear();
+                    foreach (var GetWord in Preprocessor.ReplaceTags)
+                    {
+                        CustomWords.Add(GetWord);
+                    }
+
+                    NPreTranslateCall.ReceiveString = Source;
+
+                    NPreTranslateCall.ReplaceTags = Preprocessor.ReplaceTags;
+
+                    NPreTranslateCall.Output();
+
+                    Sequences[GetUnit.Key].Data = Source;
+
+                    Sequences[GetUnit.Key].HavePlaceholder = true;
+
+                    if (!CanTrans)
+                    {
+                        Sequences[GetUnit.Key].Data = Preprocessor.RestoreFromPlaceholder(Source, To);
+                        Sequences[GetUnit.Key].HavePlaceholder = false;
+                    }
+                }
+                else
+                {
+                    CanTrans = true;
+                }
+
+                if (!CanTrans)
+                {
+                    Sequences[GetUnit.Key].CanSkip = true;
+                }
+            }
+        }
+
+
+        public static void EndGeneratePlaceholder(this UnitGroup Item,
+            Languages From, Languages To,
+            ref Dictionary<string, UnitSequence> Sequences)
+        {
+            for (int i = 0; i < Item.Units.Count; i++)
+            {
+                var GetUnit = Item.Units[i];
+                var Preprocessor = Sequences[GetUnit.Key].Preprocessor;
+
+                if (Sequences[GetUnit.Key].HavePlaceholder)
+                {
+                    Sequences[GetUnit.Key].Data = Preprocessor.RestoreFromPlaceholder(Sequences[GetUnit.Key].Data, To);
+                    Sequences[GetUnit.Key].HavePlaceholder = false;
                 }
             }
         }

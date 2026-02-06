@@ -159,7 +159,7 @@ namespace PhoenixEngine.TranslateManage
             Item.StartPreProcess(Preprocessor,From,To, ref Sequences);
             Item.UPDateSequences(Sequences);
 
-            Item.CenterPreProcess(Preprocessor, From, To, ref Sequences);
+            Item.CenterPreProcess(From, To, ref Sequences);
             Item.UPDateSequences(Sequences);
 
             EngineNode CurrentEngine = null;
@@ -193,7 +193,7 @@ namespace PhoenixEngine.TranslateManage
 
                     string GetTrans = "";
 
-                    GetTrans = CurrentEngine.Call(Preprocessor, Item,ref Sequences,true, Phoenix.Config.ContextLimit, AIParam);
+                    GetTrans = CurrentEngine.Call(Item,ref Sequences,From,To,true,Phoenix.Config.ContextLimit, AIParam);
 
                     int Hits = 0;
                     foreach (var GetSeq in new Dictionary<string, UnitSequence>(Sequences))
@@ -208,7 +208,6 @@ namespace PhoenixEngine.TranslateManage
                     {
                         CurrentEngine.BeginSleep();
                     }
-
 
                     ConfirmPasser Passer = Item.AnalysisContent(GetTrans);
 
@@ -229,6 +228,8 @@ namespace PhoenixEngine.TranslateManage
                     {
                         goto NextCall;
                     }
+
+                    Item.EndGeneratePlaceholder(From, To, ref Sequences);
 
                     return Item;
                 }
@@ -349,11 +350,38 @@ namespace PhoenixEngine.TranslateManage
 
                 return FoundKeys.Count == CustomWords.Count;
             }
-            public string Call(TranslationPreprocessor Preprocessor,UnitGroup Item,ref Dictionary<string, UnitSequence> Sequences, bool UseAIMemory, int AIMemoryCountLimit, string AIParam)
+            public string Call(object AutoItem,ref Dictionary<string, UnitSequence> Sequences,
+               Languages From,Languages To,bool UseAIMemory, int AIMemoryCountLimit, string AIParam)
             {
-                int MaxTranslationAttempts = Phoenix.Config.MaxTranslationAttempts;
+                string GetSource = "";
+                if (AutoItem is UnitGroup)
+                {
+                    UnitGroup UnitGroupRef = (UnitGroup)AutoItem;
 
-                string GetSource = Item.SourceText;
+                    UnitGroupRef.StartGeneratePlaceholder(From,To,ref Sequences);
+                    UnitGroupRef.UPDateSequences(Sequences);
+
+                    GetSource = UnitGroupRef.GenContent();
+                }
+                else
+                if(AutoItem is string)
+                {
+                    //Books require special handling.
+                    GetSource = (string)AutoItem;
+                }
+
+                if (GetSource.Length == 0)
+                {
+                    return string.Empty;
+                }
+
+                if (From == Languages.Auto)
+                {
+                    From = LanguageHelper.DetectLanguageByLine(GetSource);
+                }
+
+                int MaxTranslationAttempts = Phoenix.Config.MaxTranslationAttempts;
+               
                 string TransText = string.Empty;
                 PlatformType CurrentPlatform = PlatformType.Null;
 
@@ -363,576 +391,463 @@ namespace PhoenixEngine.TranslateManage
 
                     if (this.ApiRef is DeepLApi || this.ApiRef is CustomApi)
                     {
-                        bool CanTrans = false;
 
-                        if (Phoenix.Config.PreTranslateEnable)
+                        if (this.ApiRef is DeepLApi)
                         {
-                            PreTranslateCall NPreTranslateCall = new PreTranslateCall();
-                            NPreTranslateCall.Platform = PlatformType.PhoenixEngine;
-                            NPreTranslateCall.FromAI = false;
-                            NPreTranslateCall.Key = Item.Key;
-
-                            string GetDefSource = GetSource;
-
-                            NPreTranslateCall.SendString = GetDefSource;
-
-                            GetSource = Preprocessor.GeneratePlaceholderText(Phoenix.LastLoadFileName,Phoenix.Instance.From, Phoenix.Instance.To, GetDefSource, Item.Type, out CanTrans);
-
-                            CustomWords.Clear();
-                            foreach (var GetWord in Preprocessor.ReplaceTags)
+                            if (Phoenix.Config.GetPlatformData(DeepLApi.Type).Enable)
                             {
-                                CustomWords.Add(GetWord);
-                            }
+                                var Type = DeepLApi.Type;
+                                DeepLApi SetApi = (DeepLApi)this.ApiRef;
+                                PlatformCall Call = new PlatformCall();
 
-                            NPreTranslateCall.ReceiveString = GetSource;
+                                string GetData = null;
+                                bool Passed = false;
+                                int MaxTry = MaxTranslationAttempts;
+                                string CurrentApiKey = "";
 
-                            NPreTranslateCall.ReplaceTags = Preprocessor.ReplaceTags;
-
-                            NPreTranslateCall.Output();
-                        }
-                        else
-                        {
-                            CanTrans = true;
-                        }
-
-                        if (CanTrans)
-                        {
-                            if (this.ApiRef is DeepLApi)
-                            {
-                                if (Phoenix.Config.GetPlatformData(DeepLApi.Type).Enable)
+                                //Detecting the quality of AI-translated content
+                                do
                                 {
-                                    var Type = DeepLApi.Type;
-                                    DeepLApi SetApi = (DeepLApi)this.ApiRef;
-                                    PlatformCall Call = new PlatformCall();
+                                    CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
 
-                                    if (Phoenix.Instance.From == Languages.Auto)
+                                    GetData = SetApi.QuickTrans(CurrentApiKey, GetSource, From, To, ref Call).Trim();
+                                    Passed = SecondaryQualityInspection(GetData, CustomWords);
+
+                                    if (!Passed && MaxTry > 0)
                                     {
-                                        Phoenix.Instance.From = LanguageHelper.DetectLanguageByLine(GetSource);
+                                        Thread.Sleep(Phoenix.Config.ReTryWaitTime);
+                                        MaxTry--;
                                     }
-
-                                    string GetData = null;
-                                    bool Passed = false;
-                                    int MaxTry = MaxTranslationAttempts;
-                                    string CurrentApiKey = "";
-
-                                    //Detecting the quality of AI-translated content
-                                    do
+                                    else
                                     {
-                                        CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
-
-                                        GetData = SetApi.QuickTrans(CurrentApiKey,GetSource, Phoenix.Instance.From, Phoenix.Instance.To, ref Call).Trim();
-                                        Passed = SecondaryQualityInspection(GetData, CustomWords);
-
-                                        if (!Passed && MaxTry > 0)
-                                        {
-                                            Thread.Sleep(Phoenix.Config.ReTryWaitTime);
-                                            MaxTry--;
-                                        }
-                                        else
-                                        {
-                                            break;
-                                        }
-                                    } while (!Passed);
-
-                                    if (GetData.Trim().Length > 0 && UseAIMemory)
-                                    {
-                                        AIMemory.AddTranslation(Phoenix.Instance.From, Phoenix.Instance.To, GetSource, GetData);
+                                        break;
                                     }
+                                } while (!Passed);
 
-                                    if (GetData.Length == 0)
-                                    {
-                                        Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
-                                    }
-
-                                    GetData = Preprocessor.RestoreFromPlaceholder(GetData, Phoenix.Instance.To);
-
-                                    TransText = GetData;
-
-                                    Call.Output();
-
-                                    CurrentPlatform = PlatformType.DeepL;
-
-                                    if (GetData.Trim().Length == 0)
-                                    {
-                                        this.CallCountDown = 0;
-                                    }
+                                if (GetData.Trim().Length > 0 && UseAIMemory)
+                                {
+                                    AIMemory.AddTranslation(From, To, GetSource, GetData);
                                 }
-                                else
+
+                                if (GetData.Length == 0)
+                                {
+                                    Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
+                                }
+
+                                TransText = GetData;
+
+                                Call.Output();
+
+                                CurrentPlatform = PlatformType.DeepL;
+
+                                if (GetData.Trim().Length == 0)
                                 {
                                     this.CallCountDown = 0;
                                 }
                             }
                             else
-                            if (this.ApiRef is CustomApi)
                             {
-                                CustomApi SetApi = (CustomApi)this.ApiRef;
+                                this.CallCountDown = 0;
+                            }
+                        }
+                        else
+                            if (this.ApiRef is CustomApi)
+                        {
+                            CustomApi SetApi = (CustomApi)this.ApiRef;
 
-                                if (Phoenix.Config.GetPlatformData(SetApi.CustomID).Enable)
+                            if (Phoenix.Config.GetPlatformData(SetApi.CustomID).Enable)
+                            {
+                                var Type = SetApi.CustomID;
+                                PlatformCall Call = new PlatformCall();
+
+                                string GetData = null;
+                                bool Passed = false;
+                                int MaxTry = MaxTranslationAttempts;
+                                string CurrentApiKey = "";
+
+                                //Detecting the quality of AI-translated content
+                                do
                                 {
-                                    var Type = SetApi.CustomID;
-                                    PlatformCall Call = new PlatformCall();
+                                    CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
 
-                                    if (Phoenix.Instance.From == Languages.Auto)
+                                    GetData = SetApi.QuickTrans(CurrentApiKey, GetSource, From, To, ref Call).Trim();
+                                    Passed = SecondaryQualityInspection(GetData, CustomWords);
+
+                                    if (!Passed && MaxTry > 0)
                                     {
-                                        Phoenix.Instance.From = LanguageHelper.DetectLanguageByLine(GetSource);
+                                        Thread.Sleep(Phoenix.Config.ReTryWaitTime);
+                                        MaxTry--;
                                     }
-
-                                    string GetData = null;
-                                    bool Passed = false;
-                                    int MaxTry = MaxTranslationAttempts;
-                                    string CurrentApiKey = "";
-
-                                    //Detecting the quality of AI-translated content
-                                    do
+                                    else
                                     {
-                                        CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
-
-                                        GetData = SetApi.QuickTrans(CurrentApiKey,GetSource, Phoenix.Instance.From, Phoenix.Instance.To, ref Call).Trim();
-                                        Passed = SecondaryQualityInspection(GetData, CustomWords);
-
-                                        if (!Passed && MaxTry > 0)
-                                        {
-                                            Thread.Sleep(Phoenix.Config.ReTryWaitTime);
-                                            MaxTry--;
-                                        }
-                                        else
-                                        {
-                                            break;
-                                        }
-                                    } while (!Passed);
-
-                                    if (GetData.Trim().Length > 0 && UseAIMemory)
-                                    {
-                                        AIMemory.AddTranslation(Phoenix.Instance.From, Phoenix.Instance.To, GetSource, GetData);
+                                        break;
                                     }
+                                } while (!Passed);
 
-                                    if (GetData.Length == 0)
-                                    {
-                                        Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
-                                    }
-
-                                    GetData = Preprocessor.RestoreFromPlaceholder(GetData, Phoenix.Instance.To);
-
-                                    TransText = GetData;
-
-                                    Call.Output();
-
-                                    CurrentPlatform = PlatformType.DeepL;
-
-                                    if (GetData.Trim().Length == 0)
-                                    {
-                                        this.CallCountDown = 0;
-                                    }
+                                if (GetData.Trim().Length > 0 && UseAIMemory)
+                                {
+                                    AIMemory.AddTranslation(From, To, GetSource, GetData);
                                 }
-                                else
+
+                                if (GetData.Length == 0)
+                                {
+                                    Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
+                                }
+
+                                TransText = GetData;
+
+                                Call.Output();
+
+                                CurrentPlatform = PlatformType.DeepL;
+
+                                if (GetData.Trim().Length == 0)
                                 {
                                     this.CallCountDown = 0;
                                 }
                             }
-                        }
-                        else
-                        {
-                            TransText = Preprocessor.RestoreFromPlaceholder(GetSource, Phoenix.Instance.To);
-
-                            this.CallCountDown++;
+                            else
+                            {
+                                this.CallCountDown = 0;
+                            }
                         }
                     }
                     else
                     if (this.ApiRef is ChatGptApi || this.ApiRef is GeminiApi || this.ApiRef is DeepSeekApi || this.ApiRef is LMStudio || this.ApiRef is CustomAIApi || this.ApiRef is CustomLocalAIApi)
                     {
-                        bool CanTrans = false;
-                
-
-                        if (Phoenix.Config.PreTranslateEnable)
+                        if (this.ApiRef is LMStudio)
                         {
-                            PreTranslateCall NPreTranslateCall = new PreTranslateCall();
-                            NPreTranslateCall.Platform = PlatformType.PhoenixEngine;
-                            NPreTranslateCall.FromAI = true;
-                            NPreTranslateCall.Key = Item.Key;
-
-                            string GetDefSource = GetSource;
-
-                            NPreTranslateCall.SendString = GetDefSource;
-
-                            GetSource = Preprocessor.GeneratePlaceholderText(Phoenix.LastLoadFileName, Phoenix.Instance.From, Phoenix.Instance.To, GetDefSource, Item.Type, out CanTrans);
-
-                            CustomWords.Clear();
-                            foreach (var GetWord in Preprocessor.ReplaceTags)
-                            { 
-                                CustomWords.Add(GetWord);
-                            }
-
-                            NPreTranslateCall.ReceiveString = GetSource;
-
-                            NPreTranslateCall.ReplaceTags = Preprocessor.ReplaceTags;
-
-                            NPreTranslateCall.Output();
-                        }
-                        else
-                        {
-                            CanTrans = true;
-                        }
-
-                        if (CanTrans)
-                        {
-                            if (this.ApiRef is LMStudio)
+                            if (Phoenix.Config.GetPlatformData(LMStudio.Type).Enable)
                             {
-                                if (Phoenix.Config.GetPlatformData(LMStudio.Type).Enable)
+                                LMStudio SetApi = ((LMStudio)this.ApiRef);
+                                AICall Call = new AICall();
+
+                                string GetData = null;
+                                bool Passed = false;
+                                int MaxTry = MaxTranslationAttempts;
+
+                                do
                                 {
-                                    LMStudio SetApi = ((LMStudio)this.ApiRef);
-                                    AICall Call = new AICall();
+                                    GetData = SetApi.QuickTrans(CustomWords, GetSource, From, To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
+                                    Passed = SecondaryQualityInspection(GetData, CustomWords);
 
-                                    string GetData = null;
-                                    bool Passed = false;
-                                    int MaxTry = MaxTranslationAttempts;
-
-                                    do
+                                    if (!Passed && MaxTry > 0)
                                     {
-                                        GetData = SetApi.QuickTrans(CustomWords, GetSource, Phoenix.Instance.From, Phoenix.Instance.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
-                                        Passed = SecondaryQualityInspection(GetData, CustomWords);
-
-                                        if (!Passed && MaxTry > 0)
-                                        {
-                                            Thread.Sleep(Phoenix.Config.ReTryWaitTime);
-                                            MaxTry--;
-                                        }
-                                        else
-                                        {
-                                            break;
-                                        }
-                                    } while (!Passed);
-
-                                    if (GetData.Trim().Length > 0 && UseAIMemory)
-                                    {
-                                        AIMemory.AddTranslation(Phoenix.Instance.From, Phoenix.Instance.To, GetSource, GetData);
+                                        Thread.Sleep(Phoenix.Config.ReTryWaitTime);
+                                        MaxTry--;
                                     }
-
-                                    GetData = Preprocessor.RestoreFromPlaceholder(GetData, Phoenix.Instance.To);
-
-                                    TransText = GetData;
-
-                                    CurrentPlatform = PlatformType.LMLocalAI;
-
-                                    if (GetData.Trim().Length == 0)
+                                    else
                                     {
-                                        this.CallCountDown = 0;
+                                        break;
                                     }
-                                    Call.Output();
+                                } while (!Passed);
+
+                                if (GetData.Trim().Length > 0 && UseAIMemory)
+                                {
+                                    AIMemory.AddTranslation(From, To, GetSource, GetData);
                                 }
-                                else
+
+                                TransText = GetData;
+
+                                CurrentPlatform = PlatformType.LMLocalAI;
+
+                                if (GetData.Trim().Length == 0)
                                 {
                                     this.CallCountDown = 0;
                                 }
+                                Call.Output();
                             }
                             else
-                            if (this.ApiRef is ChatGptApi)
                             {
-                                if (Phoenix.Config.GetPlatformData(ChatGptApi.Type).Enable)
-                                {
-                                    var Type = ChatGptApi.Type;
-                                    ChatGptApi SetApi = ((ChatGptApi)this.ApiRef);
-                                    AICall Call = new AICall();
-
-                                    string GetData = null;
-                                    bool Passed = false;
-                                    int MaxTry = MaxTranslationAttempts;
-                                    string CurrentApiKey = "";
-
-                                    do
-                                    {
-                                        CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
-
-                                        GetData = SetApi.QuickTrans(CurrentApiKey,CustomWords, GetSource, Phoenix.Instance.From, Phoenix.Instance.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
-                                        Passed = SecondaryQualityInspection(GetData, CustomWords);
-
-                                        if (!Passed && MaxTry > 0)
-                                        {
-                                            Thread.Sleep(Phoenix.Config.ReTryWaitTime);
-                                            MaxTry--;
-                                        }
-                                        else
-                                        {
-                                            break;
-                                        }
-                                    } while (!Passed);
-
-                                    if (GetData.Trim().Length > 0 && UseAIMemory)
-                                    {
-                                        AIMemory.AddTranslation(Phoenix.Instance.From, Phoenix.Instance.To, GetSource, GetData);
-                                    }
-
-                                    if (GetData.Length == 0)
-                                    {
-                                        Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
-                                    }
-
-                                    GetData = Preprocessor.RestoreFromPlaceholder(GetData, Phoenix.Instance.To);
-
-                                    TransText = GetData;
-
-                                    CurrentPlatform = PlatformType.ChatGpt;
-
-                                    if (GetData.Trim().Length == 0)
-                                    {
-                                        this.CallCountDown = 0;
-                                    }
-
-                                    Call.Output();
-                                }
-                                else
-                                {
-                                    this.CallCountDown = 0;
-                                }
-                            }
-                            else
-                            if (this.ApiRef is GeminiApi)
-                            {
-                                if (Phoenix.Config.GetPlatformData(GeminiApi.Type).Enable)
-                                {
-                                    var Type = GeminiApi.Type;
-                                    GeminiApi SetApi = ((GeminiApi)this.ApiRef);
-
-                                    AICall Call = new AICall();
-
-                                    string GetData = null;
-                                    bool Passed = false;
-                                    int MaxTry = MaxTranslationAttempts;
-                                    string CurrentApiKey = "";
-
-                                    do
-                                    {
-                                        CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
-
-                                        GetData = SetApi.QuickTrans(CurrentApiKey, CustomWords, GetSource, Phoenix.Instance.From, Phoenix.Instance.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
-                                        Passed = SecondaryQualityInspection(GetData, CustomWords);
-
-                                        if (!Passed && MaxTry > 0)
-                                        {
-                                            Thread.Sleep(Phoenix.Config.ReTryWaitTime);
-                                            MaxTry--;
-                                        }
-                                        else
-                                        {
-                                            break;
-                                        }
-                                    } while (!Passed);
-
-                                    if (GetData.Trim().Length > 0 && UseAIMemory)
-                                    {
-                                        AIMemory.AddTranslation(Phoenix.Instance.From, Phoenix.Instance.To, GetSource, GetData);
-                                    }
-
-                                    if (GetData.Length == 0)
-                                    {
-                                        Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
-                                    }
-
-                                    GetData = Preprocessor.RestoreFromPlaceholder(GetData, Phoenix.Instance.To);
-
-                                    TransText = GetData;
-
-                                    CurrentPlatform = PlatformType.Gemini;
-
-                                    if (GetData.Trim().Length == 0)
-                                    {
-                                        this.CallCountDown = 0;
-                                    }
-
-                                    Call.Output();
-                                }
-                                else
-                                {
-                                    this.CallCountDown = 0;
-                                }
-                            }
-                            else
-                            if (this.ApiRef is DeepSeekApi)
-                            {
-                                if (Phoenix.Config.GetPlatformData(DeepSeekApi.Type).Enable)
-                                {
-                                    var Type = DeepSeekApi.Type;
-                                    DeepSeekApi SetApi = ((DeepSeekApi)this.ApiRef);
-                                    AICall Call = new AICall();
-
-                                    string GetData = null;
-                                    bool Passed = false;
-                                    int MaxTry = MaxTranslationAttempts;
-                                    string CurrentApiKey = "";
-
-                                    //Detecting the quality of AI-translated content
-                                    do
-                                    {
-                                        CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
-
-                                        GetData = SetApi.QuickTrans(CurrentApiKey,CustomWords, GetSource, Phoenix.Instance.From, Phoenix.Instance.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
-                                        Passed = SecondaryQualityInspection(GetData, CustomWords);
-
-                                        if (!Passed && MaxTry > 0)
-                                        {
-                                            Thread.Sleep(Phoenix.Config.ReTryWaitTime);
-                                            MaxTry--;
-                                        }
-                                        else
-                                        {
-                                            break;
-                                        }
-                                    } while (!Passed);
-
-                                    if (GetData.Trim().Length > 0 && UseAIMemory)
-                                    {
-                                        AIMemory.AddTranslation(Phoenix.Instance.From, Phoenix.Instance.To, GetSource, GetData);
-                                    }
-                                    
-                                    if(GetData.Length == 0)
-                                    {
-                                        Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
-                                    }
-
-                                    GetData = Preprocessor.RestoreFromPlaceholder(GetData, Phoenix.Instance.To);
-
-                                    TransText = GetData;
-
-                                    CurrentPlatform = PlatformType.DeepSeek;
-
-                                    if (GetData.Trim().Length == 0)
-                                    {
-                                        this.CallCountDown = 0;
-                                    }
-
-                                    Call.Output();
-                                }
-                                else
-                                {
-                                    this.CallCountDown = 0;
-                                }
-                            }
-                            else
-                            if (this.ApiRef is CustomAIApi)
-                            {
-                                CustomAIApi SetApi = ((CustomAIApi)this.ApiRef);
-
-                                if (Phoenix.Config.GetPlatformData(SetApi.CustomID).Enable)
-                                {
-                                    var Type = SetApi.CustomID;
-                                    AICall Call = new AICall();
-
-                                    string GetData = null;
-                                    bool Passed = false;
-                                    int MaxTry = MaxTranslationAttempts;
-                                    string CurrentApiKey = "";
-
-                                    //Detecting the quality of AI-translated content
-                                    do
-                                    {
-                                        CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
-
-                                        GetData = SetApi.QuickTrans(CurrentApiKey,CustomWords, GetSource, Phoenix.Instance.From, Phoenix.Instance.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
-                                        Passed = SecondaryQualityInspection(GetData, CustomWords);
-
-                                        if (!Passed && MaxTry > 0)
-                                        {
-                                            Thread.Sleep(Phoenix.Config.ReTryWaitTime);
-                                            MaxTry--;
-                                        }
-                                        else
-                                        {
-                                            break;
-                                        }
-                                    } while (!Passed);
-
-                                    if (GetData.Trim().Length > 0 && UseAIMemory)
-                                    {
-                                        AIMemory.AddTranslation(Phoenix.Instance.From, Phoenix.Instance.To, GetSource, GetData);
-                                    }
-
-                                    if (GetData.Length == 0)
-                                    {
-                                        Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
-                                    }
-
-                                    GetData = Preprocessor.RestoreFromPlaceholder(GetData, Phoenix.Instance.To);
-
-                                    TransText = GetData;
-
-                                    CurrentPlatform = PlatformType.DeepSeek;
-
-                                    if (GetData.Trim().Length == 0)
-                                    {
-                                        this.CallCountDown = 0;
-                                    }
-
-                                    Call.Output();
-                                }
-                                else
-                                {
-                                    this.CallCountDown = 0;
-                                }
-                            }
-                            else
-                            if (this.ApiRef is CustomLocalAIApi)
-                            {
-                                CustomLocalAIApi SetApi = ((CustomLocalAIApi)this.ApiRef);
-
-                                if (Phoenix.Config.GetPlatformData(SetApi.CustomID).Enable)
-                                {
-                                    var Type = SetApi.CustomID;
-                                    AICall Call = new AICall();
-
-                                    string GetData = null;
-                                    bool Passed = false;
-                                    int MaxTry = MaxTranslationAttempts;
-
-                                    //Detecting the quality of AI-translated content
-                                    do
-                                    {
-                                        GetData = SetApi.QuickTrans(CustomWords, GetSource, Phoenix.Instance.From, Phoenix.Instance.To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
-                                        Passed = SecondaryQualityInspection(GetData, CustomWords);
-
-                                        if (!Passed && MaxTry > 0)
-                                        {
-                                            Thread.Sleep(Phoenix.Config.ReTryWaitTime);
-                                            MaxTry--;
-                                        }
-                                        else
-                                        {
-                                            break;
-                                        }
-                                    } while (!Passed);
-
-                                    if (GetData.Trim().Length > 0 && UseAIMemory)
-                                    {
-                                        AIMemory.AddTranslation(Phoenix.Instance.From, Phoenix.Instance.To, GetSource, GetData);
-                                    }
-
-                                    GetData = Preprocessor.RestoreFromPlaceholder(GetData, Phoenix.Instance.To);
-
-                                    TransText = GetData;
-
-                                    CurrentPlatform = PlatformType.DeepSeek;
-
-                                    if (GetData.Trim().Length == 0)
-                                    {
-                                        this.CallCountDown = 0;
-                                    }
-
-                                    Call.Output();
-                                }
-                                else
-                                {
-                                    this.CallCountDown = 0;
-                                }
+                                this.CallCountDown = 0;
                             }
                         }
                         else
+                          if (this.ApiRef is ChatGptApi)
                         {
-                            TransText = Preprocessor.RestoreFromPlaceholder(GetSource, Phoenix.Instance.To);
-
-                            for (int i = 0; i < Preprocessor.ReplaceTags.Count; i++)
+                            if (Phoenix.Config.GetPlatformData(ChatGptApi.Type).Enable)
                             {
-                                TransText = TransText.Replace(Preprocessor.ReplaceTags[i].Key, Preprocessor.ReplaceTags[i].Value);
-                            }
+                                var Type = ChatGptApi.Type;
+                                ChatGptApi SetApi = ((ChatGptApi)this.ApiRef);
+                                AICall Call = new AICall();
 
-                            this.CallCountDown++;
+                                string GetData = null;
+                                bool Passed = false;
+                                int MaxTry = MaxTranslationAttempts;
+                                string CurrentApiKey = "";
+
+                                do
+                                {
+                                    CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
+
+                                    GetData = SetApi.QuickTrans(CurrentApiKey, CustomWords, GetSource, From, To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
+                                    Passed = SecondaryQualityInspection(GetData, CustomWords);
+
+                                    if (!Passed && MaxTry > 0)
+                                    {
+                                        Thread.Sleep(Phoenix.Config.ReTryWaitTime);
+                                        MaxTry--;
+                                    }
+                                    else
+                                    {
+                                        break;
+                                    }
+                                } while (!Passed);
+
+                                if (GetData.Trim().Length > 0 && UseAIMemory)
+                                {
+                                    AIMemory.AddTranslation(From, To, GetSource, GetData);
+                                }
+
+                                if (GetData.Length == 0)
+                                {
+                                    Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
+                                }
+
+                                TransText = GetData;
+
+                                CurrentPlatform = PlatformType.ChatGpt;
+
+                                if (GetData.Trim().Length == 0)
+                                {
+                                    this.CallCountDown = 0;
+                                }
+
+                                Call.Output();
+                            }
+                            else
+                            {
+                                this.CallCountDown = 0;
+                            }
+                        }
+                        else
+                          if (this.ApiRef is GeminiApi)
+                        {
+                            if (Phoenix.Config.GetPlatformData(GeminiApi.Type).Enable)
+                            {
+                                var Type = GeminiApi.Type;
+                                GeminiApi SetApi = ((GeminiApi)this.ApiRef);
+
+                                AICall Call = new AICall();
+
+                                string GetData = null;
+                                bool Passed = false;
+                                int MaxTry = MaxTranslationAttempts;
+                                string CurrentApiKey = "";
+
+                                do
+                                {
+                                    CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
+
+                                    GetData = SetApi.QuickTrans(CurrentApiKey, CustomWords, GetSource, From, To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
+                                    Passed = SecondaryQualityInspection(GetData, CustomWords);
+
+                                    if (!Passed && MaxTry > 0)
+                                    {
+                                        Thread.Sleep(Phoenix.Config.ReTryWaitTime);
+                                        MaxTry--;
+                                    }
+                                    else
+                                    {
+                                        break;
+                                    }
+                                } while (!Passed);
+
+                                if (GetData.Trim().Length > 0 && UseAIMemory)
+                                {
+                                    AIMemory.AddTranslation(From, To, GetSource, GetData);
+                                }
+
+                                if (GetData.Length == 0)
+                                {
+                                    Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
+                                }
+
+                                TransText = GetData;
+
+                                CurrentPlatform = PlatformType.Gemini;
+
+                                if (GetData.Trim().Length == 0)
+                                {
+                                    this.CallCountDown = 0;
+                                }
+
+                                Call.Output();
+                            }
+                            else
+                            {
+                                this.CallCountDown = 0;
+                            }
+                        }
+                        else
+                          if (this.ApiRef is DeepSeekApi)
+                        {
+                            if (Phoenix.Config.GetPlatformData(DeepSeekApi.Type).Enable)
+                            {
+                                var Type = DeepSeekApi.Type;
+                                DeepSeekApi SetApi = ((DeepSeekApi)this.ApiRef);
+                                AICall Call = new AICall();
+
+                                string GetData = null;
+                                bool Passed = false;
+                                int MaxTry = MaxTranslationAttempts;
+                                string CurrentApiKey = "";
+
+                                //Detecting the quality of AI-translated content
+                                do
+                                {
+                                    CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
+
+                                    GetData = SetApi.QuickTrans(CurrentApiKey, CustomWords, GetSource, From, To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
+                                    Passed = SecondaryQualityInspection(GetData, CustomWords);
+
+                                    if (!Passed && MaxTry > 0)
+                                    {
+                                        Thread.Sleep(Phoenix.Config.ReTryWaitTime);
+                                        MaxTry--;
+                                    }
+                                    else
+                                    {
+                                        break;
+                                    }
+                                } while (!Passed);
+
+                                if (GetData.Trim().Length > 0 && UseAIMemory)
+                                {
+                                    AIMemory.AddTranslation(From, To, GetSource, GetData);
+                                }
+
+                                if (GetData.Length == 0)
+                                {
+                                    Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
+                                }
+
+                                TransText = GetData;
+
+                                CurrentPlatform = PlatformType.DeepSeek;
+
+                                if (GetData.Trim().Length == 0)
+                                {
+                                    this.CallCountDown = 0;
+                                }
+
+                                Call.Output();
+                            }
+                            else
+                            {
+                                this.CallCountDown = 0;
+                            }
+                        }
+                        else
+                          if (this.ApiRef is CustomAIApi)
+                        {
+                            CustomAIApi SetApi = ((CustomAIApi)this.ApiRef);
+
+                            if (Phoenix.Config.GetPlatformData(SetApi.CustomID).Enable)
+                            {
+                                var Type = SetApi.CustomID;
+                                AICall Call = new AICall();
+
+                                string GetData = null;
+                                bool Passed = false;
+                                int MaxTry = MaxTranslationAttempts;
+                                string CurrentApiKey = "";
+
+                                //Detecting the quality of AI-translated content
+                                do
+                                {
+                                    CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
+
+                                    GetData = SetApi.QuickTrans(CurrentApiKey, CustomWords, GetSource, From, To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
+                                    Passed = SecondaryQualityInspection(GetData, CustomWords);
+
+                                    if (!Passed && MaxTry > 0)
+                                    {
+                                        Thread.Sleep(Phoenix.Config.ReTryWaitTime);
+                                        MaxTry--;
+                                    }
+                                    else
+                                    {
+                                        break;
+                                    }
+                                } while (!Passed);
+
+                                if (GetData.Trim().Length > 0 && UseAIMemory)
+                                {
+                                    AIMemory.AddTranslation(From, To, GetSource, GetData);
+                                }
+
+                                if (GetData.Length == 0)
+                                {
+                                    Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
+                                }
+
+                                TransText = GetData;
+
+                                CurrentPlatform = PlatformType.DeepSeek;
+
+                                if (GetData.Trim().Length == 0)
+                                {
+                                    this.CallCountDown = 0;
+                                }
+
+                                Call.Output();
+                            }
+                            else
+                            {
+                                this.CallCountDown = 0;
+                            }
+                        }
+                        else
+                          if (this.ApiRef is CustomLocalAIApi)
+                        {
+                            CustomLocalAIApi SetApi = ((CustomLocalAIApi)this.ApiRef);
+
+                            if (Phoenix.Config.GetPlatformData(SetApi.CustomID).Enable)
+                            {
+                                var Type = SetApi.CustomID;
+                                AICall Call = new AICall();
+
+                                string GetData = null;
+                                bool Passed = false;
+                                int MaxTry = MaxTranslationAttempts;
+
+                                //Detecting the quality of AI-translated content
+                                do
+                                {
+                                    GetData = SetApi.QuickTrans(CustomWords, GetSource, From, To, UseAIMemory, AIMemoryCountLimit, AIParam, ref Call, Item.Type).Trim();
+                                    Passed = SecondaryQualityInspection(GetData, CustomWords);
+
+                                    if (!Passed && MaxTry > 0)
+                                    {
+                                        Thread.Sleep(Phoenix.Config.ReTryWaitTime);
+                                        MaxTry--;
+                                    }
+                                    else
+                                    {
+                                        break;
+                                    }
+                                } while (!Passed);
+
+                                if (GetData.Trim().Length > 0 && UseAIMemory)
+                                {
+                                    AIMemory.AddTranslation(From, To, GetSource, GetData);
+                                }
+
+                                TransText = GetData;
+
+                                CurrentPlatform = PlatformType.DeepSeek;
+
+                                if (GetData.Trim().Length == 0)
+                                {
+                                    this.CallCountDown = 0;
+                                }
+
+                                Call.Output();
+                            }
+                            else
+                            {
+                                this.CallCountDown = 0;
+                            }
                         }
                     }
 
