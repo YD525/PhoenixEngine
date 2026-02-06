@@ -92,13 +92,7 @@ namespace PhoenixEngine.TranslateManage
             return false;
         }
 
-        public CancellationTokenSource TransMainTrdCancel = null;
         public Thread TransMainTrd = null;
-
-        public void CancelMainTransThread()
-        {
-            TransMainTrdCancel?.Cancel();
-        }
 
         private PhoenixThread<T> CreatePhoenixThread<T>(PhoenixThreadPool<T> PoolRef,T DataRef,Action<T> Job,Action<T> Destroyed) where T : class
         {
@@ -111,7 +105,7 @@ namespace PhoenixEngine.TranslateManage
 
         public void Start()
         {
-            TranslatedCount = 0;
+            TranslatedCount = Phoenix.GetTranslatedCount(Phoenix.GetFileUniqueKey());
 
             if (TrdPool == null)
             {
@@ -277,10 +271,19 @@ namespace PhoenixEngine.TranslateManage
 
         public void Clear()
         {
-            Cancel();
+            ProcStage = 0;
+            IsStop = false;
 
-            this.Content.Clear();
+            Cancel();
+            this.Content?.Clear();
             this.TranslatedCount = Phoenix.GetTranslatedCount(Phoenix.GetFileUniqueKey());
+
+            GC.Collect();
+        }
+
+        public void Close()
+        {
+            this.TranslatedCount = 0;
         }
     }
 }
