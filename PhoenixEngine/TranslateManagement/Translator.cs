@@ -105,16 +105,9 @@ namespace PhoenixEngine.TranslateManage
                 List<BaseUnit> Units = new List<BaseUnit>();
                 Game GameType = Game.Null;
 
-                bool Book = false;
-
                 var GetFrist = SetUnitGroup.GetFrist();
 
-                if (SkyrimBookHelper.IsSkyrimBook(GetFrist, ref GameType))
-                {
-                    GameType = Game.Skyrim;
-                    Book = true;
-                    Units.AddRange(ChunkTranslationUnit(GameType, GetFrist, ref Chunks));
-                }
+                Units.AddRange(ChunkTranslationUnit(GameType, GetFrist, ref Chunks));
 
                 string MergeLine = "";
 
@@ -162,10 +155,10 @@ namespace PhoenixEngine.TranslateManage
 
                 List<BaseUnit> BaseUnits = new List<BaseUnit>();
 
-                foreach (var GetUnitGroup in UnitGroups)
+                foreach (var GetGroup in UnitGroups)
                 {
                     var ResultGroup = Core.CallOnce(this,
-                       PreprocessorInstance, SetUnitGroup, From, To, AIParam, Params.CanSleep, false);
+                       PreprocessorInstance, GetGroup, From, To, AIParam, Params.CanSleep, false);
 
                     BaseUnits.AddRange(ResultGroup.Units);
                 }
