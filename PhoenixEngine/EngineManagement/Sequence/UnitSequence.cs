@@ -1,18 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Web.UI.WebControls;
-using PhoenixEngine.EngineManagement.Engine;
 using PhoenixEngine.EngineManagement.Unit;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
 using PhoenixEngine.TranslateManagement;
 using static PhoenixEngine.EngineManagement.DataTransmission;
-using static PhoenixEngine.TranslateCore.LanguageHelper;
 using static PhoenixEngine.TranslateManage.EngineCore;
 
 namespace PhoenixEngine.EngineManagement
@@ -27,6 +19,9 @@ namespace PhoenixEngine.EngineManagement
         public string Data = "";
         public bool CanSkip = false;//This indicates that the specified object can be skipped.
         public bool HasOuterQuotes = false;
+        public bool CanSkipSleep = false;
+        public int Step = 0;
+
         public UnitSequence(bool CanSkip)
         { 
             this.CanSkip = CanSkip;
@@ -74,28 +69,31 @@ namespace PhoenixEngine.EngineManagement
             { 
                 var GetUnit = Item.Units[i];
                 string Source = string.Copy(GetUnit.Original);
-                bool SkipSign = false;
+
+                Sequences[GetUnit.Key].Step = 0;
 
                 if (Preprocessor.IsOnlySymbolsAndSpaces(Source))//Skip pure symbol content.
                 {
                     Sequences[GetUnit.Key].Data = Source;
-                    SkipSign = true;
+                    Sequences[GetUnit.Key].CanSkip = true;
                 }
                 else
                 if (string.IsNullOrEmpty(Source))//SkipEmptyContent
                 {
                     Sequences[GetUnit.Key].Data = Source;
-                    SkipSign = true;
+                    Sequences[GetUnit.Key].CanSkip = true;
                 }
                 else
                 if (Preprocessor.IsNumeric(Source))//Skip pure numbers
                 {
                     Sequences[GetUnit.Key].Data = Source;
-                    SkipSign = true;
+                    Sequences[GetUnit.Key].CanSkip = true;
                 }
 
-                if (!SkipSign)
+                if (!Sequences[GetUnit.Key].CanSkip)
                 {
+                    Sequences[GetUnit.Key].Step = 1;
+
                     string Content = Source;
                     Preprocessor.OptimizeStrings(ref Content);
                     Sequences[GetUnit.Key].HasOuterQuotes = Preprocessor.HasOuterQuotes(Content.Trim());
@@ -111,10 +109,8 @@ namespace PhoenixEngine.EngineManagement
                     if (Preprocessor.ExactMatch(From, To, GetUnit.Key, GetUnit.Type, Content, ref GetMatchResult))
                     {
                         Sequences[GetUnit.Key].Data = GetMatchResult;
-                        SkipSign = true;
+                        Sequences[GetUnit.Key].CanSkip = true;
                     }
-
-                    Sequences[GetUnit.Key].CanSkip = SkipSign;
                 }
             }
         }
@@ -130,13 +126,15 @@ namespace PhoenixEngine.EngineManagement
         public static void CenterPreProcess(this UnitGroup Item,
           TranslationPreprocessor Preprocessor,
           Languages From, Languages To,
-          ref Dictionary<string, UnitSequence> Sequences,ref bool CanSkipSleep)
+          ref Dictionary<string, UnitSequence> Sequences)
         {
             for (int i = 0; i < Item.Units.Count; i++)
             {
                 var GetUnit = Item.Units[i];
 
                 string Source = Sequences[GetUnit.Key].Data;
+
+                Sequences[GetUnit.Key].Step = 2;
 
                 if (!Sequences[GetUnit.Key].CanSkip)
                 {
@@ -153,7 +151,7 @@ namespace PhoenixEngine.EngineManagement
 
                         Call.Output();
 
-                        CanSkipSleep = true;
+                        Sequences[GetUnit.Key].CanSkipSleep = true;
 
                         //Update AI memory
                         if (Source.Length > 0 && Phoenix.Config.ContextEnable)
@@ -180,7 +178,7 @@ namespace PhoenixEngine.EngineManagement
 
                             Call.Output();
 
-                            CanSkipSleep = true;
+                            Sequences[GetUnit.Key].CanSkipSleep = true;
 
                             if (Source.Length > 0 && Phoenix.Config.ContextEnable)
                             {
@@ -213,6 +211,8 @@ namespace PhoenixEngine.EngineManagement
                 var GetUnit = Item.Units[i];
 
                 string Translated = Sequences[GetUnit.Key].Data;
+
+                Sequences[GetUnit.Key].Step = 3;
 
                 if (!Sequences[GetUnit.Key].CanSkip)
                 {

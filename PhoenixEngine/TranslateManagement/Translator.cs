@@ -132,7 +132,7 @@ namespace PhoenixEngine.TranslateManage
             //    }
             //}
 
-            Dictionary<string, UnitSequence> Sequences = null;
+           
             UnitGroup GetGroup = Params.Data;
             GetGroup.StartPreProcess(Params.Preprocessor,this.From,this.To,ref Sequences);
 

@@ -151,13 +151,16 @@ namespace PhoenixEngine.TranslateManage
         /// <param name="Target"></param>
         /// <param name="SourceStr"></param>
         /// <returns></returns>
-        public string CallOnce(TranslationPreprocessor Preprocessor,
-            UnitGroup Item,ref Dictionary<string, UnitSequence> Sequences,
-            Languages From, Languages To,bool CanSleep)
+        public UnitGroup CallOnce(TranslationPreprocessor Preprocessor,UnitGroup Item,
+        Languages From, Languages To,string AIParam, bool CanSleep)
         {
+            Dictionary<string, UnitSequence> Sequences = null;
 
-            bool CanSkipSleep = false;
-            Item.CenterPreProcess(Preprocessor,From,To,ref Sequences,ref CanSkipSleep);
+            Item.StartPreProcess(Preprocessor,From,To, ref Sequences);
+            Item.UPDateSequences(Sequences);
+
+            Item.CenterPreProcess(Preprocessor, From, To, ref Sequences);
+            Item.UPDateSequences(Sequences);
 
             EngineNode CurrentEngine = null;
 
@@ -186,33 +189,59 @@ namespace PhoenixEngine.TranslateManage
 
                 if (CurrentEngine != null)
                 {
-                    string AIParam = Phoenix.Config.UserCustomAIPrompt;
-                    if (Phoenix.Instance.AIParam?.Length > 0)
-                    {
-                        AIParam = Phoenix.Instance.AIParam;
-                    }
+                    NextCall:
 
                     string GetTrans = "";
 
-                    GetTrans = CurrentEngine.Call(Preprocessor, Item, true, Phoenix.Config.ContextLimit, AIParam);
+                    GetTrans = CurrentEngine.Call(Preprocessor, Item,ref Sequences,true, Phoenix.Config.ContextLimit, AIParam);
 
-                    if (CanSleep)
+                    int Hits = 0;
+                    foreach (var GetSeq in new Dictionary<string, UnitSequence>(Sequences))
+                    {
+                        if (GetSeq.Value.CanSkipSleep)
+                        {
+                            Hits++;
+                        }
+                    }
+
+                    if (CanSleep && ((Hits == Sequences.Count) == false))
                     {
                         CurrentEngine.BeginSleep();
                     }
 
-                    return GetTrans;
+
+                    ConfirmPasser Passer = Item.AnalysisContent(GetTrans);
+
+                    List<BaseUnit> NotPassUnits = new List<BaseUnit>();
+                    List<BaseUnit> PassUnits = new List<BaseUnit>();
+
+                    for (int i = 0; i < PassUnits.Count; i++)
+                    {
+                        var PassUnit = PassUnits[i];
+                        Sequences[PassUnit.Key].CanSkip = true;
+                        Sequences[PassUnit.Key].Step = 6;
+                        Sequences[PassUnit.Key].Data = PassUnit.Translated;
+                    }
+
+                    Item.UPDateSequences(Sequences);
+
+                    if (!Passer.TryPass(ref NotPassUnits, ref PassUnits))
+                    {
+                        goto NextCall;
+                    }
+
+                    return Item;
                 }
 
                 ReloadEngine();
 
                 if (EngineNodes.Count == 0)
                 { 
-                   return Item.SourceText;
+                   return null;
                 }
             }
 
-            return Item.SourceText;
+            return null;
         }
 
         public class EngineNode
@@ -320,7 +349,7 @@ namespace PhoenixEngine.TranslateManage
 
                 return FoundKeys.Count == CustomWords.Count;
             }
-            public string Call(TranslationPreprocessor Preprocessor, TranslationUnit Item,bool UseAIMemory, int AIMemoryCountLimit, string AIParam)
+            public string Call(TranslationPreprocessor Preprocessor,UnitGroup Item,ref Dictionary<string, UnitSequence> Sequences, bool UseAIMemory, int AIMemoryCountLimit, string AIParam)
             {
                 int MaxTranslationAttempts = Phoenix.Config.MaxTranslationAttempts;
 
