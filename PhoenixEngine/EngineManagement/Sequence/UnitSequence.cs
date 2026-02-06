@@ -165,7 +165,7 @@ namespace PhoenixEngine.EngineManagement
                         //Update AI memory
                         if (Source.Length > 0 && Phoenix.Config.ContextEnable)
                         {
-                            Phoenix.AIMemory.AddTranslation(From, To, Item.Original, GetCacheStr);
+                            Phoenix.AIMemory.AddTranslation(From, To, GetUnit.Original, GetCacheStr);
                         }
 
                         Sequences[GetUnit.Key].Data = GetCacheStr;
@@ -191,7 +191,7 @@ namespace PhoenixEngine.EngineManagement
 
                             if (Source.Length > 0 && Phoenix.Config.ContextEnable)
                             {
-                                Phoenix.AIMemory.AddTranslation(From, To, Item.Original, MatchItem.Result);
+                                Phoenix.AIMemory.AddTranslation(From, To, GetUnit.Original, MatchItem.Result);
                             }
 
                             Sequences[GetUnit.Key].Data = MatchItem.Result;

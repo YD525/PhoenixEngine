@@ -155,6 +155,13 @@ namespace PhoenixEngine.TranslateManage
             }
 
             //Processing the same object.
+            for (int i = 0; i < this.Content.SameItems.Count; i++)
+            {
+                for (int ir = 0; ir < this.Content.SameItems[i].Units.Count; ir++)
+                {
+                    this.Content.SameItems[i].Units[ir].Translated = this.Content.SearchTranslated(this.Content.SameItems[i].Units[ir].Original);
+                }
+            }
 
 
             //if (IsWork || TransMainTrd == null)

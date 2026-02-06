@@ -92,7 +92,6 @@ namespace PhoenixEngine.EngineManagement.Unit
         public bool IsUnrelated = false;
 
         public ProcContent ParentRef = null;
-        public string Original = "";
 
         public void BatchProc(int State)
         {

@@ -194,6 +194,7 @@ namespace PhoenixEngine.EngineManagement.Engine
             {
                 if (this.UnionData.Units[i].Original.Equals(Original))
                 {
+                    if(this.UnionData.Units[i].Translated.Length > 0)
                     return this.UnionData.Units[i].Translated;
                 }
             }
@@ -202,11 +203,12 @@ namespace PhoenixEngine.EngineManagement.Engine
             {
                 if (GetDict.Value.Original.Equals(Original))
                 {
+                    if(GetDict.Value.Translated.Length > 0)
                     return GetDict.Value.Translated;
                 }
             }
 
-            throw (new Exception("An unknown anomaly occurred"));
+            throw (new Exception("SearchTranslated: An unknown anomaly occurred"));
         }
     }
 }
