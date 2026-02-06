@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Web.UI.WebControls;
 using PhoenixEngine.EngineManagement;
+using PhoenixEngine.EngineManagement.Engine;
 using PhoenixEngine.EngineManagement.Unit;
 using PhoenixEngine.GameManagement;
 using PhoenixEngine.TranslateCore;
@@ -83,88 +85,135 @@ namespace PhoenixEngine.TranslateManage
             return Units;
         }
 
-        public UnitGroup Translate(TransParam Params)
+        public UnitGroup Translate(TransParam Params,bool IsBook)
         {
             if (this.From == this.To)
             {
                 return Params.Data;
             }
 
+            UnitGroup SetUnitGroup = Params.Data;
+
             if (Params.Preprocessor == null)
             {
                 Params.Preprocessor = this.PreprocessorInstance;
             }
 
-            //List<BaseUnit> Units = new List<BaseUnit>();
-            //List<UnitChunk> Chunks = new List<UnitChunk>();
-            //Game GameType = Game.Null;
+            if (IsBook)
+            {
+                List<UnitChunk> Chunks = new List<UnitChunk>();
+                List<BaseUnit> Units = new List<BaseUnit>();
+                Game GameType = Game.Null;
 
-            //bool Book = false;
+                bool Book = false;
 
-            //if (SkyrimBookHelper.IsSkyrimBook(Item,ref GameType))
-            //{
-            //    GameType = Game.Skyrim;
-            //    Book = true;
-            //    Units.AddRange(ChunkTranslationUnit(GameType,Item,ref Chunks));
-            //}
-            //else
-            //{
-            //    Units.Add(Item);
-            //}
+                var GetFrist = SetUnitGroup.GetFrist();
 
-            //string MergeLine = "";
+                if (SkyrimBookHelper.IsSkyrimBook(GetFrist, ref GameType))
+                {
+                    GameType = Game.Skyrim;
+                    Book = true;
+                    Units.AddRange(ChunkTranslationUnit(GameType, GetFrist, ref Chunks));
+                }
 
-            //if (Chunks.Count > 0)
-            //{
-            //    //It is necessary to prevent the preceding lines of code from being lost.
-            //    foreach (var GetChunk in Chunks)
-            //    {
-            //        if (GetChunk.IsCode)
-            //        {
-            //            MergeLine += GetChunk.Data;
-            //        }
-            //        else
-            //        {
-            //            break;
-            //        }
-            //    }
-            //}
+                string MergeLine = "";
 
-            UnitGroup SetUnitGroup = Params.Data;
-            SetUnitGroup = Core.CallOnce(this,
-                PreprocessorInstance,SetUnitGroup,From,To,AIParam,Params.CanSleep,true);
+                if (Chunks.Count > 0)
+                {
+                    //It is necessary to prevent the preceding lines of code from being lost.
+                    foreach (var GetChunk in Chunks)
+                    {
+                        if (GetChunk.IsCode)
+                        {
+                            MergeLine += GetChunk.Data;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                }
 
+                List<UnitGroup> UnitGroups = new List<UnitGroup>();
+                int SetLength = 0;
 
-            //if (Chunks.Count > 0)
-            //{
-            //    for (int i = 0; i < Chunks.Count; i++)
-            //    {
-            //        if (Chunks[i].Key.Equals(GetUnit.Key))
-            //        {
-            //            MergeLine += Content + "\n";
+                UnitGroup NewUnitGroup = new UnitGroup(SetUnitGroup.ParentRef);
 
-            //            for (int j = i + 1; j < Chunks.Count; j++)
-            //            {
-            //                if (Chunks[j].IsCode)
-            //                {
-            //                    MergeLine += Chunks[j].Data;
-            //                }
-            //                else
-            //                {
-            //                    break;
-            //                }
-            //            }
+                for (int i = 0; i < Units.Count; i++)
+                {
+                    if (SetLength < ProcContent.TextLengthLimit)
+                    {
+                        SetLength += Units[i].Original.Length;
+                        NewUnitGroup.Units.Add(Units[i]);
+                    }
+                    else
+                    {
+                        UnitGroups.Add(NewUnitGroup);
+                        NewUnitGroup = new UnitGroup(SetUnitGroup.ParentRef);
+                        SetLength = Units[i].Original.Length;
+                        NewUnitGroup.Units.Add(Units[i]);
+                    }
+                }
+                if (NewUnitGroup.Units.Count > 0)
+                {
+                    UnitGroups.Add(NewUnitGroup);
+                    NewUnitGroup = null;
+                }
 
-            //            break;
-            //        }
-            //    }
-            //}
-            //else
-            //{
-            //    MergeLine += Content;
-            //}   
+                List<BaseUnit> BaseUnits = new List<BaseUnit>();
 
-            return SetUnitGroup;
+                foreach (var GetUnitGroup in UnitGroups)
+                {
+                    var ResultGroup = Core.CallOnce(this,
+                       PreprocessorInstance, SetUnitGroup, From, To, AIParam, Params.CanSleep, false);
+
+                    BaseUnits.AddRange(ResultGroup.Units);
+                }
+
+                if (Chunks.Count > 0)
+                {
+                    for (int i = 0; i < Chunks.Count; i++)
+                    {
+                        foreach (var GetUnit in BaseUnits)
+                        {
+                            if (Chunks[i].Key.Equals(GetUnit.Key))
+                            {
+                                MergeLine += GetUnit.Translated + "\n";
+
+                                for (int j = i + 1; j < Chunks.Count; j++)
+                                {
+                                    if (Chunks[j].IsCode)
+                                    {
+                                        MergeLine += Chunks[j].Data;
+                                    }
+                                    else
+                                    {
+                                        break;
+                                    }
+                                }
+
+                                break;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (var GetUnit in BaseUnits)
+                    {
+                        MergeLine += GetUnit.Translated;
+                    }
+                }
+                UnitGroup ReturnItem = new UnitGroup(SetUnitGroup.ParentRef);
+                ReturnItem.Units.Add(new BaseUnit(GetFrist.FileUniqueKey, GetFrist.Key, GetFrist.Type, GetFrist.Original, MergeLine, 100));
+
+                return ReturnItem;
+            }
+            else
+            {
+                return Core.CallOnce(this,
+                    PreprocessorInstance, SetUnitGroup, From, To, AIParam, Params.CanSleep, true);
+            }
         }
 
         public void UnifiedSymbols()

@@ -77,16 +77,7 @@ namespace PhoenixEngine.EngineManagement.Unit
         }
     }
 
-    public class TranslationTrd
-    {
-        public bool Processing = false;
-        public bool IsTranslated = false;
-        public int WorkEnd = 0;
-        public Thread CurrentTrd;
-        public CancellationTokenSource TransThreadToken;
-    }
-
-    public class UnitGroup : TranslationTrd
+    public class UnitGroup
     {
         public string Key = "";
         public int TotalLength;
@@ -360,6 +351,11 @@ namespace PhoenixEngine.EngineManagement.Unit
             }
 
             return Intersection;
+        }
+
+        public int GetCount()
+        {
+            return Units.Count;
         }
     }
 }

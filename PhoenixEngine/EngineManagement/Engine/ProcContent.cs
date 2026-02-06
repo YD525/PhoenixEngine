@@ -82,6 +82,16 @@ namespace PhoenixEngine.EngineManagement.Engine
             Units.Add(BatchUnit);
         }
 
+        public int GetUnitsCount()
+        {
+            int Count = 0;
+            for (int i = 0; i < this.Units.Count; i++)
+            {
+                Count += this.Units[i].GetCount();
+            }
+            return Count;
+        }
+
         public int GetCount()
         {
             if (UnionData != null)
@@ -90,12 +100,13 @@ namespace PhoenixEngine.EngineManagement.Engine
             }
             else
             {
-                return (this.Units.Count + this.SameItems.Count + this.Books.Count);
+                return (GetUnitsCount() + this.SameItems.Count + this.Books.Count);
             }
         }
         public static ProcContent Build(Translator Translator, UnionArray Data,AggregationMode SetMode)
         {
             ProcContent Content = new ProcContent(Translator);
+            Content.UnionData = Data;
 
             if (SetMode == AggregationMode.Aggregation)
             {
@@ -145,7 +156,6 @@ namespace PhoenixEngine.EngineManagement.Engine
                 }
 
                 UnitGroup UnitGroup = new UnitGroup(Content);
-                UnitGroup.IsUnrelated = true;
 
                 foreach (var Kvp in SingleUnits)
                 {
@@ -170,7 +180,7 @@ namespace PhoenixEngine.EngineManagement.Engine
             else
             if (SetMode == AggregationMode.Single)
             {
-                Content.UnionData = Data;
+              
             }
 
             return Content;
