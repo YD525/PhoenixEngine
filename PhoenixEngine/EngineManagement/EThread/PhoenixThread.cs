@@ -5,27 +5,124 @@ using System.Threading;
 namespace PhoenixEngine.EngineManagement.EThread
 {
     public enum WorkState
-    { 
-       Null=0,WaitToCreated = 1,Working = 2,WorkEnd = 3
-    }
-    public class PhoenixThreadPool<T> where T : class
     {
-        public List<PhoenixThread<T>> Threads = new List<PhoenixThread<T>>();
-
-        public int GetWorkCount()
+        Null = 0, WaitToCreated = 1, Working = 2, WorkEnd = 3
+    }
+    public class PhoenixThreadPool<T1, T2>
+    where T1 : class
+    where T2 : class
+    {
+        public List<PhoenixThread<T1, T2>> Threads = new List<PhoenixThread<T1, T2>>();
+        public int ConcurrencyLimit = 0;
+        public object SyncLock = new object();
+        public int GetWorkingThreadCount()
         {
-            return 0;
+            lock (SyncLock)
+            {
+            NextTry:
+                try
+                {
+                    int WorkCount = 0;
+                    for (int i = 0; i < Threads.Count; i++)
+                    {
+                        if (Threads[i].State == WorkState.Working)
+                        {
+                            WorkCount++;
+                        }
+                    }
+                    return WorkCount;
+                }
+                catch { goto NextTry; }
+            }
+        }
+        public void SyncPool()
+        {
+            lock (SyncLock)
+            {
+                List<PhoenixThread<T1, T2>> WaitDeletes = new List<PhoenixThread<T1, T2>>();
+
+                for (int i = 0; i < Threads.Count; i++)
+                {
+                    if (Threads[i].State == WorkState.WorkEnd)
+                    {
+                        WaitDeletes.Add(Threads[i]);
+                    }
+                }
+
+                foreach (var GetTrd in WaitDeletes)
+                {
+                    Threads.Remove(GetTrd);
+                }
+            }
+        }
+        public void DeleteTrdByID(int ID)
+        {
+            lock (SyncLock)
+            {
+                for (int i = 0; i < Threads.Count; i++)
+                {
+                    if (Threads[i].ID == ID)
+                    {
+                        Threads.RemoveAt(i);
+                        return;
+                    }
+                }
+            }
+        }
+        public int GenID()
+        {
+            lock (SyncLock)
+            {
+                return this.Threads.Count + 1;
+            }
+        }
+        public bool Add(PhoenixThread<T1, T2> ThreadRef, bool Run = true)
+        {
+            lock (SyncLock)
+            {
+                if (ConcurrencyLimit < GetWorkingThreadCount())
+                {
+                    return false;
+                }
+
+                Threads.Add(ThreadRef);
+
+                if (Run)
+                {
+                    ThreadRef.Start();
+                }
+
+                return true;
+            }
+        }
+        public void CloseAll()
+        {
+            lock (SyncLock)
+            {
+                while (Threads.Count > 0)
+                {
+                    try
+                    {
+                        Threads[0].Close(true);
+                        Threads.RemoveAt(0);
+                    }
+                    catch { }
+                }
+            }
         }
     }
-    public class PhoenixThread<T> where T : class
+    public class PhoenixThread<T1, T2>
+    where T1 : class
+    where T2 : class
     {
         public int ID = 0;
         public WorkState State = WorkState.Null;
-        public Action<T> Job;
-        public Action<T> OnDestroyed;
+        public Action<T1> Job;
+        public Action<T2> OnDestroyed;
 
-        public T JobFunc;
-        public T DestroyedFunc;
+        public T1 JobFunc;
+        public T2 DestroyedFunc;
+        public PhoenixThreadPool<T1, T2> ThreadPoolRef = null;
 
         public bool SuspendTrd = false;
 
@@ -45,17 +142,38 @@ namespace PhoenixEngine.EngineManagement.EThread
                     }
                     OnDestroyed.Invoke(DestroyedFunc);
                     State = WorkState.WorkEnd;
+
+                    if (this.ThreadPoolRef != null)
+                    {
+                        this.ThreadPoolRef.DeleteTrdByID(this.ID);
+                    }
+
                     CurrentTrd = null;
                 });
+
+                if (this.ThreadPoolRef != null)
+                {
+                    this.ID = this.ThreadPoolRef.GenID();
+                }
+                else
+                {
+                    this.ID = Guid.NewGuid().GetHashCode();
+                }
             }
         }
-        public PhoenixThread()
+        public PhoenixThread(PhoenixThreadPool<T1, T2> ThreadPoolRef = null)
         {
-            State = WorkState.WaitToCreated;
+            this.ThreadPoolRef = ThreadPoolRef;
 
+            State = WorkState.WaitToCreated;
             GenThread();
         }
-        public bool Start(T Item,bool IsBackground = false)
+        public void SetCall(T1 Job, T2 Destroyed)
+        {
+            this.JobFunc = Job;
+            this.DestroyedFunc = Destroyed;
+        }
+        public bool Start(bool IsBackground = false)
         {
             GenThread();
 
@@ -76,16 +194,24 @@ namespace PhoenixEngine.EngineManagement.EThread
             return SuspendTrd;
         }
 
-        public void Close()
+        public void Close(bool System = false)
         {
             if (this.State == WorkState.Working)
             {
-                try 
+                try
                 {
                     CurrentTrd.Abort();
                     CurrentTrd = null;
                 }
                 catch { }
+            }
+
+            if (!System)
+            {
+                if (this.ThreadPoolRef != null)
+                {
+                    this.ThreadPoolRef.DeleteTrdByID(this.ID);
+                }
             }
         }
     }
