@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Web.UI.WebControls;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.EngineManagement.Engine;
 using PhoenixEngine.EngineManagement.Unit;
@@ -22,12 +22,9 @@ namespace PhoenixEngine.TranslateManage
         public Languages To = Languages.Null;
 
         public string AIParam = null;
-
-        private TranslationPreprocessor PreprocessorInstance = new TranslationPreprocessor();
         public EngineCore Core = new EngineCore();
         public TranslatorCore BatchCore = null;
     
-
         public readonly object TransDataLocker = new object();
 
         public Dictionary<string, string> TranslatedLink = new Dictionary<string, string>();
@@ -46,6 +43,27 @@ namespace PhoenixEngine.TranslateManage
                     this.To = SetTo;
                 }
             }
+        }
+
+        public void EnableBatchTranslationFunc(bool ClearCache = false)
+        {
+            if (BatchCore == null)
+            {
+                BatchCore = new TranslatorCore(this, ClearCache);
+            }
+        }
+
+        public void InitBatchTranslation(List<BaseUnit>BaseUnits,AggregationMode Mode)
+        {
+            if (BatchCore != null)
+            {
+                if (!BatchCore.Init(BaseUnits, Mode))
+                {
+                    throw (new Exception("Translator->Attempting to initialize at the wrong stage."));
+                }
+            }
+
+            throw (new Exception("Translator->Error: Null pointer."));
         }
 
         public void ClearCache()
@@ -93,7 +111,7 @@ namespace PhoenixEngine.TranslateManage
 
             if (Params.Preprocessor == null)
             {
-                Params.Preprocessor = this.PreprocessorInstance;
+                Params.Preprocessor = TranslationPreprocessor.Instance;
             }
 
             if (IsBook)
@@ -154,7 +172,7 @@ namespace PhoenixEngine.TranslateManage
                 foreach (var GetGroup in UnitGroups)
                 {
                     var ResultGroup = Core.CallOnce(this,
-                       PreprocessorInstance, GetGroup, From, To, AIParam, Params.CanSleep, false);
+                       Params.Preprocessor, GetGroup, From, To, AIParam, Params.CanSleep, false);
 
                     BaseUnits.AddRange(ResultGroup.Units);
                 }
@@ -201,7 +219,7 @@ namespace PhoenixEngine.TranslateManage
             else
             {
                 return Core.CallOnce(this,
-                    PreprocessorInstance, SetUnitGroup, From, To, AIParam, Params.CanSleep, true);
+                    Params.Preprocessor, SetUnitGroup, From, To, AIParam, Params.CanSleep, true);
             }
         }
 

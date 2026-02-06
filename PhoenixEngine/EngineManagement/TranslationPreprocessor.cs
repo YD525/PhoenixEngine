@@ -29,6 +29,8 @@ namespace PhoenixEngine.TranslateManage
 
     public class TranslationPreprocessor : TranslationPreprocessorExtend
     {
+        public static TranslationPreprocessor Instance = new TranslationPreprocessor();
+
         public bool HasPlaceholder = false;
         public string SourceStr = "";
 

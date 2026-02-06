@@ -32,7 +32,7 @@ namespace PhoenixEngine.TranslateManage
         public PhoenixThreadPool<UnitGroup> TrdPool = null;
 
         public int ProcStage = 0;
-        public TranslatorCore(Translator SetTranslator,List<BaseUnit> BaseUnits,AggregationMode SetMode, bool ClearCache = false)
+        public TranslatorCore(Translator SetTranslator,bool ClearCache = false)
         {
             ProcStage = 0;
             this.TranslatorRef = SetTranslator;
@@ -41,15 +41,8 @@ namespace PhoenixEngine.TranslateManage
             {
                 TranslatorRef.ClearCache();
             }
-
-            UnionArray SetData = new UnionArray();
-            ProcStage = 1;
-            SetData.Load(BaseUnits, TranslatorRef.From);
-            ProcStage = 2;
-            Content = ProcContent.Build(TranslatorRef,SetData,SetMode);
-
-            Init();
         }
+
 
         public ThreadUsageInfo ThreadUsage = new ThreadUsageInfo();
 
@@ -67,14 +60,27 @@ namespace PhoenixEngine.TranslateManage
            return TrdPool.GetWorkingThreadCount();
         }
 
-        public void Init()
+        public bool Init(List<BaseUnit> BaseUnits, AggregationMode SetMode)
         {
-            if (Phoenix.Config.MaxThreadCount <= 0)
+            if (ProcStage == 0)
             {
-                Phoenix.Config.MaxThreadCount = 1;
+                UnionArray SetData = new UnionArray();
+                ProcStage = 1;
+                SetData.Load(BaseUnits, TranslatorRef.From);
+                ProcStage = 2;
+                Content = ProcContent.Build(TranslatorRef, SetData, SetMode);
+
+                if (Phoenix.Config.MaxThreadCount <= 0)
+                {
+                    Phoenix.Config.MaxThreadCount = 1;
+                }
+
+                AutoSleep = 1;
+
+                return true;
             }
 
-            AutoSleep = 1;
+            return false;
         }
 
         public CancellationTokenSource TransMainTrdCancel = null;

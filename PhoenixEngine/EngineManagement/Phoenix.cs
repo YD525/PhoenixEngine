@@ -22,7 +22,7 @@ namespace PhoenixEngine.EngineManagement
     {
         public static AITranslationMemory AIMemory = new AITranslationMemory();
 
-        public static string Version = "1.2.3.5";
+        public static string Version = "2.2.3.5";
         public static string CurrentPath = "";
 
         public static object QueryPlatformDataLock = new object();

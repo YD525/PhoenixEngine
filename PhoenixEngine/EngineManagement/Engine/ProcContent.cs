@@ -208,7 +208,7 @@ namespace PhoenixEngine.EngineManagement.Engine
                 }
             }
 
-            throw (new Exception("SearchTranslated: An unknown anomaly occurred"));
+            throw (new Exception("SearchTranslated->An unknown anomaly occurred"));
         }
     }
 }
