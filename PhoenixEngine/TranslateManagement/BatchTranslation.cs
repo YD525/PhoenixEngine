@@ -45,7 +45,7 @@ namespace PhoenixEngine.TranslateManage
 
         public readonly object TranslatedAddLocker = new object();
 
-        public void AddTranslated(TranslationUnitGroup Item)
+        private void AddTranslated(UnitGroup Item)
         {
             lock (TranslatorRef.TransDataLocker)
             {

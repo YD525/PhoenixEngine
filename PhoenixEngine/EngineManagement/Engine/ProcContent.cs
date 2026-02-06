@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using PhoenixEngine.EngineManagement.Sequence;
 using PhoenixEngine.EngineManagement.Unit;
 using PhoenixEngine.GameManagement;
 using PhoenixEngine.TranslateManage;
@@ -30,7 +27,7 @@ namespace PhoenixEngine.EngineManagement.Engine
         {
             return this.TranslatorRef;
         }
-        public void AddLeader(BaseUnit Item)
+        private void AddLeader(BaseUnit Item)
         {
             GenKey++;
 
@@ -38,7 +35,7 @@ namespace PhoenixEngine.EngineManagement.Engine
             BatchUnit.Init(GenKey, Item, AggregationMode.Aggregation);
             Units.Add(BatchUnit);
         }
-        public void Add(BaseUnit Item)
+        private void Add(BaseUnit Item)
         {
             GenKey++;
 
