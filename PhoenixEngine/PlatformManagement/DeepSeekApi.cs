@@ -138,6 +138,7 @@ namespace PhoenixEngine.PlatformManagement
 
         public DeepSeekRootobject CallAI(string ApiKey,string Msg, ref string Recv)
         {
+            this.Model = Phoenix.Config.GetPlatformData(DeepSeekApi.Type).Model;
             int GetCount = Msg.Length;
             DeepSeekItem NDeepSeekItem = new DeepSeekItem();
             NDeepSeekItem.model = Model;

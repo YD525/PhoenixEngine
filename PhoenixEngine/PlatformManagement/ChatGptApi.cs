@@ -49,6 +49,7 @@ namespace PhoenixEngine.PlatformManagement
         }
         public ChatGptRootobject CallAI(string ApiKey, string Msg,ref string Recv)
         {
+            this.Model = Phoenix.Config.GetPlatformData(ChatGptApi.Type).Model;
             int GetCount = Msg.Length; 
             ChatGptItem NChatGptItem = new ChatGptItem();
             NChatGptItem.model = Model;

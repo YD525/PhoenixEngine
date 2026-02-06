@@ -142,7 +142,7 @@ namespace PhoenixEngine.TranslateManage
 
                 this.ProcStage = 5;
                 //Book translation will be done last.
-                for (int i = 0; i < this.Content.Units.Count; i++)
+                for (int i = 0; i < this.Content.Books.Count; i++)
                 {
                     UnitGroup GetBookPointer = this.Content.Books[i];
                     while (!TrdPool.Put(CreatePhoenixThread<UnitGroup>(GetBookPointer, BookCall, WorkEndCall)))

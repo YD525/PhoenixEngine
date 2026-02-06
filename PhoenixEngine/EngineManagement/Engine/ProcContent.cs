@@ -126,7 +126,7 @@ namespace PhoenixEngine.EngineManagement.Engine
                 }
             }
 
-            throw (new Exception("SearchTranslated->An unknown anomaly occurred"));
+            return string.Empty;
         }
         public void Clear()
         {
