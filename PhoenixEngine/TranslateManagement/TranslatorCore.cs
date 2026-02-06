@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Data.SQLite;
 using System.Linq;
 using System.Threading;
 using PhoenixEngine.EngineManagement;
@@ -29,9 +30,12 @@ namespace PhoenixEngine.TranslateManage
 
         public Translator TranslatorRef = null;
 
-        public PhoenixThreadPool<object, object> TrdPool = null;
+        public PhoenixThreadPool<UnitGroup> TrdPool = null;
+
+        public int ProcStage = 0;
         public TranslatorCore(Translator SetTranslator,List<BaseUnit> BaseUnits,AggregationMode SetMode, bool ClearCache = false)
         {
+            ProcStage = 0;
             this.TranslatorRef = SetTranslator;
 
             if (ClearCache)
@@ -40,7 +44,9 @@ namespace PhoenixEngine.TranslateManage
             }
 
             UnionArray SetData = new UnionArray();
+            ProcStage = 1;
             SetData.Load(BaseUnits, TranslatorRef.From);
+            ProcStage = 2;
             Content = ProcContent.Build(TranslatorRef,SetData,SetMode);
 
             Init();
@@ -109,8 +115,37 @@ namespace PhoenixEngine.TranslateManage
             }
         }
 
+        private PhoenixThread<T> CreatePhoenixThread<T>(T DataRef,Action<T> Job,Action<T> Destroyed) where T : class
+        {
+            PhoenixThread<T> CreateTrd = new PhoenixThread<T>();
+            CreateTrd.SetFunc(Job);
+            CreateTrd.RegDestroyed(Destroyed);
+            CreateTrd.SetData(DataRef);
+            return CreateTrd;
+        }
+
         public void Start()
         {
+            //The method pointer is invoked after the translation is complete.
+            Action<UnitGroup> WorkEndCall = new Action<UnitGroup>((Item) =>
+            {
+                AddTranslated(Item);
+            });
+
+            //Normal type translation calls pointers.
+            Action<UnitGroup> NormalCall = new Action<UnitGroup>((Item) =>
+            {
+                TranslatorRef.Translate(new TransParam(Item,false,true),false);
+            });
+
+            //Special type translation calls pointers.
+            Action<UnitGroup> BookCall = new Action<UnitGroup>((Item) =>
+            {
+                TranslatorRef.Translate(new TransParam(Item, true, true), false);
+            });
+
+
+
             //if (IsWork || TransMainTrd == null)
             //{
             //    ExitAny = false;
@@ -147,7 +182,7 @@ namespace PhoenixEngine.TranslateManage
             //                    bool CanExit = true;
             //                    Token.ThrowIfCancellationRequested();
             //                    CurrentTrds = GetWorkCount();
-                                
+
             //                    int AutoTrd = Phoenix.Config.MaxThreadCount;
 
             //                    if (IsLeader)
@@ -273,85 +308,10 @@ namespace PhoenixEngine.TranslateManage
 
         public bool ExitAny = false;
 
-        public void Clear()
+      
+        public void Cancel()
         {
-            //for (int i = 0; i < UnitsLeaderToTranslate.Count; i++)
-            //{
-            //    var Key = UnitsLeaderToTranslate.ElementAt(i).Key;
-            //    UnitsLeaderToTranslate[Key].TransText = string.Empty;
-            //    UnitsLeaderToTranslate[Key].Processing = false;
-            //    UnitsLeaderToTranslate[Key].WorkEnd = 0;
-            //    UnitsLeaderToTranslate[Key].Translated = false;
-            //    UnitsToTranslate[i].IsDuplicateSource = false;
-            //}
-
-            //for (int i = 0; i < UnitsToTranslate.Count; i++)
-            //{
-            //    UnitsToTranslate[i].TransText = string.Empty;
-            //    UnitsToTranslate[i].Processing = false;
-            //    UnitsToTranslate[i].WorkEnd = 0;
-            //    UnitsToTranslate[i].Translated = false;
-            //    UnitsToTranslate[i].IsDuplicateSource = false;
-            //}
-        }
-        public void Close()
-        {
-            //ExitAny = true;
-            //try
-            //{
-            //    CancelMainTransThread();
-            //}
-            //catch { }
-
-            //for (int i = 0; i < UnitsToTranslate.Count; i++)
-            //{
-            //    if (UnitsToTranslate[i].Processing)
-            //    {
-            //        try
-            //        {
-            //            UnitsToTranslate[i].CancelWorkThread();
-            //        }
-            //        catch { }
-
-            //        try
-            //        {
-            //            if (UnitsToTranslate[i].CurrentTrd != null)
-            //            {
-            //                UnitsToTranslate[i].CurrentTrd.Abort();
-            //            }
-
-            //            UnitsToTranslate[i].CurrentTrd = null;
-            //        }
-            //        catch { }
-            //    }
-            //}
-
-            //foreach (var Kvp in UnitsLeaderToTranslate)
-            //{
-            //    if (Kvp.Value.Processing)
-            //    {
-            //        try
-            //        {
-            //            Kvp.Value.CancelWorkThread();
-                       
-            //        }
-            //        catch { }
-
-            //        try
-            //        {
-            //            if (Kvp.Value.CurrentTrd != null)
-            //            {
-            //                Kvp.Value.CurrentTrd.Abort();
-            //            }
-
-            //            Kvp.Value.CurrentTrd = null;
-            //        }
-            //        catch { }
-            //    }
-            //}
-
-            //Clear();
-            //TransMainTrd = null;
+            TrdPool.CloseAll();
         }
         public void Keep()
         {
@@ -364,7 +324,11 @@ namespace PhoenixEngine.TranslateManage
 
         private void AddTranslated(UnitGroup Item)
         {
-            Item.UPDateLink(this.TranslatorRef);
+            lock (UnitsReadLock)
+            {
+                Item.UPDateLink(this.TranslatorRef);
+            }
+                
             TranslatedQueue.Enqueue(Item);
         }
         public UnitGroup DequeueTranslated(out bool IsEnd)

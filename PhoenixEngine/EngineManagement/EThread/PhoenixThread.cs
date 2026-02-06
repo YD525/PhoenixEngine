@@ -8,13 +8,13 @@ namespace PhoenixEngine.EngineManagement.EThread
     {
         Null = 0, WaitToCreated = 1, Working = 2, WorkEnd = 3
     }
-    public class PhoenixThreadPool<T1, T2>
-    where T1 : class
-    where T2 : class
+    public class PhoenixThreadPool<T> where T : class
     {
-        private List<PhoenixThread<T1, T2>> Threads = new List<PhoenixThread<T1, T2>>();
+        private List<PhoenixThread<T>> Threads = new List<PhoenixThread<T>>();
         public int ConcurrencyLimit = 0;
         public object SyncLock = new object();
+
+        private bool CanPut = true;
         public int GetWorkingThreadCount()
         {
             lock (SyncLock)
@@ -48,7 +48,7 @@ namespace PhoenixEngine.EngineManagement.EThread
         {
             lock (SyncLock)
             {
-                List<PhoenixThread<T1, T2>> WaitDeletes = new List<PhoenixThread<T1, T2>>();
+                List<PhoenixThread<T>> WaitDeletes = new List<PhoenixThread<T>>();
 
                 for (int i = 0; i < Threads.Count; i++)
                 {
@@ -85,8 +85,13 @@ namespace PhoenixEngine.EngineManagement.EThread
                 return this.Threads.Count + 1;
             }
         }
-        public bool Put(PhoenixThread<T1, T2> ThreadRef, bool Run = true)
+        public bool Put(PhoenixThread<T> ThreadRef, bool Run = true)
         {
+            if (!CanPut)
+            {
+                return false;
+            }
+
             lock (SyncLock)
             {
                 if (ConcurrencyLimit < GetWorkingThreadCount())
@@ -128,21 +133,28 @@ namespace PhoenixEngine.EngineManagement.EThread
                 {
                     Threads[i].Suspend(Check);
                 }
+
+                if (Check)
+                {
+                    CanPut = false;
+                }
+                else
+                {
+                    CanPut = true;
+                }
             }
         }
     }
-    public class PhoenixThread<T1, T2>
-    where T1 : class
-    where T2 : class
+    public class PhoenixThread<T>
+    where T : class
     {
         public int ID = 0;
         public WorkState State = WorkState.Null;
-        public Action<T1> JobFunc;
-        public Action<T2> OnDestroyedFunc;
+        private Action<T> JobFunc;
+        private T DataRef;
+        private Action<T> OnDestroyedFunc;
 
-        public T1 JobParam;
-        public T2 DestroyedParam;
-        public PhoenixThreadPool<T1, T2> ThreadPoolRef = null;
+        public PhoenixThreadPool<T> ThreadPoolRef = null;
 
         public bool SuspendTrd = false;
 
@@ -155,12 +167,12 @@ namespace PhoenixEngine.EngineManagement.EThread
                 CurrentTrd = new Thread(() =>
                 {
                     State = WorkState.Working;
-                    JobFunc?.Invoke(JobParam);
+                    JobFunc?.Invoke(this.DataRef);
                     while (this.SuspendTrd)
                     {
                         Thread.Sleep(500);
                     }
-                    OnDestroyedFunc?.Invoke(DestroyedParam);
+                    OnDestroyedFunc?.Invoke(this.DataRef);
                     State = WorkState.WorkEnd;
 
                     if (this.ThreadPoolRef != null)
@@ -181,24 +193,36 @@ namespace PhoenixEngine.EngineManagement.EThread
                 }
             }
         }
-        public PhoenixThread(PhoenixThreadPool<T1, T2> ThreadPoolRef = null)
+        public PhoenixThread(PhoenixThreadPool<T> ThreadPoolRef = null)
         {
             this.ThreadPoolRef = ThreadPoolRef;
 
             State = WorkState.WaitToCreated;
             GenThread();
         }
-        public void SetParam(T1 SetJob, T2 SetDestroyed)
+        public void SetData(T DataRef)
+        { 
+            this.DataRef = DataRef;
+        }
+        public void SetFunc(Action<T> SetJob)
         {
-            this.JobParam = SetJob;
-            this.DestroyedParam = SetDestroyed;
+            this.JobFunc = SetJob;
+        }
+        public void RegDestroyed(Action<T> EndCall)
+        {
+            this.OnDestroyedFunc = EndCall;
         }
         public bool Start(bool IsBackground = false)
+        {
+            return Start(DataRef, IsBackground);
+        }
+        public bool Start(T DataRef,bool IsBackground = false)
         {
             GenThread();
 
             if (this.State != WorkState.Working)
             {
+                this.DataRef = DataRef;
                 CurrentTrd.IsBackground = IsBackground;
                 CurrentTrd.Start();
 

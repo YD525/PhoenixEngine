@@ -18,8 +18,6 @@ namespace PhoenixEngine.TranslateManage
 
     public class Translator
     {
-
-
         public Languages From = Languages.Null;
         public Languages To = Languages.Null;
 
@@ -34,6 +32,7 @@ namespace PhoenixEngine.TranslateManage
 
         public Dictionary<string, string> TranslatedLink = new Dictionary<string, string>();
         public int MaxTry = 10;
+
         public Translator(Languages SetFrom,Languages SetTo)
         {
             if (Phoenix.AIMemory.OptimizeToken(this))
@@ -59,12 +58,10 @@ namespace PhoenixEngine.TranslateManage
             Phoenix.AIMemory.Clear();
         }
 
-        public List<BaseUnit> ChunkTranslationUnit(Game GameType, BaseUnit Unit,ref List<UnitChunk> Chunks)
+        public List<BaseUnit> ChunkTranslationUnit(BaseUnit Unit,ref List<UnitChunk> Chunks)
         {
-            if (GameType == Game.Skyrim)
-            {
-                Chunks = new SkyrimBookHelper().ChunkBook(Unit);
-            }
+            Chunks = new SkyrimBookHelper().ChunkBook(Unit);
+
             List<BaseUnit> Units = new List<BaseUnit>();
             foreach (UnitChunk Chunk in Chunks)
             {
@@ -103,11 +100,10 @@ namespace PhoenixEngine.TranslateManage
             {
                 List<UnitChunk> Chunks = new List<UnitChunk>();
                 List<BaseUnit> Units = new List<BaseUnit>();
-                Game GameType = Game.Null;
 
                 var GetFrist = SetUnitGroup.GetFrist();
 
-                Units.AddRange(ChunkTranslationUnit(GameType, GetFrist, ref Chunks));
+                Units.AddRange(ChunkTranslationUnit(GetFrist, ref Chunks));
 
                 string MergeLine = "";
 
