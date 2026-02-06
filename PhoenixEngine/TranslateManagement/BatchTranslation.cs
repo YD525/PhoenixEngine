@@ -3,17 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using PhoenixEngine.EngineManagement;
+using PhoenixEngine.EngineManagement.Engine;
+using PhoenixEngine.EngineManagement.Unit;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManagement;
 using static PhoenixEngine.TranslateCore.LanguageHelper;
 
 namespace PhoenixEngine.TranslateManage
 {
-    public class BatchTranslation : BatchTranslationExtend
+    public class BatchTranslation
     {
         public readonly object UnitsTranslatedLocker = new object();
 
-        public Queue<TranslationUnit> UnitsTranslated = new Queue<TranslationUnit>();
+        public UnionArray UnionData = new UnionArray();
+        public ProcContent Content = null;
 
         public List<string> TranslatedKeys = new List<string>();
 
@@ -24,7 +27,7 @@ namespace PhoenixEngine.TranslateManage
         public bool SkipWordAnalysis = false;
 
         public Translator TranslatorRef = null;
-        public BatchTranslation(Translator SetTranslator,List<TranslationUnit> UnitsToTranslate, bool ClearCache = false)
+        public BatchTranslation(Translator SetTranslator,List<BaseUnit> BaseUnits, bool ClearCache = false)
         {
             this.TranslatorRef = SetTranslator;
 
@@ -33,13 +36,9 @@ namespace PhoenixEngine.TranslateManage
                 TranslatorRef.ClearCache();
             }
 
-            this.UnitsToTranslate = UnitsToTranslate;
+            UnionData.Load(BaseUnits,TranslatorRef.From);
+            Content = ProcContent.Build(TranslatorRef,this.UnionData);
             Init();
-        }
-
-        public UnitUnion BuildUnits()
-        {
-            return TranslationUnitExtend.BuildUnits(this.TranslatorRef,this.UnitsLeaderToTranslate, this.UnitsToTranslate);
         }
 
         public ThreadUsageInfo ThreadUsage = new ThreadUsageInfo();
@@ -283,26 +282,7 @@ namespace PhoenixEngine.TranslateManage
             }
         }
 
-        public void DetectSource()
-        {
-            if (this.TranslatorRef.From != Languages.Auto)
-            {
-                this.DetectSourceLang = this.TranslatorRef.From;
-            }
-            else
-            {
-                FileLanguageDetect LangDetecter = new FileLanguageDetect();
-
-                for (int i = 0; i < this.UnitsToTranslate.Count; i++)
-                {
-                    LangDetecter.DetectLanguageByFile(this.UnitsToTranslate[i].SourceText);
-                }
-
-                this.DetectSourceLang = LangDetecter.GetLang();
-
-                LangDetecter = null;
-            }
-        }
+       
         public void Start()
         {
             if (IsWork || TransMainTrd == null)

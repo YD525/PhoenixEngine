@@ -82,7 +82,7 @@ namespace PhoenixEngine.EngineManagement.Engine
             BatchUnit.Init(GenKey, Item, AggregationMode.Aggregation);
             Units.Add(BatchUnit);
         }
-        public static ProcContent Build(Translator Translator, Dictionary<string, BaseUnit> LeaderDict, List<BaseUnit> Units)
+        public static ProcContent Build(Translator Translator, UnionArray Data)
         {
             ProcContent Content = new ProcContent(Translator);
             List<UnitGroup> SameItems = new List<UnitGroup>();
@@ -90,7 +90,7 @@ namespace PhoenixEngine.EngineManagement.Engine
             HashSet<string> SeenTexts = new HashSet<string>();
             List<BaseUnit> UniqueLeaders = new List<BaseUnit>();
 
-            foreach (var Leader in LeaderDict.Values)
+            foreach (var Leader in Data.Leaders.Values)
             {
                 if (!SeenTexts.Contains(Leader.Original))
                 {
@@ -108,7 +108,7 @@ namespace PhoenixEngine.EngineManagement.Engine
                 Content.AddLeader(Leader);
             }
 
-            foreach (var Unit in Units)
+            foreach (var Unit in Data.Units)
             {
                 if (!SeenTexts.Contains(Unit.Original))
                 {
