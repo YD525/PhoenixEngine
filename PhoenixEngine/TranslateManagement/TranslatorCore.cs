@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Data.SQLite;
 using System.Linq;
 using System.Threading;
@@ -32,6 +33,8 @@ namespace PhoenixEngine.TranslateManage
         public PhoenixThreadPool<UnitGroup> TrdPool = null;
 
         public int ProcStage = 0;
+
+        public bool IsWork = false;
         public TranslatorCore(Translator SetTranslator,bool ClearCache = false)
         {
             ProcStage = 0;
@@ -96,8 +99,6 @@ namespace PhoenixEngine.TranslateManage
         {
             TransMainTrdCancel?.Cancel();
         }
-
-        public bool IsWork = false;
 
         private PhoenixThread<T> CreatePhoenixThread<T>(PhoenixThreadPool<T> PoolRef,T DataRef,Action<T> Job,Action<T> Destroyed) where T : class
         {
@@ -213,6 +214,8 @@ namespace PhoenixEngine.TranslateManage
             {
                 TrdPool.CloseAll();
             }
+
+            IsWork = false;
         }
         public void Keep()
         {
@@ -270,6 +273,14 @@ namespace PhoenixEngine.TranslateManage
                 IsEnd = false;
                 return null;
             }
+        }
+
+        public void Clear()
+        {
+            Cancel();
+
+            this.Content.Clear();
+            this.TranslatedCount = Phoenix.GetTranslatedCount(Phoenix.GetFileUniqueKey());
         }
     }
 }

@@ -16,9 +16,10 @@ namespace PhoenixEngine.PlatformManagement
             // Role & Core Rules
             Prompt.AppendLine(
             "You are a professional translation AI.\n" +
-            "Translate ONLY the inner text of each <li data-unit-id='[Int]'>...</li> element.\n" +
+            "Translate ONLY the inner text of each <li data-unit-id='*'>...</li> element.\n" +
             "\n" +
-            "The 'data-unit-id' is used to associate and update data. Do not modify or delete the primary key, as this will cause the update to fail or result in incorrect content.\n" 
+            "The 'data-unit-id' is used to associate and update data. Do not modify or delete the primary key, as this will cause the update to fail or result in incorrect content.\n" +
+            "The `<li data-unit-id='*'>...</li>` tags must correspond exactly to the original text; translate as many tags as there are in the original text.\n"
             );
 
             // Language direction
