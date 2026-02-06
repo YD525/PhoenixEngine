@@ -23,7 +23,7 @@ namespace PhoenixEngine.TranslateManage
 
         public string AIParam = null;
         public EngineCore Core = new EngineCore();
-        public TranslatorCore BatchCore = null;
+        private TranslatorCore BatchCore = null;
     
         public readonly object TransDataLocker = new object();
 
@@ -45,7 +45,7 @@ namespace PhoenixEngine.TranslateManage
             }
         }
 
-        public void EnableBatchTranslationFunc(bool ClearCache = false)
+        public void EnableBatchCore(bool ClearCache = false)
         {
             if (BatchCore == null)
             {
@@ -53,7 +53,7 @@ namespace PhoenixEngine.TranslateManage
             }
         }
 
-        public void InitBatchTranslation(List<BaseUnit>BaseUnits,AggregationMode Mode)
+        public void InitBatchCore(List<BaseUnit>BaseUnits,AggregationMode Mode)
         {
             if (BatchCore != null)
             {
@@ -64,6 +64,11 @@ namespace PhoenixEngine.TranslateManage
             }
 
             throw (new Exception("Translator->Error: Null pointer."));
+        }
+
+        public TranslatorCore GetBatchCore()
+        {
+            return this.BatchCore;
         }
 
         public void ClearCache()
