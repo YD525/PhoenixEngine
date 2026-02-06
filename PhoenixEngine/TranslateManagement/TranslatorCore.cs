@@ -19,7 +19,6 @@ namespace PhoenixEngine.TranslateManage
 
         public ProcContent Content = null;
 
-        public ConcurrentQueue<UnitGroup> PendingTranslationQueue = new ConcurrentQueue<UnitGroup>();
         public ConcurrentQueue<UnitGroup> TranslatedQueue = new ConcurrentQueue<UnitGroup>();
 
         public int AutoThreadLimit = 0;
@@ -106,15 +105,6 @@ namespace PhoenixEngine.TranslateManage
             catch { }
         }
 
-        public int AddPendingUnit(UnitGroup Item)
-        {
-            lock (UnitsReadLock)
-            {
-                PendingTranslationQueue.Enqueue(Item);
-                return PendingTranslationQueue.Count;
-            }
-        }
-
         private PhoenixThread<T> CreatePhoenixThread<T>(T DataRef,Action<T> Job,Action<T> Destroyed) where T : class
         {
             PhoenixThread<T> CreateTrd = new PhoenixThread<T>();
@@ -133,17 +123,38 @@ namespace PhoenixEngine.TranslateManage
             });
 
             //Normal type translation calls pointers.
-            Action<UnitGroup> NormalCall = new Action<UnitGroup>((Item) =>
+            Action<UnitGroup> NormalCall = new Action<UnitGroup>((ItemRef) =>
             {
-                TranslatorRef.Translate(new TransParam(Item,false,true),false);
+                ItemRef = TranslatorRef.Translate(new TransParam(ItemRef, false,true),false);
             });
 
             //Special type translation calls pointers.
-            Action<UnitGroup> BookCall = new Action<UnitGroup>((Item) =>
+            Action<UnitGroup> BookCall = new Action<UnitGroup>((ItemRef) =>
             {
-                TranslatorRef.Translate(new TransParam(Item, true, true), false);
+                ItemRef = TranslatorRef.Translate(new TransParam(ItemRef, true, true), false);
             });
 
+            //First, translate the traditional type.
+            for (int i = 0; i < this.Content.Units.Count; i++)
+            {
+                UnitGroup GetPointer = this.Content.Units[i];
+                while (!TrdPool.Put(CreatePhoenixThread<UnitGroup>(GetPointer, NormalCall, WorkEndCall)))
+                {
+                    Thread.Sleep(100);
+                }
+            }
+
+            //Book translation will be done last.
+            for (int i = 0; i < this.Content.Units.Count; i++)
+            {
+                UnitGroup GetBookPointer = this.Content.Books[i];
+                while (!TrdPool.Put(CreatePhoenixThread<UnitGroup>(GetBookPointer, NormalCall, WorkEndCall)))
+                {
+                    Thread.Sleep(100);
+                }
+            }
+
+            //Processing the same object.
 
 
             //if (IsWork || TransMainTrd == null)
