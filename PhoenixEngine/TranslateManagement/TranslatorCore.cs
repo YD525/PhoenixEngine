@@ -138,7 +138,7 @@ namespace PhoenixEngine.TranslateManage
             for (int i = 0; i < this.Content.Units.Count; i++)
             {
                 UnitGroup GetPointer = this.Content.Units[i];
-                while (!TrdPool.Put(CreatePhoenixThread<UnitGroup>(GetPointer, NormalCall, WorkEndCall)))
+                while (!TrdPool.Put(CreatePhoenixThread<UnitGroup>(GetPointer,NormalCall,WorkEndCall)))
                 {
                     Thread.Sleep(100);
                 }
@@ -148,7 +148,7 @@ namespace PhoenixEngine.TranslateManage
             for (int i = 0; i < this.Content.Units.Count; i++)
             {
                 UnitGroup GetBookPointer = this.Content.Books[i];
-                while (!TrdPool.Put(CreatePhoenixThread<UnitGroup>(GetBookPointer, NormalCall, WorkEndCall)))
+                while (!TrdPool.Put(CreatePhoenixThread<UnitGroup>(GetBookPointer,BookCall,WorkEndCall)))
                 {
                     Thread.Sleep(100);
                 }

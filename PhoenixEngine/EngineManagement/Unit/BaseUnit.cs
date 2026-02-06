@@ -25,7 +25,7 @@ namespace PhoenixEngine.TranslateManagement
             this.Score = Score;
         }
 
-        public BaseUnit Clone(BaseUnit Unit)
+        private BaseUnit Clone(BaseUnit Unit)
         {
             return new BaseUnit
             {

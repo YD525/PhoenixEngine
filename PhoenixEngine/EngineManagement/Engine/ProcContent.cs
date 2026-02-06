@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using PhoenixEngine.EngineManagement.Sequence;
 using PhoenixEngine.EngineManagement.Unit;
@@ -184,6 +185,28 @@ namespace PhoenixEngine.EngineManagement.Engine
             }
 
             return Content;
+        }
+
+        //Implement translation units that input the same source text.
+        public string SearchTranslated(string Original)
+        {
+            for (int i = 0; i < this.UnionData.Units.Count; i++)
+            {
+                if (this.UnionData.Units[i].Original.Equals(Original))
+                {
+                    return this.UnionData.Units[i].Translated;
+                }
+            }
+
+            foreach (var GetDict in new Dictionary<string, BaseUnit>(this.UnionData.Leaders))
+            {
+                if (GetDict.Value.Original.Equals(Original))
+                {
+                    return GetDict.Value.Translated;
+                }
+            }
+
+            throw (new Exception("An unknown anomaly occurred"));
         }
     }
 }
