@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Net;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.DataBaseManagement;
 using PhoenixEngine.EngineManagement;
@@ -280,5 +281,18 @@ CREATE TABLE [LocalTranslation](
             return false;
         }
 
+        public static bool ClearLocalCache(int FileUniqueKey)
+        {
+            string SqlOrder = "Delete From LocalTranslation Where [FileUniqueKey] = " + FileUniqueKey + "";
+            int State = Phoenix.LocalDB.ExecuteNonQuery(SqlOrder);
+            if (State != 0)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
     }
 }
