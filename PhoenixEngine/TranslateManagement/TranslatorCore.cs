@@ -69,8 +69,6 @@ namespace PhoenixEngine.TranslateManage
 
         public void Init()
         {
-            WorkState = 0;
-
             if (Phoenix.Config.MaxThreadCount <= 0)
             {
                 Phoenix.Config.MaxThreadCount = 1;
@@ -90,20 +88,6 @@ namespace PhoenixEngine.TranslateManage
         public int AutoSleep = 1;
 
         public bool IsWork = false;
-
-        public int WorkState = 0;
-
-        public void SetEndState()
-        {
-            IsWork = false;
-            TransMainTrd = null;
-
-            try
-            {
-                WorkState = -1;
-            }
-            catch { }
-        }
 
         private PhoenixThread<T> CreatePhoenixThread<T>(T DataRef,Action<T> Job,Action<T> Destroyed) where T : class
         {
@@ -134,34 +118,44 @@ namespace PhoenixEngine.TranslateManage
                 ItemRef = TranslatorRef.Translate(new TransParam(ItemRef, true, true), false);
             });
 
-            //First, translate the traditional type.
-            for (int i = 0; i < this.Content.Units.Count; i++)
+            TransMainTrd = new Thread(() => 
             {
-                UnitGroup GetPointer = this.Content.Units[i];
-                while (!TrdPool.Put(CreatePhoenixThread<UnitGroup>(GetPointer,NormalCall,WorkEndCall)))
+                this.ProcStage = 3;
+                //First, translate the traditional type.
+                for (int i = 0; i < this.Content.Units.Count; i++)
                 {
-                    Thread.Sleep(100);
+                    UnitGroup GetPointer = this.Content.Units[i];
+                    while (!TrdPool.Put(CreatePhoenixThread<UnitGroup>(GetPointer, NormalCall, WorkEndCall)))
+                    {
+                        Thread.Sleep(100);
+                    }
                 }
-            }
 
-            //Book translation will be done last.
-            for (int i = 0; i < this.Content.Units.Count; i++)
-            {
-                UnitGroup GetBookPointer = this.Content.Books[i];
-                while (!TrdPool.Put(CreatePhoenixThread<UnitGroup>(GetBookPointer,BookCall,WorkEndCall)))
+                this.ProcStage = 5;
+                //Book translation will be done last.
+                for (int i = 0; i < this.Content.Units.Count; i++)
                 {
-                    Thread.Sleep(100);
+                    UnitGroup GetBookPointer = this.Content.Books[i];
+                    while (!TrdPool.Put(CreatePhoenixThread<UnitGroup>(GetBookPointer, BookCall, WorkEndCall)))
+                    {
+                        Thread.Sleep(100);
+                    }
                 }
-            }
 
-            //Processing the same object.
-            for (int i = 0; i < this.Content.SameItems.Count; i++)
-            {
-                for (int ir = 0; ir < this.Content.SameItems[i].Units.Count; ir++)
+                this.ProcStage = 6;
+                //Processing the same object.
+                for (int i = 0; i < this.Content.SameItems.Count; i++)
                 {
-                    this.Content.SameItems[i].Units[ir].Translated = this.Content.SearchTranslated(this.Content.SameItems[i].Units[ir].Original);
+                    for (int ir = 0; ir < this.Content.SameItems[i].Units.Count; ir++)
+                    {
+                        this.Content.SameItems[i].Units[ir].Translated = this.Content.SearchTranslated(this.Content.SameItems[i].Units[ir].Original);
+                    }
                 }
-            }
+
+                this.ProcStage = 10;
+            });
+
+            TransMainTrd.Start();
         }
 
         public bool ExitAny = false;
@@ -185,6 +179,14 @@ namespace PhoenixEngine.TranslateManage
         public void Cancel()
         {
             TrdPool.CloseAll();
+
+            try 
+            { 
+                TransMainTrd.Abort();
+            }
+            catch { }
+
+            TransMainTrd = null;
         }
         public void Keep()
         {
@@ -227,7 +229,7 @@ namespace PhoenixEngine.TranslateManage
                         }
                     }
 
-                    bool NoMoreWork = (this.WorkState == 3 && GetWorkCount() == 0);
+                    bool NoMoreWork = (this.ProcStage == 10 && GetWorkCount() == 0);
 
                     IsEnd = NoMoreWork;
 
