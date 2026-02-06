@@ -4,7 +4,7 @@ using PhoenixEngine.TranslateManage;
 
 namespace PhoenixEngine.TranslateManagement
 {
-    public static class TranslatorExtend
+    public static class TranslatorFunc
     {
         public class QueryTransItem
         {
