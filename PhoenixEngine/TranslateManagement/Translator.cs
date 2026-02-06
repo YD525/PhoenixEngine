@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Web.Compilation;
 using PhoenixEngine.EngineManagement.Unit;
 using PhoenixEngine.GameManagement;
 using PhoenixEngine.TranslateCore;
@@ -20,10 +21,13 @@ namespace PhoenixEngine.TranslateManage
     {
         public Languages From = Languages.Null;
         public Languages To = Languages.Null;
+
         public string AIParam = null;
 
+        public TranslationPreprocessor PreprocessorInstance = new TranslationPreprocessor();
         public EngineCore Core = new EngineCore();
         public TranslatorCore BatchCore = null;
+    
 
         public readonly object TransDataLocker = new object();
 
@@ -54,34 +58,6 @@ namespace PhoenixEngine.TranslateManage
             EngineNode.AIMemory.Clear();
         }
 
-        public bool ExactMatch(Languages From, Languages To, string Key, string Type, string Source, ref string Result)
-        {
-            var GetData = AdvancedDictionary.ExactMatch(From, To, Type, Source);
-            if (GetData != null)
-            {
-                PreTranslateCall NPreTranslateCall = new PreTranslateCall();
-                NPreTranslateCall.Platform = PlatformType.PhoenixEngine;
-                NPreTranslateCall.FromAI = false;
-                NPreTranslateCall.Key = Key;
-
-                string GetDefSource = Source;
-
-                NPreTranslateCall.SendString = GetDefSource;
-
-                NPreTranslateCall.ReceiveString = Source;
-
-                NPreTranslateCall.ReplaceTags.Add(new ReplaceTag(GetData.Rowid, GetData.Source, GetData.Result));
-
-                NPreTranslateCall.Output();
-
-                Result = GetData.Result;
-
-                return true;
-            }
-
-            return false;
-        }
-
         public List<BaseUnit> ChunkTranslationUnit(Game GameType, BaseUnit Unit,ref List<UnitChunk> Chunks)
         {
             if (GameType == Game.Skyrim)
@@ -108,8 +84,12 @@ namespace PhoenixEngine.TranslateManage
             return Units;
         }
 
-        public string Translate(TranslationPreprocessor Preprocessor, UnitGroup Item,bool CanSleep)
+        public string Translate(TransParam Params)
         {
+            if (this.From == this.To)
+            {
+                return Params.Data.GenContent();
+            }
             List<BaseUnit> Units = new List<BaseUnit>();
             List<UnitChunk> Chunks = new List<UnitChunk>();
             Game GameType = Game.Null;
@@ -213,7 +193,6 @@ namespace PhoenixEngine.TranslateManage
                         catch { Content = string.Empty; }
 
                         Preprocessor.OptimizeStrings(ref Content);
-                        Preprocessor.StripOuterQuotes(ref Content);
 
                         Content = Content.Trim();
 
@@ -285,6 +264,25 @@ namespace PhoenixEngine.TranslateManage
             {
                 System.Console.WriteLine($"Error in WriteAllMemoryData: {ex.Message}");
             }
+        }
+    }
+
+
+    public class TransParam
+    {
+        public bool CanSleep; //A thread can be suspended for a certain period of time.
+        public bool IsBook;//Book type requires special handling.
+        public TranslationPreprocessor Preprocessor = null;//Allows passing custom preprocessors.
+        public Game GameType = Game.Null;//Specify the game type; currently, this feature is only for identification.
+        public UnitGroup Data;//Data that needs to be translated.
+
+        public TransParam(UnitGroup Data, bool IsBook, bool CanSleep, TranslationPreprocessor SetPreprocessor = null, Game GameType = Game.Null)
+        {
+            this.CanSleep = CanSleep;
+            this.IsBook = IsBook;
+            this.Data = Data;
+            this.Preprocessor = SetPreprocessor;
+            this.GameType = GameType;
         }
     }
 }

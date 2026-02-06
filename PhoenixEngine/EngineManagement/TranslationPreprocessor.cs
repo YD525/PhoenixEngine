@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManagement;
+using static PhoenixEngine.EngineManagement.DataTransmission;
 
 namespace PhoenixEngine.TranslateManage
 {
@@ -261,6 +262,34 @@ namespace PhoenixEngine.TranslateManage
                     Sb.Append(C);
             }
             return Sb.ToString();
+        }
+
+        public bool ExactMatch(Languages From, Languages To, string Key, string Type, string Source, ref string Result)
+        {
+            var GetData = AdvancedDictionary.ExactMatch(From, To, Type, Source);
+            if (GetData != null)
+            {
+                PreTranslateCall NPreTranslateCall = new PreTranslateCall();
+                NPreTranslateCall.Platform = PlatformType.PhoenixEngine;
+                NPreTranslateCall.FromAI = false;
+                NPreTranslateCall.Key = Key;
+
+                string GetDefSource = Source;
+
+                NPreTranslateCall.SendString = GetDefSource;
+
+                NPreTranslateCall.ReceiveString = Source;
+
+                NPreTranslateCall.ReplaceTags.Add(new ReplaceTag(GetData.Rowid, GetData.Source, GetData.Result));
+
+                NPreTranslateCall.Output();
+
+                Result = GetData.Result;
+
+                return true;
+            }
+
+            return false;
         }
     }
 }
