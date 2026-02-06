@@ -13,27 +13,27 @@ namespace PhoenixEngine.TranslateManagement
             public bool FromCloud = false;
             public int State = 0;
         }
-        public static void SetTranslationCache(this Translator Translator, string Key, string Value)
+        public static void SetLink(this Translator Translator, string Key, string Value)
         {
             lock (Translator.TransDataLocker)
             {
-                if (Translator.TransData.ContainsKey(Key))
+                if (Translator.TranslatedLink.ContainsKey(Key))
                 {
-                    Translator.TransData[Key] = Value;
+                    Translator.TranslatedLink[Key] = Value;
                 }
                 else
                 {
-                    Translator.TransData.Add(Key, Value);
+                    Translator.TranslatedLink.Add(Key, Value);
                 }
             }
         }
-        public static string GetTranslatorCache(this Translator Translator, string Key)
+        public static string GetLink(this Translator Translator, string Key)
         {
             lock (Translator.TransDataLocker)
             {
-                if (Translator.TransData.ContainsKey(Key))
+                if (Translator.TranslatedLink.ContainsKey(Key))
                 {
-                    return Translator.TransData[Key];
+                    return Translator.TranslatedLink[Key];
                 }
                 else
                 {
@@ -45,14 +45,14 @@ namespace PhoenixEngine.TranslateManagement
         {
             lock (Translator.TransDataLocker)
             {
-                var GetResult = Translator.GetTranslatorCache(Key);
+                var GetResult = Translator.GetLink(Key);
                 if (GetResult != null)
                 {
                     return GetResult;
                 }
                 else
                 {
-                    Translator.TransData.Add(Key, string.Empty);
+                    Translator.TranslatedLink.Add(Key, string.Empty);
                 }
                 return string.Empty;
             }
@@ -79,11 +79,7 @@ namespace PhoenixEngine.TranslateManagement
 
             string TransText = "";
 
-            string GetRamSource = "";
-            if (Translator.TransData.ContainsKey(Key))
-            {
-                GetRamSource = Translator.TransData[Key];
-            }
+            string GetRamSource = Translator.GetLink(Key);
 
             if (GetRamSource.Trim().Length == 0)
             {
@@ -128,19 +124,19 @@ namespace PhoenixEngine.TranslateManagement
             NQueryTransItem.TransText = TransText;
             return NQueryTransItem;
         }
-        public static bool SetDataR(this Translator Translator, string Key, string SourceText, string TransText)
+        public static bool AutoSetLink(this Translator Translator, string Key, string SourceText, string TransText)
         {
             int FileUniqueKey = Phoenix.GetFileUniqueKey();
 
             if (TransText.Trim().Length > 0)
             {
-                Translator.TransData[Key] = TransText;
+                Translator.TranslatedLink[Key] = TransText;
             }
             else
             {
-                if (Translator.TransData.ContainsKey(Key))
+                if (Translator.TranslatedLink.ContainsKey(Key))
                 {
-                    Translator.TransData.Remove(Key);
+                    Translator.TranslatedLink.Remove(Key);
                 }
 
                 CloudDBCache.DeleteCache(FileUniqueKey, Key, Phoenix.To);

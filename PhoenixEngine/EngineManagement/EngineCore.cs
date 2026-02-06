@@ -393,7 +393,6 @@ namespace PhoenixEngine.TranslateManage
                 int MaxTranslationAttempts = Phoenix.Config.MaxTranslationAttempts;
                
                 string TransText = string.Empty;
-                PlatformType CurrentPlatform = PlatformType.Null;
 
                 if (GetSource.Length > 0)
                 {
@@ -448,8 +447,6 @@ namespace PhoenixEngine.TranslateManage
 
                                 Call.Output();
 
-                                CurrentPlatform = PlatformType.DeepL;
-
                                 if (GetData.Trim().Length == 0)
                                 {
                                     this.CallCountDown = 0;
@@ -503,8 +500,6 @@ namespace PhoenixEngine.TranslateManage
 
                                 Call.Output();
 
-                                CurrentPlatform = PlatformType.DeepL;
-
                                 if (GetData.Trim().Length == 0)
                                 {
                                     this.CallCountDown = 0;
@@ -547,8 +542,6 @@ namespace PhoenixEngine.TranslateManage
                                 } while (!Passed);
 
                                 TransText = GetData;
-
-                                CurrentPlatform = PlatformType.LMLocalAI;
 
                                 if (GetData.Trim().Length == 0)
                                 {
@@ -599,8 +592,6 @@ namespace PhoenixEngine.TranslateManage
                                 }
 
                                 TransText = GetData;
-
-                                CurrentPlatform = PlatformType.ChatGpt;
 
                                 if (GetData.Trim().Length == 0)
                                 {
@@ -654,8 +645,6 @@ namespace PhoenixEngine.TranslateManage
 
                                 TransText = GetData;
 
-                                CurrentPlatform = PlatformType.Gemini;
-
                                 if (GetData.Trim().Length == 0)
                                 {
                                     this.CallCountDown = 0;
@@ -707,8 +696,6 @@ namespace PhoenixEngine.TranslateManage
                                 }
 
                                 TransText = GetData;
-
-                                CurrentPlatform = PlatformType.DeepSeek;
 
                                 if (GetData.Trim().Length == 0)
                                 {
@@ -763,8 +750,6 @@ namespace PhoenixEngine.TranslateManage
 
                                 TransText = GetData;
 
-                                CurrentPlatform = PlatformType.DeepSeek;
-
                                 if (GetData.Trim().Length == 0)
                                 {
                                     this.CallCountDown = 0;
@@ -809,8 +794,6 @@ namespace PhoenixEngine.TranslateManage
                                 } while (!Passed);
 
                                 TransText = GetData;
-
-                                CurrentPlatform = PlatformType.DeepSeek;
 
                                 if (GetData.Trim().Length == 0)
                                 {

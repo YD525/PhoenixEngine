@@ -241,10 +241,6 @@ namespace PhoenixEngine.PlatformManagement
         {
             this.Prompt = Prompt;
         }
-        public void SetSource(string Source)
-        { 
-           this.Source = Source;
-        }
 
         public void SetModel(string Model)
         { 

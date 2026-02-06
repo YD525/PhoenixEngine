@@ -128,7 +128,7 @@
     <Compile Include="RequestManagement\ProxyCenter.cs" />
     <Compile Include="EngineManagement\ADO\AdvancedDictionary.cs" />
     <Compile Include="EngineManagement\Memory\AITranslationMemory.cs" />
-    <Compile Include="TranslateManagement\BatchTranslation.cs" />
+    <Compile Include="TranslateManagement\TranslatorCore.cs" />
     <Compile Include="EngineManagement\ChunkHelper.cs" />
     <Compile Include="EngineManagement\ADO\CloudDBCache.cs" />
     <Compile Include="Additional\FontColorFinder.cs" />

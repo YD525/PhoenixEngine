@@ -182,41 +182,6 @@ namespace PhoenixEngine.TranslateManage
             }
         }
 
-        public void MarkLeaders()
-        {
-            if (!SkipWordAnalysis)
-            {
-                WorkState = 0;
-                DetectSource();
-                MarkLeadersAndSort(new List<TranslationUnit>(this.UnitsToTranslate), this.DetectSourceLang);
-                WorkState = 1;
-            }
-            else
-            {
-                WorkState = 2;
-            }
-        }
-
-        public void ReSet()
-        {
-            for (int i = 0; i < this.UnitsLeaderToTranslate.Count; i++)
-            {
-                string GetKey = this.UnitsLeaderToTranslate.ElementAt(i).Key;
-
-                this.UnitsLeaderToTranslate[GetKey].Translated = false;
-                this.UnitsLeaderToTranslate[GetKey].WorkEnd = 0;
-                this.UnitsLeaderToTranslate[GetKey].TransText = string.Empty;
-            }
-
-            for (int i = 0; i < this.UnitsToTranslate.Count; i++)
-            {
-                this.UnitsToTranslate[i].Translated = false;
-                this.UnitsToTranslate[i].WorkEnd = 0;
-                this.UnitsToTranslate[i].TransText = string.Empty;
-            }
-        }
-
-       
         public void Start()
         {
             if (IsWork || TransMainTrd == null)
@@ -225,10 +190,6 @@ namespace PhoenixEngine.TranslateManage
                 TransMainTrd = new Thread(() =>
                 {
                     IsWork = true;
-
-                    ReSet();
-
-                    DetectSource();
 
                     if (ExitAny)
                     {
@@ -476,7 +437,7 @@ namespace PhoenixEngine.TranslateManage
         {
             IsStop = true;
         }
-        public TranslationUnit DequeueTranslated(out bool IsEnd)
+        public UnitGroup DequeueTranslated(out bool IsEnd)
         {
             try
             {
@@ -484,16 +445,19 @@ namespace PhoenixEngine.TranslateManage
                 {
                     if (UnitsTranslated.Count > 0)
                     {
-                        var Item = UnitsTranslated.Dequeue();
-
-                        if (!string.IsNullOrWhiteSpace(Item.TransText))
-                        {
-                            IsEnd = false;
-                            return Item;
-                        }
+                        var State = UnitsTranslated.TryDequeue(out UnitGroup Item);
 
                         IsEnd = false;
-                        return null;
+
+                        if (State)
+                        {
+                            return Item;
+
+                        }
+                        else
+                        {
+                            return null;
+                        }
                     }
 
                     bool NoMoreWork = (this.WorkState == 3 && GetWorkCount() == 0);

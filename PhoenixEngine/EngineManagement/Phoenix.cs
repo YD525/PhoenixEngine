@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Data.SQLite;
+﻿using System.Data.SQLite;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -128,8 +127,6 @@ namespace PhoenixEngine.EngineManagement
             return GetShellPath + Path;
         }
 
-        private static BatchTranslationCore TranslationCore = null;
-
         public static Languages From = Languages.English;
 
         public static Languages To = Languages.English;
@@ -180,120 +177,15 @@ FROM (
             return Phoenix.FileUniqueKey;
         }
 
-        public static void SkipWordAnalysis(bool Check)
-        {
-            if (TranslationCore != null)
-            {
-                TranslationCore.SkipWordAnalysis = Check;
-            }
-        }
-
-        public static void Start()
-        {
-            Start(false);
-        }
-
         public static void ReSetKeyData()
         {
             KeyData = new KeyManage();
             KeyData.Init();
         }
 
-        public static void Start(bool ClearCache)
-        {
-            ReSetKeyData();
-
-            if (From != Languages.Null && To != Languages.Null)
-            {
-                if (TranslationCore == null)
-                {
-                    TranslationCore = new BatchTranslationCore(Phoenix.From, Phoenix.To, new List<TranslationUnit>() { }, ClearCache);
-                }
-
-                TranslationCore.Start();
-            }
-        }
-
-        public static void Stop()
-        {
-            if (TranslationCore != null)
-            {
-                TranslationCore.Stop();
-            }
-        }
-
-        public static void End()
-        {
-            if (TranslationCore != null)
-            {
-                TranslationCore.Close();
-            }
-        }
-
-        public static int GetThreadCount()
-        {
-            if (TranslationCore != null)
-            {
-                return TranslationCore.ThreadUsage.CurrentThreads;
-            }
-
-            return 0;
-        }
-
-        private static object AddTranslationUnitLocker = new object();
-        public static int AddTranslationUnit(TranslationUnit Item, bool IsLeader = false)
-        {
-            if (TranslationCore == null)
-            {
-                return -1;
-            }
-
-            lock (AddTranslationUnitLocker)
-            {
-                return TranslationCore.AddWaitTransUnit(Item, IsLeader);
-            }
-        }
-        public static TranslationUnit DequeueTranslated(ref bool IsEnd)
-        {
-            if (TranslationCore != null)
-            {
-                var GetItem = TranslationCore.DequeueTranslated(out bool TranslationEnd);
-                IsEnd = TranslationEnd;
-
-                return GetItem;
-            }
-            else
-            {
-                IsEnd = true;
-            }
-
-            return null;
-        }
-
-        public static void InitTranslationCore(Languages From, Languages To)
-        {
-            TranslationCore = new BatchTranslationCore(From, To, new List<TranslationUnit>() { });
-        }
-        public static void ClearUnits()
-        {
-            if (TranslationCore != null)
-            {
-                TranslationCore.UnitsToTranslate.Clear();
-            }
-        }
-        public static int GetUnitCount()
-        {
-            if (TranslationCore != null)
-            {
-                return TranslationCore.UnitsToTranslate.Count;
-            }
-
-            return -1;
-        }
-
         public static void AddAIMemory(string Original, string Translated)
         {
-            EngineSelect.AIMemory.AddTranslation(Phoenix.From, Phoenix.To, Original, Translated);
+            Phoenix.AIMemory.AddTranslation(Phoenix.From, Phoenix.To, Original, Translated);
         }
 
         public static string AppendDollarWrappedReplacements(string input)
