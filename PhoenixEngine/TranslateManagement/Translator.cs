@@ -1,14 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
-using System.Web.Compilation;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.EngineManagement.Unit;
 using PhoenixEngine.GameManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManagement;
-using static PhoenixEngine.EngineManagement.DataTransmission;
-using static PhoenixEngine.TranslateManage.EngineCore;
 using static PhoenixEngine.TranslateManagement.ChunkHelper;
 
 namespace PhoenixEngine.TranslateManage
@@ -20,6 +16,8 @@ namespace PhoenixEngine.TranslateManage
 
     public class Translator
     {
+
+
         public Languages From = Languages.Null;
         public Languages To = Languages.Null;
 
@@ -36,7 +34,7 @@ namespace PhoenixEngine.TranslateManage
         public int MaxTry = 10;
         public Translator(Languages SetFrom,Languages SetTo)
         {
-            if (EngineNode.AIMemory.OptimizeToken(this))
+            if (Phoenix.AIMemory.OptimizeToken(this))
             {
                 if (SetFrom != Languages.Null)
                 {
@@ -56,7 +54,7 @@ namespace PhoenixEngine.TranslateManage
 
         public void ClearAICache()
         {
-            EngineNode.AIMemory.Clear();
+            Phoenix.AIMemory.Clear();
         }
 
         public List<BaseUnit> ChunkTranslationUnit(Game GameType, BaseUnit Unit,ref List<UnitChunk> Chunks)
@@ -85,11 +83,11 @@ namespace PhoenixEngine.TranslateManage
             return Units;
         }
 
-        public string Translate(TransParam Params)
+        public UnitGroup Translate(TransParam Params)
         {
             if (this.From == this.To)
             {
-                return Params.Data.GenContent();
+                return Params.Data;
             }
 
             if (Params.Preprocessor == null)
@@ -132,139 +130,55 @@ namespace PhoenixEngine.TranslateManage
             //    }
             //}
 
-           
-            UnitGroup GetGroup = Params.Data;
-            GetGroup.StartPreProcess(Params.Preprocessor,this.From,this.To,ref Sequences);
+            UnitGroup SetUnitGroup = Params.Data;
+            SetUnitGroup = Core.CallOnce(this,
+                PreprocessorInstance,SetUnitGroup,From,To,AIParam,Params.CanSleep,true);
 
-            
 
-            foreach (var GetUnit in Units)
-            {
-                bool CanSkip = false;
-                //Skip fields that do not need translation
+            //if (Chunks.Count > 0)
+            //{
+            //    for (int i = 0; i < Chunks.Count; i++)
+            //    {
+            //        if (Chunks[i].Key.Equals(GetUnit.Key))
+            //        {
+            //            MergeLine += Content + "\n";
 
-                Languages SourceLanguage = From;
-                string GetSourceStr = GetUnit.SourceText;
+            //            for (int j = i + 1; j < Chunks.Count; j++)
+            //            {
+            //                if (Chunks[j].IsCode)
+            //                {
+            //                    MergeLine += Chunks[j].Data;
+            //                }
+            //                else
+            //                {
+            //                    break;
+            //                }
+            //            }
 
-                if (Preprocessor.IsOnlySymbolsAndSpaces(GetSourceStr))
-                {
-                    CanSkip = true;
-                }
-                else
-                if (string.IsNullOrEmpty(GetSourceStr))
-                {
-                    CanSkip = true;
-                }
-                else
-                if (SourceLanguage == To)
-                {
-                    CanSkip = true;
-                }
-                else
-                if (Preprocessor.IsNumeric(GetSourceStr))
-                {
-                    CanSkip = true;
-                }
+            //            break;
+            //        }
+            //    }
+            //}
+            //else
+            //{
+            //    MergeLine += Content;
+            //}   
 
-                string Content = GetSourceStr;
-
-                if (!CanSkip)
-                {
-                    //Optimize strings
-                    Preprocessor.OptimizeStrings(ref Content);
-
-                    //Check OuterQuotes
-                    bool HasOuterQuotes = Preprocessor.HasOuterQuotes(Content.Trim());
-
-                    //Remove OuterQuotes
-                    if (HasOuterQuotes)
-                    {
-                        Preprocessor.StripOuterQuotes(ref Content);
-                    }
-
-                    //Match DataBase
-                    string GetMatchResult = "";
-                    if (ExactMatch(From, To, GetUnit.Key, GetUnit.Type, Content, ref GetMatchResult))
-                    {
-                        Content = GetMatchResult;
-                        CanSkip = true;
-                    }
-
-                    if (!CanSkip)
-                    {
-                        GetUnit.SourceText = Content;
-
-                        Content = Core.CallOnce(Preprocessor,GetUnit);
-
-                        try
-                        {
-                            if (Preprocessor.HasUnicodeEscape(Content))
-                            {
-                                Content = Regex.Unescape(Content);
-                            }
-                        }
-                        catch { Content = string.Empty; }
-
-                        Preprocessor.OptimizeStrings(ref Content);
-
-                        Content = Content.Trim();
-
-                        Preprocessor.OptimizeStrings(ref Content);
-
-                        if (HasOuterQuotes)
-                        {
-                            Content = "\"" + Content + "\"";
-                        }
-
-                        Content = Preprocessor.ReturnStr(Content);
-                    }
-                }
-
-                if (Chunks.Count > 0)
-                {
-                    for (int i = 0; i < Chunks.Count; i++)
-                    {
-                        if (Chunks[i].Key.Equals(GetUnit.Key))
-                        {
-                            MergeLine += Content + "\n";
-
-                            for (int j = i + 1; j < Chunks.Count; j++)
-                            {
-                                if (Chunks[j].IsCode)
-                                {
-                                    MergeLine += Chunks[j].Data;
-                                }
-                                else
-                                {
-                                    break;
-                                }
-                            }
-
-                            break;
-                        }
-                    }
-                }
-                else
-                {
-                    MergeLine += Content;
-                }   
-            }
-
-            return MergeLine;
+            return SetUnitGroup;
         }
 
         public void UnifiedSymbols()
         {
             try
             {
-                for (int i = 0; i < TransData.Count; i++)
+                for (int i = 0; i < TranslatedLink.Count; i++)
                 {
                     try
                     {
-                        var GetHashKey = TransData.ElementAt(i).Key;
-                        if (TransData[GetHashKey].Trim().Length > 0)
+                        var GetHashKey = TranslatedLink.ElementAt(i).Key;
+                        if (TranslatedLink[GetHashKey].Trim().Length > 0)
                         {
-                            TranslationPreprocessor.UnifiedSymbols(GetHashKey, TransData[GetHashKey].Trim());
+                            TranslationPreprocessor.UnifiedSymbols(this,GetHashKey, TranslatedLink[GetHashKey].Trim());
                         }
                     }
                     catch (System.Exception ex)

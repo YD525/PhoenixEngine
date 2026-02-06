@@ -22,6 +22,7 @@ namespace PhoenixEngine.EngineManagement
         public bool CanSkipSleep = false;
         public bool HavePlaceholder = false;
         public int Step = 0;
+        public bool CanUPDateDB = true;
         public TranslationPreprocessor Preprocessor = null;
 
         public UnitSequence(bool CanSkip)
@@ -164,7 +165,7 @@ namespace PhoenixEngine.EngineManagement
                         //Update AI memory
                         if (Source.Length > 0 && Phoenix.Config.ContextEnable)
                         {
-                            EngineNode.AIMemory.AddTranslation(From, To, Item.Original, GetCacheStr);
+                            Phoenix.AIMemory.AddTranslation(From, To, Item.Original, GetCacheStr);
                         }
 
                         Sequences[GetUnit.Key].Data = GetCacheStr;
@@ -190,7 +191,7 @@ namespace PhoenixEngine.EngineManagement
 
                             if (Source.Length > 0 && Phoenix.Config.ContextEnable)
                             {
-                                EngineNode.AIMemory.AddTranslation(From, To, Item.Original, MatchItem.Result);
+                                Phoenix.AIMemory.AddTranslation(From, To, Item.Original, MatchItem.Result);
                             }
 
                             Sequences[GetUnit.Key].Data = MatchItem.Result;
@@ -248,6 +249,7 @@ namespace PhoenixEngine.EngineManagement
                     {
                         Sequences[GetUnit.Key].Data = Preprocessor.RestoreFromPlaceholder(Source, To);
                         Sequences[GetUnit.Key].HavePlaceholder = false;
+                        Sequences[GetUnit.Key].CanUPDateDB = false;
                     }
                 }
                 else
@@ -271,6 +273,7 @@ namespace PhoenixEngine.EngineManagement
             {
                 var GetUnit = Item.Units[i];
                 var Preprocessor = Sequences[GetUnit.Key].Preprocessor;
+                Sequences[GetUnit.Key].Step = 8;
 
                 if (Sequences[GetUnit.Key].HavePlaceholder)
                 {
@@ -288,7 +291,6 @@ namespace PhoenixEngine.EngineManagement
         /// <param name="To"></param>
         /// <param name="Sequences"></param>
         public static void EndPreProcess(this UnitGroup Item,
-            TranslationPreprocessor Preprocessor,
             Languages From, Languages To,
             ref Dictionary<string, UnitSequence> Sequences)
         {
@@ -298,36 +300,19 @@ namespace PhoenixEngine.EngineManagement
 
                 string Translated = Sequences[GetUnit.Key].Data;
 
-                Sequences[GetUnit.Key].Step = 3;
+                Sequences[GetUnit.Key].Step = 7;
+                var Preprocessor = Sequences[GetUnit.Key].Preprocessor;
 
-                if (!Sequences[GetUnit.Key].CanSkip)
+                Preprocessor.OptimizeStrings(ref Translated);
+                Translated = Translated.Trim();
+
+                if (Sequences[GetUnit.Key].HasOuterQuotes)
                 {
-                    try
-                    {
-                        if (Preprocessor.HasUnicodeEscape(Translated))
-                        {
-                            Translated = Regex.Unescape(Translated);
-                        }
-
-                    }
-                    catch
-                    {
-                        Translated = Item.Units[i].Original;
-                        Sequences[GetUnit.Key].Data = Translated;
-                        return;
-                    }
-
-                    Preprocessor.OptimizeStrings(ref Translated);
-                    Translated = Translated.Trim();
-
-                    if (Sequences[GetUnit.Key].HasOuterQuotes)
-                    {
-                        Translated = "\"" + Translated + "\"";
-                    }
-
-                    Translated = Preprocessor.ReturnStr(Translated);
-                    Sequences[GetUnit.Key].Data = Translated;
+                    Translated = "\"" + Translated + "\"";
                 }
+
+                Translated = Preprocessor.ReturnStr(Translated);
+                Sequences[GetUnit.Key].Data = Translated;
             }
         }
     }

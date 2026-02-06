@@ -219,6 +219,10 @@ namespace PhoenixEngine.PlatformManagement
             }
         }
 
+        public void SetSource(string Source)
+        { 
+            this.Source = Source;
+        }
         public void SetFrom(Languages From)
         {
             this.From = LanguageHelper.ToLanguageCode(From);

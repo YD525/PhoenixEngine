@@ -3,6 +3,7 @@ using System.Net;
 using System.Text;
 using Newtonsoft.Json;
 using PhoenixEngine.EngineManagement;
+using PhoenixEngine.EngineManagement.Unit;
 using PhoenixEngine.RequestManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
@@ -91,14 +92,16 @@ namespace PhoenixEngine.PlatformManagement
             this.ProxyRef = Proxy;
         }
 
-        public string QuickTrans(string ApiKey,List<ReplaceTag> CustomWords,string TransSource, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam, ref AICall Call)
+        public string QuickTrans(string ApiKey,List<ReplaceTag> CustomWords,UnitGroup Source, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam, ref AICall Call)
         {
             List<string> Related = new List<string>();
 
             if (ConfigRef.ContextEnable && UseAIMemory)
             {
-                Related = AIMemoryRef.FindRelevantTranslations(FromLang, ToLang, TransSource, AIMemoryCountLimit);
+                Related = AIMemoryRef.QueryAIMemory(FromLang, ToLang, Source, AIMemoryCountLimit);
             }
+
+            string TransSource = Source.GenContent();
 
             if (ConfigRef.UserCustomAIPrompt.Trim().Length > 0)
             {

@@ -49,7 +49,6 @@ namespace PhoenixEngine.TranslateManage
         private void AddTranslated(UnitGroup Item)
         {
             Item.UPDateLink(this.TranslatorRef);
-            Item.UPDateCloudData(this.TranslatorRef);
             UnitsTranslated.Enqueue(Item);
         }
 

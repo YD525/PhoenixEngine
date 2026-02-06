@@ -21,6 +21,8 @@ namespace PhoenixEngine.EngineManagement
 
     public class Phoenix : ConfigExtend
     {
+        public static AITranslationMemory AIMemory = new AITranslationMemory();
+
         public static string Version = "1.2.3.5";
         public static string CurrentPath = "";
 

@@ -3,6 +3,7 @@ using System.Text;
 using Newtonsoft.Json;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.EngineManagement;
+using PhoenixEngine.EngineManagement.Unit;
 using PhoenixEngine.RequestManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
@@ -26,11 +27,13 @@ namespace PhoenixEngine.PlatformManagement
             this.ConfigRef = Config;
             this.ProxyRef = Proxy;
         }
-        public string QuickTrans(string ApiKey, string TransSource, Languages FromLang, Languages ToLang, ref PlatformCall Call)
+        public string QuickTrans(string ApiKey, UnitGroup Source, Languages FromLang, Languages ToLang, ref PlatformCall Call)
         {
             CustomReqCore Core = new CustomReqCore();
 
             var InFo = Phoenix.Config.GetPlatformData(CustomID).CustomInFo;
+
+            string TransSource = Source.GenContent();
 
             Core.SetApiKey(ApiKey);
 
@@ -40,6 +43,8 @@ namespace PhoenixEngine.PlatformManagement
             Core.SetUrl(InFo.Url);
             Core.SetHeader(InFo.Header);
             Core.SetPayLoad(InFo.PayLoad, InFo.PayLoadEncode);
+
+            Core.SetSource(TransSource);
 
             Core.SetQueryRule(InFo.QueryRule);
 

@@ -187,6 +187,14 @@ namespace PhoenixEngine.EngineManagement.Unit
         }
         public static string GenContent(List<BaseUnit> Array)
         {
+            if (Array.Count == 1)
+            {
+                if (Array[0].Translated.Length > 0)
+                {
+                    return Array[0].Original;
+                }
+            }
+
             string Html = "";
             for (int i = 0; i < Array.Count; i++)
             {

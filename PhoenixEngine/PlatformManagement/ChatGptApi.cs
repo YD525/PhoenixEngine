@@ -3,6 +3,7 @@ using System.Net;
 using System.Text;
 using Newtonsoft.Json;
 using PhoenixEngine.EngineManagement;
+using PhoenixEngine.EngineManagement.Unit;
 using PhoenixEngine.RequestManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
@@ -121,19 +122,21 @@ namespace PhoenixEngine.PlatformManagement
             }
         }
         //"Important: When translating, strictly keep any text inside angle brackets (< >) or square brackets ([ ]) unchanged. Do not modify, translate, or remove them.\n\n"
-        public string QuickTrans(string ApiKey,List<ReplaceTag> CustomWords,string TransSource, Languages FromLang, Languages ToLang,bool UseAIMemory,int AIMemoryCountLimit, string AIParam, ref AICall Call)
+        public string QuickTrans(string ApiKey,List<ReplaceTag> CustomWords,UnitGroup Source, Languages FromLang, Languages ToLang,bool UseAIMemory,int AIMemoryCountLimit, string AIParam, ref AICall Call)
         {
             List<string> Related = new List<string>();
 
             if (ConfigRef.ContextEnable && UseAIMemory)
             {
-                Related = AIMemoryRef.FindRelevantTranslations(FromLang, ToLang, TransSource, AIMemoryCountLimit);
+                Related = AIMemoryRef.QueryAIMemory(FromLang, ToLang, Source, AIMemoryCountLimit);
             }
 
             if (ConfigRef.UserCustomAIPrompt.Trim().Length > 0)
             {
                 AIParam = AIParam + "\n" + ConfigRef.UserCustomAIPrompt;
             }
+
+            string TransSource = Source.GenContent();
 
             var GetTransSource = AIPrompt.GenerateTranslationPrompt(FromLang, ToLang, TransSource,Related, CustomWords, AIParam);
 

@@ -5,6 +5,7 @@ using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PhoenixEngine.EngineManagement;
+using PhoenixEngine.EngineManagement.Unit;
 using PhoenixEngine.RequestManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
@@ -135,14 +136,15 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
             }
         }
         //"Important: When translating, strictly keep any text inside angle brackets (< >) or square brackets ([ ]) unchanged. Do not modify, translate, or remove them.\n\n"
-        public string QuickTrans(List<ReplaceTag> CustomWords, string TransSource, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam,ref AICall Call)
+        public string QuickTrans(List<ReplaceTag> CustomWords,UnitGroup Source, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam,ref AICall Call)
         {
             List<string> Related = new List<string>();
 
             if (ConfigRef.ContextEnable && UseAIMemory)
             {
-                Related = AIMemoryRef.FindRelevantTranslations(FromLang, ToLang, TransSource, AIMemoryCountLimit);
+                Related = AIMemoryRef.QueryAIMemory(FromLang, ToLang, Source, AIMemoryCountLimit);
             }
+            string TransSource = Source.GenContent();
 
             if (ConfigRef.UserCustomAIPrompt.Trim().Length > 0)
             {

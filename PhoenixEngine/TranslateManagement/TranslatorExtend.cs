@@ -161,9 +161,9 @@ namespace PhoenixEngine.TranslateManagement
 
             if (TransText.Trim().Length <= 0)
             {
-                if (Translator.TransData.ContainsKey(Key))
+                if (Translator.TranslatedLink.ContainsKey(Key))
                 {
-                    Translator.TransData.Remove(Key);
+                    Translator.TranslatedLink.Remove(Key);
                 }
 
                 CloudDBCache.DeleteCache(FileUniqueKey, Key, Phoenix.To);

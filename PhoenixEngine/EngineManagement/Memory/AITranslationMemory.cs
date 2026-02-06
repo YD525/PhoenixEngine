@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using PhoenixEngine.EngineManagement.Unit;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManagement;
 
@@ -238,11 +239,21 @@ namespace PhoenixEngine.TranslateManage
             }
         }
 
+        public List<string> QueryAIMemory(Languages From,Languages To,UnitGroup Item,int ContextLength)
+        {
+            List<string> AIMemory = new List<string>();
+            for (int i = 0; i < Item.Units.Count; i++)
+            {
+                var GetUnit = Item.Units[i];
+                AIMemory.AddRange(FindRelevantTranslations(From,To, GetUnit.Original, ContextLength));
+            }
+            return AIMemory;
+        }
         /// <summary>
         /// Find relevant translations using target language memory.
         /// Query tokenization uses source language.
         /// </summary>
-        public List<string> FindRelevantTranslations(Languages SourceLang,
+        private List<string> FindRelevantTranslations(Languages SourceLang,
                                                      Languages TargetLang,
                                                      string Query,
                                                      int ContextLength)

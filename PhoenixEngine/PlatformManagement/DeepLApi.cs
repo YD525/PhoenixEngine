@@ -3,6 +3,7 @@ using System.Net;
 using System.Text;
 using Newtonsoft.Json;
 using PhoenixEngine.EngineManagement;
+using PhoenixEngine.EngineManagement.Unit;
 using PhoenixEngine.RequestManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
@@ -44,12 +45,13 @@ namespace PhoenixEngine.PlatformManagement
         private static string DeepLFreeHost = "https://api-free.deepl.com/v2/translate";
         private static string DeepLHost = "https://api.deepl.com/v2/translate";
        
-        public string QuickTrans(string ApiKey,string TransSource, Languages FromLang, Languages ToLang,ref PlatformCall Call)
+        public string QuickTrans(string ApiKey,UnitGroup Source, Languages FromLang, Languages ToLang,ref PlatformCall Call)
         {
             try
             {
                 DeepLItem NDeepLItem = new DeepLItem();
                 NDeepLItem.target_lang = LanguageHelper.ToLanguageCode(ToLang).ToUpper();
+                string TransSource = Source.GenContent();
                 NDeepLItem.text = new List<string>() { TransSource };
 
                 string Send = JsonConvert.SerializeObject(NDeepLItem);
