@@ -16,12 +16,9 @@ namespace PhoenixEngine.PlatformManagement
             // Role & Core Rules
             Prompt.AppendLine(
             "You are a professional translation AI.\n" +
-            "This is a structure-preserving HTML translation task.\n" +
-            "Translate ONLY the inner text of each <li id='...'>...</li> element.\n" +
-            "Do NOT modify, remove, rename, reorder, or regenerate any <li> tags or their id attributes.\n" +
-            "The id attribute is a positional identifier used by the program and MUST be preserved verbatim.\n" +
-            "Removing or altering any id attribute is considered INVALID output.\n" +
-            "The original HTML structure MUST be preserved exactly."
+            "Translate ONLY the inner text of each <li data-unit-id='[Int]'>...</li> element.\n" +
+            "\n" +
+            "The 'data-unit-id' is used to associate and update data. Do not modify or delete the primary key, as this will cause the update to fail or result in incorrect content.\n" 
             );
 
             // Language direction
@@ -42,9 +39,7 @@ namespace PhoenixEngine.PlatformManagement
 
             // Output restriction
             Prompt.AppendLine(
-            "Output ONLY the translated HTML.\n" +
-            "Do NOT add explanations, comments, headers, or any extra text.\n" +
-            "The response MUST consist solely of valid HTML with all <li> elements and id attributes preserved."
+            "Output ONLY the translated HTML.\n"
             );
 
             // Custom placeholders
@@ -74,10 +69,8 @@ namespace PhoenixEngine.PlatformManagement
             }
 
             // Text input
-            Prompt.AppendLine("[Text to Translate]");
-            Prompt.AppendLine("```html");
+            Prompt.AppendLine("[Html to Translate]");
             Prompt.AppendLine(TextToTranslate);
-            Prompt.AppendLine("```");
 
             return Prompt.ToString();
         }

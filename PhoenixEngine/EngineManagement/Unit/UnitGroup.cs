@@ -181,7 +181,7 @@ namespace PhoenixEngine.EngineManagement.Unit
             {
                 if (Array[0].Translated.Length == 0)
                 {
-                    return string.Format("<li id='{0}'>{1}</li>\n", 0 + 100, Array[0].Original);
+                    return string.Format("<li data-unit-id='{0}'>{1}</li>\n", 0 + 100, Array[0].Original);
                 }
             }
 
@@ -190,7 +190,7 @@ namespace PhoenixEngine.EngineManagement.Unit
             {
                 if (Array[i].Translated.Length == 0)
                 {
-                    Html += string.Format("<li id='{0}'>{1}</li>\n", i + 100, Array[i].Original);
+                    Html += string.Format("<li data-unit-id='{0}'>{1}</li>\n", i + 100, Array[i].Original);
                 }
             }
             return Html;
@@ -200,17 +200,18 @@ namespace PhoenixEngine.EngineManagement.Unit
         {
             ConfirmPasser WaitConfirm = new ConfirmPasser(this.Units);
 
-            string Pattern = @"<\s*li\s+id\s*=\s*'([^']*)'\s*>(.*?)</\s*li\s*>";
+            string Pattern =
+                @"<\s*li\b[\s\S]*?data-unit-id\s*=\s*'(\d+)'[\s\S]*?>\s*([\s\S]*?)\s*</\s*li\s*>";
 
             var Matches = Regex.Matches(
                 Content,
                 Pattern,
-                RegexOptions.IgnoreCase | RegexOptions.Singleline
+                RegexOptions.IgnoreCase
             );
 
             foreach (Match match in Matches)
             {
-                int ID = ConvertHelper.ObjToInt(match.Groups[1].Value.Trim());
+                int ID = ConvertHelper.ObjToInt(match.Groups[1].Value);
                 string Result = match.Groups[2].Value.Trim();
 
                 if (ID >= 100)
