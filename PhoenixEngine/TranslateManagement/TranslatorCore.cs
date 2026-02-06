@@ -10,6 +10,7 @@ using PhoenixEngine.EngineManagement.Engine;
 using PhoenixEngine.EngineManagement.EThread;
 using PhoenixEngine.EngineManagement.Sequence;
 using PhoenixEngine.EngineManagement.Unit;
+using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManagement;
 
 namespace PhoenixEngine.TranslateManage
@@ -160,6 +161,11 @@ namespace PhoenixEngine.TranslateManage
                 Content.SyncSameItemsFromTranslated();
                 for (int i = 0; i < this.Content.SameItems.Count; i++)
                 {
+                    var Frist = this.Content.SameItems[i].GetFrist();
+
+                    CloudDBCache.AddCache(Phoenix.GetFileUniqueKey(),
+                    Frist.Key,(int)TranslatorRef.To,Frist.Original,Frist.Translated);
+
                     AddTranslated(this.Content.SameItems[i]);
                 }
 
