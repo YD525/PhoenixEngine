@@ -45,8 +45,9 @@ namespace PhoenixEngine.EngineManagement.Unit
 
             NotPassUnits = new List<BaseUnit>();
 
-            foreach (var GetUnit in Units)
+            for(int i = 0; i < Units.Count; i++)
             {
+                var GetUnit = Units[i];
                 if (GetUnit.Original.Length > 0)
                 {
                     if (GetUnit.Translated.Length == 0)
@@ -189,7 +190,10 @@ namespace PhoenixEngine.EngineManagement.Unit
             string Html = "";
             for (int i = 0; i < Array.Count; i++)
             {
-                Html += string.Format("<li id='{0}'>{1}</li>\n", i + 100, Array[i].Original);
+                if (Array[i].Translated.Length == 0)
+                {
+                    Html += string.Format("<li id='{0}'>{1}</li>\n", i + 100, Array[i].Original);
+                }
             }
             return Html;
         }

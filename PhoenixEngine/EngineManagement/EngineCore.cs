@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using PhoenixEngine.EngineManagement;
+using PhoenixEngine.EngineManagement.Unit;
 using PhoenixEngine.PlatformManagement;
 using PhoenixEngine.PlatformManagement.LocalAI;
 using PhoenixEngine.RequestManagement;
@@ -150,70 +151,13 @@ namespace PhoenixEngine.TranslateManage
         /// <param name="Target"></param>
         /// <param name="SourceStr"></param>
         /// <returns></returns>
-        public string CallOnce(TranslationPreprocessor Preprocessor, TranslationUnit Item,bool CanSleep)
+        public string CallOnce(TranslationPreprocessor Preprocessor,
+            UnitGroup Item,ref Dictionary<string, UnitSequence> Sequences,
+            Languages From, Languages To,bool CanSleep)
         {
-            CacheCall Call = new CacheCall();
 
-            if (Item.SourceText == null)
-            {
-                return string.Empty;
-            }
-
-            if (string.IsNullOrEmpty(Item.SourceText))
-            {
-                return Item.SourceText;
-            }
-
-            if (Phoenix.Instance.From.Equals(Phoenix.Instance.To))
-            {
-                return Item.SourceText;
-            }
-
-            Call.SendString = Item.SourceText;
-            string GetCacheStr = CloudDBCache.FindCache(Phoenix.GetFileUniqueKey(), Item.Key, Phoenix.Instance.To);
-
-            if (GetCacheStr.Trim().Length > 0)
-            {
-                Call.ReceiveString = GetCacheStr;
-
-                Call.Log = "Cache From Database";
-
-                Call.Output();
-
-                CanSleep = false;
-
-                if (Item.SourceText.Length > 0 && Phoenix.Config.ContextEnable)
-                {
-                    EngineNode.AIMemory.AddTranslation(Phoenix.Instance.From, Phoenix.Instance.To, Item.SourceText, GetCacheStr);
-                }
-
-                return GetCacheStr;
-            }
-
-            if (Phoenix.Config.EnableGlobalSearch)
-            {
-                var MatchItem = CloudDBCache.Match((int)Phoenix.Instance.To, Item.SourceText);
-                if (MatchItem != null)
-                {
-                    Call.ReceiveString = GetCacheStr;
-                    try 
-                    {
-                        Call.Log = "Data available for translation was retrieved from the database. File:" + UniqueKeyHelper.RowidToOriginalKey(MatchItem.FileUniqueKey);
-                    }
-                    catch { }
-
-                    Call.Output();
-
-                    CanSleep = false;
-
-                    if (Item.SourceText.Length > 0 && Phoenix.Config.ContextEnable)
-                    {
-                        EngineNode.AIMemory.AddTranslation(Phoenix.Instance.From, Phoenix.Instance.To, Item.SourceText, MatchItem.Result);
-                    }  
-
-                    return MatchItem.Result;
-                }
-            }
+            bool CanSkipSleep = false;
+            Item.CenterPreProcess(Preprocessor,From,To,ref Sequences,ref CanSkipSleep);
 
             EngineNode CurrentEngine = null;
 

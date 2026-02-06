@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web.Compilation;
+using PhoenixEngine.EngineManagement;
 using PhoenixEngine.EngineManagement.Unit;
 using PhoenixEngine.GameManagement;
 using PhoenixEngine.TranslateCore;
@@ -24,7 +25,7 @@ namespace PhoenixEngine.TranslateManage
 
         public string AIParam = null;
 
-        public TranslationPreprocessor PreprocessorInstance = new TranslationPreprocessor();
+        private TranslationPreprocessor PreprocessorInstance = new TranslationPreprocessor();
         public EngineCore Core = new EngineCore();
         public TranslatorCore BatchCore = null;
     
@@ -90,40 +91,52 @@ namespace PhoenixEngine.TranslateManage
             {
                 return Params.Data.GenContent();
             }
-            List<BaseUnit> Units = new List<BaseUnit>();
-            List<UnitChunk> Chunks = new List<UnitChunk>();
-            Game GameType = Game.Null;
 
-            bool Book = false;
-
-            if (SkyrimBookHelper.IsSkyrimBook(Item,ref GameType))
+            if (Params.Preprocessor == null)
             {
-                GameType = Game.Skyrim;
-                Book = true;
-                Units.AddRange(ChunkTranslationUnit(GameType,Item,ref Chunks));
-            }
-            else
-            {
-                Units.Add(Item);
+                Params.Preprocessor = this.PreprocessorInstance;
             }
 
-            string MergeLine = "";
+            //List<BaseUnit> Units = new List<BaseUnit>();
+            //List<UnitChunk> Chunks = new List<UnitChunk>();
+            //Game GameType = Game.Null;
 
-            if (Chunks.Count > 0)
-            {
-                //It is necessary to prevent the preceding lines of code from being lost.
-                foreach (var GetChunk in Chunks)
-                {
-                    if (GetChunk.IsCode)
-                    {
-                        MergeLine += GetChunk.Data;
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-            }
+            //bool Book = false;
+
+            //if (SkyrimBookHelper.IsSkyrimBook(Item,ref GameType))
+            //{
+            //    GameType = Game.Skyrim;
+            //    Book = true;
+            //    Units.AddRange(ChunkTranslationUnit(GameType,Item,ref Chunks));
+            //}
+            //else
+            //{
+            //    Units.Add(Item);
+            //}
+
+            //string MergeLine = "";
+
+            //if (Chunks.Count > 0)
+            //{
+            //    //It is necessary to prevent the preceding lines of code from being lost.
+            //    foreach (var GetChunk in Chunks)
+            //    {
+            //        if (GetChunk.IsCode)
+            //        {
+            //            MergeLine += GetChunk.Data;
+            //        }
+            //        else
+            //        {
+            //            break;
+            //        }
+            //    }
+            //}
+
+            Dictionary<string, UnitSequence> Sequences = null;
+            UnitGroup GetGroup = Params.Data;
+            GetGroup.StartPreProcess(Params.Preprocessor,this.From,this.To,ref Sequences);
+
+            
 
             foreach (var GetUnit in Units)
             {
