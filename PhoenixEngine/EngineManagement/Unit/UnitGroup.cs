@@ -87,7 +87,7 @@ namespace PhoenixEngine.EngineManagement.Unit
 
     public class UnitGroup : TranslationTrd
     {
-        public int Key = 0;
+        public string Key = "";
         public int TotalLength;
 
         public List<BaseUnit> Units = new List<BaseUnit>();
@@ -146,7 +146,7 @@ namespace PhoenixEngine.EngineManagement.Unit
 
             if (SetMode == AggregationMode.Aggregation)
             {
-                this.Key = Key;
+                this.Key = Key.ToString();
 
                 AnchorTokens = First.ExtractTokens();
                 AllTokens = new HashSet<string>(AnchorTokens);
@@ -159,7 +159,7 @@ namespace PhoenixEngine.EngineManagement.Unit
             else
             if (SetMode == AggregationMode.Single)
             {
-                this.Key = 0;
+                this.Key = First.Key;
 
                 First.ParentRef = this;
                 Units.Add(First);

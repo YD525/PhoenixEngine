@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -16,7 +17,7 @@ namespace PhoenixEngine.TranslateManage
 
         public ProcContent Content = null;
 
-        public List<string> TranslatedKeys = new List<string>();
+        public ConcurrentQueue<UnitGroup> UnitsTranslated = new ConcurrentQueue<UnitGroup>();
 
         public int AutoThreadLimit = 0;
 
@@ -48,60 +49,8 @@ namespace PhoenixEngine.TranslateManage
         private void AddTranslated(UnitGroup Item)
         {
             Item.UPDateLink(this.TranslatorRef);
-
-            int MaxTry = 10;
-            lock (TranslatedAddLocker)
-            {
-                bool HasAdd = false;
-                bool HasUPDate = false;
-                try
-                {
-                    //Has Add
-                    UnitsTranslated.Enqueue(Item);
-                    HasAdd = true;
-                    this.TranslatorRef.SetCloudData(Item.Key, Item.SourceText, Item.TransText);
-                    HasUPDate = true;
-                    TranslatedKeys.Add(Item.Key);
-                }
-                catch
-                {
-                    NextTry:
-
-                    if (!HasAdd)
-                    {
-                        try
-                        {
-                            if (MaxTry > 0)
-                            {
-                                UnitsTranslated.Enqueue(Item);
-                                MaxTry--;
-                                HasAdd = true;
-                            }
-
-                        }
-                        catch { }
-                    }
-                    if (!HasUPDate)
-                    {
-                        try
-                        {
-                            if (MaxTry > 0)
-                            {
-                                this.TranslatorRef.SetCloudData(Item.Key, Item.SourceText, Item.TransText);
-                                MaxTry--;
-                                HasUPDate = true;
-                            }
-
-                        }
-                        catch { }
-                    }
-                    if ((!HasAdd || !HasUPDate) && MaxTry > 0)
-                    {
-                        Thread.Sleep(100);
-                        goto NextTry;
-                    }
-                }
-            }
+            Item.UPDateCloudData(this.TranslatorRef);
+            UnitsTranslated.Enqueue(Item);
         }
 
         public object WaitTranslateLock = new object();
@@ -133,11 +82,6 @@ namespace PhoenixEngine.TranslateManage
         public void Init()
         {
             WorkState = 0;
-           
-            lock (TranslatedAddLocker)
-            {
-                TranslatedKeys.Clear();
-            }
 
             if (Phoenix.Config.MaxThreadCount <= 0)
             {

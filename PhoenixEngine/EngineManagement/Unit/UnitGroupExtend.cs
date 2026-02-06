@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading;
 using PhoenixEngine.TranslateManage;
 using PhoenixEngine.TranslateManagement;
 
@@ -23,6 +19,34 @@ namespace PhoenixEngine.EngineManagement.Unit
                     BaseUnit GetUnit = Item.Units[i];
 
                     TranslatorRef.TranslatedLink[GetUnit.Key] = GetUnit.Translated;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Update all objects to the cloud translation list in the local database.
+        /// </summary>
+        /// <param name="Item"></param>
+        /// <param name="TranslatorRef"></param>
+        /// <param name="UnitGroups"></param>
+        public static void UPDateCloudData(this UnitGroup Item,Translator TranslatorRef)
+        {
+            lock (TranslatorRef.TransDataLocker)
+            {
+                for (int i = 0; i < Item.Units.Count; i++)
+                {
+                    BaseUnit GetUnit = Item.Units[i];
+
+                    NextTry:
+                    try
+                    {
+                        TranslatorRef.SetCloudData(GetUnit.Key, GetUnit.Original, GetUnit.Translated);
+                    }
+                    catch
+                    {
+                        Thread.Sleep(100);
+                        goto NextTry;
+                    }
                 }
             }
         }
