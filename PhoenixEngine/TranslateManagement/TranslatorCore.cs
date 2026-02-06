@@ -43,8 +43,14 @@ namespace PhoenixEngine.TranslateManage
             }
         }
 
-
-        public ThreadUsageInfo ThreadUsage = new ThreadUsageInfo();
+        public int GetWorkingThreadCount()
+        {
+            if (TrdPool != null)
+            {
+                return TrdPool.GetWorkingThreadCount();
+            }
+            return 0;
+        }
 
         public readonly object TranslatedAddLocker = new object();
 
@@ -93,9 +99,9 @@ namespace PhoenixEngine.TranslateManage
 
         public bool IsWork = false;
 
-        private PhoenixThread<T> CreatePhoenixThread<T>(T DataRef,Action<T> Job,Action<T> Destroyed) where T : class
+        private PhoenixThread<T> CreatePhoenixThread<T>(PhoenixThreadPool<T> PoolRef,T DataRef,Action<T> Job,Action<T> Destroyed) where T : class
         {
-            PhoenixThread<T> CreateTrd = new PhoenixThread<T>();
+            PhoenixThread<T> CreateTrd = new PhoenixThread<T>(PoolRef);
             CreateTrd.SetFunc(Job);
             CreateTrd.RegDestroyed(Destroyed);
             CreateTrd.SetData(DataRef);
@@ -129,12 +135,13 @@ namespace PhoenixEngine.TranslateManage
 
             TransMainTrd = new Thread(() => 
             {
+                this.IsWork = true;
                 this.ProcStage = 3;
                 //First, translate the traditional type.
                 for (int i = 0; i < this.Content.Units.Count; i++)
                 {
                     UnitGroup GetPointer = this.Content.Units[i];
-                    while (!TrdPool.Put(CreatePhoenixThread<UnitGroup>(GetPointer, NormalCall, WorkEndCall)))
+                    while (!TrdPool.Put(CreatePhoenixThread<UnitGroup>(TrdPool,GetPointer, NormalCall, WorkEndCall)))
                     {
                         Thread.Sleep(100);
                     }
@@ -145,7 +152,7 @@ namespace PhoenixEngine.TranslateManage
                 for (int i = 0; i < this.Content.Books.Count; i++)
                 {
                     UnitGroup GetBookPointer = this.Content.Books[i];
-                    while (!TrdPool.Put(CreatePhoenixThread<UnitGroup>(GetBookPointer, BookCall, WorkEndCall)))
+                    while (!TrdPool.Put(CreatePhoenixThread<UnitGroup>(TrdPool,GetBookPointer, BookCall, WorkEndCall)))
                     {
                         Thread.Sleep(100);
                     }
@@ -161,7 +168,9 @@ namespace PhoenixEngine.TranslateManage
                     }
                 }
 
+                this.IsWork = false;
                 this.ProcStage = 10;
+                TransMainTrd = null;
             });
 
             TransMainTrd.Start();

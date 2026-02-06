@@ -94,7 +94,7 @@ namespace PhoenixEngine.EngineManagement.EThread
 
             lock (SyncLock)
             {
-                if (ConcurrencyLimit < GetWorkingThreadCount())
+                if (ConcurrencyLimit < this.Threads.Count - 1)
                 {
                     return false;
                 }

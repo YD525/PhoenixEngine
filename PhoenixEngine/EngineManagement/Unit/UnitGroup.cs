@@ -179,7 +179,7 @@ namespace PhoenixEngine.EngineManagement.Unit
         {
             if (Array.Count == 1)
             {
-                if (Array[0].Translated.Length > 0)
+                if (Array[0].Translated.Length == 0)
                 {
                     return string.Format("<li id='{0}'>{1}</li>\n", 0 + 100, Array[0].Original);
                 }

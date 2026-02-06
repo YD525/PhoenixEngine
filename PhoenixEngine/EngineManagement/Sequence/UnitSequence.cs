@@ -80,18 +80,21 @@ namespace PhoenixEngine.EngineManagement
                 if (Preprocessor.IsOnlySymbolsAndSpaces(Source))//Skip pure symbol content.
                 {
                     Sequences[GetUnit.Key].Data = Source;
+                    GetUnit.Translated = Sequences[GetUnit.Key].Data;
                     Sequences[GetUnit.Key].CanSkip = true;
                 }
                 else
                 if (string.IsNullOrEmpty(Source))//SkipEmptyContent
                 {
                     Sequences[GetUnit.Key].Data = Source;
+                    GetUnit.Translated = Sequences[GetUnit.Key].Data;
                     Sequences[GetUnit.Key].CanSkip = true;
                 }
                 else
                 if (Preprocessor.IsNumeric(Source))//Skip pure numbers
                 {
                     Sequences[GetUnit.Key].Data = Source;
+                    GetUnit.Translated = Sequences[GetUnit.Key].Data;
                     Sequences[GetUnit.Key].CanSkip = true;
                 }
 
@@ -109,11 +112,15 @@ namespace PhoenixEngine.EngineManagement
                         Preprocessor.StripOuterQuotes(ref Content);
                     }
 
+                    Sequences[GetUnit.Key].Data = Content;
+                    GetUnit.Original = Sequences[GetUnit.Key].Data;
+
                     //Match DataBase
                     string GetMatchResult = "";
                     if (Preprocessor.ExactMatch(From, To, GetUnit.Key, GetUnit.Type, Content, ref GetMatchResult))
                     {
                         Sequences[GetUnit.Key].Data = GetMatchResult;
+                        GetUnit.Translated = Sequences[GetUnit.Key].Data;
                         Sequences[GetUnit.Key].CanSkip = true;
                     }
                     else
@@ -170,6 +177,7 @@ namespace PhoenixEngine.EngineManagement
                         }
 
                         Sequences[GetUnit.Key].Data = GetCacheStr;
+                        GetUnit.Translated = Sequences[GetUnit.Key].Data;
                         Sequences[GetUnit.Key].CanSkip = true;
                         return;
                     }
@@ -196,6 +204,7 @@ namespace PhoenixEngine.EngineManagement
                             }
 
                             Sequences[GetUnit.Key].Data = MatchItem.Result;
+                            GetUnit.Translated = Sequences[GetUnit.Key].Data;
                             Sequences[GetUnit.Key].CanSkip = true;
                             return;
                         }
@@ -278,7 +287,8 @@ namespace PhoenixEngine.EngineManagement
 
                 if (Sequences[GetUnit.Key].HavePlaceholder)
                 {
-                    Sequences[GetUnit.Key].Data = Preprocessor.RestoreFromPlaceholder(Sequences[GetUnit.Key].Data, To);
+                    GetUnit.Translated = Preprocessor.RestoreFromPlaceholder(Sequences[GetUnit.Key].Data, To);
+                    Sequences[GetUnit.Key].Data = GetUnit.Translated;
                     Sequences[GetUnit.Key].HavePlaceholder = false;
                 }
             }
@@ -299,7 +309,7 @@ namespace PhoenixEngine.EngineManagement
             {
                 var GetUnit = Item.Units[i];
 
-                string Translated = Sequences[GetUnit.Key].Data;
+                string Translated = GetUnit.Translated;
 
                 Sequences[GetUnit.Key].Step = 7;
                 var Preprocessor = Sequences[GetUnit.Key].Preprocessor;
