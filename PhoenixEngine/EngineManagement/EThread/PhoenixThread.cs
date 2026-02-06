@@ -12,14 +12,14 @@ namespace PhoenixEngine.EngineManagement.EThread
     where T1 : class
     where T2 : class
     {
-        public List<PhoenixThread<T1, T2>> Threads = new List<PhoenixThread<T1, T2>>();
+        private List<PhoenixThread<T1, T2>> Threads = new List<PhoenixThread<T1, T2>>();
         public int ConcurrencyLimit = 0;
         public object SyncLock = new object();
         public int GetWorkingThreadCount()
         {
             lock (SyncLock)
             {
-            NextTry:
+                NextTry:
                 try
                 {
                     int WorkCount = 0;
@@ -35,6 +35,15 @@ namespace PhoenixEngine.EngineManagement.EThread
                 catch { goto NextTry; }
             }
         }
+
+        public int GetCount()
+        {
+            lock (SyncLock)
+            {
+                return this.Threads.Count;
+            }
+        }
+
         public void SyncPool()
         {
             lock (SyncLock)
@@ -76,7 +85,7 @@ namespace PhoenixEngine.EngineManagement.EThread
                 return this.Threads.Count + 1;
             }
         }
-        public bool Add(PhoenixThread<T1, T2> ThreadRef, bool Run = true)
+        public bool Put(PhoenixThread<T1, T2> ThreadRef, bool Run = true)
         {
             lock (SyncLock)
             {
