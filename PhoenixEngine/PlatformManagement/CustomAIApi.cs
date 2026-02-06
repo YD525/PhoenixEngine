@@ -99,15 +99,6 @@ namespace PhoenixEngine.PlatformManagement
 
                     if (TransStr.Trim().Length > 0)
                     {
-                        try
-                        {
-                            GetStr = JsonGeter.GetValue(TransStr);
-                        }
-                        catch
-                        {
-                            return string.Empty;
-                        }
-
                         Call.Success = true;
 
                         return GetStr;

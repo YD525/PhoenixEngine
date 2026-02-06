@@ -133,7 +133,6 @@
     <Compile Include="EngineManagement\ChunkHelper.cs" />
     <Compile Include="EngineManagement\ADO\CloudDBCache.cs" />
     <Compile Include="Additional\FontColorFinder.cs" />
-    <Compile Include="PlatformManagement\JsonGeter.cs" />
     <Compile Include="LanguageManagement\LanguageHelper.cs" />
     <Compile Include="EngineManagement\ADO\LocalDBCache.cs" />
     <Compile Include="Additional\SpeechHelper.cs" />

@@ -11,63 +11,73 @@ namespace PhoenixEngine.PlatformManagement
         {
             var Prompt = new System.Text.StringBuilder();
 
-            Prompt.AppendLine($"\n<!-- Request ID: {DateTime.UtcNow.Ticks.GetHashCode().ToString().Replace("-","_")} -->");
+            Prompt.AppendLine($"<!-- Request ID: {DateTime.UtcNow.Ticks.GetHashCode().ToString().Replace("-", "_")} -->");
 
-            // Main Role and Instructions
-            Prompt.AppendLine("You are a professional translation AI. Your task is to provide only the translated text, with no additional explanation, reasoning, or commentary.");
+            // Role & Core Rules
+            Prompt.AppendLine(
+            "You are a professional translation AI.\n" +
+            "This is a structure-preserving HTML translation task.\n" +
+            "Translate ONLY the inner text of each <li id='...'>...</li> element.\n" +
+            "Do NOT modify, remove, rename, reorder, or regenerate any <li> tags or their id attributes.\n" +
+            "The id attribute is a positional identifier used by the program and MUST be preserved verbatim.\n" +
+            "Removing or altering any id attribute is considered INVALID output.\n" +
+            "The original HTML structure MUST be preserved exactly."
+            );
 
+            // Language direction
             if (From == Languages.Auto)
             {
-                Prompt.AppendLine("Translate the following text to " + LanguageHelper.ToLanguageCode(To) + ". The source language will be automatically detected.");
+                Prompt.AppendLine(
+                    $"Translate the following text to {LanguageHelper.ToLanguageCode(To)}. " +
+                    "The source language will be automatically detected."
+                );
             }
             else
             {
-                Prompt.AppendLine($"Translate the following text from {LanguageHelper.ToLanguageCode(From)} to {LanguageHelper.ToLanguageCode(To)}.");
+                Prompt.AppendLine(
+                    $"Translate the following text from {LanguageHelper.ToLanguageCode(From)} " +
+                    $"to {LanguageHelper.ToLanguageCode(To)}."
+                );
             }
 
-            // Direct instruction to exclude extra information
-            Prompt.AppendLine("Respond ONLY with the translated content. Do not include any explanations, reasoning, or additional comments. The response must only contain the translation, and no other text.");
-            Prompt.AppendLine("The category is a broad context type (e.g., related to NPC_,ARMO, etc.), but it is NOT a specific entity label.");
+            // Output restriction
+            Prompt.AppendLine(
+            "Output ONLY the translated HTML.\n" +
+            "Do NOT add explanations, comments, headers, or any extra text.\n" +
+            "The response MUST consist solely of valid HTML with all <li> elements and id attributes preserved."
+            );
 
-            // Custom Words section
+            // Custom placeholders
             if (CustomWords != null && CustomWords.Count > 0)
             {
                 Prompt.AppendLine("[Placeholder Rule]");
-                Prompt.AppendLine("These placeholders represent their actual corresponding translated content and are provided for reference only during translation.");
-                Prompt.AppendLine("The placeholders must be preserved, as the program will handle their replacement.");
-                Prompt.AppendLine("You have only one permission: to adjust the order of the placeholders so that the translation reads as naturally and smoothly as possible.");
+                Prompt.AppendLine(
+                    "Placeholders represent protected content.\n" +
+                    "They MUST be preserved exactly.\n" +
+                    "You may only reorder placeholders if required for natural sentence flow."
+                );
+
                 foreach (var GetWord in CustomWords)
                 {
-                    Prompt.AppendLine($"{GetWord.Key} //meaning: {GetWord.Value}");
+                    Prompt.AppendLine($"{GetWord.Key} // meaning: {GetWord.Value}");
                 }
             }
 
-            // Terminology References section
+            // Terminology
             if (TerminologyReferences != null && TerminologyReferences.Count > 0)
             {
-                Prompt.AppendLine("\n[Terminology References]");
+                Prompt.AppendLine("[Terminology References]");
                 foreach (var Reference in TerminologyReferences)
                 {
                     Prompt.AppendLine($"- {Reference}");
                 }
             }
 
-            // Main Text to Translate
-            Prompt.AppendLine("\n[Text to Translate]");
-            Prompt.AppendLine("\"\"\"");
+            // Text input
+            Prompt.AppendLine("[Text to Translate]");
+            Prompt.AppendLine("```html");
             Prompt.AppendLine(TextToTranslate);
-            Prompt.AppendLine("\"\"\"");
-
-            // Additional Instructions (Custom Parameter)
-            if (!string.IsNullOrWhiteSpace(AdditionalInstructions))
-            {
-                Prompt.AppendLine($"\n{AdditionalInstructions}");
-            }
-
-            // Response Format section
-            Prompt.AppendLine("\n[Response Format]");
-            Prompt.AppendLine("If you cannot translate, do not return any content; return empty JSON instead: {\"translation\": \"\"}");
-            Prompt.AppendLine("Respond strictly with: {\"translation\": \"....\"}");
+            Prompt.AppendLine("```");
 
             return Prompt.ToString();
         }

@@ -181,7 +181,7 @@ namespace PhoenixEngine.EngineManagement.Unit
             {
                 if (Array[0].Translated.Length > 0)
                 {
-                    return Array[0].Original;
+                    return string.Format("<li id='{0}'>{1}</li>\n", 0 + 100, Array[0].Original);
                 }
             }
 
@@ -199,29 +199,28 @@ namespace PhoenixEngine.EngineManagement.Unit
         public ConfirmPasser AnalysisContent(string Content)
         {
             ConfirmPasser WaitConfirm = new ConfirmPasser(this.Units);
-            Content = Content.Replace(">", ">\n");
 
-            foreach (var Line in Content.Split(new char[2] { '\r', '\n' }))
+            string Pattern = @"<\s*li\s+id\s*=\s*'([^']*)'\s*>(.*?)</\s*li\s*>";
+
+            var Matches = Regex.Matches(
+                Content,
+                Pattern,
+                RegexOptions.IgnoreCase | RegexOptions.Singleline
+            );
+
+            foreach (Match match in Matches)
             {
-                if (Line.Trim().Length > 0)
+                int ID = ConvertHelper.ObjToInt(match.Groups[1].Value.Trim());
+                string Result = match.Groups[2].Value.Trim();
+
+                if (ID >= 100)
                 {
-                    string Pattern = @"<\s*li\s+id\s*=\s*'([^']*)'\s*>(.*?)</\s*li\s*>";
-
-                    Match Match = Regex.Match(Line, Pattern, RegexOptions.IgnoreCase);
-
-                    if (Match.Success)
+                    int NormalID = ID - 100;
+                    if (NormalID >= 0)
                     {
-                        int ID = ConvertHelper.ObjToInt(Match.Groups[1].Value.Trim());
-                        string Result = Match.Groups[2].Value;
-
-                        if (ID >= 100)
-                        {
-                            int NormalID = (ID - 100);
-                            if (NormalID >= 0)
-                            {
-                                WaitConfirm.NeedConfirms.Add(new NeedConfirm(NormalID, Result));
-                            }
-                        }
+                        WaitConfirm.NeedConfirms.Add(
+                            new NeedConfirm(NormalID, Result)
+                        );
                     }
                 }
             }

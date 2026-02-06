@@ -170,20 +170,6 @@ namespace PhoenixEngine.PlatformManagement.LocalAI
                     }
                     if (GetStr.Trim().Length > 0)
                     {
-                        try
-                        {
-                            GetStr = JsonGeter.GetValue(GetStr);
-                        }
-                        catch
-                        {
-                            return string.Empty;
-                        }
-
-                        if (GetStr.Trim().Equals("<translated_text>"))
-                        {
-                            return string.Empty;
-                        }
-
                         Call.Success = true;
 
                         return GetStr;

@@ -73,6 +73,7 @@ namespace PhoenixEngine.EngineManagement
                 var GetUnit = Item.Units[i];
                 string Source = string.Copy(GetUnit.Original);
 
+                Sequences.Add(GetUnit.Key,new UnitSequence(false));
                 Sequences[GetUnit.Key].Step = 0;
                 Sequences[GetUnit.Key].Preprocessor = TranslationPreprocessor.Clone(Preprocessor);
 
