@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.EngineManagement.Engine;
 using PhoenixEngine.EngineManagement.Unit;
@@ -30,8 +31,13 @@ namespace PhoenixEngine.TranslateManage
         public Dictionary<string, string> TranslatedLink = new Dictionary<string, string>();
         public int MaxTry = 10;
 
-        public Translator(Languages SetFrom,Languages SetTo)
+        public Translator(Languages SetFrom,Languages SetTo,bool ClearCache)
         {
+            if (BatchCore == null)
+            {
+                BatchCore = new TranslatorCore(this, ClearCache);
+            }
+
             if (Phoenix.AIMemory.OptimizeToken(this))
             {
                 if (SetFrom != Languages.Null)
@@ -45,15 +51,12 @@ namespace PhoenixEngine.TranslateManage
             }
         }
 
-        public void EnableBatchCore(bool ClearCache = false)
+        public UnitGroup ToUnitGroup(BaseUnit Unit)
         {
-            if (BatchCore == null)
-            {
-                BatchCore = new TranslatorCore(this, ClearCache);
-            }
+            return new UnitGroup(this.BatchCore.Content,Unit);
         }
 
-        public void InitBatchCore(List<BaseUnit>BaseUnits,AggregationMode Mode)
+        public void Init(List<BaseUnit>BaseUnits,AggregationMode Mode)
         {
             if (BatchCore != null)
             {
@@ -79,6 +82,16 @@ namespace PhoenixEngine.TranslateManage
         public void ClearAICache()
         {
             Phoenix.AIMemory.Clear();
+        }
+
+        public void ReInit()
+        {
+            if (this.BatchCore != null)
+            {
+                this.BatchCore.Cancel();
+                this.BatchCore.Content.Clear();
+                this.BatchCore.ProcStage = 0;
+            }
         }
 
         public List<BaseUnit> ChunkTranslationUnit(BaseUnit Unit,ref List<UnitChunk> Chunks)

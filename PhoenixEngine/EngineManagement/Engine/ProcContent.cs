@@ -104,6 +104,39 @@ namespace PhoenixEngine.EngineManagement.Engine
                 return (GetUnitsCount() + this.SameItems.Count + this.Books.Count);
             }
         }
+
+        //Implement translation units that input the same source text.
+        public string SearchTranslated(string Original)
+        {
+            for (int i = 0; i < this.UnionData.Units.Count; i++)
+            {
+                if (this.UnionData.Units[i].Original.Equals(Original))
+                {
+                    if (this.UnionData.Units[i].Translated.Length > 0)
+                        return this.UnionData.Units[i].Translated;
+                }
+            }
+
+            foreach (var GetDict in new Dictionary<string, BaseUnit>(this.UnionData.Leaders))
+            {
+                if (GetDict.Value.Original.Equals(Original))
+                {
+                    if (GetDict.Value.Translated.Length > 0)
+                        return GetDict.Value.Translated;
+                }
+            }
+
+            throw (new Exception("SearchTranslated->An unknown anomaly occurred"));
+        }
+        public void Clear()
+        {
+            this.UnionData.Clear();
+
+            this.Units.Clear();
+            this.SameItems.Clear();
+            this.Books.Clear();
+        }
+
         public static ProcContent Build(Translator Translator, UnionArray Data,AggregationMode SetMode)
         {
             ProcContent Content = new ProcContent(Translator);
@@ -185,30 +218,6 @@ namespace PhoenixEngine.EngineManagement.Engine
             }
 
             return Content;
-        }
-
-        //Implement translation units that input the same source text.
-        public string SearchTranslated(string Original)
-        {
-            for (int i = 0; i < this.UnionData.Units.Count; i++)
-            {
-                if (this.UnionData.Units[i].Original.Equals(Original))
-                {
-                    if(this.UnionData.Units[i].Translated.Length > 0)
-                    return this.UnionData.Units[i].Translated;
-                }
-            }
-
-            foreach (var GetDict in new Dictionary<string, BaseUnit>(this.UnionData.Leaders))
-            {
-                if (GetDict.Value.Original.Equals(Original))
-                {
-                    if(GetDict.Value.Translated.Length > 0)
-                    return GetDict.Value.Translated;
-                }
-            }
-
-            throw (new Exception("SearchTranslated->An unknown anomaly occurred"));
         }
     }
 }

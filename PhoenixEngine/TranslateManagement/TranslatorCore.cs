@@ -184,8 +184,6 @@ namespace PhoenixEngine.TranslateManage
       
         public void Cancel()
         {
-            TrdPool.CloseAll();
-
             try 
             { 
                 TransMainTrd.Abort();
@@ -193,6 +191,8 @@ namespace PhoenixEngine.TranslateManage
             catch { }
 
             TransMainTrd = null;
+
+            TrdPool.CloseAll();
         }
         public void Keep()
         {
