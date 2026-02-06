@@ -104,6 +104,11 @@ namespace PhoenixEngine.TranslateManage
 
         public void Start()
         {
+            if (TrdPool == null)
+            {
+                TrdPool = new PhoenixThreadPool<UnitGroup>();
+                TrdPool.ConcurrencyLimit = Phoenix.Config.MaxThreadCount;
+            }
             //The method pointer is invoked after the translation is complete.
             Action<UnitGroup> WorkEndCall = new Action<UnitGroup>((Item) =>
             {
