@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using PhoenixEngine.EngineManagement.Sequence;
 using PhoenixEngine.EngineManagement.Unit;
 using PhoenixEngine.GameManagement;
@@ -19,6 +20,7 @@ namespace PhoenixEngine.EngineManagement.Engine
         public List<UnitGroup> SameItems = new List<UnitGroup>();
         public List<UnitGroup> Books = new List<UnitGroup>();
 
+        public UnionArray UnionData = new UnionArray();
         public ProcContent(Translator Translator)
         {
             this.TranslatorRef = Translator;
@@ -79,76 +81,85 @@ namespace PhoenixEngine.EngineManagement.Engine
             BatchUnit.Init(GenKey, Item, AggregationMode.Aggregation);
             Units.Add(BatchUnit);
         }
-        public static ProcContent Build(Translator Translator, UnionArray Data)
+        public static ProcContent Build(Translator Translator, UnionArray Data,AggregationMode SetMode)
         {
             ProcContent Content = new ProcContent(Translator);
-            List<UnitGroup> SameItems = new List<UnitGroup>();
 
-            HashSet<string> SeenTexts = new HashSet<string>();
-            List<BaseUnit> UniqueLeaders = new List<BaseUnit>();
-
-            foreach (var Leader in Data.Leaders.Values)
+            if (SetMode == AggregationMode.Aggregation)
             {
-                if (!SeenTexts.Contains(Leader.Original))
+                List<UnitGroup> SameItems = new List<UnitGroup>();
+                List<BaseUnit> UniqueLeaders = new List<BaseUnit>();
+
+                HashSet<string> SeenTexts = new HashSet<string>();
+
+                foreach (var Leader in Data.Leaders.Values)
                 {
-                    SeenTexts.Add(Leader.Original);
-                    UniqueLeaders.Add(Leader);
+                    if (!SeenTexts.Contains(Leader.Original))
+                    {
+                        SeenTexts.Add(Leader.Original);
+                        UniqueLeaders.Add(Leader);
+                    }
+                    else
+                    {
+                        SameItems.Add(new UnitGroup(Content, Leader));
+                    }
                 }
-                else
+
+                foreach (var Leader in UniqueLeaders)
                 {
-                    SameItems.Add(new UnitGroup(Content, Leader));
+                    Content.AddLeader(Leader);
                 }
-            }
 
-            foreach (var Leader in UniqueLeaders)
-            {
-                Content.AddLeader(Leader);
-            }
-
-            foreach (var Unit in Data.Units)
-            {
-                if (!SeenTexts.Contains(Unit.Original))
+                foreach (var Unit in Data.Units)
                 {
-                    SeenTexts.Add(Unit.Original);
-                    Content.Add(Unit);
+                    if (!SeenTexts.Contains(Unit.Original))
+                    {
+                        SeenTexts.Add(Unit.Original);
+                        Content.Add(Unit);
+                    }
+                    else
+                    {
+                        SameItems.Add(new UnitGroup(Content, Unit));
+                    }
                 }
-                else
+
+                Dictionary<UnitGroup, BaseUnit> SingleUnits = new Dictionary<UnitGroup, BaseUnit>();
+                for (int i = 0; i < Content.Units.Count; i++)
                 {
-                    SameItems.Add(new UnitGroup(Content, Unit));
+                    if (Content.Units[i].Units.Count == 1)
+                    {
+                        SingleUnits.Add(Content.Units[i], Content.Units[i].Units[0]);
+                    }
                 }
-            }
 
-            Dictionary<UnitGroup, BaseUnit> SingleUnits = new Dictionary<UnitGroup, BaseUnit>();
-            for (int i = 0; i < Content.Units.Count; i++)
-            {
-                if (Content.Units[i].Units.Count == 1)
+                UnitGroup UnitGroup = new UnitGroup(Content);
+                UnitGroup.IsUnrelated = true;
+
+                foreach (var Kvp in SingleUnits)
                 {
-                    SingleUnits.Add(Content.Units[i], Content.Units[i].Units[0]);
+                    Content.Units.Remove(Kvp.Key);
+                    UnitGroup.AddUnit(Kvp.Value);
+
+                    if (UnitGroup.TotalLength > ProcContent.TextLengthLimit)
+                    {
+                        Content.Units.Add(UnitGroup);
+                        UnitGroup = new UnitGroup(Content);
+                        UnitGroup.IsUnrelated = true;
+                    }
                 }
-            }
 
-            UnitGroup UnitGroup = new UnitGroup(Content);
-            UnitGroup.IsUnrelated = true;
-
-            foreach (var Kvp in SingleUnits)
-            {
-                Content.Units.Remove(Kvp.Key);
-                UnitGroup.AddUnit(Kvp.Value);
-
-                if (UnitGroup.TotalLength > ProcContent.TextLengthLimit)
+                if (UnitGroup.Units.Count > 0)
                 {
                     Content.Units.Add(UnitGroup);
-                    UnitGroup = new UnitGroup(Content);
-                    UnitGroup.IsUnrelated = true;
                 }
-            }
 
-            if (UnitGroup.Units.Count > 0)
+                Content.SameItems.AddRange(SameItems);
+            }
+            else
+            if (SetMode == AggregationMode.Single)
             {
-                Content.Units.Add(UnitGroup);
+                Content.UnionData = Data;
             }
-
-            Content.SameItems.AddRange(SameItems);
 
             return Content;
         }

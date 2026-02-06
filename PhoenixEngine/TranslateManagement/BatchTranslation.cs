@@ -4,10 +4,9 @@ using System.Linq;
 using System.Threading;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.EngineManagement.Engine;
+using PhoenixEngine.EngineManagement.Sequence;
 using PhoenixEngine.EngineManagement.Unit;
-using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManagement;
-using static PhoenixEngine.TranslateCore.LanguageHelper;
 
 namespace PhoenixEngine.TranslateManage
 {
@@ -15,7 +14,6 @@ namespace PhoenixEngine.TranslateManage
     {
         public readonly object UnitsTranslatedLocker = new object();
 
-        public UnionArray UnionData = new UnionArray();
         public ProcContent Content = null;
 
         public List<string> TranslatedKeys = new List<string>();
@@ -27,7 +25,7 @@ namespace PhoenixEngine.TranslateManage
         public bool SkipWordAnalysis = false;
 
         public Translator TranslatorRef = null;
-        public BatchTranslation(Translator SetTranslator,List<BaseUnit> BaseUnits, bool ClearCache = false)
+        public BatchTranslation(Translator SetTranslator,List<BaseUnit> BaseUnits,AggregationMode SetMode, bool ClearCache = false)
         {
             this.TranslatorRef = SetTranslator;
 
@@ -36,8 +34,10 @@ namespace PhoenixEngine.TranslateManage
                 TranslatorRef.ClearCache();
             }
 
-            UnionData.Load(BaseUnits,TranslatorRef.From);
-            Content = ProcContent.Build(TranslatorRef,this.UnionData);
+            UnionArray SetData = new UnionArray();
+            SetData.Load(BaseUnits, TranslatorRef.From);
+            Content = ProcContent.Build(TranslatorRef,SetData,SetMode);
+
             Init();
         }
 
@@ -146,10 +146,6 @@ namespace PhoenixEngine.TranslateManage
            
             lock (TranslatedAddLocker)
             {
-                UnitsLeaderToTranslate.Clear();
-                UnitsToTranslate.Clear();
-
-                UnitsTranslated.Clear();
                 TranslatedKeys.Clear();
             }
 
