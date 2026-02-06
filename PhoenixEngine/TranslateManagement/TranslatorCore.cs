@@ -162,170 +162,25 @@ namespace PhoenixEngine.TranslateManage
                     this.Content.SameItems[i].Units[ir].Translated = this.Content.SearchTranslated(this.Content.SameItems[i].Units[ir].Original);
                 }
             }
-
-
-            //if (IsWork || TransMainTrd == null)
-            //{
-            //    ExitAny = false;
-            //    TransMainTrd = new Thread(() =>
-            //    {
-            //        IsWork = true;
-
-            //        if (ExitAny)
-            //        {
-            //            SetEndState();
-            //            return;
-            //        }
-
-            //        TransMainTrdCancel = new CancellationTokenSource();
-            //        var Token = TransMainTrdCancel.Token;
-
-            //        int CurrentTrds = 0;
-
-            //        bool IsLeader = true;
-
-            //        WorkState = 2;
-
-            //        while (true)
-            //        {
-            //            if (!IsStop)
-            //            {
-            //                try
-            //                {
-            //                    NextFind:
-
-            //                    ThreadUsage.CurrentThreads = CurrentTrds;
-            //                    ThreadUsage.MaxThreads = Phoenix.Config.MaxThreadCount;
-
-            //                    bool CanExit = true;
-            //                    Token.ThrowIfCancellationRequested();
-            //                    CurrentTrds = GetWorkCount();
-
-            //                    int AutoTrd = Phoenix.Config.MaxThreadCount;
-
-            //                    if (IsLeader)
-            //                    {
-            //                        if (AutoLeaderTrd <= 0)
-            //                        {
-            //                            AutoLeaderTrd = 1;
-            //                        }
-            //                        AutoTrd = AutoLeaderTrd;
-            //                    }
-
-            //                    if (CurrentTrds < AutoTrd)
-            //                    {
-            //                        TranslationUnit Leader = GetWaitTransUnitFromDict(UnitsLeaderToTranslate);
-            //                        if (Leader != null)
-            //                        {
-            //                            Leader.StartWork(this);
-            //                            CanExit = false;
-            //                            IsLeader = true;
-            //                            goto Next;
-            //                        }
-
-            //                        TranslationUnit Normal = GetWaitTransUnit(ref UnitsToTranslate);
-            //                        if (Normal != null)
-            //                        {
-            //                            Normal.StartWork(this);
-            //                            CanExit = false;
-            //                            IsLeader = false;
-            //                            goto Next;
-            //                        }
-
-            //                        Next:
-
-            //                        if (CurrentTrds > Phoenix.Config.MaxThreadCount * Phoenix.Config.ThrottleRatio)
-            //                        {
-            //                            AutoSleep = Phoenix.Config.ThrottleDelayMs;
-            //                        }
-            //                        else
-            //                        {
-            //                            AutoSleep = 0;
-            //                        }
-
-            //                        if (AutoSleep > 0)
-            //                        {
-            //                            Thread.Sleep(AutoSleep);
-            //                        }
-            //                    }
-
-            //                    if (CanExit)
-            //                    {
-            //                        int SucessCount = 0;
-
-            //                        for (int i = 0; i < UnitsToTranslate.Count; i++)
-            //                        {
-            //                            if (UnitsToTranslate[i].WorkEnd == 2)
-            //                            {
-            //                                SucessCount++;
-            //                            }
-            //                        }
-
-            //                        foreach (var kvp in UnitsLeaderToTranslate)
-            //                        {
-            //                            if (kvp.Value.WorkEnd == 2)
-            //                            {
-            //                                SucessCount++;
-            //                            }
-            //                        }
-
-            //                        if (SucessCount == (UnitsToTranslate.Count + UnitsLeaderToTranslate.Count))
-            //                        {
-            //                            if (SameItems != null)
-            //                            {
-            //                                if (SameItems.Count > 0)
-            //                                {
-            //                                    for (int i = 0; i < SameItems.Count; i++)
-            //                                    {
-            //                                        string GetKey = SameItems.ElementAt(i).Key;
-            //                                        SetDuplicateSource(GetKey);
-            //                                    }
-            //                                }
-            //                            }
-
-            //                            IsWork = false;
-
-            //                            WorkState = 3;
-
-            //                            Close();
-
-            //                            return;
-            //                        }
-            //                        else
-            //                        {
-            //                            Thread.Sleep(1);
-            //                            goto NextFind;
-            //                        }
-            //                    }
-            //                }
-            //                catch (OperationCanceledException)
-            //                {
-            //                    IsWork = false;
-            //                    TransMainTrd = null;
-
-            //                    try
-            //                    {
-            //                        WorkState = -1;
-            //                    }
-            //                    catch { }
-            //                    return;
-            //                }
-            //            }
-            //            else
-            //            {
-            //                Thread.Sleep(500);
-            //            }
-            //            Thread.Sleep(1);
-            //        }
-
-            //    });
-
-            //    TransMainTrd.Start();
-            //}
         }
 
         public bool ExitAny = false;
 
+        public void ReSet()
+        {
+            lock (UnitsReadLock)
+            {
+                for (int i = 0; i < this.Content.UnionData.Units.Count; i++)
+                {
+                    this.Content.UnionData.Units[i].ReSet();
+                }
+                for (int i = 0; i < this.Content.UnionData.Leaders.Count; i++)
+                {
+                    var GetKey = this.Content.UnionData.Leaders.ElementAt(i).Key;
+                    this.Content.UnionData.Leaders[GetKey].ReSet();
+                }
+            }
+        }
       
         public void Cancel()
         {

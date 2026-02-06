@@ -9,6 +9,7 @@ namespace PhoenixEngine.TranslateManagement
         public double Score = 100;
         public string Key = "";
         public string Type = "";
+        private string RealOriginal = "";
         public string Original = "";
         public string Translated = "";
         public bool Leader = false;
@@ -20,6 +21,7 @@ namespace PhoenixEngine.TranslateManagement
             this.FileUniqueKey = FileUniqueKey;
             this.Key = Key;
             this.Type = Type;
+            this.RealOriginal = string.Copy(Original);
             this.Original = Original;
             this.Translated = Translated;
             this.Score = Score;
@@ -39,6 +41,12 @@ namespace PhoenixEngine.TranslateManagement
                 Leader = this.Leader,
                 TempSim = this.TempSim
             };
+        }
+
+        public void ReSet()
+        {
+            this.Original = this.RealOriginal;
+            this.Translated = string.Empty;
         }
     }
 
