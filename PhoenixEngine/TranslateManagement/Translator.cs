@@ -65,8 +65,10 @@ namespace PhoenixEngine.TranslateManage
                     throw (new Exception("Translator->Attempting to initialize at the wrong stage."));
                 }
             }
-
-            throw (new Exception("Translator->Error: Null pointer."));
+            else
+            {
+                throw (new Exception("Translator->Error: Null pointer."));
+            }
         }
 
         public TranslatorCore GetBatchCore()

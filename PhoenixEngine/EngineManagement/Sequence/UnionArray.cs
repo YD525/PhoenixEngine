@@ -12,16 +12,15 @@ namespace PhoenixEngine.EngineManagement.Sequence
 {
     public class UnionArray
     {
-        public double MarkLeadersPercent = 0;
         public int AutoLeaderTrd = 0;
         public Languages DetectSourceLang = Languages.Null;
 
         public Dictionary<string, BaseUnit> Leaders = new Dictionary<string, BaseUnit>();
         public List<BaseUnit> Units = new List<BaseUnit>();
 
-        public void Load(List<BaseUnit> BaseUnits, Languages From)
+        public void Load(List<BaseUnit> BaseUnits, Languages From,ref double MarkLeadersPercent)
         {
-            MarkLeadersAndSort(BaseUnits, DetectSource(From));
+            MarkLeadersAndSort(BaseUnits, DetectSource(From),ref MarkLeadersPercent);
         }
 
         public Languages DetectSource(Languages From)
@@ -47,7 +46,7 @@ namespace PhoenixEngine.EngineManagement.Sequence
             return this.DetectSourceLang;
         }
 
-        public void MarkLeadersAndSort(List<BaseUnit> SetBaseUnits, Languages Lang)
+        public void MarkLeadersAndSort(List<BaseUnit> SetBaseUnits, Languages Lang,ref double MarkLeadersPercent)
         {
             MarkLeadersPercent = 0;
 

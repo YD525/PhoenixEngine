@@ -37,7 +37,7 @@ namespace PhoenixEngine.TranslateManagement
                 }
                 else
                 {
-                    return null;
+                    return string.Empty;
                 }
             }
         }

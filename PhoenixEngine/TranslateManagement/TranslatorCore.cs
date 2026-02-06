@@ -50,6 +50,8 @@ namespace PhoenixEngine.TranslateManage
 
         public object WaitTranslateLock = new object();
 
+        public double MarkLeadersPercent = 0;
+
         public int GetCount()
         {
             return Content.GetCount();
@@ -66,7 +68,7 @@ namespace PhoenixEngine.TranslateManage
             {
                 UnionArray SetData = new UnionArray();
                 ProcStage = 1;
-                SetData.Load(BaseUnits, TranslatorRef.From);
+                SetData.Load(BaseUnits, TranslatorRef.From,ref MarkLeadersPercent);
                 ProcStage = 2;
                 Content = ProcContent.Build(TranslatorRef, SetData, SetMode);
 
@@ -184,15 +186,21 @@ namespace PhoenixEngine.TranslateManage
       
         public void Cancel()
         {
-            try 
-            { 
-                TransMainTrd.Abort();
+            if (TransMainTrd != null)
+            {
+                try
+                {
+                    TransMainTrd.Abort();
+                }
+                catch { }
+
+                TransMainTrd = null;
             }
-            catch { }
 
-            TransMainTrd = null;
-
-            TrdPool.CloseAll();
+            if (TrdPool != null)
+            {
+                TrdPool.CloseAll();
+            }
         }
         public void Keep()
         {
