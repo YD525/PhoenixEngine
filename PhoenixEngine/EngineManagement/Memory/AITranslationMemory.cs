@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Web.UI.WebControls;
 using PhoenixEngine.EngineManagement.Unit;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManagement;
@@ -241,13 +242,54 @@ namespace PhoenixEngine.TranslateManage
 
         public List<string> QueryAIMemory(Languages From,Languages To,UnitGroup Item,int ContextLength)
         {
-            List<string> AIMemory = new List<string>();
+            HashSet<string> MemorySet = new HashSet<string>();
+            List<string> MemoryList = new List<string>();
+
+            int UsedLength = 0;
+
             for (int i = 0; i < Item.Units.Count; i++)
             {
-                var GetUnit = Item.Units[i];
-                AIMemory.AddRange(FindRelevantTranslations(From,To, GetUnit.Original, ContextLength));
+                var Unit = Item.Units[i];
+                var Candidates = FindRelevantTranslations(
+                    From, To, Unit.Original, ContextLength
+                );
+
+                bool AddedForThisUnit = false;
+
+                foreach (var Text in Candidates)
+                {
+                    if (MemorySet.Contains(Text))
+                        continue;
+
+                    int Length = Text.Length;
+
+                    // Still Fits In The Context Budget
+                    if (UsedLength + Length <= ContextLength)
+                    {
+                        MemorySet.Add(Text);
+                        MemoryList.Add(Text);
+                        UsedLength += Length;
+                        AddedForThisUnit = true;
+                    }
+                    else
+                    {
+                        // Force Add One Entry If This Unit Has Not Contributed Yet
+                        if (!AddedForThisUnit && MemoryList.Count == 0)
+                        {
+                            MemorySet.Add(Text);
+                            MemoryList.Add(Text);
+                            UsedLength += Length;
+                        }
+                        break; // Stop Processing Current Unit
+                    }
+                }
+
+                // Stop If The Context Budget Is Exhausted
+                if (UsedLength >= ContextLength)
+                    break;
             }
-            return AIMemory;
+
+            return MemoryList;
         }
         /// <summary>
         /// Find relevant translations using target language memory.

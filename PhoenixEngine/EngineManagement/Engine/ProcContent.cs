@@ -42,13 +42,6 @@ namespace PhoenixEngine.EngineManagement.Engine
         {
             GenKey++;
 
-            Game CheckGameType = Game.Null;
-            if (SkyrimBookHelper.IsSkyrimBook(Item, ref CheckGameType))
-            {
-                Books.Add(new UnitGroup(this, Item));
-                return;
-            }
-
             var GenTokens = Item.ExtractTokens();
 
             foreach (var GetBatchUnit in this.Units)
@@ -151,6 +144,13 @@ namespace PhoenixEngine.EngineManagement.Engine
 
                 foreach (var Leader in Data.Leaders.Values)
                 {
+                    Game GameType = Game.Null;
+                    if (SkyrimBookHelper.IsSkyrimBook(Leader, ref GameType))
+                    {
+                        Content.Books.Add(new UnitGroup(Content, Leader));
+                        continue;
+                    }
+
                     if (!SeenTexts.Contains(Leader.Original))
                     {
                         SeenTexts.Add(Leader.Original);
@@ -169,6 +169,13 @@ namespace PhoenixEngine.EngineManagement.Engine
 
                 foreach (var Unit in Data.Units)
                 {
+                    Game GameType = Game.Null;
+                    if (SkyrimBookHelper.IsSkyrimBook(Unit, ref GameType))
+                    {
+                        Content.Books.Add(new UnitGroup(Content, Unit));
+                        continue;
+                    }
+
                     if (!SeenTexts.Contains(Unit.Original))
                     {
                         SeenTexts.Add(Unit.Original);
@@ -214,7 +221,14 @@ namespace PhoenixEngine.EngineManagement.Engine
             else
             if (SetMode == AggregationMode.Single)
             {
-              
+                foreach (var GetUnit in Data.Leaders)
+                {
+                    Content.Units.Add(Translator.ToUnitGroup(GetUnit.Value));
+                }
+                foreach (var GetUnit in Data.Units)
+                {
+                    Content.Units.Add(Translator.ToUnitGroup(GetUnit));
+                }
             }
 
             return Content;
