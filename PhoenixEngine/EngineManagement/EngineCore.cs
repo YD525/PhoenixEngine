@@ -152,7 +152,7 @@ namespace PhoenixEngine.TranslateManage
         /// <param name="SourceStr"></param>
         /// <returns></returns>
         public UnitGroup CallOnce(Translator TranslatorRef, TranslationPreprocessor Preprocessor,UnitGroup Item,
-        Languages From, Languages To,string AIParam, bool CanSleep, bool UseAIMemory)
+        Languages From, Languages To,string AIParam, bool CanSleep, bool UseAIMemory,bool CanUPDate)
         {
             Dictionary<string, UnitSequence> Sequences = null;
 
@@ -246,7 +246,10 @@ namespace PhoenixEngine.TranslateManage
 
                     Item.EndPreProcess(From, To, ref Sequences);
 
-                    Item.UPDateCloudData(TranslatorRef,Sequences);
+                    if (CanUPDate)
+                    {
+                        Item.UPDateCloudData(TranslatorRef, Sequences);
+                    }
 
                     Item.EndGeneratePlaceholder(From, To, ref Sequences);
 

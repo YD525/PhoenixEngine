@@ -210,7 +210,7 @@ namespace PhoenixEngine.TranslateManage
                 foreach (var GetGroup in UnitGroups)
                 {
                     var ResultGroup = Core.CallOnce(this,
-                       Params.Preprocessor, GetGroup, From, To, AIParam, Params.CanSleep, false);
+                       Params.Preprocessor, GetGroup, From, To, AIParam, Params.CanSleep, false,false);
 
                     BaseUnits.AddRange(ResultGroup.Units);
                 }
@@ -250,14 +250,18 @@ namespace PhoenixEngine.TranslateManage
                     }
                 }
                 UnitGroup ReturnItem = new UnitGroup(SetUnitGroup.ParentRef);
-                ReturnItem.Units.Add(new BaseUnit(GetFrist.FileUniqueKey, GetFrist.Key, GetFrist.Type, GetFrist.Original, MergeLine, 100));
+                BaseUnit SingleUnit = new BaseUnit(GetFrist.FileUniqueKey, GetFrist.Key, GetFrist.Type, GetFrist.Original, MergeLine, 100);
+
+                ReturnItem.Units.Add(SingleUnit);
+
+                CloudDBCache.AddCache(SingleUnit.FileUniqueKey,SingleUnit.Key,(int)To,SingleUnit.Original,SingleUnit.Translated);
 
                 return ReturnItem;
             }
             else
             {
                 return Core.CallOnce(this,
-                    Params.Preprocessor, SetUnitGroup, From, To, AIParam, Params.CanSleep, true);
+                    Params.Preprocessor, SetUnitGroup, From, To, AIParam, Params.CanSleep, true,true);
             }
         }
 
