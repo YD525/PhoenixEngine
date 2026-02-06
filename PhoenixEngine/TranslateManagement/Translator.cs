@@ -91,7 +91,12 @@ namespace PhoenixEngine.TranslateManage
             if (this.BatchCore != null)
             {
                 this.BatchCore.Cancel();
-                this.BatchCore.Content.Clear();
+
+                if (this.BatchCore.Content != null)
+                {
+                    this.BatchCore.Content.Clear();
+                }
+              
                 this.BatchCore.ProcStage = 0;
             }
         }

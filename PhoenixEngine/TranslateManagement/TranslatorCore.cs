@@ -69,15 +69,13 @@ namespace PhoenixEngine.TranslateManage
                 UnionArray SetData = new UnionArray();
                 ProcStage = 1;
                 SetData.Load(BaseUnits, TranslatorRef.From,ref MarkLeadersPercent);
-                ProcStage = 2;
                 Content = ProcContent.Build(TranslatorRef, SetData, SetMode);
+                ProcStage = 2;
 
                 if (Phoenix.Config.MaxThreadCount <= 0)
                 {
                     Phoenix.Config.MaxThreadCount = 1;
                 }
-
-                AutoSleep = 1;
 
                 return true;
             }
@@ -92,8 +90,6 @@ namespace PhoenixEngine.TranslateManage
         {
             TransMainTrdCancel?.Cancel();
         }
-
-        public int AutoSleep = 1;
 
         public bool IsWork = false;
 
