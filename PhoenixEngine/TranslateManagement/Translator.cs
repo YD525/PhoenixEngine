@@ -53,7 +53,7 @@ namespace PhoenixEngine.TranslateManage
 
         public UnitGroup ToUnitGroup(BaseUnit Unit)
         {
-            return new UnitGroup(this.BatchCore.Content,Unit);
+            return new UnitGroup(Unit);
         }
 
         public void Init(List<BaseUnit>BaseUnits,AggregationMode Mode)
@@ -182,7 +182,7 @@ namespace PhoenixEngine.TranslateManage
                 List<UnitGroup> UnitGroups = new List<UnitGroup>();
                 int SetLength = 0;
 
-                UnitGroup NewUnitGroup = new UnitGroup(SetUnitGroup.ParentRef);
+                UnitGroup NewUnitGroup = new UnitGroup();
 
                 for (int i = 0; i < Units.Count; i++)
                 {
@@ -194,7 +194,7 @@ namespace PhoenixEngine.TranslateManage
                     else
                     {
                         UnitGroups.Add(NewUnitGroup);
-                        NewUnitGroup = new UnitGroup(SetUnitGroup.ParentRef);
+                        NewUnitGroup = new UnitGroup();
                         SetLength = Units[i].Original.Length;
                         NewUnitGroup.Units.Add(Units[i]);
                     }
@@ -249,7 +249,7 @@ namespace PhoenixEngine.TranslateManage
                         MergeLine += GetUnit.Translated;
                     }
                 }
-                UnitGroup ReturnItem = new UnitGroup(SetUnitGroup.ParentRef);
+                UnitGroup ReturnItem = new UnitGroup();
                 BaseUnit SingleUnit = new BaseUnit(GetFrist.FileUniqueKey, GetFrist.Key, GetFrist.Type, GetFrist.Original, MergeLine, 100);
 
                 ReturnItem.Units.Add(SingleUnit);

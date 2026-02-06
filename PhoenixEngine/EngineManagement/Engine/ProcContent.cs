@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using Newtonsoft.Json;
 using PhoenixEngine.EngineManagement.Sequence;
 using PhoenixEngine.EngineManagement.Unit;
 using PhoenixEngine.GameManagement;
@@ -18,8 +20,8 @@ namespace PhoenixEngine.EngineManagement.Engine
         private Translator TranslatorRef = null;
 
         public List<UnitGroup> Units = new List<UnitGroup>();
-        public List<UnitGroup> SameItems = new List<UnitGroup>();
         public List<UnitGroup> Books = new List<UnitGroup>();
+        public List<UnitGroup> SameItems = new List<UnitGroup>();
 
         public UnionArray UnionData = null;
         public ProcContent(Translator Translator)
@@ -34,14 +36,12 @@ namespace PhoenixEngine.EngineManagement.Engine
         {
             GenKey++;
 
-            UnitGroup BatchUnit = new UnitGroup(this);
+            UnitGroup BatchUnit = new UnitGroup();
             BatchUnit.Init(GenKey, Item, AggregationMode.Aggregation);
             Units.Add(BatchUnit);
         }
-        private void Add(BaseUnit Item)
+        private bool TryAdd(BaseUnit Item)
         {
-            GenKey++;
-
             var GenTokens = Item.ExtractTokens();
 
             foreach (var GetBatchUnit in this.Units)
@@ -54,7 +54,9 @@ namespace PhoenixEngine.EngineManagement.Engine
                     }
                     else
                     {
-                        UnitGroup NextBatchUnit = new UnitGroup(this);
+                        GenKey++;
+
+                        UnitGroup NextBatchUnit = new UnitGroup();
 
                         NextBatchUnit.Key = GenKey.ToString();
 
@@ -67,13 +69,12 @@ namespace PhoenixEngine.EngineManagement.Engine
                         Units.Add(NextBatchUnit);
                     }
 
-                    return;
+                    return true;
                 }
             }
 
-            UnitGroup BatchUnit = new UnitGroup(this);
-            BatchUnit.Init(GenKey, Item, AggregationMode.Aggregation);
-            Units.Add(BatchUnit);
+
+            return false;
         }
 
         public int GetUnitsCount()
@@ -98,29 +99,6 @@ namespace PhoenixEngine.EngineManagement.Engine
             }
         }
 
-        //Implement translation units that input the same source text.
-        public string SearchTranslated(string Original)
-        {
-            for (int i = 0; i < this.UnionData.Units.Count; i++)
-            {
-                if (this.UnionData.Units[i].Original.Equals(Original))
-                {
-                    if (this.UnionData.Units[i].Translated.Length > 0)
-                        return this.UnionData.Units[i].Translated;
-                }
-            }
-
-            foreach (var GetDict in new Dictionary<string, BaseUnit>(this.UnionData.Leaders))
-            {
-                if (GetDict.Value.Original.Equals(Original))
-                {
-                    if (GetDict.Value.Translated.Length > 0)
-                        return GetDict.Value.Translated;
-                }
-            }
-
-            return string.Empty;
-        }
         public void Clear()
         {
             this.UnionData.Clear();
@@ -130,7 +108,39 @@ namespace PhoenixEngine.EngineManagement.Engine
             this.Books.Clear();
         }
 
-        public static ProcContent Build(Translator Translator, UnionArray Data,AggregationMode SetMode)
+        private void BuildTranslatedMap(List<UnitGroup> Groups, Dictionary<string, string> TranslatedMap)
+        {
+            foreach (var Group in Groups)
+            {
+                foreach (var Unit in Group.Units)
+                {
+                    if (!string.IsNullOrEmpty(Unit.Original)
+                        && !string.IsNullOrEmpty(Unit.Translated))
+                    {
+                        TranslatedMap[Unit.Original] = Unit.Translated;
+                    }
+                }
+            }
+        }
+        public void SyncSameItemsFromTranslated()
+        {
+            Dictionary<string, string> TranslatedMap = new Dictionary<string, string>();
+
+            BuildTranslatedMap(this.Units, TranslatedMap);
+            BuildTranslatedMap(this.Books, TranslatedMap);
+
+            foreach (var Group in SameItems)
+            {
+                foreach (var Unit in Group.Units)
+                {
+                    if (TranslatedMap.TryGetValue(Unit.Original, out var Translated))
+                    {
+                        Unit.Translated = Translated;
+                    }
+                }
+            }
+        }
+        public static ProcContent Build(Translator Translator, UnionArray Data, AggregationMode SetMode)
         {
             ProcContent Content = new ProcContent(Translator);
             Content.UnionData = Data;
@@ -139,51 +149,51 @@ namespace PhoenixEngine.EngineManagement.Engine
             {
                 List<UnitGroup> SameItems = new List<UnitGroup>();
                 List<BaseUnit> UniqueLeaders = new List<BaseUnit>();
-
                 HashSet<string> SeenTexts = new HashSet<string>();
 
                 foreach (var Leader in Data.Leaders.Values)
                 {
                     Game GameType = Game.Null;
+
                     if (SkyrimBookHelper.IsSkyrimBook(Leader, ref GameType))
                     {
-                        Content.Books.Add(new UnitGroup(Content, Leader));
+                        Content.Books.Add(new UnitGroup(Leader));
                         continue;
                     }
 
                     if (!SeenTexts.Contains(Leader.Original))
                     {
                         SeenTexts.Add(Leader.Original);
-                        UniqueLeaders.Add(Leader);
+                        Content.AddLeader(Leader);
                     }
                     else
                     {
-                        SameItems.Add(new UnitGroup(Content, Leader));
+                        SameItems.Add(new UnitGroup(Leader));
                     }
                 }
-
-                foreach (var Leader in UniqueLeaders)
-                {
-                    Content.AddLeader(Leader);
-                }
+                Queue<BaseUnit> RemainingUnits = new Queue<BaseUnit>();
 
                 foreach (var Unit in Data.Units)
                 {
                     Game GameType = Game.Null;
                     if (SkyrimBookHelper.IsSkyrimBook(Unit, ref GameType))
                     {
-                        Content.Books.Add(new UnitGroup(Content, Unit));
+                        Content.Books.Add(new UnitGroup(Unit));
                         continue;
                     }
 
                     if (!SeenTexts.Contains(Unit.Original))
                     {
                         SeenTexts.Add(Unit.Original);
-                        Content.Add(Unit);
+
+                        if (!Content.TryAdd(Unit))
+                        {
+                            RemainingUnits.Enqueue(Unit);
+                        }
                     }
                     else
                     {
-                        SameItems.Add(new UnitGroup(Content, Unit));
+                        SameItems.Add(new UnitGroup(Unit));
                     }
                 }
 
@@ -196,24 +206,85 @@ namespace PhoenixEngine.EngineManagement.Engine
                     }
                 }
 
-                UnitGroup UnitGroup = new UnitGroup(Content);
-
                 foreach (var Kvp in SingleUnits)
                 {
                     Content.Units.Remove(Kvp.Key);
-                    UnitGroup.AddUnit(Kvp.Value);
+                }
 
-                    if (UnitGroup.TotalLength > ProcContent.TextLengthLimit)
+
+                foreach (var Kvp in SingleUnits)
+                {
+                    RemainingUnits.Enqueue(Kvp.Value);
+                }
+
+                while (RemainingUnits.Count > 0)
+                {
+                    BaseUnit GetFirst = RemainingUnits.Dequeue();
+
+                    int BestIndex = -1;
+                    int MinUnitCount = int.MaxValue;
+
+                    for (int i = 0; i < Content.Units.Count; i++)
                     {
-                        Content.Units.Add(UnitGroup);
-                        UnitGroup = new UnitGroup(Content);
-                        UnitGroup.IsUnrelated = true;
+                        var Group = Content.Units[i];
+
+                        if (Group.TotalLength + GetFirst.Original.Length >= ProcContent.TextLengthLimit)
+                            continue;
+
+                        int Count = Group.Units.Count;
+
+                        if (Count < MinUnitCount)
+                        {
+                            MinUnitCount = Count;
+                            BestIndex = i;
+                        }
+                    }
+
+                    if (BestIndex == -1)
+                        break;
+
+                    Content.Units[BestIndex].AddUnit(GetFirst);
+                }
+
+                UnitGroup NextBatchUnit = new UnitGroup();
+
+                while (RemainingUnits.Count > 0)
+                {
+                    Content.GenKey++;
+
+                    NextAdd:
+
+                    if (RemainingUnits.Count == 0)
+                    {
+                        break;
+                    }
+
+                    BaseUnit GetFrist = RemainingUnits.Dequeue();
+
+                    NextBatchUnit.Key = Content.GenKey.ToString();
+
+                    NextBatchUnit.AnchorTokens = new HashSet<string>();
+                    NextBatchUnit.AllTokens = new HashSet<string>();
+
+                    if ((NextBatchUnit.TotalLength + GetFrist.Original.Length) < ProcContent.TextLengthLimit)
+                    {
+                        NextBatchUnit.AddUnit(GetFrist);
+                        goto NextAdd;
+                    }
+                    else
+                    {
+                        NextBatchUnit.LinkTo = "";
+                        Content.Units.Add(NextBatchUnit);
+
+                        NextBatchUnit = new UnitGroup();
+                        NextBatchUnit.AddUnit(GetFrist);
                     }
                 }
 
-                if (UnitGroup.Units.Count > 0)
+                if (NextBatchUnit.Units.Count > 0)
                 {
-                    Content.Units.Add(UnitGroup);
+                    Content.Units.Add(NextBatchUnit);
+                    NextBatchUnit = null;
                 }
 
                 Content.SameItems.AddRange(SameItems);
@@ -231,6 +302,7 @@ namespace PhoenixEngine.EngineManagement.Engine
                 }
             }
 
+            //string GetJson = JsonConvert.SerializeObject(Content, Formatting.Indented);
             return Content;
         }
     }

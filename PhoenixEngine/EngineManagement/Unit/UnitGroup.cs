@@ -91,8 +91,6 @@ namespace PhoenixEngine.EngineManagement.Unit
 
         public bool IsUnrelated = false;
 
-        public ProcContent ParentRef = null;
-
         public void BatchProc(int State)
         {
             if (State == 0)
@@ -111,14 +109,13 @@ namespace PhoenixEngine.EngineManagement.Unit
             }
         }
 
-        public UnitGroup(ProcContent ProcContent)
+        public UnitGroup()
         {
-            this.ParentRef = ProcContent;
+           
         }
 
-        public UnitGroup(ProcContent ProcContent, BaseUnit SingleUnit)
+        public UnitGroup(BaseUnit SingleUnit)
         {
-            this.ParentRef = ProcContent;
             Init(0, SingleUnit, AggregationMode.Single);
         }
 
@@ -142,7 +139,6 @@ namespace PhoenixEngine.EngineManagement.Unit
                 AnchorTokens = First.ExtractTokens();
                 AllTokens = new HashSet<string>(AnchorTokens);
 
-                First.ParentRef = this;
                 Units.Add(First);
 
                 TotalLength += First.Original.Length;
@@ -152,7 +148,6 @@ namespace PhoenixEngine.EngineManagement.Unit
             {
                 this.Key = First.Key;
 
-                First.ParentRef = this;
                 Units.Add(First);
             }
         }

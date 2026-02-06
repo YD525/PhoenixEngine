@@ -4,7 +4,6 @@ namespace PhoenixEngine.TranslateManagement
 {
     public class BaseUnit
     {
-        public UnitGroup ParentRef = null;
         public int FileUniqueKey = 0;
         public double Score = 100;
         public string Key = "";
@@ -31,7 +30,6 @@ namespace PhoenixEngine.TranslateManagement
         {
             return new BaseUnit
             {
-                ParentRef = this.ParentRef, //Int ptr 
                 FileUniqueKey = this.FileUniqueKey,
                 Score = this.Score,
                 Key = this.Key,
