@@ -11,7 +11,7 @@ using PhoenixEngine.TranslateManagement;
 
 namespace PhoenixEngine.TranslateManage
 {
-    public class BatchTranslation
+    public class TranslatorCore
     {
         public readonly object UnitsTranslatedLocker = new object();
 
@@ -26,7 +26,7 @@ namespace PhoenixEngine.TranslateManage
         public bool SkipWordAnalysis = false;
 
         public Translator TranslatorRef = null;
-        public BatchTranslation(Translator SetTranslator,List<BaseUnit> BaseUnits,AggregationMode SetMode, bool ClearCache = false)
+        public TranslatorCore(Translator SetTranslator,List<BaseUnit> BaseUnits,AggregationMode SetMode, bool ClearCache = false)
         {
             this.TranslatorRef = SetTranslator;
 
@@ -54,6 +54,11 @@ namespace PhoenixEngine.TranslateManage
         }
 
         public object WaitTranslateLock = new object();
+
+        public int GetCount()
+        {
+            return Content.GetCount();
+        }
 
         public int GetWorkCount()
         {

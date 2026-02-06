@@ -20,7 +20,7 @@ namespace PhoenixEngine.EngineManagement.Engine
         public List<UnitGroup> SameItems = new List<UnitGroup>();
         public List<UnitGroup> Books = new List<UnitGroup>();
 
-        public UnionArray UnionData = new UnionArray();
+        public UnionArray UnionData = null;
         public ProcContent(Translator Translator)
         {
             this.TranslatorRef = Translator;
@@ -80,6 +80,18 @@ namespace PhoenixEngine.EngineManagement.Engine
             UnitGroup BatchUnit = new UnitGroup(this);
             BatchUnit.Init(GenKey, Item, AggregationMode.Aggregation);
             Units.Add(BatchUnit);
+        }
+
+        public int GetCount()
+        {
+            if (UnionData != null)
+            {
+                return UnionData.GetCount();
+            }
+            else
+            {
+                return (this.Units.Count + this.SameItems.Count + this.Books.Count);
+            }
         }
         public static ProcContent Build(Translator Translator, UnionArray Data,AggregationMode SetMode)
         {

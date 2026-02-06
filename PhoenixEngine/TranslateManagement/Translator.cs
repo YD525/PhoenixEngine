@@ -23,6 +23,7 @@ namespace PhoenixEngine.TranslateManage
         public string AIParam = null;
 
         public EngineCore Core = new EngineCore();
+        public TranslatorCore BatchCore = null;
 
         public readonly object TransDataLocker = new object();
 
