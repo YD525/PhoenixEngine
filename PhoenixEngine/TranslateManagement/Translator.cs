@@ -117,8 +117,21 @@ namespace PhoenixEngine.TranslateManage
 
             return Units;
         }
+        public UnitGroup Translate(BaseUnit Unit,bool CanSleep = true)
+        {
+            Game SetGameType = new Game();
+            bool IsBook = false;
 
-        public UnitGroup Translate(TransParam Params,bool IsBook)
+            if (SkyrimBookHelper.IsSkyrimBook(Unit, ref SetGameType))
+            {
+                IsBook = true;
+            }
+
+            UnitGroup SetGroup = ToUnitGroup(Unit);
+
+            return Translate(new TransParam(SetGroup,IsBook,CanSleep));
+        }
+        public UnitGroup Translate(TransParam Params)
         {
             if (this.From == this.To)
             {
@@ -132,7 +145,7 @@ namespace PhoenixEngine.TranslateManage
                 Params.Preprocessor = TranslationPreprocessor.Instance;
             }
 
-            if (IsBook)
+            if (Params.IsBook)
             {
                 List<UnitChunk> Chunks = new List<UnitChunk>();
                 List<BaseUnit> Units = new List<BaseUnit>();

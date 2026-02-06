@@ -115,13 +115,13 @@ namespace PhoenixEngine.TranslateManage
             //Normal type translation calls pointers.
             Action<UnitGroup> NormalCall = new Action<UnitGroup>((ItemRef) =>
             {
-                ItemRef = TranslatorRef.Translate(new TransParam(ItemRef, false,true),false);
+                ItemRef = TranslatorRef.Translate(new TransParam(ItemRef,false,true));
             });
 
             //Special type translation calls pointers.
             Action<UnitGroup> BookCall = new Action<UnitGroup>((ItemRef) =>
             {
-                ItemRef = TranslatorRef.Translate(new TransParam(ItemRef, true, true), false);
+                ItemRef = TranslatorRef.Translate(new TransParam(ItemRef,true, true));
             });
 
             TransMainTrd = new Thread(() => 
