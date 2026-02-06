@@ -196,10 +196,12 @@ namespace PhoenixEngine.TranslateManage
         }
         public void Keep()
         {
+            IsStop = false;
             TrdPool.SuspendAll(false);
         }
         public void Stop()
         {
+            IsStop = true;
             TrdPool.SuspendAll(true);
         }
 
