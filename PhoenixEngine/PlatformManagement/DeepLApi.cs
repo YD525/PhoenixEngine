@@ -108,7 +108,6 @@ namespace PhoenixEngine.PlatformManagement
                 Cookie = "",
                 ContentType = "application/json; charset=utf-8",
                 Encoding = Encoding.UTF8,
-                Timeout = ConfigRef.GlobalRequestTimeOut,
                 WebProxy = ProxyRef
             };
             try

@@ -51,7 +51,7 @@ namespace PhoenixEngine.TranslateManage
         {
             if (TrdPool != null)
             {
-                return TrdPool.GetWorkingThreadCount();
+                return TrdPool.GetCount();
             }
             return 0;
         }
@@ -65,11 +65,6 @@ namespace PhoenixEngine.TranslateManage
         public int GetCount()
         {
             return Content.GetCount();
-        }
-
-        public int GetWorkCount()
-        {
-           return TrdPool.GetWorkingThreadCount();
         }
 
         public bool Init(List<BaseUnit> BaseUnits, AggregationMode SetMode)
@@ -161,12 +156,15 @@ namespace PhoenixEngine.TranslateManage
                 Content.SyncSameItemsFromTranslated();
                 for (int i = 0; i < this.Content.SameItems.Count; i++)
                 {
-                    var Frist = this.Content.SameItems[i].GetFrist();
+                    for (int ir = 0; ir < this.Content.SameItems[i].Units.Count; ir++)
+                    {
+                        var SetUnit = this.Content.SameItems[i].Units[ir];
 
-                    CloudDBCache.AddCache(Phoenix.GetFileUniqueKey(),
-                    Frist.Key,(int)TranslatorRef.To,Frist.Original,Frist.Translated);
+                        CloudDBCache.AddCache(Phoenix.GetFileUniqueKey(),
+                        SetUnit.Key, (int)TranslatorRef.To, SetUnit.Original, SetUnit.Translated);
 
-                    AddTranslated(this.Content.SameItems[i]);
+                        AddTranslated(this.Content.SameItems[i]);
+                    }
                 }
 
 
@@ -260,11 +258,16 @@ namespace PhoenixEngine.TranslateManage
                         }
                     }
 
-                    bool NoMoreWork = (this.ProcStage == 10 && GetWorkCount() == 0);
+                    if (this.ProcStage == 10 && GetWorkingThreadCount() == 0)
+                    {
+                        IsEnd = true;
+                    }
+                    else
+                    {
+                        IsEnd = false;
+                    }
 
-                    IsEnd = NoMoreWork;
-
-                    return null;
+                   return null;
                 }
             }
             catch

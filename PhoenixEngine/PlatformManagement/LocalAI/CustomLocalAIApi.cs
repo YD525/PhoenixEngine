@@ -154,8 +154,7 @@ namespace PhoenixEngine.PlatformManagement
                 Postdata = PayLoad,
                 Cookie = "",
                 ContentType = Core.ContentType,
-                Encoding = Encoding.UTF8,
-                Timeout = ConfigRef.GlobalRequestTimeOut
+                Encoding = Encoding.UTF8
             };
 
             string GetResult = new HttpHelper().GetHtml(Http).Html;

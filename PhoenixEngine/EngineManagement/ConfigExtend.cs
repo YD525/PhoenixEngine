@@ -66,11 +66,6 @@ namespace PhoenixEngine.EngineManagement
 
         public string ProxyPassword { get; set; } = "";
 
-        /// <summary>
-        /// Global maximum timeout duration (in milliseconds) for network requests.
-        /// </summary>
-        public int GlobalRequestTimeOut { get; set; } = 8000;
-
         #endregion
 
         #region DataBase

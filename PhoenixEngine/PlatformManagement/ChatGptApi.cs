@@ -73,7 +73,6 @@ namespace PhoenixEngine.PlatformManagement
                 Postdata = "",
                 Cookie = "",
                 ContentType = "application/json",
-                Timeout = ConfigRef.GlobalRequestTimeOut,
                 WebProxy = ProxyRef
             };
             try
@@ -101,7 +100,6 @@ namespace PhoenixEngine.PlatformManagement
                 Cookie = "",
                 ContentType = "application/json; charset=utf-8",
                 Encoding = Encoding.UTF8,
-                Timeout = ConfigRef.GlobalRequestTimeOut,
                 WebProxy = ProxyRef
             };
             try

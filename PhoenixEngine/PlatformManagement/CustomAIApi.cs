@@ -157,7 +157,6 @@ namespace PhoenixEngine.PlatformManagement
                 Cookie = "",
                 ContentType = Core.ContentType,
                 Encoding = Encoding.UTF8,
-                Timeout = ConfigRef.GlobalRequestTimeOut,
                 WebProxy = ProxyRef
             };
 

@@ -376,7 +376,7 @@ namespace PhoenixEngine.RequestManagement
             get { return _Method; }
             set { _Method = value; }
         }
-        int _Timeout = 100000;
+        int _Timeout = 300000;
         /// <summary>  
         /// Default request timeout  
         /// </summary>  
@@ -385,7 +385,7 @@ namespace PhoenixEngine.RequestManagement
             get { return _Timeout; }
             set { _Timeout = value; }
         }
-        int _ReadWriteTimeout = 30000;
+        int _ReadWriteTimeout = 300000;
         /// <summary>  
         /// Default timeout for writing Post data  
         /// </summary>  
@@ -476,7 +476,7 @@ namespace PhoenixEngine.RequestManagement
             get { return allowautoredirect; }
             set { allowautoredirect = value; }
         }
-        private int connectionlimit = 1024;
+        private int connectionlimit = 99999;
         /// <summary>  
         /// Maximum number of connections  
         /// </summary>  
