@@ -15,7 +15,7 @@ namespace PhoenixEngine.PlatformManagement
         int CustomID { get; set; }
         void Init(int CustomID,AITranslationMemory AIMemory, EngineConfigJson Config, WebProxy Proxy);
         string Model { get; set; }
-        string QuickTrans(string ApiKey,List<ReplaceTag> CustomWords, string TransSource, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam, ref AICall Call, string Type);
+        string QuickTrans(string ApiKey,List<ReplaceTag> CustomWords, string TransSource, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam, ref AICall Call);
     }
 
     public interface I_Local_AI_TranslationNode
@@ -25,7 +25,7 @@ namespace PhoenixEngine.PlatformManagement
         int LocalPort { get; set; }
         int CustomID { get; set; }
         void Init(int CustomID, AITranslationMemory AIMemory, EngineConfigJson Config);
-        string QuickTrans(List<ReplaceTag> CustomWords, string TransSource, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam, ref AICall Call, string Type);
+        string QuickTrans(List<ReplaceTag> CustomWords, string TransSource, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam, ref AICall Call);
     }
 
     public interface I_TranslationNode

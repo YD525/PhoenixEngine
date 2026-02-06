@@ -7,13 +7,8 @@ namespace PhoenixEngine.PlatformManagement
 {
     public class AIPrompt
     {
-        public static string GenerateTranslationPrompt(Languages From, Languages To, string TextToTranslate, string CategoryType, List<string> TerminologyReferences, List<ReplaceTag> CustomWords, string AdditionalInstructions)
+        public static string GenerateTranslationPrompt(Languages From, Languages To, string TextToTranslate,List<string> TerminologyReferences, List<ReplaceTag> CustomWords, string AdditionalInstructions)
         {
-            if (CategoryType == "Papyrus" || CategoryType == "MCM")
-            {
-                CategoryType = string.Empty;
-            }
-
             var Prompt = new System.Text.StringBuilder();
 
             Prompt.AppendLine($"\n<!-- Request ID: {DateTime.UtcNow.Ticks.GetHashCode().ToString().Replace("-","_")} -->");
@@ -33,13 +28,6 @@ namespace PhoenixEngine.PlatformManagement
             // Direct instruction to exclude extra information
             Prompt.AppendLine("Respond ONLY with the translated content. Do not include any explanations, reasoning, or additional comments. The response must only contain the translation, and no other text.");
             Prompt.AppendLine("The category is a broad context type (e.g., related to NPC_,ARMO, etc.), but it is NOT a specific entity label.");
-
-            // Optional Context Category
-            if (!string.IsNullOrWhiteSpace(CategoryType))
-            {
-                Prompt.AppendLine("\n[Optional: Context Category]");
-                Prompt.AppendLine($"Category: {CategoryType}");
-            }
 
             // Custom Words section
             if (CustomWords != null && CustomWords.Count > 0)

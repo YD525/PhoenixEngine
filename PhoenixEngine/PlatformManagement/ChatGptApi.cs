@@ -121,7 +121,7 @@ namespace PhoenixEngine.PlatformManagement
             }
         }
         //"Important: When translating, strictly keep any text inside angle brackets (< >) or square brackets ([ ]) unchanged. Do not modify, translate, or remove them.\n\n"
-        public string QuickTrans(string ApiKey,List<ReplaceTag> CustomWords,string TransSource, Languages FromLang, Languages ToLang,bool UseAIMemory,int AIMemoryCountLimit, string AIParam, ref AICall Call,string Type)
+        public string QuickTrans(string ApiKey,List<ReplaceTag> CustomWords,string TransSource, Languages FromLang, Languages ToLang,bool UseAIMemory,int AIMemoryCountLimit, string AIParam, ref AICall Call)
         {
             List<string> Related = new List<string>();
 
@@ -135,7 +135,7 @@ namespace PhoenixEngine.PlatformManagement
                 AIParam = AIParam + "\n" + ConfigRef.UserCustomAIPrompt;
             }
 
-            var GetTransSource = AIPrompt.GenerateTranslationPrompt(FromLang, ToLang, TransSource, Type, Related, CustomWords, AIParam);
+            var GetTransSource = AIPrompt.GenerateTranslationPrompt(FromLang, ToLang, TransSource,Related, CustomWords, AIParam);
 
             string Send = GetTransSource;
             string Recv = "";

@@ -29,7 +29,7 @@ namespace PhoenixEngine.PlatformManagement
             this.ProxyRef = Proxy;
         }
 
-        public string QuickTrans(string ApiKey,List<ReplaceTag> CustomWords, string TransSource, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam, ref AICall Call, string Type)
+        public string QuickTrans(string ApiKey,List<ReplaceTag> CustomWords, string TransSource, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam, ref AICall Call)
         {
             CustomReqCore Core = new CustomReqCore();
 
@@ -50,7 +50,7 @@ namespace PhoenixEngine.PlatformManagement
                 AIParam = AIParam + "\n" + ConfigRef.UserCustomAIPrompt;
             }
 
-            var GetTransSource = AIPrompt.GenerateTranslationPrompt(FromLang, ToLang, TransSource, Type, Related, CustomWords, AIParam);
+            var GetTransSource = AIPrompt.GenerateTranslationPrompt(FromLang, ToLang, TransSource,Related, CustomWords, AIParam);
 
             string Send = GetTransSource;
             string Recv = "";
