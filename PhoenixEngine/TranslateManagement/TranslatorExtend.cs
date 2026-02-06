@@ -71,7 +71,7 @@ namespace PhoenixEngine.TranslateManagement
                 Translator.UnifiedSymbols();
             }
         }
-        public static QueryTransItem QueryTransData(this Translator Translator,string Key, string SourceText)
+        public static QueryTransItem QueryTransData(this Translator Translator,string Key)
         {
             int FileUniqueKey = Phoenix.GetFileUniqueKey();
 
@@ -151,10 +151,8 @@ namespace PhoenixEngine.TranslateManagement
 
             return GetState;
         }
-        public static bool SetCloudData(this Translator Translator, string Key, string SourceText, string TransText)
+        public static bool SetCloudData(this Translator Translator,int FileUniqueKey, string Key, string SourceText, string TransText)
         {
-            int FileUniqueKey = Phoenix.GetFileUniqueKey();
-
             if (TransText.Trim().Length <= 0)
             {
                 if (Translator.TranslatedLink.ContainsKey(Key))
