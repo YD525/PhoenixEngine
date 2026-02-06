@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using PhoenixEngine.EngineManagement.Unit;
 using PhoenixEngine.GameManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManagement;
@@ -25,7 +26,7 @@ namespace PhoenixEngine.TranslateManage
 
         public readonly object TransDataLocker = new object();
 
-        public Dictionary<string, string> TransData = new Dictionary<string, string>();
+        public Dictionary<string, string> TranslatedLink = new Dictionary<string, string>();
         public int MaxTry = 10;
         public Translator(Languages SetFrom,Languages SetTo)
         {
@@ -44,7 +45,7 @@ namespace PhoenixEngine.TranslateManage
 
         public void ClearCache()
         {
-            TransData.Clear();
+            TranslatedLink.Clear();
         }
 
         public void ClearAICache()
@@ -80,27 +81,24 @@ namespace PhoenixEngine.TranslateManage
             return false;
         }
 
-        public List<TranslationUnit> ChunkTranslationUnit(Game GameType,TranslationUnit Unit,ref List<UnitChunk> Chunks)
+        public List<BaseUnit> ChunkTranslationUnit(Game GameType, BaseUnit Unit,ref List<UnitChunk> Chunks)
         {
             if (GameType == Game.Skyrim)
             {
                 Chunks = new SkyrimBookHelper().ChunkBook(Unit);
             }
-            List<TranslationUnit> Units = new List<TranslationUnit>();
+            List<BaseUnit> Units = new List<BaseUnit>();
             foreach (UnitChunk Chunk in Chunks)
             {
                 if (!Chunk.IsCode)
                 {
                     Units.Add(
-                    new TranslationUnit(
+                    new BaseUnit(
                        Unit.FileUniqueKey,
                        Chunk.Key,
                        Unit.Type,
                        Chunk.Data,
                        string.Empty,
-                       Unit.AIParam,
-                       Unit.From,
-                       Unit.To,
                        Unit.Score
                    ));
                 }
@@ -109,9 +107,9 @@ namespace PhoenixEngine.TranslateManage
             return Units;
         }
 
-        public string Translate(TranslationPreprocessor Preprocessor, TranslationUnitGroup Item,bool CanSleep)
+        public string Translate(TranslationPreprocessor Preprocessor, UnitGroup Item,bool CanSleep)
         {
-            List<TranslationUnit> Units = new List<TranslationUnit>();
+            List<BaseUnit> Units = new List<BaseUnit>();
             List<UnitChunk> Chunks = new List<UnitChunk>();
             Game GameType = Game.Null;
 

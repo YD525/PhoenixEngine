@@ -47,17 +47,7 @@ namespace PhoenixEngine.TranslateManage
 
         private void AddTranslated(UnitGroup Item)
         {
-            lock (TranslatorRef.TransDataLocker)
-            {
-                if (TranslatorRef.TransData.ContainsKey(this.Key))
-                {
-                    TranslatorRef.TransData[this.Key] = GetResult;
-                }
-                else
-                {
-                    TranslatorRef.TransData.Add(this.Key, GetResult);
-                }
-            }
+            Item.UPDateLink(this.TranslatorRef);
 
             int MaxTry = 10;
             lock (TranslatedAddLocker)

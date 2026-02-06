@@ -85,6 +85,7 @@
     <Compile Include="EngineManagement\Sequence\UnionArray.cs" />
     <Compile Include="EngineManagement\Sequence\UnitSequence.cs" />
     <Compile Include="EngineManagement\Unit\UnitGroup.cs" />
+    <Compile Include="EngineManagement\Unit\UnitGroupExtend.cs" />
     <Compile Include="GameManagement\GameHelper.cs" />
     <Compile Include="GameManagement\SkyrimBookHelper.cs" />
     <Compile Include="LanguageManagement\BrazilianPortugueseHelper.cs" />
