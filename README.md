@@ -1,34 +1,67 @@
-
-## 🔥 PhoenixEngine
+# 🔥 PhoenixEngine
 
 **PhoenixEngine** is a high-performance, multi-threaded language translation engine.  
-It combines **AI-powered translation** with **context generation**, and features **text segmentation** and **priority-based ordering** to deliver more natural and context-aware results.  
-It also implements **Placeholder Logic**, allowing users to define custom dictionaries and placeholders for specific words, names, or terms, ensuring **consistent translation of key terms across multiple contexts**. 
+It combines AI-powered translation with **context generation**, text segmentation, and **priority-based ordering** to deliver natural and context-aware results.  
+It also implements **Placeholder Logic**, allowing users to define custom dictionaries and placeholders for specific words, names, or terms, ensuring consistent translation of key terms across multiple contexts.
 
 ---
 
 ## ⭐ Aggregation-based Translation
 
-Lexicon AI Translator does not rely on simple request batching or brute-force concurrency to improve translation speed.
-Instead, it introduces an aggregation-based translation model at the engine level.
+Unlike traditional translation engines that rely on simple batching or brute-force concurrency, **Lexicon AI Translator** introduces an **aggregation-based translation model** at the engine level.
 
-Before any AI request is issued, the engine analyzes the structure and semantic relationships of the source content.
-Text units that are contextually related, structurally similar, or semantically repetitive are grouped into a single UnitGroup and translated as one coherent semantic unit.
+Before any AI request is issued, the engine analyzes the **structure and semantic relationships** of the source content.  
+Text units that are contextually related, structurally similar, or semantically repetitive are grouped into a single **UnitGroup** and translated as one coherent semantic unit.
 
-As a result, multiple independent translation tasks are merged into a single AI request, allowing shared context to be fully utilized while significantly reducing redundant token usage.
+As a result:
 
-Even when explicit “context translation” is disabled by the user, contextual awareness still exists implicitly.
-This is because related content has already been aggregated and submitted together by the engine itself.
+- Multiple independent translation tasks are merged into a **single AI request**.
+- Shared context is fully utilized.
+- Redundant token usage is significantly reduced.
 
-With this approach, translation performance no longer scales linearly with the number of text lines.
-Instead, it scales with semantic complexity, making it especially effective for large-scale scripts, game localization, and content with high repetition.
+Even when explicit “context translation” is disabled by the user, **contextual awareness still exists implicitly**, because related content has already been aggregated and submitted together by the engine.
 
-In short:
-Aggregation-based Translation improves performance by eliminating redundant AI work, not by forcing the AI to work faster.
+---
 
+## ⚡ Fine-grained Unit Control
 
-## 💬 Community & Contribution
+Each **text unit (`BaseUnit`)** is individually tracked and can be controlled via **signals and states**:
 
-Join our Discord community: [https://discord.gg/GRu7WtgqsB](https://discord.gg/GRu7WtgqsB)  
+- **Created** – unit has been created but not yet processed.
+- **Preparing** – unit is being prepared for translation.
+- **Translating** – unit is currently being translated.
+- **Queued** – unit has been submitted to the output queue.
+- **Skipped** – unit is intentionally skipped.
+- **Completed** – translation has finished successfully.
+- **Failed** – translation failed.
 
-Feel free to drop by and chat — always happy to talk code (or just vent boredom).
+This design allows:
+
+- Precise handling of special cases.
+- Skipped translations without affecting unrelated units.
+- Real-time user overrides.
+- Seamless integration with aggregation logic.
+
+---
+
+## 🚀 Performance & Scalability
+
+With aggregation-based translation, **translation performance no longer scales linearly with the number of text lines**.  
+Instead, it scales with **semantic complexity**, making it especially effective for:
+
+- Large-scale scripts.
+- Game localization.
+- Content with high repetition.
+
+In short: **aggregation-based translation improves performance by eliminating redundant AI work, not by forcing the AI to work faster**.
+
+---
+
+## ✅ Summary
+
+PhoenixEngine combines **semantic aggregation**, **fine-grained unit control**, and **placeholder logic** to deliver a translation engine that is:
+
+- Fast
+- Context-aware
+- Highly customizable
+- Scalable to large and repetitive datasets
