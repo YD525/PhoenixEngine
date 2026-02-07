@@ -80,7 +80,12 @@ namespace PhoenixEngine.TranslateManagement
                 return Mutation;
             }
 
-            return null;
+            return new UnitContext<BaseUnit>();
+        }
+
+        public void ReSet()
+        {
+            this.Original = this.RealOriginal;
         }
        
     }

@@ -191,7 +191,6 @@ namespace PhoenixEngine.EngineManagement.Unit
             }
             return Html;
         }
-
         public ConfirmPasser AnalysisContent(string Content)
         {
             ConfirmPasser WaitConfirm = new ConfirmPasser(this.Units);
@@ -223,8 +222,6 @@ namespace PhoenixEngine.EngineManagement.Unit
 
             return WaitConfirm;
         }
-
-
         private static int TokenCoverageRatio(HashSet<string> A, HashSet<string> B)
         {
             if (A == null || B == null || A.Count == 0 || B.Count == 0)
@@ -244,15 +241,11 @@ namespace PhoenixEngine.EngineManagement.Unit
             return Intersection;
         }
 
-        public int GetCount()
-        {
-            return Units.Count;
-        }
-
         public GroupContext ApplyStateChange(UnitTranslationState State)
         {
             GroupContext GenContent = new GroupContext();
 
+            if(EngineEvents.BaseUnitStateChanged !=null)
             for (int i = 0; i < this.Units.Count; i++)
             {
                 UnitContext<BaseUnit> Data = this.Units[i].ApplyStateChange(State);

@@ -142,7 +142,12 @@ namespace PhoenixEngine.TranslateManage
                 for (int i = 0; i < this.Content.Units.Count; i++)
                 {
                     UnitGroup GetUnit = this.Content.Units[i];
-                    GetUnit.ApplyStateChange(UnitTranslationState.Created)
+
+                    if (GetUnit.ApplyStateChange(UnitTranslationState.Created).CanDo(-1))
+                    {
+                        continue;
+                    }
+
                     while (!TrdPool.Put(CreatePhoenixThread<UnitGroup>(TrdPool, GetUnit, NormalCall, WorkEndCall)))
                     {
                         if (GetCount() > ThrottleLimit)
@@ -162,7 +167,12 @@ namespace PhoenixEngine.TranslateManage
                 for (int i = 0; i < this.Content.Books.Count; i++)
                 {
                     UnitGroup GetBook = this.Content.Books[i];
-                    GetBook.ApplyStateChange(UnitTranslationState.Preparing);
+
+                    if (GetBook.ApplyStateChange(UnitTranslationState.Created).CanDo(-1))
+                    {
+                        continue;
+                    }
+
                     while (!TrdPool.Put(CreatePhoenixThread<UnitGroup>(TrdPool, GetBook, BookCall, WorkEndCall)))
                     {
                         if (GetCount() > ThrottleLimit)
@@ -191,7 +201,12 @@ namespace PhoenixEngine.TranslateManage
                             {
                                 var GetResult = DequeueCache[this.Content.SameItems[i].Units[ir].Original];
                                 var GetUnit = this.Content.SameItems[i].Units[ir];
-                                GetUnit.ApplyStateChange(UnitTranslationState.Preparing);
+
+                                if (GetUnit.ApplyStateChange(UnitTranslationState.Created).ControlSignal.Sign != -1)
+                                {
+                                    continue;
+                                }
+
                                 GetUnit.Translated = GetResult;
                                 TranslatorRef.TranslatedLink[GetUnit.Key] = GetResult;
                               
@@ -254,6 +269,11 @@ namespace PhoenixEngine.TranslateManage
             lock (UnitsReadLock)
             {
                 TranslatedCount += Item.Units.Count;
+            }
+
+            if (!Item.ApplyStateChange(UnitTranslationState.Queued).CanDo(-1))
+            {
+                return;
             }
 
             for (int i = 0; i < Item.Units.Count; i++)

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
+using PhoenixEngine.DelegateManagement;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.EngineManagement.Unit;
 using PhoenixEngine.PlatformManagement;
@@ -144,6 +145,28 @@ namespace PhoenixEngine.TranslateManage
 
         public static object SwitchLocker = new object();
 
+
+        public static void CheckCanSkip(Dictionary<string, UnitSequence> Sequences,ref UnitGroup Item)
+        {
+            if (Sequences[Item.Key].CanSkip)
+            {
+                if (!Item.ApplyStateChange(UnitTranslationState.Skipped).CanDo(-1))
+                {
+                    Sequences[Item.Key].CanSkip = false;
+                }
+            }
+        }
+        public static void CheckCanGeneratePlaceholder(Dictionary<string, UnitSequence> Sequences, ref UnitGroup Item)
+        {
+            if (Sequences[Item.Key].CanSkip)
+            {
+                int Index = 0;
+                if (!Item.ApplyStateChange(UnitTranslationState.Skipped).CanDo(-1,ref Index))
+                {
+                    Item.ReSet(Index);
+                }
+            }
+        }
         /// <summary>
         /// Multithreaded translation entry
         /// </summary>
@@ -154,11 +177,20 @@ namespace PhoenixEngine.TranslateManage
         public UnitGroup CallOnce(Translator TranslatorRef, TranslationPreprocessor Preprocessor,UnitGroup Item,
         Languages From, Languages To,string AIParam, bool CanSleep, bool UseAIMemory,bool CanUPDate)
         {
+            if (!Item.ApplyStateChange(UnitTranslationState.Preparing).CanDo(-1))
+            {
+                return Item;
+            }
+
             Dictionary<string, UnitSequence> Sequences = null;
 
             Item.StartPreProcess(Preprocessor,From,To, ref Sequences);
 
+            CheckCanSkip(Sequences,ref Item);
+
             Item.CenterPreProcess(From, To, ref Sequences);
+
+            CheckCanSkip(Sequences, ref Item);
 
             EngineNode CurrentEngine = null;
 
@@ -190,6 +222,11 @@ namespace PhoenixEngine.TranslateManage
                     NextCall:
 
                     string GetTrans = "";
+
+                    if (!Item.ApplyStateChange(UnitTranslationState.Translating).CanDo(-1))
+                    {
+                        return Item;
+                    }
 
                     GetTrans = CurrentEngine.Call(ref Item,ref Sequences,From,To,
                     true, Phoenix.Config.ContextLimit,
@@ -255,6 +292,11 @@ namespace PhoenixEngine.TranslateManage
                         Item.UPDateCloudData(TranslatorRef, Sequences);
                     }
 
+                    if (!Item.ApplyStateChange(UnitTranslationState.Completed).CanDo(-1))
+                    {
+                        return Item;
+                    }
+
                     return Item;
                 }
 
@@ -306,6 +348,9 @@ namespace PhoenixEngine.TranslateManage
                Languages From,Languages To,bool UseAIMemory,int AIMemoryQueryCount,string AIParam)
             {
                 Source.StartGeneratePlaceholder(From, To, ref Sequences);
+
+                CheckCanGeneratePlaceholder(Sequences, ref Source);
+                CheckCanSkip(Sequences, ref Source);
 
                 string GetSource = Source.GenContent();
 

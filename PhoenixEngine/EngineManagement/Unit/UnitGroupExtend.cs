@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
+using System.Web.UI.WebControls;
 using PhoenixEngine.TranslateManage;
 using PhoenixEngine.TranslateManagement;
 
@@ -69,6 +70,24 @@ namespace PhoenixEngine.EngineManagement.Unit
                     }
                 }
             }
+        }
+
+        public static int GetCount(this UnitGroup Item)
+        {
+            return Item.Units.Count;
+        }
+
+        public static void ReSet(this UnitGroup Item)
+        {
+            for (int i = 0; i < Item.Units.Count; i++)
+            {
+                Item.Units[i].ReSet();
+            }
+        }
+
+        public static void ReSet(this UnitGroup Item,int Index)
+        {
+            Item.Units[Index].ReSet();
         }
     }
 }

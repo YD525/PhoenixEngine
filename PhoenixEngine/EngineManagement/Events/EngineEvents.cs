@@ -10,24 +10,43 @@ namespace PhoenixEngine.DelegateManagement
         {
             public T Data;
             public string Key = "";
-            public int ControlSignal = 0;
+            public Signal ControlSignal;
+        }
+
+        public class Signal
+        {
+            public int Sign = 0;
+            public int Index = 0;
         }
 
         public class GroupContext
         {
-            public Dictionary<string,int> ControlSignals = new Dictionary<string, int>();
+            public Dictionary<string, Signal> ControlSignals = new Dictionary<string, Signal>();
 
-            public void AddSign(string Key,int Signal)
+            public void AddSign(string Key, Signal Item)
             {
-                ControlSignals[Key] = Signal;
+                ControlSignals[Key] = Item;
             }
 
             public bool CanDo(int Signal)
             {
                 foreach (var Get in this.ControlSignals)
                 {
-                    if (Get.Value != Signal)
+                    if (Get.Value.Sign == Signal)
                     {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+            public bool CanDo(int Signal,ref int Index)
+            {
+                foreach (var Get in this.ControlSignals)
+                {
+                    if (Get.Value.Sign == Signal)
+                    {
+                        Index = Get.Value.Index;
                         return false;
                     }
                 }
@@ -51,12 +70,12 @@ namespace PhoenixEngine.DelegateManagement
     public enum UnitTranslationState
     {
         None = 0,
-        Created = 1,          
-        Queued = 2,           
-        Preparing = 3,        
-        Translating = 4,      
-        Completed = 5,        
-        Skipped = 6,          
-        Failed = 7 
+        Created = 1,               
+        Preparing = 3,
+        Skipped = 5,
+        Translating = 6,      
+        Completed = 7,
+        Queued = 8,
+        Failed = 9 
     }
 }
