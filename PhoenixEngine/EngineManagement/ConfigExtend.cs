@@ -146,7 +146,7 @@ namespace PhoenixEngine.EngineManagement
         /// <summary>
         /// Configure the maximum number of rejections,Used to prevent infinite loops.
         /// </summary>
-        public int MaxTranslationAttempts = 20;
+        public int MaxTranslationAttempts = 3;
 
         /// <summary>
         /// Waiting time for retrying.

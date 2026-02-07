@@ -32,29 +32,6 @@ namespace PhoenixEngine.EngineManagement
     }
     public static class UnitGroupUnitSequence
     {
-        /// <summary>
-        /// Apply sequence to UnitGroup
-        /// </summary>
-        /// <param name="Item"></param>
-        /// <param name="Sequences"></param>
-        public static void UPDateSequences(this UnitGroup Item, Dictionary<string, UnitSequence> Sequences)
-        {
-            Dictionary<string, UnitSequence> CopySequences = new Dictionary<string, UnitSequence>(Sequences);
-            foreach (var GetSeq in Sequences)
-            {
-                for (int i = 0; i < Item.Units.Count; i++)
-                {
-                    var GetUnit = Item.Units[i];
-                    if (GetUnit.Key.Equals(GetSeq.Key))
-                    {
-                        if (GetSeq.Value.CanSkip)
-                        {
-                            Item.Units[i].Translated = GetSeq.Value.Data;
-                        }
-                    }
-                }
-            }
-        }
 
         /// <summary>
         /// Strings at the beginning of the preprocessing translation stage

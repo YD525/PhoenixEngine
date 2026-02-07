@@ -157,10 +157,8 @@ namespace PhoenixEngine.TranslateManage
             Dictionary<string, UnitSequence> Sequences = null;
 
             Item.StartPreProcess(Preprocessor,From,To, ref Sequences);
-            Item.UPDateSequences(Sequences);
 
             Item.CenterPreProcess(From, To, ref Sequences);
-            Item.UPDateSequences(Sequences);
 
             EngineNode CurrentEngine = null;
 
@@ -237,8 +235,6 @@ namespace PhoenixEngine.TranslateManage
                         Sequences[PassUnit.Key].Data = PassUnit.Translated;
                     }
 
-                    Item.UPDateSequences(Sequences);
-
                     if (!Passer.TryPass(ref NotPassUnits, ref PassUnits))
                     {
                         goto NextCall;
@@ -246,16 +242,17 @@ namespace PhoenixEngine.TranslateManage
 
                     Item.EndPreProcess(From, To, ref Sequences);
 
-                    if (CanUPDate)
-                    {
-                        Item.UPDateCloudData(TranslatorRef, Sequences);
-                    }
 
                     Item.EndGeneratePlaceholder(From, To, ref Sequences);
 
                     if (UseAIMemory)
                     {
                         Item.UPDateAIMemory(TranslatorRef, Sequences);
+                    }
+
+                    if (CanUPDate)
+                    {
+                        Item.UPDateCloudData(TranslatorRef, Sequences);
                     }
 
                     return Item;
@@ -309,7 +306,6 @@ namespace PhoenixEngine.TranslateManage
                Languages From,Languages To,bool UseAIMemory,int AIMemoryQueryCount,string AIParam)
             {
                 Source.StartGeneratePlaceholder(From, To, ref Sequences);
-                Source.UPDateSequences(Sequences);
 
                 string GetSource = Source.GenContent();
 
