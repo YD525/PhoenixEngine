@@ -55,23 +55,26 @@ namespace PhoenixEngine.TranslateManagement
 
         public UnitContext<BaseUnit> ApplyStateChange(UnitTranslationState State)
         {
-            if (EngineEvents.BaseUnitStateChanged != null)
+            if (EngineEvents.SetBaseUnitStateChangedCallback != null)
             {
-                var Mutation = EngineEvents.BaseUnitStateChanged(Clone(this),State);
+                var Mutation = EngineEvents.SetBaseUnitStateChangedCallback(Clone(this),State);
 
                 if (Mutation != null)
                 {
-                    if (Mutation.Data.Original.Length > 0)
-                    { 
-                        this.Original = Mutation.Data.Original;
-                    }
-                    if (!string.IsNullOrEmpty(Mutation.Data.Translated))
+                    if (Mutation.ControlSignal.Sign == 1)
                     {
-                        this.Translated = Mutation.Data.Translated;
-                    }
-                    if (Mutation.Data.Type.Length > 0)
-                    {
-                        this.Type = Mutation.Data.Type;
+                        if (Mutation.Data.Original.Length > 0)
+                        {
+                            this.Original = Mutation.Data.Original;
+                        }
+                        if (!string.IsNullOrEmpty(Mutation.Data.Translated))
+                        {
+                            this.Translated = Mutation.Data.Translated;
+                        }
+                        if (Mutation.Data.Type.Length > 0)
+                        {
+                            this.Type = Mutation.Data.Type;
+                        }
                     }
                 }
 

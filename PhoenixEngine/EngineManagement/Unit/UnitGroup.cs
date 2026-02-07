@@ -245,7 +245,7 @@ namespace PhoenixEngine.EngineManagement.Unit
         {
             GroupContext GenContent = new GroupContext();
 
-            if(EngineEvents.BaseUnitStateChanged !=null)
+            if(EngineEvents.SetBaseUnitStateChangedCallback !=null)
             for (int i = 0; i < this.Units.Count; i++)
             {
                 UnitContext<BaseUnit> Data = this.Units[i].ApplyStateChange(State);

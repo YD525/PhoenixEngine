@@ -58,7 +58,7 @@ namespace PhoenixEngine.DelegateManagement
         public static SetData SetDataCall = null;
         public delegate void SetData(int Sign,object Any);
 
-        public static OnUnitStateChanged BaseUnitStateChanged = null;
+        public static OnUnitStateChanged SetBaseUnitStateChangedCallback = null;
         public delegate UnitContext<BaseUnit> OnUnitStateChanged(BaseUnit Item, UnitTranslationState State);
 
         public static BookTranslateCallback SetBookTranslateCallback = null;
