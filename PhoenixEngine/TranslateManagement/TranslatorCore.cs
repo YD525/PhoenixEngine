@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using PhoenixEngine.DelegateManagement;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.EngineManagement.Engine;
 using PhoenixEngine.EngineManagement.EThread;
@@ -140,8 +141,9 @@ namespace PhoenixEngine.TranslateManage
                 //First, translate the traditional type.
                 for (int i = 0; i < this.Content.Units.Count; i++)
                 {
-                    UnitGroup GetPointer = this.Content.Units[i];
-                    while (!TrdPool.Put(CreatePhoenixThread<UnitGroup>(TrdPool,GetPointer, NormalCall, WorkEndCall)))
+                    UnitGroup GetUnit = this.Content.Units[i];
+                    GetUnit.ApplyStateChange(UnitTranslationState.Created)
+                    while (!TrdPool.Put(CreatePhoenixThread<UnitGroup>(TrdPool, GetUnit, NormalCall, WorkEndCall)))
                     {
                         if (GetCount() > ThrottleLimit)
                         {
@@ -159,8 +161,9 @@ namespace PhoenixEngine.TranslateManage
                 //Book translation will be done last.
                 for (int i = 0; i < this.Content.Books.Count; i++)
                 {
-                    UnitGroup GetBookPointer = this.Content.Books[i];
-                    while (!TrdPool.Put(CreatePhoenixThread<UnitGroup>(TrdPool,GetBookPointer, BookCall, WorkEndCall)))
+                    UnitGroup GetBook = this.Content.Books[i];
+                    GetBook.ApplyStateChange(UnitTranslationState.Preparing);
+                    while (!TrdPool.Put(CreatePhoenixThread<UnitGroup>(TrdPool, GetBook, BookCall, WorkEndCall)))
                     {
                         if (GetCount() > ThrottleLimit)
                         {
@@ -188,6 +191,7 @@ namespace PhoenixEngine.TranslateManage
                             {
                                 var GetResult = DequeueCache[this.Content.SameItems[i].Units[ir].Original];
                                 var GetUnit = this.Content.SameItems[i].Units[ir];
+                                GetUnit.ApplyStateChange(UnitTranslationState.Preparing);
                                 GetUnit.Translated = GetResult;
                                 TranslatorRef.TranslatedLink[GetUnit.Key] = GetResult;
                               

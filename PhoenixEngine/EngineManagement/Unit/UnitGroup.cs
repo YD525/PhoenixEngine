@@ -7,6 +7,7 @@ using PhoenixEngine.DelegateManagement;
 using PhoenixEngine.EngineManagement.Engine;
 using PhoenixEngine.TranslateManage;
 using PhoenixEngine.TranslateManagement;
+using static PhoenixEngine.DelegateManagement.EngineEvents;
 
 namespace PhoenixEngine.EngineManagement.Unit
 {
@@ -45,7 +46,7 @@ namespace PhoenixEngine.EngineManagement.Unit
 
             NotPassUnits = new List<BaseUnit>();
 
-            for(int i = 0; i < Units.Count; i++)
+            for (int i = 0; i < Units.Count; i++)
             {
                 var GetUnit = Units[i];
                 if (GetUnit.Original.Length > 0)
@@ -111,7 +112,7 @@ namespace PhoenixEngine.EngineManagement.Unit
 
         public UnitGroup()
         {
-           
+
         }
 
         public UnitGroup(BaseUnit SingleUnit)
@@ -223,15 +224,7 @@ namespace PhoenixEngine.EngineManagement.Unit
             return WaitConfirm;
         }
 
-        public bool CanTrans(int State)
-        {
-            if (DelegateHelper.SetTranslationUnitCallBack != null)
-            {
-                return DelegateHelper.SetTranslationUnitCallBack(this, State);
-            }
 
-            return true;
-        }
         private static int TokenCoverageRatio(HashSet<string> A, HashSet<string> B)
         {
             if (A == null || B == null || A.Count == 0 || B.Count == 0)
@@ -254,6 +247,22 @@ namespace PhoenixEngine.EngineManagement.Unit
         public int GetCount()
         {
             return Units.Count;
+        }
+
+        public GroupContext ApplyStateChange(UnitTranslationState State)
+        {
+            GroupContext GenContent = new GroupContext();
+
+            for (int i = 0; i < this.Units.Count; i++)
+            {
+                UnitContext<BaseUnit> Data = this.Units[i].ApplyStateChange(State);
+                if (Data != null)
+                {
+                    GenContent.AddSign(Data.Key, Data.ControlSignal);
+                }
+            }
+
+            return GenContent;
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using PhoenixEngine.EngineManagement.Unit;
+﻿using PhoenixEngine.DelegateManagement;
+using PhoenixEngine.EngineManagement.Unit;
+using static PhoenixEngine.DelegateManagement.EngineEvents;
 
 namespace PhoenixEngine.TranslateManagement
 {
@@ -49,6 +51,36 @@ namespace PhoenixEngine.TranslateManagement
         public string GetRealOriginal()
         {
             return string.Copy(this.RealOriginal);
+        }
+
+        public UnitContext<BaseUnit> ApplyStateChange(UnitTranslationState State)
+        {
+            if (EngineEvents.BaseUnitStateChanged != null)
+            {
+                var Mutation = EngineEvents.BaseUnitStateChanged(Clone(this),State);
+
+                if (Mutation != null)
+                {
+                    if (Mutation.Data.Original.Length > 0)
+                    { 
+                        this.Original = Mutation.Data.Original;
+                    }
+                    if (!string.IsNullOrEmpty(Mutation.Data.Translated))
+                    {
+                        this.Translated = Mutation.Data.Translated;
+                    }
+                    if (Mutation.Data.Type.Length > 0)
+                    {
+                        this.Type = Mutation.Data.Type;
+                    }
+                }
+
+                Mutation.Key = this.Key;
+
+                return Mutation;
+            }
+
+            return null;
         }
        
     }

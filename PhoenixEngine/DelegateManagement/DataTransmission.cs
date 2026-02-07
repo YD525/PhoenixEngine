@@ -17,9 +17,9 @@ namespace PhoenixEngine.EngineManagement
         }
         public static void Recv(int Type, object Any)
         {
-            if (DelegateHelper.SetDataCall != null)
+            if (EngineEvents.SetDataCall != null)
             {
-                DelegateHelper.SetDataCall(Type, Any);
+                EngineEvents.SetDataCall(Type, Any);
             }
         }
 

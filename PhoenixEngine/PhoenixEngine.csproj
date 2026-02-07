@@ -76,7 +76,7 @@
     <Compile Include="DataBaseManagement\PageHelper.cs" />
     <Compile Include="DataBaseManagement\SQLiteHelper.cs" />
     <Compile Include="DataBaseManagement\SqlSafeCodec.cs" />
-    <Compile Include="DelegateManagement\DelegateHelper.cs" />
+    <Compile Include="EngineManagement\Events\EngineEvents.cs" />
     <Compile Include="EngineManagement\ConfigExtend.cs" />
     <Compile Include="DelegateManagement\DataTransmission.cs" />
     <Compile Include="EngineManagement\Engine\EngineHelper.cs" />

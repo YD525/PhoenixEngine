@@ -2,7 +2,6 @@
 using System.Threading;
 using PhoenixEngine.TranslateManage;
 using PhoenixEngine.TranslateManagement;
-using static PhoenixEngine.DelegateManagement.DelegateHelper;
 
 namespace PhoenixEngine.EngineManagement.Unit
 {
