@@ -8,6 +8,25 @@ In addition, it provides **heuristic analysis for Papyrus scripts**, generating 
 
 ---
 
+## ⭐ Aggregation-based Translation
+
+Lexicon AI Translator does not rely on simple request batching or brute-force concurrency to improve translation speed.
+Instead, it introduces an aggregation-based translation model at the engine level.
+
+Before any AI request is issued, the engine analyzes the structure and semantic relationships of the source content.
+Text units that are contextually related, structurally similar, or semantically repetitive are grouped into a single UnitGroup and translated as one coherent semantic unit.
+
+As a result, multiple independent translation tasks are merged into a single AI request, allowing shared context to be fully utilized while significantly reducing redundant token usage.
+
+Even when explicit “context translation” is disabled by the user, contextual awareness still exists implicitly.
+This is because related content has already been aggregated and submitted together by the engine itself.
+
+With this approach, translation performance no longer scales linearly with the number of text lines.
+Instead, it scales with semantic complexity, making it especially effective for large-scale scripts, game localization, and content with high repetition.
+
+In short:
+Aggregation-based Translation improves performance by eliminating redundant AI work, not by forcing the AI to work faster.
+
 ## ⭐ API Usage Example (How to Call the Engine)
 
 Quickly call PhoenixAPI
@@ -113,7 +132,7 @@ using PhoenixEngine.TranslateManage;
         /// 2 = Obtain translation results
         /// </param>
         /// <returns></returns>
-       public static bool TranslationUnitStateChanged(TranslationUnit Item,int State)
+       public static bool TranslationUnitStateChanged(BaseUnit Item,int State)
        {
            //If false is returned in stage 2, the final translation will not be stored in the database.
            return true;
