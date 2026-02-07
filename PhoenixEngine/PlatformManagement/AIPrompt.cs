@@ -48,15 +48,24 @@ namespace PhoenixEngine.PlatformManagement
             {
                 Prompt.AppendLine("[Placeholder Rule]");
                 Prompt.AppendLine(
-                    "Placeholders represent protected content.\n" +
-                    "They MUST be preserved exactly.\n" +
-                    "You may only reorder placeholders if required for natural sentence flow."
+                    "Placeholders in the format [_N] or [_PN] represent protected content that must NOT be translated.\n" +
+                    "Rules:\n" +
+                    "1. DO NOT translate the placeholder itself - keep [_0], [_1], [_P0] etc. exactly as-is\n" +
+                    "2. DO NOT translate the meaning shown after '//'\n" +
+                    "3. You may ONLY reorder placeholders if required for natural sentence flow\n" +
+                    "4. Preserve the exact format: brackets, underscore, and number must remain unchanged\n" +
+                    "\n" +
+                    "Examples:\n" +
+                    "✓ Correct: \"Click [_0] to continue\" → \"Cliquez sur [_0] pour continuer\"\n" +
+                    "✗ Wrong: \"Click [_0] to continue\" → \"Cliquez sur [bouton] pour continuer\"\n"
                 );
 
+                Prompt.AppendLine("Protected placeholders:");
                 foreach (var GetWord in CustomWords)
                 {
                     Prompt.AppendLine($"{GetWord.Key} // meaning: {GetWord.Value}");
                 }
+                Prompt.AppendLine();
             }
 
             // Terminology

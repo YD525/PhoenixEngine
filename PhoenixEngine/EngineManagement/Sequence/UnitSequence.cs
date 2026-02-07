@@ -226,7 +226,7 @@ namespace PhoenixEngine.EngineManagement
 
                 bool CanTrans = false;
 
-                string Source = Sequences[GetUnit.Key].Data;
+                string Source = string.Copy(Sequences[GetUnit.Key].Data);
 
                 if (Phoenix.Config.PreTranslateEnable)
                 {
@@ -253,6 +253,8 @@ namespace PhoenixEngine.EngineManagement
 
                     Sequences[GetUnit.Key].Data = Source;
 
+                    GetUnit.Original = Sequences[GetUnit.Key].Data;
+
                     Sequences[GetUnit.Key].HavePlaceholder = true;
 
                     if (!CanTrans)
@@ -260,16 +262,15 @@ namespace PhoenixEngine.EngineManagement
                         Sequences[GetUnit.Key].Data = Preprocessor.RestoreFromPlaceholder(Source, To);
                         Sequences[GetUnit.Key].HavePlaceholder = false;
                         Sequences[GetUnit.Key].CanUPDateDB = false;
+
+                        GetUnit.Translated = Sequences[GetUnit.Key].Data;
+                        Sequences[GetUnit.Key].CanSkip = true;
                     }
                 }
                 else
                 {
+                    Sequences[GetUnit.Key].CanSkip = false;
                     CanTrans = true;
-                }
-
-                if (!CanTrans)
-                {
-                    Sequences[GetUnit.Key].CanSkip = true;
                 }
             }
         }
@@ -324,6 +325,8 @@ namespace PhoenixEngine.EngineManagement
 
                 Translated = Preprocessor.ReturnStr(Translated);
                 Sequences[GetUnit.Key].Data = Translated;
+
+                GetUnit.Translated = Translated;
             }
         }
     }

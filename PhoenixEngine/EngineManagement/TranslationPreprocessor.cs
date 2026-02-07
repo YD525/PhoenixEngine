@@ -19,7 +19,7 @@ namespace PhoenixEngine.TranslateManage
             this.Key = Key;
             this.Value = Value;
         }
-        public ReplaceTag(int Rowid,string Key, string Value)
+        public ReplaceTag(int Rowid, string Key, string Value)
         {
             this.Rowid = Rowid;
             this.Key = Key;
@@ -38,7 +38,7 @@ namespace PhoenixEngine.TranslateManage
 
         public TranslationPreprocessor()
         {
-        
+
         }
 
         public static TranslationPreprocessor Clone(TranslationPreprocessor Preprocessor)
@@ -49,6 +49,45 @@ namespace PhoenixEngine.TranslateManage
             NTranslationPreprocessor.ReplaceTags.AddRange(Preprocessor.ReplaceTags);
             return NTranslationPreprocessor;
         }
+
+        public bool SecondaryQualityInspection(string Source, List<ReplaceTag> CustomWords)
+        {
+            if (string.IsNullOrEmpty(Source))
+                return false;
+
+            if (CustomWords == null || CustomWords.Count == 0)
+                return true;
+
+            HashSet<string> FoundIds = new HashSet<string>();
+
+            string Pattern = @"[\[【\(（]\s*_\s*([Pp]?\d+)\s*[\]】\)）]";
+
+            var Matches = Regex.Matches(Source, Pattern, RegexOptions.IgnoreCase);
+
+            foreach (Match Match in Matches)
+            {
+                if (Match.Success)
+                {
+                    string FoundId = Match.Groups[1].Value.Trim().ToUpper();
+                    FoundIds.Add(FoundId);
+                }
+            }
+
+            HashSet<string> ExpectedIds = new HashSet<string>();
+
+            foreach (var Word in CustomWords)
+            {
+                var IDMatch = Regex.Match(Word.Key, @"\[_([Pp]?\d+)\]");
+                if (IDMatch.Success)
+                {
+                    string ID = IDMatch.Groups[1].Value.ToUpper();
+                    ExpectedIds.Add(ID);
+                }
+            }
+
+            return FoundIds.Count == ExpectedIds.Count && ExpectedIds.All(id => FoundIds.Contains(id));
+        }
+
         private List<ReplaceTag> GenerateProtectedTags(string Source, bool IsAIPlatform)
         {
             var Tags = new List<ReplaceTag>();
@@ -73,7 +112,7 @@ namespace PhoenixEngine.TranslateManage
                     }
                     else
                     {
-                        string Placeholder = $"__P({Index})__";
+                        string Placeholder = $"[_P{Index}]";
                         Tags.Add(new ReplaceTag(Placeholder, Value));
                         Index++;
                     }
@@ -90,8 +129,8 @@ namespace PhoenixEngine.TranslateManage
 
             bool UseWordBoundary = LanguageExtensions.IsSpaceDelimitedLanguage(From);
 
-            var ProtectedTags = GenerateProtectedTags(SourceStr,false);
-            for (int i=0;i< ProtectedTags.Count;i++)
+            var ProtectedTags = GenerateProtectedTags(SourceStr, false);
+            for (int i = 0; i < ProtectedTags.Count; i++)
             {
                 if (SourceStr.Contains(ProtectedTags[i].Value))
                 {
@@ -123,14 +162,14 @@ namespace PhoenixEngine.TranslateManage
                         }
                     }
                 }
-            }   
+            }
 
             var Tags = AdvancedDictionary.Query(FileName, Type, From, To, SourceStr, UseWordBoundary);
 
             for (int i = 0; i < Tags.Count; i++)
             {
                 var Word = Tags[i];
-                string Placeholder = $"__({i})__";
+                string Placeholder = $"[_{i}]";
                 string Source = Word.Source;
 
                 if (UseWordBoundary)
@@ -139,7 +178,7 @@ namespace PhoenixEngine.TranslateManage
                     if (Regex.IsMatch(SourceStr, Pattern, RegexOptions.IgnoreCase))
                     {
                         SourceStr = Regex.Replace(SourceStr, Pattern, Placeholder, RegexOptions.IgnoreCase);
-                        ReplaceTags.Add(new ReplaceTag(Tags[i].Rowid,Placeholder, Word.Result));
+                        ReplaceTags.Add(new ReplaceTag(Tags[i].Rowid, Placeholder, Word.Result));
                         HasPlaceholder = true;
                     }
                 }
@@ -148,7 +187,7 @@ namespace PhoenixEngine.TranslateManage
                     if (SourceStr.Contains(Source))
                     {
                         SourceStr = SourceStr.Replace(Source, Placeholder);
-                        ReplaceTags.Add(new ReplaceTag(Placeholder, Word.Result));
+                        ReplaceTags.Add(new ReplaceTag(Tags[i].Rowid, Placeholder, Word.Result));
                         HasPlaceholder = true;
                     }
                 }
@@ -174,67 +213,33 @@ namespace PhoenixEngine.TranslateManage
             if (string.IsNullOrEmpty(Str) || ReplaceTags.Count == 0)
                 return Str;
 
-            bool HasSpace = IsSpaceLanguage(Lang);
+            Dictionary<string, string> IDToValueMap = new Dictionary<string, string>();
 
-            StringBuilder Result = new StringBuilder(Str.Length);
-            int I = 0;
-
-            while (I < Str.Length)
+            foreach (var Tag in ReplaceTags)
             {
-                if (Str[I] == '_' && I + 1 < Str.Length && Str[I + 1] == '_')
+                var Match = Regex.Match(Tag.Key, @"\[_([Pp]?\d+)\]");
+                if (Match.Success)
                 {
-                    int PrefixLength = 0;
-
-                    if (I + 2 < Str.Length && Str[I + 2] == '(')
-                    {
-                        PrefixLength = 3;
-                    }
-                    else if (I + 3 < Str.Length && Str[I + 2] == 'P' && Str[I + 3] == '(')
-                    {
-                        PrefixLength = 4;
-                    }
-
-                    if (PrefixLength > 0)
-                    {
-                        int Start = I;
-                        int J = I + PrefixLength;
-
-                        while (J < Str.Length && char.IsDigit(Str[J]))
-                            J++;
-
-                        if (J + 2 < Str.Length &&
-                            Str[J] == ')' &&
-                            Str[J + 1] == '_' &&
-                            Str[J + 2] == '_')
-                        {
-                            int TokenLength = J - Start + 3;
-                            string Token = Str.Substring(Start, TokenLength);
-
-                            string MatchToken = HasSpace
-                                ? Token
-                                : Regex.Replace(Token, @"\s+", "");
-
-                            string MatchedKey = FindBestMatchingPlaceholder(MatchToken);
-
-                            if (MatchedKey != null)
-                            {
-                                var Tag = ReplaceTags.FirstOrDefault(t => t.Key == MatchedKey);
-                                if (Tag != null)
-                                {
-                                    Result.Append(Tag.Value);
-                                    I += TokenLength;
-                                    continue;
-                                }
-                            }
-                        }
-                    }
+                    string ID = Match.Groups[1].Value.ToUpper();
+                    IDToValueMap[ID] = Tag.Value;
                 }
-
-                Result.Append(Str[I]);
-                I++;
             }
 
-            return Result.ToString();
+            string Pattern = @"[\[【\(（]\s*_\s*([Pp]?\d+)\s*[\]】\)）]";
+
+            string Result = Regex.Replace(Str, Pattern, Match =>
+            {
+                string ID = Match.Groups[1].Value.Trim().ToUpper();
+
+                if (IDToValueMap.TryGetValue(ID, out string Value))
+                {
+                    return Value;
+                }
+
+                return Match.Value;
+            }, RegexOptions.IgnoreCase);
+
+            return Result;
         }
 
         private bool IsSpaceLanguage(Languages lang)
@@ -242,38 +247,11 @@ namespace PhoenixEngine.TranslateManage
             return lang == Languages.English ||
                    lang == Languages.German ||
                    lang == Languages.Italian ||
-                   lang == Languages.Spanish;
-        }
-        private string FindBestMatchingPlaceholder(string Input)
-        {
-            foreach (var Tag in ReplaceTags)
-            {
-                string Key = Tag.Key;
-                if (Input.Contains(Key) || Normalize(Input) == Normalize(Key))
-                    return Key;
-            }
-            return null;
+                   lang == Languages.Spanish ||
+                   lang == Languages.French ||
+                   lang == Languages.Portuguese;
         }
 
-        private string Normalize(string Input)
-        {
-            return ToHalfWidth(Input).Replace("_", "").Replace("(", "").Replace(")", "").ToUpperInvariant();
-        }
-
-        private string ToHalfWidth(string Input)
-        {
-            StringBuilder Sb = new StringBuilder();
-            foreach (char C in Input)
-            {
-                if (C >= 0xFF01 && C <= 0xFF5E)
-                    Sb.Append((char)(C - 0xFEE0));
-                else if (C == 0x3000)
-                    Sb.Append(' ');
-                else
-                    Sb.Append(C);
-            }
-            return Sb.ToString();
-        }
         public bool ExactMatch(Languages From, Languages To, string Key, string Type, string Source, ref string Result)
         {
             var GetData = AdvancedDictionary.ExactMatch(From, To, Type, Source);

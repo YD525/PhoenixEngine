@@ -208,7 +208,6 @@ namespace PhoenixEngine.EngineManagement.Unit
             {
                 int ID = ConvertHelper.ObjToInt(match.Groups[1].Value);
                 string Result = match.Groups[2].Value.Trim();
-
                 if (ID >= 100)
                 {
                     int NormalID = ID - 100;
@@ -233,101 +232,6 @@ namespace PhoenixEngine.EngineManagement.Unit
 
             return true;
         }
-
-        public void StartWork()
-        {
-            //if (!CanTrans(0))
-            //{
-            //    this.WorkEnd = 2;
-            //    return;
-            //}
-
-            //WorkEnd = 1;
-            //this.Processing = true;
-            //CurrentTrd = new Thread(() =>
-            //{
-            //    Translator Translator = this.ParentRef.GetTranslator();
-            //    TransThreadToken = new CancellationTokenSource();
-            //    var Token = TransThreadToken.Token;
-            //    try
-            //    {
-            //    NextGet:
-
-            //        Token.ThrowIfCancellationRequested();
-
-            //        if (this.Original.Trim().Length > 0)
-            //        {
-            //            bool CanSleep = true;
-
-            //            if (!CanTrans(1))
-            //            {
-            //                this.Processing = false;
-            //                this.WorkEnd = 2;
-            //                CurrentTrd = null;
-
-            //                return;
-            //            }
-
-            //            var GetResult = Translator.Translate(new TranslationPreprocessor(), this, CanSleep);
-            //            if (GetResult.Trim().Length > 0)
-            //            {
-            //                this.Trans = GetResult.Trim();
-
-            //                if (!CanTrans(2))
-            //                {
-            //                    EngineNode.AIMemory.RemoveTranslation(Phoenix.From, Phoenix.To, TranslationPreprocessor.FormatStr(this.SourceText), TransText);
-
-            //                    this.Trans = string.Empty;
-            //                    this.Processing = false;
-            //                    this.WorkEnd = 0;
-
-            //                    CurrentTrd = null;
-            //                    return;
-            //                }
-
-            //                this.IsTranslated = true;
-
-            //                Source.AddTranslated(this);
-
-            //                WorkEnd = 2;
-
-            //                Token.ThrowIfCancellationRequested();
-            //            }
-            //            else
-            //            {
-            //                if (Translator.MaxTry > 0)
-            //                {
-            //                    Thread.Sleep(500);
-            //                    Translator.MaxTry--;
-
-            //                    goto NextGet;
-            //                }
-            //                else
-            //                {
-            //                    WorkEnd = 2;
-            //                }
-            //            }
-            //        }
-            //        else
-            //        {
-            //            WorkEnd = 2;
-            //        }
-            //    }
-            //    catch (OperationCanceledException)
-            //    {
-            //        try
-            //        {
-            //            this.Processing = false;
-            //            this.CurrentTrd = null;
-            //        }
-            //        catch { }
-            //    }
-            //    this.Processing = false;
-            //    this.CurrentTrd = null;
-            //});
-            //CurrentTrd.Start();
-        }
-
         private static int TokenCoverageRatio(HashSet<string> A, HashSet<string> B)
         {
             if (A == null || B == null || A.Count == 0 || B.Count == 0)

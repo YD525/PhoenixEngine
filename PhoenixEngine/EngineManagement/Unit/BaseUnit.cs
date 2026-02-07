@@ -20,13 +20,18 @@ namespace PhoenixEngine.TranslateManagement
             this.FileUniqueKey = FileUniqueKey;
             this.Key = Key;
             this.Type = Type;
-            this.RealOriginal = string.Copy(Original);
+
+            if (this.RealOriginal.Length == 0)
+            {
+                this.RealOriginal = string.Copy(Original);
+            }
+           
             this.Original = Original;
             this.Translated = Translated;
             this.Score = Score;
         }
 
-        private BaseUnit Clone(BaseUnit Unit)
+        public BaseUnit Clone(BaseUnit Unit)
         {
             return new BaseUnit
             {
@@ -41,11 +46,11 @@ namespace PhoenixEngine.TranslateManagement
             };
         }
 
-        public void ReSet()
+        public string GetRealOriginal()
         {
-            this.Original = this.RealOriginal;
-            this.Translated = string.Empty;
+            return string.Copy(this.RealOriginal);
         }
+       
     }
 
 }

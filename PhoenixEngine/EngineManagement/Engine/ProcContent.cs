@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 using PhoenixEngine.EngineManagement.Sequence;
 using PhoenixEngine.EngineManagement.Unit;
@@ -101,11 +98,12 @@ namespace PhoenixEngine.EngineManagement.Engine
 
         public void Clear()
         {
-            this.UnionData.Clear();
-
             this.Units.Clear();
             this.SameItems.Clear();
             this.Books.Clear();
+
+            this.GenKey = 0;
+            this.UnionData.Clear();
         }
 
         private void BuildTranslatedMap(List<UnitGroup> Groups, Dictionary<string, string> TranslatedMap)
@@ -302,7 +300,7 @@ namespace PhoenixEngine.EngineManagement.Engine
                 }
             }
 
-            //string GetJson = JsonConvert.SerializeObject(Content, Formatting.Indented);
+            string GetJson = JsonConvert.SerializeObject(Content, Formatting.Indented);
             return Content;
         }
     }

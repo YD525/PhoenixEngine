@@ -305,76 +305,6 @@ namespace PhoenixEngine.TranslateManage
                     Thread.Sleep(1000);
                 }
             }
-
-            public bool SecondaryQualityInspection(string Source, List<ReplaceTag> CustomWords)
-            {
-                if (string.IsNullOrEmpty(Source))
-                    return false;
-
-                if (CustomWords == null || CustomWords.Count == 0)
-                return true;
-
-                HashSet<string> FoundKeys = new HashSet<string>();
-
-                int Index = 0;
-                while (Index < Source.Length)
-                {
-                    // Detect "__"
-                    if (Source[Index] == '_' &&
-                        Index + 1 < Source.Length &&
-                        Source[Index + 1] == '_')
-                    {
-                        int PrefixLength = 0;
-
-                        // __(Number)__
-                        if (Index + 2 < Source.Length && Source[Index + 2] == '(')
-                        {
-                            PrefixLength = 3;
-                        }
-                        // __P(Number)__
-                        else if (Index + 3 < Source.Length &&
-                                 Source[Index + 2] == 'P' &&
-                                 Source[Index + 3] == '(')
-                        {
-                            PrefixLength = 4;
-                        }
-
-                        if (PrefixLength > 0)
-                        {
-                            int Start = Index;
-                            int Cursor = Index + PrefixLength;
-
-                            while (Cursor < Source.Length && char.IsDigit(Source[Cursor]))
-                            {
-                                Cursor++;
-                            }
-
-                            if (Cursor + 2 < Source.Length &&
-                                Source[Cursor] == ')' &&
-                                Source[Cursor + 1] == '_' &&
-                                Source[Cursor + 2] == '_')
-                            {
-                                int TokenLength = Cursor - Start + 3;
-                                string Token = Source.Substring(Start, TokenLength);
-
-                                string NormalizedToken = Regex.Replace(Token, @"[\s\u3000]", "");
-
-                                if (CustomWords.Any(T => T.Key == NormalizedToken))
-                                {
-                                    FoundKeys.Add(NormalizedToken);
-                                }
-
-                                Index += TokenLength;
-                                continue;
-                            }
-                        }
-                    }
-
-                    Index++;
-                }
-
-                return FoundKeys.Count == CustomWords.Count;
-            }
             public string Call(ref UnitGroup Source,ref Dictionary<string, UnitSequence> Sequences,
                Languages From,Languages To,bool UseAIMemory,int AIMemoryQueryCount,string AIParam)
             {
@@ -428,7 +358,7 @@ namespace PhoenixEngine.TranslateManage
                                     CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
 
                                     GetData = SetApi.QuickTrans(CurrentApiKey, Source, From, To, ref Call).Trim();
-                                    Passed = SecondaryQualityInspection(GetData, CustomWords);
+                                    Passed = TranslationPreprocessor.Instance.SecondaryQualityInspection(GetData, CustomWords);
 
                                     if (!Passed && MaxTry > 0)
                                     {
@@ -481,7 +411,7 @@ namespace PhoenixEngine.TranslateManage
                                     CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
 
                                     GetData = SetApi.QuickTrans(CurrentApiKey, Source, From, To, ref Call).Trim();
-                                    Passed = SecondaryQualityInspection(GetData, CustomWords);
+                                    Passed = TranslationPreprocessor.Instance.SecondaryQualityInspection(GetData, CustomWords);
 
                                     if (!Passed && MaxTry > 0)
                                     {
@@ -531,7 +461,7 @@ namespace PhoenixEngine.TranslateManage
                                 do
                                 {
                                     GetData = SetApi.QuickTrans(CustomWords, Source, From, To, UseAIMemory, AIMemoryQueryCount, AIParam, ref Call).Trim();
-                                    Passed = SecondaryQualityInspection(GetData, CustomWords);
+                                    Passed = TranslationPreprocessor.Instance.SecondaryQualityInspection(GetData, CustomWords);
 
                                     if (!Passed && MaxTry > 0)
                                     {
@@ -576,7 +506,7 @@ namespace PhoenixEngine.TranslateManage
                                     CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
 
                                     GetData = SetApi.QuickTrans(CurrentApiKey, CustomWords, Source, From, To, UseAIMemory, AIMemoryQueryCount, AIParam, ref Call).Trim();
-                                    Passed = SecondaryQualityInspection(GetData, CustomWords);
+                                    Passed = TranslationPreprocessor.Instance.SecondaryQualityInspection(GetData, CustomWords);
 
                                     if (!Passed && MaxTry > 0)
                                     {
@@ -628,7 +558,7 @@ namespace PhoenixEngine.TranslateManage
                                     CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
 
                                     GetData = SetApi.QuickTrans(CurrentApiKey, CustomWords, Source, From, To, UseAIMemory, AIMemoryQueryCount, AIParam, ref Call).Trim();
-                                    Passed = SecondaryQualityInspection(GetData, CustomWords);
+                                    Passed = TranslationPreprocessor.Instance.SecondaryQualityInspection(GetData, CustomWords);
 
                                     if (!Passed && MaxTry > 0)
                                     {
@@ -680,7 +610,7 @@ namespace PhoenixEngine.TranslateManage
                                     CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
 
                                     GetData = SetApi.QuickTrans(CurrentApiKey, CustomWords, Source, From, To, UseAIMemory, AIMemoryQueryCount, AIParam, ref Call).Trim();
-                                    Passed = SecondaryQualityInspection(GetData, CustomWords);
+                                    Passed = TranslationPreprocessor.Instance.SecondaryQualityInspection(GetData, CustomWords);
 
                                     if (!Passed && MaxTry > 0)
                                     {
@@ -733,7 +663,7 @@ namespace PhoenixEngine.TranslateManage
                                     CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
 
                                     GetData = SetApi.QuickTrans(CurrentApiKey,CustomWords,Source, From, To, UseAIMemory, AIMemoryQueryCount, AIParam, ref Call).Trim();
-                                    Passed = SecondaryQualityInspection(GetData,CustomWords);
+                                    Passed = TranslationPreprocessor.Instance.SecondaryQualityInspection(GetData,CustomWords);
 
                                     if (!Passed && MaxTry > 0)
                                     {
@@ -783,7 +713,7 @@ namespace PhoenixEngine.TranslateManage
                                 do
                                 {
                                     GetData = SetApi.QuickTrans(CustomWords,Source, From, To, UseAIMemory, AIMemoryQueryCount, AIParam, ref Call).Trim();
-                                    Passed = SecondaryQualityInspection(GetData, CustomWords);
+                                    Passed = TranslationPreprocessor.Instance.SecondaryQualityInspection(GetData, CustomWords);
 
                                     if (!Passed && MaxTry > 0)
                                     {
