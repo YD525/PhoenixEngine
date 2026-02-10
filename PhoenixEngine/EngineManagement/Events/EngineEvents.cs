@@ -10,7 +10,7 @@ namespace PhoenixEngine.DelegateManagement
         {
             public T Data;
             public string Key = "";
-            public Signal ControlSignal;
+            public Signal ControlSignal = new Signal();
         }
 
         public class Signal
@@ -73,9 +73,10 @@ namespace PhoenixEngine.DelegateManagement
         Created = 1,               
         Preparing = 3,
         Skipped = 5,
-        Translating = 6,      
-        Completed = 7,
-        Queued = 8,
-        Failed = 9 
+        GeneratePlaceholder = 6,
+        Translating = 7,      
+        Completed = 8,
+        Queued = 9,
+        Failed = 10 
     }
 }

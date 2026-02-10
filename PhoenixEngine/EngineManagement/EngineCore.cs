@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
 using PhoenixEngine.DelegateManagement;
@@ -148,22 +149,39 @@ namespace PhoenixEngine.TranslateManage
 
         public static void CheckCanSkip(Dictionary<string, UnitSequence> Sequences,ref UnitGroup Item)
         {
-            if (Sequences[Item.Key].CanSkip)
+            foreach (var GetSeq in new Dictionary<string,UnitSequence>(Sequences))
             {
-                if (!Item.ApplyStateChange(UnitTranslationState.Skipped).CanDo(-1))
+                if (GetSeq.Value.CanSkip)
                 {
-                    Sequences[Item.Key].CanSkip = false;
+                    foreach (var GetBaseUnit in Item.Units)
+                    {
+                        if (GetBaseUnit.Key.Equals(GetSeq.Key))
+                        {
+                            if (GetBaseUnit.ApplyStateChange(UnitTranslationState.Skipped).ControlSignal.Sign > 0)
+                            {
+                                Sequences[GetSeq.Key].CanSkip = false;
+                                break;
+                            }
+                        }
+                    }
                 }
             }
         }
         public static void CheckCanGeneratePlaceholder(Dictionary<string, UnitSequence> Sequences, ref UnitGroup Item)
         {
-            if (Sequences[Item.Key].CanSkip)
+            foreach (var GetSeq in new Dictionary<string, UnitSequence>(Sequences))
             {
-                int Index = 0;
-                if (!Item.ApplyStateChange(UnitTranslationState.Skipped).CanDo(-1,ref Index))
+                foreach (var GetBaseUnit in Item.Units)
                 {
-                    Item.ReSet(Index);
+                    if (GetBaseUnit.Key.Equals(GetSeq.Key))
+                    {
+                        var GetSignResult = GetBaseUnit.ApplyStateChange(UnitTranslationState.GeneratePlaceholder);
+                        if (GetSignResult.ControlSignal.Sign > 0)
+                        {
+                            Item.ReSet(GetSignResult.ControlSignal.Index);
+                            break;
+                        }
+                    }
                 }
             }
         }

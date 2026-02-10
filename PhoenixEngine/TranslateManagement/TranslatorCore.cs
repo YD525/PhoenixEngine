@@ -143,7 +143,7 @@ namespace PhoenixEngine.TranslateManage
                 {
                     UnitGroup GetUnit = this.Content.Units[i];
 
-                    if (GetUnit.ApplyStateChange(UnitTranslationState.Created).CanDo(-1))
+                    if (!GetUnit.ApplyStateChange(UnitTranslationState.Created).CanDo(-1))
                     {
                         continue;
                     }
@@ -168,7 +168,7 @@ namespace PhoenixEngine.TranslateManage
                 {
                     UnitGroup GetBook = this.Content.Books[i];
 
-                    if (GetBook.ApplyStateChange(UnitTranslationState.Created).CanDo(-1))
+                    if (!GetBook.ApplyStateChange(UnitTranslationState.Created).CanDo(-1))
                     {
                         continue;
                     }
