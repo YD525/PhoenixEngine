@@ -72,9 +72,9 @@ namespace PhoenixEngine.LanguageManagement
             RamWords.Add("樓");RamWords.Add("頭");RamWords.Add("燈");
             RamWords.Add("葉");RamWords.Add("師");RamWords.Add("門");
             RamWords.Add("鐘");RamWords.Add("號");RamWords.Add("場");
-            RamWords.Add("條");RamWords.Add("樹"); RamWords.Add("島");
+            RamWords.Add("條");RamWords.Add("樹");RamWords.Add("島");
             RamWords.Add("廟");RamWords.Add("臺");RamWords.Add("顯");
-            RamWords.Add("網");RamWords.Add("啟"); RamWords.Add("較");
+            RamWords.Add("網");RamWords.Add("啟");RamWords.Add("較");
             RamWords.Add("視");RamWords.Add("劇");RamWords.Add("灣");
             RamWords.Add("詞");RamWords.Add("樂");RamWords.Add("攝");
             RamWords.Add("畫");RamWords.Add("隊");RamWords.Add("勝");
@@ -89,6 +89,18 @@ namespace PhoenixEngine.LanguageManagement
             RamWords.Add("陽");RamWords.Add("僅");RamWords.Add("馬");
             RamWords.Add("塵");RamWords.Add("極");RamWords.Add("術");
             RamWords.Add("麗");RamWords.Add("幹");RamWords.Add("複");
+            RamWords.Add("團");RamWords.Add("陰");RamWords.Add("後");
+            RamWords.Add("強");RamWords.Add("辭");RamWords.Add("綠");
+            RamWords.Add("麼");RamWords.Add("轉");RamWords.Add("書");
+            RamWords.Add("現");RamWords.Add("樸");RamWords.Add("裹");
+            RamWords.Add("對");RamWords.Add("錯");RamWords.Add("記");
+            RamWords.Add("憶");RamWords.Add("謝");RamWords.Add("佢");
+            RamWords.Add("導");RamWords.Add("鳳");RamWords.Add("龍");
+            RamWords.Add("裝");RamWords.Add("備");RamWords.Add("禮");
+            RamWords.Add("黏");RamWords.Add("聯");RamWords.Add("諾");
+            RamWords.Add("約");RamWords.Add("縛");RamWords.Add("緊");
+            RamWords.Add("緊");RamWords.Add("貞");RamWords.Add("訂");
+            RamWords.Add("閱");RamWords.Add("讀");RamWords.Add("為");
         }
 
 
