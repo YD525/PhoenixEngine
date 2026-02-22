@@ -16,6 +16,8 @@ License https://github.com/JamesNK/Newtonsoft.Json/blob/master/LICENSE.md
 - System.Data.SQLite
 License https://system.data.sqlite.org/home/doc/trunk/www/copyright.wiki
 
+- 繁华姬
+License https://docs.zhconvert.org/license/
 
 Development of LexTranslator has been a challenging process. I would like to acknowledge and thank the following contributors for their significant help and support:
 - https://github.com/Cutleast
