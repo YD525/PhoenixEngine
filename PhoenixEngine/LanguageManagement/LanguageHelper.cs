@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using PhoenixEngine.LanguageDetector;
+using PhoenixEngine.LanguageManagement;
 
 namespace PhoenixEngine.TranslateCore
 {
@@ -141,7 +142,14 @@ namespace PhoenixEngine.TranslateCore
                     OneDetect.Add(Languages.TraditionalChinese, 1);
                 }
 
-                if (SimplifiedChineseHelper.ContainsSimplifiedChinese(Str))  //100%
+                var GetResult = ChineseVariantMap.CheckLangType(Str);
+
+                if (GetResult == ZHType.Traditional)  
+                {
+                    OneDetect.Add(Languages.TraditionalChinese, 0.02);
+                }
+                else
+                if (GetResult == ZHType.Simplified)
                 {
                     OneDetect.Add(Languages.SimplifiedChinese, 0.02);
                 }

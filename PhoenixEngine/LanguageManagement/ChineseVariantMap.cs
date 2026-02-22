@@ -104,13 +104,13 @@ namespace PhoenixEngine.LanguageManagement
         }
 
 
-        public ZHType CheckLangType(string Line)
+        public static ZHType CheckLangType(string Line)
         {
             Line = SqlSafeCodec.Encode(Line);
 
             ZHType SetType = ZHType.Null;
 
-            if (SimplifiedChineseHelper.ContainsSimplifiedChinese(Line))
+            if (ZHHelper.ContainsZH(Line))
             {
                 foreach (var GetWord in new List<string>(ChineseVariantMap.RamWords))
                 {

@@ -2,22 +2,22 @@
 
 namespace PhoenixEngine.LanguageDetector
 {
-    public static class SimplifiedChineseHelper
+    public static class ZHHelper
     {
         // Matches CJK Unified Ideographs block (mainly simplified Chinese characters)
-        private static readonly Regex SimplifiedChineseRegex = new Regex("[\u4e00-\u9fff]+", RegexOptions.Compiled);
+        private static readonly Regex ChineseRegex = new Regex("[\u4e00-\u9fff]+", RegexOptions.Compiled);
 
         /// <summary>
         /// Determines whether the input text contains simplified Chinese characters.
         /// </summary>
         /// <param name="Input">Input text to check</param>
         /// <returns>True if text contains simplified Chinese characters; otherwise false</returns>
-        public static bool ContainsSimplifiedChinese(string Input)
+        public static bool ContainsZH(string Input)
         {
             if (string.IsNullOrWhiteSpace(Input))
                 return false;
 
-            return SimplifiedChineseRegex.IsMatch(Input);
+            return ChineseRegex.IsMatch(Input);
         }
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace PhoenixEngine.LanguageDetector
                 return 0;
 
             int TotalLength = Input.Length;
-            var Matches = SimplifiedChineseRegex.Matches(Input);
+            var Matches = ChineseRegex.Matches(Input);
             int MatchedLength = 0;
 
             foreach (Match Match in Matches)
