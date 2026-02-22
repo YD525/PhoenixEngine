@@ -138,6 +138,7 @@ namespace PhoenixEngine.LanguageManagement
             return SetType;
         }
 
+        //https://docs.zhconvert.org/license/
         //若您的程式使用了繁化姬的 API，您必須在程式中說明程式使用了繁化姬的服務， 並必須附上繁化姬的主網頁網址，即 https://zhconvert.org 。
         //等我对接好在声明 对方API允许调用 这么做是没问题的.
         public string SimplifiedToTraditionalByReq(ZHConvertJson Convert)
