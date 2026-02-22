@@ -19,10 +19,8 @@ namespace PhoenixEngine.LanguageManagement
             {
                 CreateNewTable();
             }
-            else
-            {
-                ReadRamChars();
-            }
+
+            ReadRamChars();
         }
 
         private static List<string> RamWords = new List<string>();
@@ -51,8 +49,24 @@ namespace PhoenixEngine.LanguageManagement
             {
                 var Row = GetResult[i];
                 string GetStr = ConvertHelper.ObjToStr(Row["Traditional"]);
-                RamWords.Add(GetStr);
+                if (!RamWords.Contains(GetStr))
+                {
+                    RamWords.Add(GetStr);
+                }
             }
+
+            //Thanks to 撒倫 for providing the comparison phrases. 
+            //https://forum.gamer.com.tw/C.php?bsn=2526&snA=46062
+
+            RamWords.Add("麵");
+            RamWords.Add("隻");
+            RamWords.Add("彆");
+            RamWords.Add("穀");
+            RamWords.Add("製");
+            RamWords.Add("係");
+            RamWords.Add("鬥");
+            RamWords.Add("誌");
+            RamWords.Add("妳");
         }
 
 
