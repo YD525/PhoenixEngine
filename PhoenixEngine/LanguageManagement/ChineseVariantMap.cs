@@ -78,16 +78,21 @@ namespace PhoenixEngine.LanguageManagement
             RamWords.Add("樓");RamWords.Add("頭");RamWords.Add("燈");
             RamWords.Add("葉");RamWords.Add("師");RamWords.Add("門");
             RamWords.Add("鐘");RamWords.Add("號");RamWords.Add("場");
-            RamWords.Add("條");RamWords.Add("樹");RamWords.Add("純");
-            RamWords.Add("廟");RamWords.Add("院");RamWords.Add("臺");
-            RamWords.Add("陽");RamWords.Add("島");RamWords.Add("網");
+            RamWords.Add("條");RamWords.Add("樹"); RamWords.Add("島");
+            RamWords.Add("廟");RamWords.Add("臺");RamWords.Add("顯");
+            RamWords.Add("網");RamWords.Add("啟"); RamWords.Add("較");
             RamWords.Add("視");RamWords.Add("劇");RamWords.Add("灣");
             RamWords.Add("詞");RamWords.Add("樂");RamWords.Add("攝");
             RamWords.Add("畫");RamWords.Add("隊");RamWords.Add("勝");
             RamWords.Add("軍");RamWords.Add("數");RamWords.Add("歲");
             RamWords.Add("槍");RamWords.Add("劍");RamWords.Add("繩");
-            RamWords.Add("國");RamWords.Add("際");RamWords.Add("爭");
-            RamWords.Add("馬");RamWords.Add("壘");RamWords.Add("蟲");
+            RamWords.Add("國");RamWords.Add("際");RamWords.Add("葉");
+            RamWords.Add("爭");RamWords.Add("語");RamWords.Add("凍");
+            RamWords.Add("寧");RamWords.Add("華");RamWords.Add("樂");
+            RamWords.Add("壘");RamWords.Add("蟲"); RamWords.Add("純");
+            RamWords.Add("風");RamWords.Add("斬");RamWords.Add("異");
+            RamWords.Add("陽");RamWords.Add("僅"); RamWords.Add("馬");
+            RamWords.Add("塵");RamWords.Add("極"); RamWords.Add("術"); 
         }
 
 
