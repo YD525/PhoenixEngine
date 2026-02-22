@@ -56,15 +56,9 @@ namespace PhoenixEngine.LanguageManagement
             }
 
             //Thanks to 撒倫 for providing the comparison phrases. 
-            RamWords.Add("麵");
-            RamWords.Add("隻");
-            RamWords.Add("彆");
-            RamWords.Add("穀");
-            RamWords.Add("製");
-            RamWords.Add("係");
-            RamWords.Add("鬥");
-            RamWords.Add("誌");
-            RamWords.Add("妳");
+            RamWords.Add("麵");RamWords.Add("隻");RamWords.Add("彆");
+            RamWords.Add("穀");RamWords.Add("製");RamWords.Add("係");
+            RamWords.Add("鬥");RamWords.Add("誌");RamWords.Add("妳");
 
             //https://zhconvert.org/
             //YD525 Small Patch~
@@ -89,10 +83,12 @@ namespace PhoenixEngine.LanguageManagement
             RamWords.Add("國");RamWords.Add("際");RamWords.Add("葉");
             RamWords.Add("爭");RamWords.Add("語");RamWords.Add("凍");
             RamWords.Add("寧");RamWords.Add("華");RamWords.Add("樂");
-            RamWords.Add("壘");RamWords.Add("蟲"); RamWords.Add("純");
+            RamWords.Add("壘");RamWords.Add("傾");RamWords.Add("會");
+            RamWords.Add("蟲");RamWords.Add("純");RamWords.Add("變");
             RamWords.Add("風");RamWords.Add("斬");RamWords.Add("異");
-            RamWords.Add("陽");RamWords.Add("僅"); RamWords.Add("馬");
-            RamWords.Add("塵");RamWords.Add("極"); RamWords.Add("術"); 
+            RamWords.Add("陽");RamWords.Add("僅");RamWords.Add("馬");
+            RamWords.Add("塵");RamWords.Add("極");RamWords.Add("術");
+            RamWords.Add("麗");RamWords.Add("幹");RamWords.Add("複");
         }
 
 
