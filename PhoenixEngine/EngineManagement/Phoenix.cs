@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.DataBaseManagement;
+using PhoenixEngine.LanguageManagement;
 using PhoenixEngine.PlatformManagement;
 using PhoenixEngine.RequestManagement;
 using PhoenixEngine.TranslateCore;
@@ -89,6 +90,8 @@ namespace PhoenixEngine.EngineManagement
             CloudDBCache.Init();
             LocalDBCache.Init();
             FontColorFinder.Init();
+
+            ChineseVariantMap.Init();
 
             UniqueKeyHelper.Init();
 

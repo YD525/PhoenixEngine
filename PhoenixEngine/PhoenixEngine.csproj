@@ -91,6 +91,7 @@
     <Compile Include="GameManagement\SkyrimBookHelper.cs" />
     <Compile Include="LanguageManagement\BrazilianPortugueseHelper.cs" />
     <Compile Include="LanguageManagement\CanadianFrenchHelper.cs" />
+    <Compile Include="LanguageManagement\ChineseVariantMap.cs" />
     <Compile Include="LanguageManagement\EnglishHelper.cs" />
     <Compile Include="LanguageManagement\FrenchHelper.cs" />
     <Compile Include="LanguageManagement\GermanHelper.cs" />
