@@ -138,7 +138,8 @@ namespace PhoenixEngine.LanguageManagement
             return SetType;
         }
 
-
+        //若您的程式使用了繁化姬的 API，您必須在程式中說明程式使用了繁化姬的服務， 並必須附上繁化姬的主網頁網址，即 https://zhconvert.org 。
+        //等我对接好在声明 对方API允许调用 这么做是没问题的.
         public string SimplifiedToTraditionalByReq(ZHConvertJson Convert)
         {
             try
@@ -150,7 +151,6 @@ namespace PhoenixEngine.LanguageManagement
                 Headers.Add("Sec-Fetch-Site", "same-site");
                 Headers.Add("Sec-Fetch-Mode", "cors");
                 Headers.Add("Sec-Fetch-Dest", "empty");
-                Headers.Add("Accept-Encoding", "gzip, deflate, br, zstd");
                 Headers.Add("Accept-Language", "en-GB,en-US;q=0.9,en;q=0.8,zh-CN;q=0.7,zh;q=0.6");
 
                 HttpItem Http = new HttpItem()
@@ -170,7 +170,7 @@ namespace PhoenixEngine.LanguageManagement
 
                 try
                 {
-                    Http.Header.Add("Accept-Encoding", " gzip");
+                    Http.Header.Add("Accept-Encoding", "gzip, deflate, br, zstd");
                 }
                 catch { }
 
@@ -180,7 +180,13 @@ namespace PhoenixEngine.LanguageManagement
 
                 if (GetReturn.data != null && GetReturn.code == 0)
                 {
-                    return GetReturn.data.text;
+                    if (GetReturn.data.text != null)
+                    {
+                        if (GetReturn.data.text.Length > 0)
+                        {
+                            return GetReturn.data.text;
+                        }
+                    }
                 }
             }
             catch { }
