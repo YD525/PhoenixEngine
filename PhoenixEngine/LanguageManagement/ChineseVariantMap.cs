@@ -56,8 +56,6 @@ namespace PhoenixEngine.LanguageManagement
             }
 
             //Thanks to 撒倫 for providing the comparison phrases. 
-            //https://forum.gamer.com.tw/C.php?bsn=2526&snA=46062
-
             RamWords.Add("麵");
             RamWords.Add("隻");
             RamWords.Add("彆");
@@ -67,6 +65,27 @@ namespace PhoenixEngine.LanguageManagement
             RamWords.Add("鬥");
             RamWords.Add("誌");
             RamWords.Add("妳");
+
+            //https://zhconvert.org/
+            //YD525 Small Patch~
+            RamWords.Add("學");RamWords.Add("燒");RamWords.Add("賣");
+            RamWords.Add("愛");RamWords.Add("歡");RamWords.Add("車");
+            RamWords.Add("國");RamWords.Add("體");RamWords.Add("將");
+            RamWords.Add("裡");RamWords.Add("館");RamWords.Add("醫");
+            RamWords.Add("藥");RamWords.Add("魚");RamWords.Add("點");
+            RamWords.Add("線");RamWords.Add("還");RamWords.Add("辦");
+            RamWords.Add("關");RamWords.Add("問");RamWords.Add("萬");
+            RamWords.Add("樓");RamWords.Add("頭");RamWords.Add("燈");
+            RamWords.Add("葉");RamWords.Add("師");RamWords.Add("門");
+            RamWords.Add("鐘");RamWords.Add("號");RamWords.Add("場");
+            RamWords.Add("條");RamWords.Add("樹");RamWords.Add("純");
+            RamWords.Add("廟");RamWords.Add("院");RamWords.Add("臺");
+            RamWords.Add("陽");RamWords.Add("島");RamWords.Add("網");
+            RamWords.Add("視");RamWords.Add("劇");RamWords.Add("灣");
+            RamWords.Add("詞");RamWords.Add("樂");RamWords.Add("攝");
+            RamWords.Add("畫");RamWords.Add("隊");RamWords.Add("勝");
+            RamWords.Add("軍");RamWords.Add("數");RamWords.Add("歲");
+            RamWords.Add("槍");RamWords.Add("劍");RamWords.Add("繩");
         }
 
 
