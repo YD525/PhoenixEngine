@@ -70,7 +70,7 @@ namespace PhoenixEngine.LanguageManagement
             //YD525 Small Patch~
             RamWords.Add("學");RamWords.Add("燒");RamWords.Add("賣");
             RamWords.Add("愛");RamWords.Add("歡");RamWords.Add("車");
-            RamWords.Add("國");RamWords.Add("體");RamWords.Add("將");
+            RamWords.Add("體");RamWords.Add("將");RamWords.Add("戰");
             RamWords.Add("裡");RamWords.Add("館");RamWords.Add("醫");
             RamWords.Add("藥");RamWords.Add("魚");RamWords.Add("點");
             RamWords.Add("線");RamWords.Add("還");RamWords.Add("辦");
@@ -86,6 +86,8 @@ namespace PhoenixEngine.LanguageManagement
             RamWords.Add("畫");RamWords.Add("隊");RamWords.Add("勝");
             RamWords.Add("軍");RamWords.Add("數");RamWords.Add("歲");
             RamWords.Add("槍");RamWords.Add("劍");RamWords.Add("繩");
+            RamWords.Add("國");RamWords.Add("際");RamWords.Add("爭");
+            RamWords.Add("馬");RamWords.Add("壘");RamWords.Add("蟲");
         }
 
 
