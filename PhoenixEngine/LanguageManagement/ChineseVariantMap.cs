@@ -63,6 +63,9 @@ namespace PhoenixEngine.LanguageManagement
             RamWords.Add("穀"); RamWords.Add("製"); RamWords.Add("係");
             RamWords.Add("鬥"); RamWords.Add("誌"); RamWords.Add("妳");
 
+            //CHIOUSF 
+            RamWords.Add("牠"); RamWords.Add("祂"); RamWords.Add("鉈");
+
             //https://zhconvert.org/
             //YD525 Small Patch~
             RamWords.Add("學"); RamWords.Add("燒"); RamWords.Add("賣");
