@@ -137,11 +137,6 @@ namespace PhoenixEngine.TranslateCore
             }
             else
             {
-                if (TraditionalChineseHelper.ContainsTraditionalChinese(Str))
-                {
-                    OneDetect.Add(Languages.TraditionalChinese, 1);
-                }
-
                 var GetResult = ChineseVariantMap.CheckLangType(Str);
 
                 if (GetResult == ZHType.Traditional)  

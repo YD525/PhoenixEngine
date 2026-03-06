@@ -107,7 +107,6 @@
     <Compile Include="LanguageManagement\ZHHelper.cs" />
     <Compile Include="LanguageManagement\SpanishHelper.cs" />
     <Compile Include="LanguageManagement\ThaiHelper.cs" />
-    <Compile Include="LanguageManagement\TraditionalChineseHelper.cs" />
     <Compile Include="LanguageManagement\TurkishHelper.cs" />
     <Compile Include="LanguageManagement\UkrainianHelper.cs" />
     <Compile Include="LanguageManagement\UrduHelper.cs" />

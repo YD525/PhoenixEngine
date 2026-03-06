@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text;
 using Newtonsoft.Json;
@@ -141,8 +142,36 @@ namespace PhoenixEngine.LanguageManagement
             return SetType;
         }
 
+        public static string SimplifiedToTraditionalByReq(string Str)
+        {
+            ZHConvertJson ConvertJson = new ZHConvertJson();
+            ConvertJson.apiKey = "";
+            ConvertJson.cleanUpText = 0;
+            ConvertJson.converter = "Taiwan";
+            ConvertJson.diffCharLevel = 0;
+            ConvertJson.diffContextLines = 1;
+            ConvertJson.diffEnable = 1;
+            ConvertJson.diffIgnoreCase = 0;
+            ConvertJson.diffIgnoreWhiteSpaces = 0;
+            ConvertJson.diffTemplate = "Inline";
+            ConvertJson.ensureNewlineAtEof = 0;
+            ConvertJson.ignoreTextStyles = "";
+            ConvertJson.jpStyleConversionStrategy = "protectOnlySameOrigin";
+            ConvertJson.jpTextConversionStrategy = "protectOnlySameOrigin";
+            ConvertJson.jpTextStyles = "";
+            ConvertJson.modules = "{\"ChineseVariant\":\"0\",\"Computer\":\"0\",\"EllipsisMark\":\"0\",\"EngNumFWToHW\":\"0\",\"GanToZuo\":\"-1\",\"Gundam\":\"0\",\"HunterXHunter\":\"0\",\"InternetSlang\":\"-1\",\"Mythbusters\":\"0\",\"Naruto\":\"0\",\"OnePiece\":\"0\",\"Pocketmon\":\"0\",\"ProperNoun\":\"-1\",\"QuotationMark\":\"0\",\"RemoveSpaces\":\"0\",\"Repeat\":\"-1\",\"RepeatAutoFix\":\"-1\",\"Smooth\":\"-1\",\"TengTong\":\"0\",\"TransliterationToTranslation\":\"0\",\"Typo\":\"-1\",\"Unit\":\"-1\",\"VioletEvergarden\":\"0\"}";
+            ConvertJson.text = Str;
+            ConvertJson.translateTabsToSpaces = -1;
+            ConvertJson.trimTrailingWhiteSpaces = 0;
+            ConvertJson.unifyLeadingHyphen = 0;
+            ConvertJson.userPostReplace = "";
+            ConvertJson.userPreReplace = "";
+            ConvertJson.userProtectReplace = "";
+
+            return new ChineseVariantMap().SimplifiedToTraditionalByReq(ConvertJson, ProxyCenter.CurrentProxy);
+        }
         //https://docs.zhconvert.org/license/
-        public string SimplifiedToTraditionalByReq(ZHConvertJson Convert)
+        public string SimplifiedToTraditionalByReq(ZHConvertJson Convert,WebProxy Proxy)
         {
             try
             {
@@ -167,7 +196,7 @@ namespace PhoenixEngine.LanguageManagement
                     ContentType = "application/json",
                     Referer = "https://zhconvert.org/",
                     Encoding = Encoding.UTF8,
-                    WebProxy = ProxyCenter.CurrentProxy
+                    WebProxy = Proxy
                 };
 
                 try
