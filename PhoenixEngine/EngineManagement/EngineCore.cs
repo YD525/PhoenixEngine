@@ -160,7 +160,7 @@ namespace PhoenixEngine.TranslateManage
                             if (GetBaseUnit.ApplyStateChange(UnitTranslationState.Skipped).ControlSignal.Sign > 0)
                             {
                                 Sequences[GetSeq.Key].CanSkip = false;
-                                break;
+                                continue;
                             }
                         }
                     }
@@ -179,7 +179,7 @@ namespace PhoenixEngine.TranslateManage
                         if (GetSignResult.ControlSignal.Sign > 0)
                         {
                             Item.ReSet(GetSignResult.ControlSignal.Index);
-                            break;
+                            continue;
                         }
                     }
                 }
@@ -282,6 +282,8 @@ namespace PhoenixEngine.TranslateManage
                     List<BaseUnit> NotPassUnits = new List<BaseUnit>();
                     List<BaseUnit> PassUnits = new List<BaseUnit>();
 
+                    bool Passed = Passer.TryPass(ref NotPassUnits, ref PassUnits);
+
                     for (int i = 0; i < PassUnits.Count; i++)
                     {
                         var PassUnit = PassUnits[i];
@@ -290,7 +292,7 @@ namespace PhoenixEngine.TranslateManage
                         Sequences[PassUnit.Key].Data = PassUnit.Translated;
                     }
 
-                    if (!Passer.TryPass(ref NotPassUnits, ref PassUnits))
+                    if (!Passed)
                     {
                         goto NextCall;
                     }

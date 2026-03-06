@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using PhoenixEngine.DelegateManagement;
 using PhoenixEngine.EngineManagement;
@@ -37,7 +36,8 @@ namespace PhoenixEngine.TranslateManage
         public int ProcStage = 0;
 
         public bool IsWork = false;
-        public TranslatorCore(Translator SetTranslator,bool ClearCache = false)
+
+        public TranslatorCore(Translator SetTranslator, bool ClearCache = false)
         {
             ProcStage = 0;
             this.TranslatorRef = SetTranslator;
@@ -75,7 +75,7 @@ namespace PhoenixEngine.TranslateManage
                 Clear();
                 UnionArray SetData = new UnionArray();
                 ProcStage = 1;
-                SetData.Load(BaseUnits, TranslatorRef.From,ref MarkLeadersPercent);
+                SetData.Load(BaseUnits, TranslatorRef.From, ref MarkLeadersPercent);
                 Content = ProcContent.Build(TranslatorRef, SetData, SetMode);
                 ProcStage = 2;
 
@@ -92,7 +92,7 @@ namespace PhoenixEngine.TranslateManage
 
         public Thread TransMainTrd = null;
 
-        private PhoenixThread<T> CreatePhoenixThread<T>(PhoenixThreadPool<T> PoolRef,T DataRef,Action<T> Job,Action<T> Destroyed) where T : class
+        private PhoenixThread<T> CreatePhoenixThread<T>(PhoenixThreadPool<T> PoolRef, T DataRef, Action<T> Job, Action<T> Destroyed) where T : class
         {
             PhoenixThread<T> CreateTrd = new PhoenixThread<T>(PoolRef);
             CreateTrd.SetFunc(Job);
@@ -101,10 +101,34 @@ namespace PhoenixEngine.TranslateManage
             return CreateTrd;
         }
 
+        private void WaitAllDone()
+        {
+            int EmptyConfirmCount = 0;
+
+            while (true)
+            {
+                bool PoolEmpty = GetWorkingThreadCount() == 0;
+                bool QueueEmpty = TranslatedQueue.IsEmpty;
+
+                if (PoolEmpty && QueueEmpty)
+                {
+                    EmptyConfirmCount++;
+                    if (EmptyConfirmCount >= 2)
+                        break;
+                }
+                else
+                {
+                    EmptyConfirmCount = 0;
+                }
+
+                Thread.Sleep(50);
+            }
+        }
+
         public void Start()
         {
             int TrdDelayMs = Phoenix.Config.ThrottleDelayMs;
-          
+
             TranslatedCount = Phoenix.GetTranslatedCount(Phoenix.GetFileUniqueKey());
 
             if (TrdPool == null)
@@ -115,115 +139,113 @@ namespace PhoenixEngine.TranslateManage
 
             double ThrottleLimit = ((double)TrdPool.ConcurrencyLimit * (double)Phoenix.Config.ThrottleRatio);
 
-            //The method pointer is invoked after the translation is complete.
             Action<UnitGroup> WorkEndCall = new Action<UnitGroup>((Item) =>
             {
                 AddTranslated(Item);
             });
 
-            //Normal type translation calls pointers.
             Action<UnitGroup> NormalCall = new Action<UnitGroup>((ItemRef) =>
             {
-                ItemRef = TranslatorRef.Translate(new TransParam(ItemRef,false,true));
+                ItemRef = TranslatorRef.Translate(new TransParam(ItemRef, false, true));
             });
 
-            //Special type translation calls pointers.
             Action<UnitGroup> BookCall = new Action<UnitGroup>((ItemRef) =>
             {
-                ItemRef = TranslatorRef.Translate(new TransParam(ItemRef,true, true));
+                ItemRef = TranslatorRef.Translate(new TransParam(ItemRef, true, true));
                 Thread.Sleep(100);
             });
 
-            TransMainTrd = new Thread(() => 
+            TransMainTrd = new Thread(() =>
             {
                 this.IsWork = true;
                 this.ProcStage = 3;
-                //First, translate the traditional type.
+
                 for (int i = 0; i < this.Content.Units.Count; i++)
                 {
                     UnitGroup GetUnit = this.Content.Units[i];
 
                     if (!GetUnit.ApplyStateChange(UnitTranslationState.Created).CanDo(-1))
-                    {
                         continue;
-                    }
 
                     while (!TrdPool.Put(CreatePhoenixThread<UnitGroup>(TrdPool, GetUnit, NormalCall, WorkEndCall)))
                     {
                         if (GetCount() > ThrottleLimit)
-                        {
                             Thread.Sleep(TrdDelayMs);
-                        }
                     }
                 }
 
-                while (GetWorkingThreadCount() > 0)
-                {
-                    Thread.Sleep(100); 
-                }
+                WaitAllDone();
 
                 this.ProcStage = 5;
-                //Book translation will be done last.
+
                 for (int i = 0; i < this.Content.Books.Count; i++)
                 {
                     UnitGroup GetBook = this.Content.Books[i];
 
                     if (!GetBook.ApplyStateChange(UnitTranslationState.Created).CanDo(-1))
-                    {
                         continue;
-                    }
 
                     while (!TrdPool.Put(CreatePhoenixThread<UnitGroup>(TrdPool, GetBook, BookCall, WorkEndCall)))
                     {
                         if (GetCount() > ThrottleLimit)
-                        {
                             Thread.Sleep(TrdDelayMs);
-                        }
                     }
                 }
 
-                while ((GetWorkingThreadCount() == 0 && TranslatedQueue.Count == 0) == false)
-                {
-                    Thread.Sleep(100);
-                }
+                WaitAllDone();
 
                 this.ProcStage = 6;
-                //Processing the same object.
 
-     
+                this.Content.SyncSameItemsFromTranslated();
+
                 for (int i = 0; i < this.Content.SameItems.Count; i++)
                 {
                     for (int ir = 0; ir < this.Content.SameItems[i].Units.Count; ir++)
                     {
-                        if (this.Content.SameItems[i].Units[ir].Translated.Length == 0)
+                        var GetUnit = this.Content.SameItems[i].Units[ir];
+
+                        if (GetUnit.Translated.Length > 0)
                         {
-                            if (DequeueCache.ContainsKey(this.Content.SameItems[i].Units[ir].Original))
+                            lock (UnitsReadLock)
                             {
-                                var GetResult = DequeueCache[this.Content.SameItems[i].Units[ir].Original];
-                                var GetUnit = this.Content.SameItems[i].Units[ir];
-
-                                if (GetUnit.ApplyStateChange(UnitTranslationState.Created).ControlSignal.Sign != -1)
-                                {
-                                    continue;
-                                }
-
-                                GetUnit.Translated = GetResult;
-                                TranslatorRef.TranslatedLink[GetUnit.Key] = GetResult;
-                              
-                                CloudDBCache.AddCache(Phoenix.GetFileUniqueKey(), GetUnit.Key,(int)TranslatorRef.To,GetUnit.Original,GetUnit.Translated);
-                                TranslatedQueue.Enqueue(GetUnit);
+                                TranslatedCount++;
                             }
+                            TranslatorRef.TranslatedLink[GetUnit.Key] = GetUnit.Translated;
+                            CloudDBCache.AddCache(
+                                Phoenix.GetFileUniqueKey(),
+                                GetUnit.Key,
+                                (int)TranslatorRef.To,
+                                GetUnit.Original,
+                                GetUnit.Translated
+                            );
+                            TranslatedQueue.Enqueue(GetUnit);
+
+                            continue;
+                        }
+
+                        if (DequeueCache.TryGetValue(GetUnit.Original, out var CacheResult))
+                        {
+                            lock (UnitsReadLock)
+                            {
+                                TranslatedCount++;
+                            }
+                            GetUnit.Translated = CacheResult;
+                            TranslatorRef.TranslatedLink[GetUnit.Key] = CacheResult;
+                            CloudDBCache.AddCache(
+                                Phoenix.GetFileUniqueKey(),
+                                GetUnit.Key,
+                                (int)TranslatorRef.To,
+                                GetUnit.Original,
+                                GetUnit.Translated
+                            );
+                            TranslatedQueue.Enqueue(GetUnit);
                         }
                     }
                 }
 
-                while ((GetWorkingThreadCount() == 0 && TranslatedQueue.Count == 0) == false)
-                {
-                    Thread.Sleep(100);
-                }
+                WaitAllDone();
 
                 DequeueCache.Clear();
-
 
                 this.IsWork = false;
                 this.ProcStage = 10;
@@ -237,33 +259,31 @@ namespace PhoenixEngine.TranslateManage
         {
             if (TransMainTrd != null)
             {
-                try
-                {
-                    TransMainTrd.Abort();
-                }
+                try { TransMainTrd.Abort(); }
                 catch { }
-
                 TransMainTrd = null;
             }
 
             if (TrdPool != null)
-            {
                 TrdPool.CloseAll();
-            }
 
             IsWork = false;
         }
+
         public void Keep()
         {
             IsStop = false;
             TrdPool.SuspendAll(false);
         }
+
         public void Stop()
         {
             IsStop = true;
             TrdPool.SuspendAll(true);
         }
+
         public int TranslatedCount = 0;
+
         private void AddTranslated(UnitGroup Item)
         {
             lock (UnitsReadLock)
@@ -272,15 +292,14 @@ namespace PhoenixEngine.TranslateManage
             }
 
             if (!Item.ApplyStateChange(UnitTranslationState.Queued).CanDo(-1))
-            {
                 return;
-            }
 
             for (int i = 0; i < Item.Units.Count; i++)
             {
                 TranslatedQueue.Enqueue(Item.Units[i]);
             }
         }
+
         public BaseUnit DequeueTranslated(out bool IsEnd)
         {
             try
@@ -296,7 +315,6 @@ namespace PhoenixEngine.TranslateManage
                         if (State)
                         {
                             DequeueCache[Item.GetRealOriginal()] = Item.Translated;
-
                             return Item;
                         }
                         else
@@ -306,15 +324,11 @@ namespace PhoenixEngine.TranslateManage
                     }
 
                     if (this.ProcStage == 10 && GetWorkingThreadCount() == 0)
-                    {
                         IsEnd = true;
-                    }
                     else
-                    {
                         IsEnd = false;
-                    }
 
-                   return null;
+                    return null;
                 }
             }
             catch

@@ -21,57 +21,15 @@ namespace PhoenixEngine.EngineManagement.Engine
         public List<UnitGroup> SameItems = new List<UnitGroup>();
 
         public UnionArray UnionData = null;
+
         public ProcContent(Translator Translator)
         {
             this.TranslatorRef = Translator;
         }
+
         public Translator GetTranslator()
         {
             return this.TranslatorRef;
-        }
-        private void AddLeader(BaseUnit Item)
-        {
-            GenKey++;
-
-            UnitGroup BatchUnit = new UnitGroup();
-            BatchUnit.Init(GenKey, Item, AggregationMode.Aggregation);
-            Units.Add(BatchUnit);
-        }
-        private bool TryAdd(BaseUnit Item)
-        {
-            var GenTokens = Item.ExtractTokens();
-
-            foreach (var GetBatchUnit in this.Units)
-            {
-                if (GetBatchUnit.IsSimilarTo(GenTokens, 1))
-                {
-                    if (GetBatchUnit.TotalLength < TextLengthLimit)
-                    {
-                        GetBatchUnit.AddUnit(Item, GenTokens);
-                    }
-                    else
-                    {
-                        GenKey++;
-
-                        UnitGroup NextBatchUnit = new UnitGroup();
-
-                        NextBatchUnit.Key = GenKey.ToString();
-
-                        NextBatchUnit.AnchorTokens = new HashSet<string>(GetBatchUnit.AnchorTokens);
-                        NextBatchUnit.AllTokens = new HashSet<string>(NextBatchUnit.AnchorTokens);
-
-                        NextBatchUnit.AddUnit(Item, GenTokens);
-
-                        NextBatchUnit.LinkTo = GetBatchUnit.Key;
-                        Units.Add(NextBatchUnit);
-                    }
-
-                    return true;
-                }
-            }
-
-
-            return false;
         }
 
         public int GetUnitsCount()
@@ -112,14 +70,19 @@ namespace PhoenixEngine.EngineManagement.Engine
             {
                 foreach (var Unit in Group.Units)
                 {
-                    if (!string.IsNullOrEmpty(Unit.Original)
-                        && !string.IsNullOrEmpty(Unit.Translated))
+                    if (!string.IsNullOrEmpty(Unit.Translated))
                     {
-                        TranslatedMap[Unit.Original] = Unit.Translated;
+                        string RealOriginal = Unit.GetRealOriginal();
+                        if (!string.IsNullOrEmpty(RealOriginal))
+                            TranslatedMap[RealOriginal] = Unit.Translated;
+
+                        if (!string.IsNullOrEmpty(Unit.Original) && Unit.Original != RealOriginal)
+                            TranslatedMap[Unit.Original] = Unit.Translated;
                     }
                 }
             }
         }
+
         public void SyncSameItemsFromTranslated()
         {
             Dictionary<string, string> TranslatedMap = new Dictionary<string, string>();
@@ -131,13 +94,31 @@ namespace PhoenixEngine.EngineManagement.Engine
             {
                 foreach (var Unit in Group.Units)
                 {
-                    if (TranslatedMap.TryGetValue(Unit.Original, out var Translated))
+                    string RealOriginal = Unit.GetRealOriginal();
+                    if (!string.IsNullOrEmpty(RealOriginal) && TranslatedMap.TryGetValue(RealOriginal, out var Trans1))
                     {
-                        Unit.Translated = Translated;
+                        Unit.Translated = Trans1;
+                    }
+                    else if (!string.IsNullOrEmpty(Unit.Original) && TranslatedMap.TryGetValue(Unit.Original, out var Trans2))
+                    {
+                        Unit.Translated = Trans2;
                     }
                 }
             }
         }
+
+        private static UnitGroup MakeSoloBucket(ref int GenKey, BaseUnit Unit)
+        {
+            GenKey++;
+            UnitGroup Solo = new UnitGroup();
+            Solo.Key = GenKey.ToString();
+            Solo.Mode = AggregationMode.Aggregation;
+            Solo.AnchorTokens = new HashSet<string>();
+            Solo.AllTokens = new HashSet<string>();
+            Solo.AddUnit(Unit);
+            return Solo;
+        }
+
         public static ProcContent Build(Translator Translator, UnionArray Data, AggregationMode SetMode)
         {
             ProcContent Content = new ProcContent(Translator);
@@ -146,29 +127,39 @@ namespace PhoenixEngine.EngineManagement.Engine
             if (SetMode == AggregationMode.Aggregation)
             {
                 List<UnitGroup> SameItems = new List<UnitGroup>();
-                List<BaseUnit> UniqueLeaders = new List<BaseUnit>();
                 HashSet<string> SeenTexts = new HashSet<string>();
+
+                Dictionary<string, UnitGroup> LeaderKeyMap = new Dictionary<string, UnitGroup>();
 
                 foreach (var Leader in Data.Leaders.Values)
                 {
                     Game GameType = Game.Null;
-
                     if (SkyrimBookHelper.IsSkyrimBook(Leader, ref GameType))
                     {
                         Content.Books.Add(new UnitGroup(Leader));
                         continue;
                     }
 
-                    if (!SeenTexts.Contains(Leader.Original))
-                    {
-                        SeenTexts.Add(Leader.Original);
-                        Content.AddLeader(Leader);
-                    }
-                    else
+                    if (SeenTexts.Contains(Leader.Original))
                     {
                         SameItems.Add(new UnitGroup(Leader));
+                        continue;
                     }
+
+                    SeenTexts.Add(Leader.Original);
+                    Content.GenKey++;
+
+                    UnitGroup Bucket = new UnitGroup();
+                    Bucket.Key = Leader.Key;
+                    Bucket.Mode = AggregationMode.Aggregation;
+                    Bucket.AnchorTokens = Leader.ExtractTokens();
+                    Bucket.AllTokens = new HashSet<string>(Bucket.AnchorTokens);
+                    Bucket.AddUnit(Leader);
+
+                    Content.Units.Add(Bucket);
+                    LeaderKeyMap[Leader.Key] = Bucket;
                 }
+
                 Queue<BaseUnit> RemainingUnits = new Queue<BaseUnit>();
 
                 foreach (var Unit in Data.Units)
@@ -180,44 +171,64 @@ namespace PhoenixEngine.EngineManagement.Engine
                         continue;
                     }
 
-                    if (!SeenTexts.Contains(Unit.Original))
-                    {
-                        SeenTexts.Add(Unit.Original);
-
-                        if (!Content.TryAdd(Unit))
-                        {
-                            RemainingUnits.Enqueue(Unit);
-                        }
-                    }
-                    else
+                    if (SeenTexts.Contains(Unit.Original))
                     {
                         SameItems.Add(new UnitGroup(Unit));
+                        continue;
                     }
-                }
 
-                Dictionary<UnitGroup, BaseUnit> SingleUnits = new Dictionary<UnitGroup, BaseUnit>();
-                for (int i = 0; i < Content.Units.Count; i++)
-                {
-                    if (Content.Units[i].Units.Count == 1)
+                    SeenTexts.Add(Unit.Original);
+
+                    var UnitTokens = Unit.ExtractTokens();
+                    bool Assigned = false;
+
+                    foreach (var Leader in Data.Leaders.Values)
                     {
-                        SingleUnits.Add(Content.Units[i], Content.Units[i].Units[0]);
+                        if (!LeaderKeyMap.TryGetValue(Leader.Key, out UnitGroup ActiveBucket))
+                            continue;
+
+                        if (!ActiveBucket.IsSimilarTo(UnitTokens, 1))
+                            continue;
+
+                        if (ActiveBucket.TotalLength + Unit.Original.Length < TextLengthLimit)
+                        {
+                            ActiveBucket.AddUnit(Unit, UnitTokens);
+                        }
+                        else
+                        {
+                            Content.GenKey++;
+
+                            UnitGroup OverflowBucket = new UnitGroup();
+                            OverflowBucket.Key = Content.GenKey.ToString();
+                            OverflowBucket.Mode = AggregationMode.Aggregation;
+                            OverflowBucket.AnchorTokens = new HashSet<string>(ActiveBucket.AnchorTokens);
+                            OverflowBucket.AllTokens = new HashSet<string>(ActiveBucket.AnchorTokens);
+                            OverflowBucket.LinkTo = ActiveBucket.Key;
+                            OverflowBucket.AddUnit(Unit, UnitTokens);
+
+                            Content.Units.Add(OverflowBucket);
+                            LeaderKeyMap[Leader.Key] = OverflowBucket;
+                        }
+
+                        Assigned = true;
+                        break; 
                     }
+
+                    if (!Assigned)
+                        RemainingUnits.Enqueue(Unit);
                 }
 
-                foreach (var Kvp in SingleUnits)
-                {
-                    Content.Units.Remove(Kvp.Key);
-                }
-
-
-                foreach (var Kvp in SingleUnits)
-                {
-                    RemainingUnits.Enqueue(Kvp.Value);
-                }
+                Queue<BaseUnit> StillRemaining = new Queue<BaseUnit>();
 
                 while (RemainingUnits.Count > 0)
                 {
                     BaseUnit GetFirst = RemainingUnits.Dequeue();
+
+                    if (GetFirst.Original.Length >= TextLengthLimit)
+                    {
+                        Content.Units.Add(MakeSoloBucket(ref Content.GenKey, GetFirst));
+                        continue;
+                    }
 
                     int BestIndex = -1;
                     int MinUnitCount = int.MaxValue;
@@ -226,69 +237,62 @@ namespace PhoenixEngine.EngineManagement.Engine
                     {
                         var Group = Content.Units[i];
 
-                        if (Group.TotalLength + GetFirst.Original.Length >= ProcContent.TextLengthLimit)
+                        if (Group.TotalLength + GetFirst.Original.Length >= TextLengthLimit)
                             continue;
 
-                        int Count = Group.Units.Count;
-
-                        if (Count < MinUnitCount)
+                        if (Group.Units.Count < MinUnitCount)
                         {
-                            MinUnitCount = Count;
+                            MinUnitCount = Group.Units.Count;
                             BestIndex = i;
                         }
                     }
 
-                    if (BestIndex == -1)
-                        break;
-
-                    Content.Units[BestIndex].AddUnit(GetFirst);
-                }
-
-                UnitGroup NextBatchUnit = new UnitGroup();
-
-                while (RemainingUnits.Count > 0)
-                {
-                    Content.GenKey++;
-
-                    NextAdd:
-
-                    if (RemainingUnits.Count == 0)
-                    {
-                        break;
-                    }
-
-                    BaseUnit GetFrist = RemainingUnits.Dequeue();
-
-                    NextBatchUnit.Key = Content.GenKey.ToString();
-
-                    NextBatchUnit.AnchorTokens = new HashSet<string>();
-                    NextBatchUnit.AllTokens = new HashSet<string>();
-
-                    if ((NextBatchUnit.TotalLength + GetFrist.Original.Length) < ProcContent.TextLengthLimit)
-                    {
-                        NextBatchUnit.AddUnit(GetFrist);
-                        goto NextAdd;
-                    }
+                    if (BestIndex != -1)
+                        Content.Units[BestIndex].AddUnit(GetFirst);
                     else
-                    {
-                        NextBatchUnit.LinkTo = "";
-                        Content.Units.Add(NextBatchUnit);
-
-                        NextBatchUnit = new UnitGroup();
-                        NextBatchUnit.AddUnit(GetFrist);
-                    }
+                        StillRemaining.Enqueue(GetFirst);
                 }
 
-                if (NextBatchUnit.Units.Count > 0)
+                while (StillRemaining.Count > 0)
                 {
-                    Content.Units.Add(NextBatchUnit);
-                    NextBatchUnit = null;
+                    BaseUnit Head = StillRemaining.Peek();
+
+                    if (Head.Original.Length >= TextLengthLimit)
+                    {
+                        StillRemaining.Dequeue();
+                        Content.Units.Add(MakeSoloBucket(ref Content.GenKey, Head));
+                        continue;
+                    }
+
+                    Content.GenKey++;
+                    UnitGroup NewBucket = new UnitGroup();
+                    NewBucket.Key = Content.GenKey.ToString();
+                    NewBucket.Mode = AggregationMode.Aggregation;
+                    NewBucket.AnchorTokens = new HashSet<string>();
+                    NewBucket.AllTokens = new HashSet<string>();
+
+                    while (StillRemaining.Count > 0)
+                    {
+                        BaseUnit Peek = StillRemaining.Peek();
+
+                        if (NewBucket.TotalLength + Peek.Original.Length < TextLengthLimit)
+                        {
+                            StillRemaining.Dequeue();
+                            NewBucket.AddUnit(Peek);
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+
+                    if (NewBucket.Units.Count > 0)
+                        Content.Units.Add(NewBucket);
                 }
 
                 Content.SameItems.AddRange(SameItems);
             }
-            else
-            if (SetMode == AggregationMode.Single)
+            else if (SetMode == AggregationMode.Single)
             {
                 foreach (var GetUnit in Data.Leaders)
                 {

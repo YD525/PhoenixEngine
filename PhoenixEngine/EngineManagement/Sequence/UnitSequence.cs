@@ -135,7 +135,7 @@ namespace PhoenixEngine.EngineManagement
                     CacheCall Call = new CacheCall();
                     Call.SendString = Source;
 
-                    string GetCacheStr = CloudDBCache.FindCache(Phoenix.GetFileUniqueKey(), Item.Key, To);
+                    string GetCacheStr = CloudDBCache.FindCache(Phoenix.GetFileUniqueKey(), GetUnit.Key, To);
 
                     if (GetCacheStr.Trim().Length > 0)
                     {
@@ -156,7 +156,7 @@ namespace PhoenixEngine.EngineManagement
                         Sequences[GetUnit.Key].Data = GetCacheStr;
                         GetUnit.Translated = Sequences[GetUnit.Key].Data;
                         Sequences[GetUnit.Key].CanSkip = true;
-                        return;
+                        continue;
                     }
 
                     if (Phoenix.Config.EnableGlobalSearch)
@@ -183,7 +183,7 @@ namespace PhoenixEngine.EngineManagement
                             Sequences[GetUnit.Key].Data = MatchItem.Result;
                             GetUnit.Translated = Sequences[GetUnit.Key].Data;
                             Sequences[GetUnit.Key].CanSkip = true;
-                            return;
+                            continue;
                         }
                     }
                 }
