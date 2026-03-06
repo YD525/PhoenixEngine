@@ -211,7 +211,7 @@ namespace PhoenixEngine.EngineManagement.Engine
                         }
 
                         Assigned = true;
-                        break; 
+                        break;
                     }
 
                     if (!Assigned)
@@ -231,18 +231,20 @@ namespace PhoenixEngine.EngineManagement.Engine
                     }
 
                     int BestIndex = -1;
-                    int MinUnitCount = int.MaxValue;
+                    int MaxRemaining = -1;
 
                     for (int i = 0; i < Content.Units.Count; i++)
                     {
                         var Group = Content.Units[i];
 
-                        if (Group.TotalLength + GetFirst.Original.Length >= TextLengthLimit)
+                        int Remaining = TextLengthLimit - Group.TotalLength - GetFirst.Original.Length;
+
+                        if (Remaining < 0)
                             continue;
 
-                        if (Group.Units.Count < MinUnitCount)
+                        if (Remaining > MaxRemaining)
                         {
-                            MinUnitCount = Group.Units.Count;
+                            MaxRemaining = Remaining;
                             BestIndex = i;
                         }
                     }
