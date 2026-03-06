@@ -292,6 +292,37 @@ namespace PhoenixEngine.EngineManagement.Engine
                         Content.Units.Add(NewBucket);
                 }
 
+                bool MergeHappened = true;
+                while (MergeHappened)
+                {
+                    MergeHappened = false;
+
+                    for (int i = 0; i < Content.Units.Count; i++)
+                    {
+                        for (int j = i + 1; j < Content.Units.Count; j++)
+                        {
+                            UnitGroup A = Content.Units[i];
+                            UnitGroup B = Content.Units[j];
+
+                            if (A.TotalLength + B.TotalLength < TextLengthLimit)
+                            {
+                                foreach (var Token in B.AllTokens)
+                                    A.AllTokens.Add(Token);
+
+                                foreach (var U in B.Units)
+                                    A.AddUnit(U);
+
+                                Content.Units.RemoveAt(j);
+                                MergeHappened = true;
+                                break;
+                            }
+                        }
+
+                        if (MergeHappened)
+                            break;
+                    }
+                }
+
                 Content.SameItems.AddRange(SameItems);
             }
             else if (SetMode == AggregationMode.Single)
