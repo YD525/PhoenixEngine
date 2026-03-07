@@ -184,6 +184,7 @@ namespace PhoenixEngine.EngineManagement.Memory
     public class P_DictLink<T> where T : new()
     {
         private object QueryLock = new object();
+                         //Leader Units
         private Dictionary<int, P_Link<T>> DictData = new Dictionary<int, P_Link<T>>();
         private Dictionary<string,int> DictKeys = new Dictionary<string,int>();
         private int ConvertKey(string Key)
@@ -297,8 +298,9 @@ namespace PhoenixEngine.EngineManagement.Memory
         public void Test()
         {
             P_DictLink<LinkTest> SetLink = new P_DictLink<LinkTest>();
-
+                                //Key
             var Find = SetLink["XXXXXXXXXXXXXXXXXX"];
+                          //FileName ,   Key
             Find = SetLink["XXXXXXXXXXXXXXXXXX",""];
         }
     }
