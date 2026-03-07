@@ -4,7 +4,7 @@ using PhoenixEngine.Events;
 using PhoenixEngine.Language;
 using PhoenixEngine.Translate;
 
-namespace PhoenixEngine
+namespace PhoenixEngine.P_Delegate
 {
     public enum CallType
     {
