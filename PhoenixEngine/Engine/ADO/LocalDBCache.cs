@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using PhoenixEngine.ConvertManager;
-using PhoenixEngine.DataBaseManagement;
 using PhoenixEngine.Engine;
 using PhoenixEngine.TranslateCore;
 

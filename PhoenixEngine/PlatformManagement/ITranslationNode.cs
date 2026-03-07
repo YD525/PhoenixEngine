@@ -1,12 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Net;
 using PhoenixEngine.Engine;
-using PhoenixEngine.EngineManagement;
 using PhoenixEngine.Memory;
 using PhoenixEngine.TranslateCore;
-using PhoenixEngine.TranslateManage;
 using PhoenixEngine.Unit;
-using static PhoenixEngine.EngineManagement.DataTransmission;
 
 namespace PhoenixEngine.PlatformManagement
 {

@@ -11,7 +11,7 @@ using PhoenixEngine.Sequence;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
 using PhoenixEngine.Unit;
-using static PhoenixEngine.EngineManagement.DataTransmission;
+using static PhoenixEngine.DataTransmission;
 
 namespace PhoenixEngine.Engine
 {

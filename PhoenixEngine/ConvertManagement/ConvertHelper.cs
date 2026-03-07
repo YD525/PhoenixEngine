@@ -1,9 +1,8 @@
 ﻿using System;
 
-
-namespace PhoenixEngine.ConvertManager
+namespace PhoenixEngine
 {
-    public class ConvertHelper
+    internal class ConvertHelper
     {
         public static string DateTimeToStr(DateTime Time)
         {

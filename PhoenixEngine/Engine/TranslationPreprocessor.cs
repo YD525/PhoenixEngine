@@ -4,8 +4,6 @@ using System.Text.RegularExpressions;
 using PhoenixEngine.ADO;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
-using PhoenixEngine.TranslateManagement;
-using static PhoenixEngine.EngineManagement.DataTransmission;
 
 namespace PhoenixEngine.Engine
 {

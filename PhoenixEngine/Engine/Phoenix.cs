@@ -3,15 +3,12 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using PhoenixEngine.ADO;
-using PhoenixEngine.ConvertManager;
-using PhoenixEngine.DataBaseManagement;
 using PhoenixEngine.LanguageManagement;
 using PhoenixEngine.Memory;
 using PhoenixEngine.PlatformManagement;
 using PhoenixEngine.RequestManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
-using PhoenixEngine.TranslateManagement;
 
 namespace PhoenixEngine.Engine
 {

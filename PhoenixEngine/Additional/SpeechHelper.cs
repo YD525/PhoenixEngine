@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using PhoenixEngine.TranslateCore;
 
-namespace PhoenixEngine.TranslateManagement
+namespace PhoenixEngine
 {
     public static class SpeechHelper
     {

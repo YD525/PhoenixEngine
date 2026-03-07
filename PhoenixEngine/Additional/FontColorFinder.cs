@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using PhoenixEngine.ConvertManager;
 using PhoenixEngine.Engine;
 
-namespace PhoenixEngine.TranslateManagement
+namespace PhoenixEngine
 {
     public class FontColorFinder
     {
