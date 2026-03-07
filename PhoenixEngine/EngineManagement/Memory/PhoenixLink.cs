@@ -173,7 +173,7 @@ namespace PhoenixEngine.EngineManagement.Memory
             return Result;
         }
     }
-    public class P_DictLink<TKey, TValue>
+    public class P_Dict<TKey, TValue>
     {
         private object DictLock = new object();
         private object CacheLock = new object();
@@ -264,7 +264,15 @@ namespace PhoenixEngine.EngineManagement.Memory
     {
         public void Test()
         {
-            P_DictLink<string, string> SetLink = new P_DictLink<string, string>();
+            P_Dict<string, string> SetLink = new P_Dict<string, string>();
+
+            SetLink.Add("1", "AAA");
+            SetLink.Add("2", "AAA");
+
+            SetLink["1212"] = "AAA";
+
+            var CCC = SetLink["13235"];
+
             //                    //Key
             //var Find = SetLink["XXXXXXXXXXXXXXXXXX"];
             //              //FileName ,   Key
