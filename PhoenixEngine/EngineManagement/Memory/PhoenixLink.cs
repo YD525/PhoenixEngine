@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace PhoenixEngine.EngineManagement.Memory
 {
-    public class P_Link<T> where T : class
+    public class P_Link<T> where T : new()
     {
         private T Value;
         private P_Link<T> Head = null;
@@ -106,7 +106,7 @@ namespace PhoenixEngine.EngineManagement.Memory
                 Node = Node.Next;
                 i++;
             }
-            return null;
+            return new T();
         }
 
         public T GetValueFromTail(int IndexFromTail)
@@ -122,7 +122,7 @@ namespace PhoenixEngine.EngineManagement.Memory
                 Node = Node.Prev;
                 i++;
             }
-            return null;
+            return new T();
         }
         public int Count()
         {
@@ -183,46 +183,43 @@ namespace PhoenixEngine.EngineManagement.Memory
     public class P_DictLink<Key, Value> where Value : new()
     {
         private object QueryLock = new object();
-        private Dictionary<Key, Value> DictData = new Dictionary<Key, Value>();
-
-        private ConcurrentQueue<Key> TempKeys = new ConcurrentQueue<Key>();
-        public Value this[Key Key]
+        private Dictionary<Key, P_Link<Value>> DictData = new Dictionary<Key, P_Link<Value>>();
+        public P_Link<Value> this[Key Key]
         {
             get
             {
-                CheckLinks();
                 lock (QueryLock)
                 {
+                    CheckLinks();
                     if (DictData.ContainsKey(Key))
                     {
-                        return DictData[Key];
+                        return DictData[Key].GetHead();
                     }
 
-                    return new Value();
+                    return new P_Link<Value>();
                 }
             }
             set
             {
-                CheckLinks();
                 lock (QueryLock)
                 {
+                    CheckLinks();
                     if (DictData.ContainsKey(Key))
                     {
                         DictData[Key] = value;
-                    }
-                    else
-                    {
-                        TempKeys.Enqueue(Key);
-                        DictData.Add(Key, value);
                     }
                 }
 
             }
         }
 
+        public Action<Dictionary<Key, P_Link<Value>>> LinkCheck = null;
         public void CheckLinks()
-        { 
-        
+        {
+            if (LinkCheck != null)
+            {
+                LinkCheck.Invoke(this.DictData);
+            }
         }
     }
 
