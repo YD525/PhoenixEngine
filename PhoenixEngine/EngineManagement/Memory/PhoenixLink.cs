@@ -6,7 +6,180 @@ using System.Threading.Tasks;
 
 namespace PhoenixEngine.EngineManagement.Memory
 {
-    public class PhoenixLink<Key, Value> where Value : new()
+    public class P_Link<T> where T : class
+    {
+        private T Value;
+        private P_Link<T> Head = null;
+        public P_Link<T> Next = null;
+        public P_Link<T> Prev = null;
+        private P_Link<T> Tail = null;
+      
+        public P_Link<T> GetTail()
+        {
+            return Tail ?? this;
+        }
+        public P_Link<T> GetHead()
+        {
+            return Head ?? this;
+        }
+        public void Remove()
+        {
+            var Head = GetHead();
+
+            if (Prev != null)
+                Prev.Next = Next;
+
+            if (Next != null)
+                Next.Prev = Prev;
+
+            if (this == Head)
+            {
+                if (Next != null)
+                {
+                    Next.Tail = this.Tail;
+                    Next.Head = null;
+
+                    var Node = Next.Next;
+                    while (Node != null)
+                    {
+                        Node.Head = Next;
+                        Node = Node.Next;
+                    }
+                }
+            }
+            else
+            if (this == Head.Tail)
+            {
+                Head.Tail = Prev;
+            }
+
+            Head = null;
+            Tail = null;
+            Next = null;
+            Prev = null;
+        }
+       
+        public bool HaveValue()
+        {
+            if (Tail != null)
+            {
+                return true;
+            }
+            return false;
+        }
+        public P_Link<T> SetValue(T Value)
+        {
+            if (this.Value == null)
+            {
+                this.Value = Value;
+                Tail = this;
+                Head = null;
+
+                return this;
+            }
+            else
+            {
+                var Head = GetHead();
+
+                var NewNode = new P_Link<T>
+                {
+                    Value = Value,
+                    Prev = Head.Tail,
+                    Head = Head
+                };
+
+                Head.Tail.Next = NewNode;
+                Head.Tail = NewNode;
+
+                return NewNode;
+            }
+        }
+        public T GetValueByIndex(int Index)
+        {
+            var Node = GetHead();
+            int i = 0;
+            while (Node != null)
+            {
+                if (i == Index)
+                    return Node.Value;
+                Node = Node.Next;
+                i++;
+            }
+            return null;
+        }
+
+        public T GetValueFromTail(int IndexFromTail)
+        {
+            var Node = GetHead().Tail;
+            int i = 0;
+            while (Node != null)
+            {
+                if (i == IndexFromTail)
+                {
+                    return Node.Value;
+                }
+                Node = Node.Prev;
+                i++;
+            }
+            return null;
+        }
+        public int Count()
+        {
+            int Count = 0;
+            var Node = GetHead();
+            while (Node != null)
+            {
+                Count++;
+                Node = Node.Next;
+            }
+            return Count;
+        }
+        public void ForEachForward(Action<P_Link<T>> Action)
+        {
+            var Node = GetHead();
+            while (Node != null)
+            {
+                if (Node != null)
+                    Action(Node);
+
+                Node = Node.Next;
+            }
+        }
+        public void ForEachBackward(Action<P_Link<T>> Action)
+        {
+            var Head = GetHead();
+            var Node = Head.Tail;
+
+            while (Node != null)
+            {
+                Action(Node);
+                Node = Node.Prev;
+            }
+        }
+        public List<P_Link<T>> GetNodesBefore()
+        {
+            var Result = new List<P_Link<T>>();
+            var Node = Prev;
+            while (Node != null)
+            {
+                Result.Insert(0, Node);
+                Node = Node.Prev;
+            }
+            return Result;
+        }
+        public List<P_Link<T>> GetNodesAfter()
+        {
+            var Result = new List<P_Link<T>>();
+            var Node = Next;
+            while (Node != null)
+            {
+                Result.Add(Node);
+                Node = Node.Next;
+            }
+            return Result;
+        }
+    }
+    public class P_DictLink<Key, Value> where Value : new()
     {
         private object QueryLock = new object();
         private Dictionary<Key, Value> DictData = new Dictionary<Key, Value>();
@@ -40,15 +213,15 @@ namespace PhoenixEngine.EngineManagement.Memory
 
             }
         }
-
     }
 
     public class LinkTest
     {
         public void Test()
         {
-            PhoenixLink<string, LinkTest> SetLink = new PhoenixLink<string, LinkTest>();
-            SetLink[""] = new LinkTest();
+            P_DictLink<string, LinkTest> SetLink = new P_DictLink<string, LinkTest>();
+
+            var Find = SetLink["XXXXXXXXXXXXXXXXXX"];
         }
     }
 }
