@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using PhoenixEngine.PlatformManagement.LocalAI;
 
 namespace PhoenixEngine.EngineManagement.Memory
 {
@@ -180,23 +181,41 @@ namespace PhoenixEngine.EngineManagement.Memory
             return Result;
         }
     }
-    public class P_DictLink<Key, Value> where Value : new()
+    public class P_DictLink<T> where T : new()
     {
         private object QueryLock = new object();
-        private Dictionary<Key, P_Link<Value>> DictData = new Dictionary<Key, P_Link<Value>>();
-        public P_Link<Value> this[Key Key]
+        private Dictionary<int, P_Link<T>> DictData = new Dictionary<int, P_Link<T>>();
+        private Dictionary<string,int> DictKeys = new Dictionary<string,int>();
+        private int ConvertKey(string Key)
+        {
+            lock (QueryLock)
+            {
+                if (DictKeys.ContainsKey(Key))
+                {
+                    return DictKeys[Key];
+                }
+                else
+                {
+                    int ConvertKey = Key.GetHashCode();
+                    DictKeys.Add(Key, ConvertKey);
+                    return ConvertKey;
+                }
+            }
+        }
+        public P_Link<T> this[string Key]
         {
             get
             {
                 lock (QueryLock)
                 {
                     CheckLinks();
-                    if (DictData.ContainsKey(Key))
+                    var IntKey = ConvertKey(Key);
+                    if (DictData.ContainsKey(IntKey))
                     {
-                        return DictData[Key].GetHead();
+                        return DictData[IntKey].GetHead();
                     }
 
-                    return new P_Link<Value>();
+                    return new P_Link<T>();
                 }
             }
             set
@@ -204,21 +223,71 @@ namespace PhoenixEngine.EngineManagement.Memory
                 lock (QueryLock)
                 {
                     CheckLinks();
-                    if (DictData.ContainsKey(Key))
+                    var IntKey = ConvertKey(Key);
+                    if (DictData.ContainsKey(IntKey))
                     {
-                        DictData[Key] = value;
+                        DictData[IntKey] = value;
+                    }
+                }
+
+            }
+        }
+        public P_Link<T> this[string Key1, string Key2]
+        {
+            get
+            {
+                var MergeKey = Key1 + "_" + Key2;
+
+                lock (QueryLock)
+                {
+                    CheckLinks();
+                    var IntKey = ConvertKey(MergeKey);
+                    if (DictData.ContainsKey(IntKey))
+                    {
+                        return DictData[IntKey].GetHead();
+                    }
+
+                    return new P_Link<T>();
+                }
+            }
+            set
+            {
+                var MergeKey = Key1 + "_" + Key2;
+
+                lock (QueryLock)
+                {
+                    CheckLinks();
+                    var IntKey = ConvertKey(MergeKey);
+                    if (DictData.ContainsKey(IntKey))
+                    {
+                        DictData[IntKey] = value;
                     }
                 }
 
             }
         }
 
-        public Action<Dictionary<Key, P_Link<Value>>> LinkCheck = null;
+        public Action<string, P_Link<T>> LinkCheck = null;
         public void CheckLinks()
         {
             if (LinkCheck != null)
             {
-                LinkCheck.Invoke(this.DictData);
+                foreach (var GetItem in new Dictionary<int, P_Link<T>>(DictData))
+                {
+                    string RealKey = "";
+
+                    foreach (var GetKey in new Dictionary<string, int>(DictKeys))
+                    {
+                        if (GetKey.Value.Equals(GetItem.Key))
+                        {
+                            RealKey = GetKey.Key;
+                            break;
+                        }
+                    }
+
+                    LinkCheck.Invoke(RealKey,GetItem.Value);
+                }
+                
             }
         }
     }
@@ -227,9 +296,10 @@ namespace PhoenixEngine.EngineManagement.Memory
     {
         public void Test()
         {
-            P_DictLink<string, LinkTest> SetLink = new P_DictLink<string, LinkTest>();
+            P_DictLink<LinkTest> SetLink = new P_DictLink<LinkTest>();
 
             var Find = SetLink["XXXXXXXXXXXXXXXXXX"];
+            Find = SetLink["XXXXXXXXXXXXXXXXXX",""];
         }
     }
 }
