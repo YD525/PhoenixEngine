@@ -57,7 +57,7 @@ namespace PhoenixEngine.TranslateManagement
                 }
                 else
                 {
-                    Translator.GetLink().Add(Key, string.Empty);
+                    Link.Add(Key, string.Empty);
                 }
                 return string.Empty;
             }

@@ -81,6 +81,7 @@
     <Compile Include="DelegateManagement\DataTransmission.cs" />
     <Compile Include="EngineManagement\Engine\EngineHelper.cs" />
     <Compile Include="EngineManagement\Engine\ProcContent.cs" />
+    <Compile Include="EngineManagement\Memory\PhoenixLink.cs" />
     <Compile Include="EngineManagement\Phoenix.cs" />
     <Compile Include="EngineManagement\Sequence\UnionArray.cs" />
     <Compile Include="EngineManagement\Sequence\UnitSequence.cs" />
