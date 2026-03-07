@@ -4,7 +4,7 @@ using System.Data;
 using System.Linq;
 using PhoenixEngine.Engine;
 
-namespace PhoenixEngine
+namespace PhoenixEngine.Additional
 {
     public class FontColorFinder
     {

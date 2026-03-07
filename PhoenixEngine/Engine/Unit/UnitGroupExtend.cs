@@ -2,8 +2,7 @@
 using System.Threading;
 using PhoenixEngine.Engine;
 using PhoenixEngine.Sequence;
-using PhoenixEngine.TranslateManage;
-using PhoenixEngine.TranslateManagement;
+using PhoenixEngine.Translate;
 
 namespace PhoenixEngine.Unit
 {

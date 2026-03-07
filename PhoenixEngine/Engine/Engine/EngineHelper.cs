@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using PhoenixEngine.Engine;
 using PhoenixEngine.TranslateCore;
-using PhoenixEngine.TranslateManagement;
 using PhoenixEngine.Unit;
 
 namespace PhoenixEngine.EngineManagement.Engine

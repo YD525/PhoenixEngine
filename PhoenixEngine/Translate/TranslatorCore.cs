@@ -4,15 +4,13 @@ using System.Collections.Generic;
 using System.Threading;
 using PhoenixEngine.ADO;
 using PhoenixEngine.Engine;
-using PhoenixEngine.EngineManagement;
 using PhoenixEngine.EngineManagement.Engine;
 using PhoenixEngine.Events;
 using PhoenixEngine.PThread;
 using PhoenixEngine.Sequence;
-using PhoenixEngine.TranslateCore;
 using PhoenixEngine.Unit;
 
-namespace PhoenixEngine.TranslateManage
+namespace PhoenixEngine.Translate
 {
     public class TranslatorCore
     {

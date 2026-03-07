@@ -7,8 +7,8 @@ using Newtonsoft.Json.Linq;
 using PhoenixEngine.Engine;
 using PhoenixEngine.Memory;
 using PhoenixEngine.RequestManagement;
+using PhoenixEngine.Translate;
 using PhoenixEngine.TranslateCore;
-using PhoenixEngine.TranslateManage;
 using PhoenixEngine.Unit;
 using static PhoenixEngine.PlatformManagement.LocalAI.LocalAIJson;
 

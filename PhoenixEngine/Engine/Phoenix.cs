@@ -2,13 +2,14 @@
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using PhoenixEngine.Additional;
 using PhoenixEngine.ADO;
 using PhoenixEngine.LanguageManagement;
 using PhoenixEngine.Memory;
 using PhoenixEngine.PlatformManagement;
 using PhoenixEngine.RequestManagement;
+using PhoenixEngine.Translate;
 using PhoenixEngine.TranslateCore;
-using PhoenixEngine.TranslateManage;
 
 namespace PhoenixEngine.Engine
 {

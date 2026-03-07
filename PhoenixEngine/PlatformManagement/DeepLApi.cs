@@ -4,10 +4,9 @@ using System.Text;
 using Newtonsoft.Json;
 using PhoenixEngine.Engine;
 using PhoenixEngine.RequestManagement;
+using PhoenixEngine.Translate;
 using PhoenixEngine.TranslateCore;
-using PhoenixEngine.TranslateManage;
 using PhoenixEngine.Unit;
-using static PhoenixEngine.DataTransmission;
 
 namespace PhoenixEngine.PlatformManagement
 {

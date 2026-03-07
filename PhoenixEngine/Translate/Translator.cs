@@ -10,7 +10,7 @@ using PhoenixEngine.TranslateCore;
 using PhoenixEngine.Unit;
 using static PhoenixEngine.Engine.ChunkHelper;
 
-namespace PhoenixEngine.TranslateManage
+namespace PhoenixEngine.Translate
 {
     public enum PlatformType
     {

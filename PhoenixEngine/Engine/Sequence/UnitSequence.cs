@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using PhoenixEngine.ADO;
 using PhoenixEngine.Engine;
+using PhoenixEngine.Translate;
 using PhoenixEngine.TranslateCore;
-using PhoenixEngine.TranslateManage;
 using PhoenixEngine.Unit;
 
 namespace PhoenixEngine.Sequence

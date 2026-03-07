@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
 using PhoenixEngine.PlatformManagement;
-using PhoenixEngine.TranslateManage;
+using PhoenixEngine.Translate;
 
 namespace PhoenixEngine.Engine
 {

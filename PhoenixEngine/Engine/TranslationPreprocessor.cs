@@ -2,8 +2,8 @@
 using System.Linq;
 using System.Text.RegularExpressions;
 using PhoenixEngine.ADO;
+using PhoenixEngine.Translate;
 using PhoenixEngine.TranslateCore;
-using PhoenixEngine.TranslateManage;
 
 namespace PhoenixEngine.Engine
 {

@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using PhoenixEngine.Engine;
+using PhoenixEngine.Translate;
 using PhoenixEngine.TranslateCore;
-using PhoenixEngine.TranslateManage;
-using PhoenixEngine.TranslateManagement;
 using PhoenixEngine.Unit;
 
 namespace PhoenixEngine.Memory

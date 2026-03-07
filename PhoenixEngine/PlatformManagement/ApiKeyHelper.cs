@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using PhoenixEngine.Engine;
-using PhoenixEngine.EngineManagement;
-using PhoenixEngine.TranslateManage;
+using PhoenixEngine.Translate;
 
 namespace PhoenixEngine.PlatformManagement
 {

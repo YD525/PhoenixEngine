@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using PhoenixEngine.GameManagement;
 using PhoenixEngine.Sequence;
-using PhoenixEngine.TranslateManage;
+using PhoenixEngine.Translate;
 using PhoenixEngine.Unit;
 
 namespace PhoenixEngine.EngineManagement.Engine

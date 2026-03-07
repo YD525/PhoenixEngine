@@ -4,8 +4,8 @@ using System.Text;
 using PhoenixEngine.Engine;
 using PhoenixEngine.Memory;
 using PhoenixEngine.RequestManagement;
+using PhoenixEngine.Translate;
 using PhoenixEngine.TranslateCore;
-using PhoenixEngine.TranslateManage;
 using PhoenixEngine.Unit;
 
 namespace PhoenixEngine.PlatformManagement

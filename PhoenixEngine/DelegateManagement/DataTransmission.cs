@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using PhoenixEngine.Engine;
 using PhoenixEngine.Events;
+using PhoenixEngine.Translate;
 using PhoenixEngine.TranslateCore;
-using PhoenixEngine.TranslateManage;
 
 namespace PhoenixEngine
 {
