@@ -172,7 +172,7 @@ namespace PhoenixEngine.EngineManagement.Memory
             return Result;
         }
     }
-    public class P_DictLink<TKey,TValue> where TValue : new()
+    public class P_DictLink<TKey,TValue>
     {
         private object QueryLock = new object();                   
         private Dictionary<TKey,int> DictData = new Dictionary<TKey,int>();
@@ -211,7 +211,7 @@ namespace PhoenixEngine.EngineManagement.Memory
                         return CacheList[Value];
                     }
 
-                    return new TValue();
+                    return default;
                 }
             }
             set
@@ -252,7 +252,7 @@ namespace PhoenixEngine.EngineManagement.Memory
     {
         public void Test()
         {
-            //P_DictLink<LinkTest> SetLink = new P_DictLink<LinkTest>();
+            P_DictLink<string,string> SetLink = new P_DictLink<string, string>();
             //                    //Key
             //var Find = SetLink["XXXXXXXXXXXXXXXXXX"];
             //              //FileName ,   Key
