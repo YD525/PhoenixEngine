@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using PhoenixEngine.Unit;
-using static PhoenixEngine.TranslateManagement.ChunkHelper;
+using static PhoenixEngine.Engine.ChunkHelper;
 
 namespace PhoenixEngine.GameManagement
 {

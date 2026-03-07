@@ -2,6 +2,7 @@
 using System.Text;
 using Newtonsoft.Json;
 using PhoenixEngine.ConvertManager;
+using PhoenixEngine.Engine;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.RequestManagement;
 using PhoenixEngine.TranslateCore;

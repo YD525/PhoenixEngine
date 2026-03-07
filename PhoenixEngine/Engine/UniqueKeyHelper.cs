@@ -4,7 +4,6 @@ using PhoenixEngine.ConvertManager;
 using PhoenixEngine.DataBaseManagement;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.Memory;
-using PhoenixEngine.TranslateManage;
 
 namespace PhoenixEngine.TranslateManagement
 {

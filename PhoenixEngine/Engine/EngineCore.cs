@@ -9,10 +9,11 @@ using PhoenixEngine.PlatformManagement.LocalAI;
 using PhoenixEngine.RequestManagement;
 using PhoenixEngine.Sequence;
 using PhoenixEngine.TranslateCore;
+using PhoenixEngine.TranslateManage;
 using PhoenixEngine.Unit;
 using static PhoenixEngine.EngineManagement.DataTransmission;
 
-namespace PhoenixEngine.TranslateManage
+namespace PhoenixEngine.Engine
 {
     public class EngineCore
     {

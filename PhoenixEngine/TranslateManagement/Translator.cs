@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using PhoenixEngine.Engine;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.EngineManagement.Engine;
 using PhoenixEngine.GameManagement;
 using PhoenixEngine.Sequence;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.Unit;
-using static PhoenixEngine.TranslateManagement.ChunkHelper;
+using static PhoenixEngine.Engine.ChunkHelper;
 
 namespace PhoenixEngine.TranslateManage
 {
