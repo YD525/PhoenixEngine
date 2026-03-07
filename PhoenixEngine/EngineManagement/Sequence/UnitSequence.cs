@@ -1,11 +1,9 @@
 ﻿using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using PhoenixEngine.EngineManagement.Unit;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
 using PhoenixEngine.TranslateManagement;
 using static PhoenixEngine.EngineManagement.DataTransmission;
-using static PhoenixEngine.TranslateManage.EngineCore;
 
 namespace PhoenixEngine.EngineManagement
 {

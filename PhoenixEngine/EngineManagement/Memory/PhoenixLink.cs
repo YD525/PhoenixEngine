@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -183,10 +184,13 @@ namespace PhoenixEngine.EngineManagement.Memory
     {
         private object QueryLock = new object();
         private Dictionary<Key, Value> DictData = new Dictionary<Key, Value>();
+
+        private ConcurrentQueue<Key> TempKeys = new ConcurrentQueue<Key>();
         public Value this[Key Key]
         {
             get
             {
+                CheckLinks();
                 lock (QueryLock)
                 {
                     if (DictData.ContainsKey(Key))
@@ -199,6 +203,7 @@ namespace PhoenixEngine.EngineManagement.Memory
             }
             set
             {
+                CheckLinks();
                 lock (QueryLock)
                 {
                     if (DictData.ContainsKey(Key))
@@ -207,11 +212,17 @@ namespace PhoenixEngine.EngineManagement.Memory
                     }
                     else
                     {
+                        TempKeys.Enqueue(Key);
                         DictData.Add(Key, value);
                     }
                 }
 
             }
+        }
+
+        public void CheckLinks()
+        { 
+        
         }
     }
 
