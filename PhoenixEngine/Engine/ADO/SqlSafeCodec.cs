@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 
-namespace PhoenixEngine.DataBaseManagement
+namespace PhoenixEngine.ADO
 {
     public static class SqlSafeCodec
     {

@@ -74,8 +74,8 @@
   <ItemGroup>
     <Compile Include="ConvertManagement\ConvertHelper.cs" />
     <Compile Include="DataBaseManagement\PageHelper.cs" />
-    <Compile Include="DataBaseManagement\SQLiteHelper.cs" />
-    <Compile Include="DataBaseManagement\SqlSafeCodec.cs" />
+    <Compile Include="Engine\ADO\PSQLite.cs" />
+    <Compile Include="Engine\ADO\SqlSafeCodec.cs" />
     <Compile Include="Engine\Events\EngineEvents.cs" />
     <Compile Include="Engine\ConfigExtend.cs" />
     <Compile Include="DelegateManagement\DataTransmission.cs" />

@@ -6,10 +6,9 @@ using System.Text.RegularExpressions;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.DataBaseManagement;
 using PhoenixEngine.Engine;
-using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
 
-namespace PhoenixEngine.TranslateManagement
+namespace PhoenixEngine.ADO
 {
     public class AdvancedDictionaryItem
     {

@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using PhoenixEngine.ADO;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.DataBaseManagement;
 using PhoenixEngine.LanguageManagement;
@@ -33,7 +34,7 @@ namespace PhoenixEngine.Engine
         /// Instance of the local SQLite database helper.
         /// Represents the pointer/reference to the current local database.
         /// </summary>
-        public static SQLiteHelper LocalDB = new SQLiteHelper();
+        public static P_SQLite LocalDB = new P_SQLite();
         public static KeyManage KeyData = new KeyManage();
 
         public static void SyncTrdCount()
@@ -84,7 +85,7 @@ namespace PhoenixEngine.Engine
                 SQLiteConnection.CreateFile(GetFilePath);
             }
 
-            LocalDB.OpenSql(GetFilePath);
+            LocalDB.OpenSQL(GetFilePath);
 
             AdvancedDictionary.Init();
 

@@ -5,9 +5,9 @@ using System.Linq;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.DataBaseManagement;
 using PhoenixEngine.Engine;
-using PhoenixEngine.EngineManagement;
+using PhoenixEngine.TranslateCore;
 
-namespace PhoenixEngine.TranslateCore
+namespace PhoenixEngine.ADO
 {
     public class CloudTranslationItem
     {
