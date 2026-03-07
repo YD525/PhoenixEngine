@@ -115,7 +115,7 @@ namespace PhoenixEngine.LanguageManagement
 
         public static ZHType CheckLangType(string Line)
         {
-            Line = SqlSafeCodec.Encode(Line);
+            Line = SQLSafeCodec.Encode(Line);
 
             ZHType SetType = ZHType.Null;
 

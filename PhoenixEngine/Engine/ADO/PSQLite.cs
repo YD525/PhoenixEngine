@@ -106,7 +106,7 @@ namespace PhoenixEngine.ADO
             }
         }
 
-        private void LogSql(string SQL)
+        private void LogSQL(string SQL)
         {
             if (EnableSqlOutput)
             {
@@ -142,7 +142,7 @@ namespace PhoenixEngine.ADO
 
         public List<Dictionary<string, object>> ExecuteQuery(string SQL)
         {
-            LogSql(SQL);
+            LogSQL(SQL);
             return ExecuteWithRetry(() =>
             {
                 lock (_ConnLocker)
@@ -173,7 +173,7 @@ namespace PhoenixEngine.ADO
 
         public int ExecuteNonQuery(string CommandText, params SQLiteParameter[] Parameters)
         {
-            LogSql(CommandText);
+            LogSQL(CommandText);
             return ExecuteWithRetry(() =>
             {
                 lock (_ConnLocker)
@@ -191,7 +191,7 @@ namespace PhoenixEngine.ADO
 
         public object ExecuteScalar(string SQL, params SQLiteParameter[] Parameters)
         {
-            LogSql(SQL);
+            LogSQL(SQL);
             return ExecuteWithRetry(() =>
             {
                 lock (_ConnLocker)

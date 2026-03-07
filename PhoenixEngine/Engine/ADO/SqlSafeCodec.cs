@@ -3,7 +3,7 @@ using System.Text;
 
 namespace PhoenixEngine.ADO
 {
-    public static class SqlSafeCodec
+    public static class SQLSafeCodec
     {
         private static readonly char[] DangerChars = new char[]
         {
@@ -15,7 +15,7 @@ namespace PhoenixEngine.ADO
         private static readonly Dictionary<char, char> DecodeMap;
         private static readonly HashSet<char> EncodedSet;
 
-        static SqlSafeCodec()
+        static SQLSafeCodec()
         {
             EncodeMap = new Dictionary<char, char>(DangerChars.Length);
             DecodeMap = new Dictionary<char, char>(DangerChars.Length);

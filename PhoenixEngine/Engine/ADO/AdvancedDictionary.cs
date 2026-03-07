@@ -135,7 +135,7 @@ FROM AdvancedDictionary_Old;";
         public static string GetSourceByRowid(int Rowid)
         {
             string SqlOrder = "Select [Source] From AdvancedDictionary Where Rowid = {0}";
-            return SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Phoenix.LocalDB.ExecuteScalar(string.Format(SqlOrder,Rowid))));
+            return SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Phoenix.LocalDB.ExecuteScalar(string.Format(SqlOrder,Rowid))));
         }
         public static bool IsRegexMatch(string Input, string SetRegex)
         {
@@ -153,22 +153,22 @@ FROM AdvancedDictionary_Old;";
         {
             string SqlOrder = "Select Rowid,* From AdvancedDictionary Where [ExactMatch] = 1 And [From] = {0} And [To] = {1} And ([Type] Is NULL OR [Type] = '' OR [Type] = '{2}') And [Source] = '{3}' And [IgnoreCase] = 1 Limit 1";
 
-            List<Dictionary<string, object>> NTable = Phoenix.LocalDB.ExecuteQuery(string.Format(SqlOrder,(int)From,(int)To,SqlSafeCodec.Encode(Type),SqlSafeCodec.Encode(Source)));
+            List<Dictionary<string, object>> NTable = Phoenix.LocalDB.ExecuteQuery(string.Format(SqlOrder,(int)From,(int)To,SQLSafeCodec.Encode(Type),SQLSafeCodec.Encode(Source)));
             if (NTable.Count > 0)
             {
                 var Row = NTable[0]; // row is Dictionary<string, object>
 
                 return new AdvancedDictionaryItem(
                     Row["Rowid"],
-                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["TargetFileName"])),
-                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Type"])),
-                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Source"])),
-                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Result"])),
+                    SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["TargetFileName"])),
+                    SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Type"])),
+                    SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Source"])),
+                    SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Result"])),
                     Row["From"],
                     Row["To"],
                     Row["ExactMatch"],
                     Row["IgnoreCase"],
-                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Regex"]))
+                    SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Regex"]))
                 );
             }
 
@@ -328,11 +328,11 @@ WHERE
 
                 List<Dictionary<string, object>> NTable = Phoenix.LocalDB.ExecuteQuery(string.Format(
                 SqlOrder,
-                SqlSafeCodec.Encode(FileName),
-                SqlSafeCodec.Encode(Type),
+                SQLSafeCodec.Encode(FileName),
+                SQLSafeCodec.Encode(Type),
                 (int)From,
                 (int)To,
-                SqlSafeCodec.Encode(SourceText)
+                SQLSafeCodec.Encode(SourceText)
             ));
 
             for (int i = 0; i < NTable.Count; i++)
@@ -340,15 +340,15 @@ WHERE
                 var Row = NTable[i];
                 var Get = new AdvancedDictionaryItem(
                 Row["Rowid"],
-                SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["TargetFileName"])),
-                SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Type"])),
-                SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Source"])),
-                SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Result"])),
+                SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["TargetFileName"])),
+                SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Type"])),
+                SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Source"])),
+                SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Result"])),
                 Row["From"],
                 Row["To"],
                 Row["ExactMatch"],
                 Row["IgnoreCase"],
-                SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Regex"]))
+                SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Regex"]))
             );
                 if (Get.Regex.Trim().Length > 0)
                 {
@@ -373,10 +373,10 @@ WHERE
             string CheckSql = $@"
 SELECT COUNT(*) FROM AdvancedDictionary 
 WHERE 
-[TargetFileName] = '{SqlSafeCodec.Encode(item.TargetFileName)}' AND
-[Type] = '{SqlSafeCodec.Encode(item.Type)}' AND
-[Source] = '{SqlSafeCodec.Encode(item.Source)}' AND
-[Result] = '{SqlSafeCodec.Encode(item.Result)}' AND
+[TargetFileName] = '{SQLSafeCodec.Encode(item.TargetFileName)}' AND
+[Type] = '{SQLSafeCodec.Encode(item.Type)}' AND
+[Source] = '{SQLSafeCodec.Encode(item.Source)}' AND
+[Result] = '{SQLSafeCodec.Encode(item.Result)}' AND
 [From] = {item.From} AND
 [To] = {item.To}";
 
@@ -392,15 +392,15 @@ WHERE
                 string sql = $@"INSERT INTO AdvancedDictionary 
 ([TargetFileName], [Type], [Source], [Result], [From], [To], [ExactMatch], [IgnoreCase], [Regex])
 VALUES (
-'{SqlSafeCodec.Encode(Item.TargetFileName)}',
-'{SqlSafeCodec.Encode(Item.Type)}',
-'{SqlSafeCodec.Encode(Item.Source)}',
-'{SqlSafeCodec.Encode(Item.Result)}',
+'{SQLSafeCodec.Encode(Item.TargetFileName)}',
+'{SQLSafeCodec.Encode(Item.Type)}',
+'{SQLSafeCodec.Encode(Item.Source)}',
+'{SQLSafeCodec.Encode(Item.Result)}',
 {Item.From},
 {Item.To},
 {Item.ExactMatch},
 {Item.IgnoreCase},
-'{SqlSafeCodec.Encode(Item.Regex)}'
+'{SQLSafeCodec.Encode(Item.Regex)}'
 )";
                 int State = Phoenix.LocalDB.ExecuteNonQuery(sql);
                 if (State != 0)
@@ -418,15 +418,15 @@ VALUES (
         public static void DeleteItem(AdvancedDictionaryItem item)
         {
             string sql = $@"DELETE FROM AdvancedDictionary WHERE 
-TargetFileName = '{SqlSafeCodec.Encode(item.TargetFileName)}' AND
-Type = '{SqlSafeCodec.Encode(item.Type)}' AND
-Source = '{SqlSafeCodec.Encode(item.Source)}' AND
-Result = '{SqlSafeCodec.Encode(item.Result)}' AND
+TargetFileName = '{SQLSafeCodec.Encode(item.TargetFileName)}' AND
+Type = '{SQLSafeCodec.Encode(item.Type)}' AND
+Source = '{SQLSafeCodec.Encode(item.Source)}' AND
+Result = '{SQLSafeCodec.Encode(item.Result)}' AND
 [From] = {item.From} AND
 [To] = {item.To} AND
 ExactMatch = {item.ExactMatch} AND
 IgnoreCase = {item.IgnoreCase} AND
-Regex = '{SqlSafeCodec.Encode(item.Regex)}'";
+Regex = '{SQLSafeCodec.Encode(item.Regex)}'";
             Phoenix.LocalDB.ExecuteNonQuery(sql);
         }
 
@@ -445,15 +445,15 @@ Regex = '{SqlSafeCodec.Encode(item.Regex)}'";
 
                 Items.Add(new AdvancedDictionaryItem(
                     Row["Rowid"],
-                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["TargetFileName"])),
-                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Type"])),
-                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Source"])),
-                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Result"])),
+                    SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["TargetFileName"])),
+                    SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Type"])),
+                    SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Source"])),
+                    SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Result"])),
                     Row["From"],
                     Row["To"],
                     Row["ExactMatch"],
                     Row["IgnoreCase"],
-                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Regex"]))
+                    SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Regex"]))
                 ));
             }
 
@@ -462,7 +462,7 @@ Regex = '{SqlSafeCodec.Encode(item.Regex)}'";
 
         public static PageItem<List<AdvancedDictionaryItem>> QueryByPage(string SourceText,int From,int To, int PageNo)
         {
-            string Where = $"WHERE Source = '{SqlSafeCodec.Encode(SourceText)}' And [From] = {From} And [To] = {To}";
+            string Where = $"WHERE Source = '{SQLSafeCodec.Encode(SourceText)}' And [From] = {From} And [To] = {To}";
 
             int MaxPage = PageHelper.GetPageCount("AdvancedDictionary", Where);
 
@@ -474,15 +474,15 @@ Regex = '{SqlSafeCodec.Encode(item.Regex)}'";
                 var Row = NTable[i];
 
                 Items.Add(new AdvancedDictionaryItem(
-                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["TargetFileName"])),
-                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Type"])),
-                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Source"])),
-                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Result"])),
+                    SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["TargetFileName"])),
+                    SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Type"])),
+                    SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Source"])),
+                    SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Result"])),
                     Row["From"],
                     Row["To"],
                     Row["ExactMatch"],
                     Row["IgnoreCase"],
-                    SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Regex"]))
+                    SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Regex"]))
                 ));
             }
 

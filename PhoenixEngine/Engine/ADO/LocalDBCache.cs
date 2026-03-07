@@ -92,7 +92,7 @@ CREATE TABLE [LocalTranslation](
                 List<CloudTranslationItem> CloudTranslationItems = new List<CloudTranslationItem>();
 
                 string SqlOrder = "Select * From LocalTranslation Where [To] = {0} And [Source] = '{1}' Limit 5";
-                List<Dictionary<string, object>> NTable = Phoenix.LocalDB.ExecuteQuery(string.Format(SqlOrder, To, SqlSafeCodec.Encode(Source)));
+                List<Dictionary<string, object>> NTable = Phoenix.LocalDB.ExecuteQuery(string.Format(SqlOrder, To, SQLSafeCodec.Encode(Source)));
                 if (NTable.Count > 0)
                 {
                     for (int i = 0; i < NTable.Count; i++)
@@ -103,8 +103,8 @@ CREATE TABLE [LocalTranslation](
                             Row["FileUniqueKey"],
                             Row["Key"],
                             Row["To"],
-                            SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Source"])),
-                            SqlSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Result"]))
+                            SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Source"])),
+                            SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Result"]))
                         ));
                     }
                 }
@@ -141,7 +141,7 @@ CREATE TABLE [LocalTranslation](
             {
                 string SqlOrder = "Delete From LocalTranslation Where [FileUniqueKey] = {0} And [Source] = '{1}' And [To] = {2}";
 
-                int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, SqlSafeCodec.Encode(Source), (int)TargetLanguage));
+                int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, SQLSafeCodec.Encode(Source), (int)TargetLanguage));
 
                 if (State != 0)
                 {
@@ -159,7 +159,7 @@ CREATE TABLE [LocalTranslation](
             {
                 string SqlOrder = "Delete From LocalTranslation Where [FileUniqueKey] = {0} And [Result] = '{1}' And [To] = {2}";
 
-                int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, SqlSafeCodec.Encode(ResultText), (int)TargetLanguage));
+                int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, SQLSafeCodec.Encode(ResultText), (int)TargetLanguage));
 
                 if (State != 0)
                 {
@@ -199,7 +199,7 @@ CREATE TABLE [LocalTranslation](
 
                 if (GetText.Trim().Length > 0)
                 {
-                    return SqlSafeCodec.Decode(GetText);
+                    return SQLSafeCodec.Decode(GetText);
                 }
 
                 return string.Empty;
@@ -223,7 +223,7 @@ CREATE TABLE [LocalTranslation](
 
                 if (GetResult.Trim().Length > 0)
                 {
-                    return SqlSafeCodec.Decode(GetResult);
+                    return SQLSafeCodec.Decode(GetResult);
                 }
 
                 return string.Empty;
@@ -253,8 +253,8 @@ CREATE TABLE [LocalTranslation](
                         FileUniqueKey,
                         Key,
                         To,
-                        SqlSafeCodec.Encode(Source),
-                        SqlSafeCodec.Encode(Result),
+                        SQLSafeCodec.Encode(Source),
+                        SQLSafeCodec.Encode(Result),
                         Index
                         ));
                     if (State != 0)
@@ -265,7 +265,7 @@ CREATE TABLE [LocalTranslation](
                 else
                 {
                     string SqlOrder = "UPDate LocalTranslation Set [Result] = '{1}',[Index] = {2} Where Rowid = {0}";
-                    int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, GetRowID, SqlSafeCodec.Encode(Result), Index));
+                    int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, GetRowID, SQLSafeCodec.Encode(Result), Index));
                     if (State != 0)
                     {
                         return true;
