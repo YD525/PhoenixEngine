@@ -4,12 +4,11 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using PhoenixEngine.Additional;
 using PhoenixEngine.ADO;
-using PhoenixEngine.LanguageManagement;
+using PhoenixEngine.Language;
 using PhoenixEngine.Memory;
-using PhoenixEngine.PlatformManagement;
-using PhoenixEngine.RequestManagement;
+using PhoenixEngine.Platform;
+using PhoenixEngine.Request;
 using PhoenixEngine.Translate;
-using PhoenixEngine.TranslateCore;
 
 namespace PhoenixEngine.Engine
 {

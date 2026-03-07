@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using PhoenixEngine.TranslateCore;
+using PhoenixEngine.Language;
 
 namespace PhoenixEngine.Engine
 {

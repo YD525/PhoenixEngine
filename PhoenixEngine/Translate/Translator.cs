@@ -5,8 +5,8 @@ using PhoenixEngine.ADO;
 using PhoenixEngine.Engine;
 using PhoenixEngine.EngineManagement.Engine;
 using PhoenixEngine.GameManagement;
+using PhoenixEngine.Language;
 using PhoenixEngine.Sequence;
-using PhoenixEngine.TranslateCore;
 using PhoenixEngine.Unit;
 using static PhoenixEngine.Engine.ChunkHelper;
 

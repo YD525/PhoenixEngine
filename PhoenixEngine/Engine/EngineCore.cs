@@ -3,12 +3,12 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using PhoenixEngine.Events;
-using PhoenixEngine.PlatformManagement;
-using PhoenixEngine.PlatformManagement.LocalAI;
-using PhoenixEngine.RequestManagement;
+using PhoenixEngine.Language;
+using PhoenixEngine.Platform;
+using PhoenixEngine.Platform.LocalAI;
+using PhoenixEngine.Request;
 using PhoenixEngine.Sequence;
 using PhoenixEngine.Translate;
-using PhoenixEngine.TranslateCore;
 using PhoenixEngine.Unit;
 
 namespace PhoenixEngine.Engine

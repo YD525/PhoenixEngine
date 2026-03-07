@@ -4,7 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Text.RegularExpressions;
 using PhoenixEngine.Engine;
-using PhoenixEngine.TranslateCore;
+using PhoenixEngine.Language;
 
 namespace PhoenixEngine.ADO
 {

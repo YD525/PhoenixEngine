@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
-using PhoenixEngine.PlatformManagement;
+using PhoenixEngine.Platform;
 using PhoenixEngine.Translate;
 
 namespace PhoenixEngine.Engine

@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using PhoenixEngine.Engine;
-using PhoenixEngine.EngineManagement;
 using PhoenixEngine.EngineManagement.Engine;
-using PhoenixEngine.TranslateCore;
+using PhoenixEngine.Language;
 using PhoenixEngine.Unit;
-using static PhoenixEngine.TranslateCore.LanguageHelper;
+using static PhoenixEngine.Language.LanguageHelper;
 
 namespace PhoenixEngine.Sequence
 {
