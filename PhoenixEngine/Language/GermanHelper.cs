@@ -2,7 +2,7 @@
 
 namespace PhoenixEngine.Language
 {
-    public static class GermanHelper
+    internal static class GermanHelper
     {
         // Matches German special characters with umlauts and sharp s (ß)
         private static readonly Regex GermanCharRegex = new Regex("[äöüß]", RegexOptions.Compiled | RegexOptions.IgnoreCase);

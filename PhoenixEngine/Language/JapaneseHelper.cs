@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace PhoenixEngine.Language
 {
-    public class JapaneseHelper
+    internal class JapaneseHelper
     {
         // Matches kana characters and Japanese-specific symbols (hiragana, katakana, extended kana, half-width kana, and some kanji symbols)
         private static readonly Regex JapaneseCharRegex = new Regex(@"[\u3040-\u30FF\u31F0-\u31FF\uFF66-\uFF9F々〆ヵヶ]", RegexOptions.Compiled);

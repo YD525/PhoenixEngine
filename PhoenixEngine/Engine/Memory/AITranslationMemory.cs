@@ -66,7 +66,7 @@ namespace PhoenixEngine.Memory
         {
             // Auto detect source
             if (SourceLang == Languages.Auto)
-                SourceLang = LanguageHelper.DetectLanguageByLine(Original);
+                SourceLang = P_Language.DetectLanguageByLine(Original);
 
             if (TargetLang == Languages.Auto)
                 throw new InvalidOperationException("TargetLang cannot be Auto when deleting.");
@@ -121,10 +121,10 @@ namespace PhoenixEngine.Memory
         {
             // detect languages
             if (SourceLang == Languages.Auto)
-                SourceLang = LanguageHelper.DetectLanguageByLine(Original);
+                SourceLang = P_Language.DetectLanguageByLine(Original);
 
             if (TargetLang == Languages.Auto)
-                TargetLang = LanguageHelper.DetectLanguageByLine(Translated);
+                TargetLang = P_Language.DetectLanguageByLine(Translated);
 
             lock (Locker)
             {
@@ -181,11 +181,11 @@ namespace PhoenixEngine.Memory
         {
             // Auto detect source
             if (SourceLang == Languages.Auto)
-                SourceLang = LanguageHelper.DetectLanguageByLine(Original);
+                SourceLang = P_Language.DetectLanguageByLine(Original);
 
             // Auto detect target
             if (TargetLang == Languages.Auto)
-                TargetLang = LanguageHelper.DetectLanguageByLine(Translated);
+                TargetLang = P_Language.DetectLanguageByLine(Translated);
 
             lock (Locker)
             {
@@ -301,7 +301,7 @@ namespace PhoenixEngine.Memory
                                                      int ContextLength)
         {
             if (SourceLang == Languages.Auto)
-                SourceLang = LanguageHelper.DetectLanguageByLine(Query);
+                SourceLang = P_Language.DetectLanguageByLine(Query);
 
             if (TargetLang == Languages.Auto)
                 throw new InvalidOperationException("TargetLang cannot be Auto when finding context.");
@@ -369,7 +369,7 @@ namespace PhoenixEngine.Memory
         private HashSet<string> Tokenize(Languages Lang, string Text)
         {
             if (Lang == Languages.Auto)
-                Lang = LanguageHelper.DetectLanguageByLine(Text);
+                Lang = P_Language.DetectLanguageByLine(Text);
 
             return TextTokenizer.BuildTokenSignature(Lang, Text);
         }

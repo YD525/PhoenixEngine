@@ -33,7 +33,7 @@ namespace PhoenixEngine.Additional
             Action PlaySoundAction = new Action(() => {
                 try
                 {
-                    Languages Lang = LanguageHelper.DetectLanguageByLine(Text);
+                    Languages Lang = P_Language.DetectLanguageByLine(Text);
                     lock (VoiceLock)
                     {
                         if (VoiceInstance == null)

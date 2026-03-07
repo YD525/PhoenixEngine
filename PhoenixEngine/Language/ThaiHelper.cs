@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace PhoenixEngine.Language
 {
 
-    public static class ThaiHelper
+    internal static class ThaiHelper
     {
         private static readonly string[] ThaiKeywords = new[]
         {

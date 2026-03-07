@@ -49,7 +49,7 @@ namespace PhoenixEngine.Platform
             try
             {
                 DeepLItem NDeepLItem = new DeepLItem();
-                NDeepLItem.target_lang = LanguageHelper.ToLanguageCode(ToLang).ToUpper();
+                NDeepLItem.target_lang = P_Language.ToLanguageCode(ToLang).ToUpper();
                 string TransSource = Source.GenContent();
                 NDeepLItem.text = new List<string>() { TransSource };
 

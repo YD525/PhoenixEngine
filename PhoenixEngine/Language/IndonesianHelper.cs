@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace PhoenixEngine.Language
 {
-    public static class IndonesianHelper
+    internal static class IndonesianHelper
     {
         // Common Indonesian function words: conjunctions, prepositions, demonstratives, etc.
         private static readonly string[] IndonesianKeywords = new[]

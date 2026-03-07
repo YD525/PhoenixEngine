@@ -379,7 +379,7 @@ namespace PhoenixEngine.Engine
 
                 if (From == Languages.Auto)
                 {
-                    From = LanguageHelper.DetectLanguageByLine(GetSource);
+                    From = P_Language.DetectLanguageByLine(GetSource);
                 }
 
                 int MaxTranslationAttempts = Phoenix.Config.MaxTranslationAttempts;

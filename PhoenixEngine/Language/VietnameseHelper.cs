@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace PhoenixEngine.Language
 {
-    public static class VietnameseHelper
+    internal static class VietnameseHelper
     {
         // Common Vietnamese function words: articles, pronouns, conjunctions, etc.
         private static readonly string[] VietnameseKeywords = new[]

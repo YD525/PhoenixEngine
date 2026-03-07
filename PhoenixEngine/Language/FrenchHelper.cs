@@ -2,7 +2,7 @@
 
 namespace PhoenixEngine.Language
 {
-    public static class FrenchHelper
+    internal static class FrenchHelper
     {
         // Matches common French function words: articles, pronouns, verbs, conjunctions, question words, etc.
         private static readonly Regex FrenchKeywordRegex = new Regex(

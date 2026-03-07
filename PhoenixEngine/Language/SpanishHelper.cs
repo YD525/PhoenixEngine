@@ -2,7 +2,7 @@
 
 namespace PhoenixEngine.Language
 {
-    public static class SpanishHelper
+    internal static class SpanishHelper
     {
         // Matches common Spanish function words: articles, conjunctions, prepositions, verbs, negatives, pronouns, etc.
         private static readonly Regex SpanishKeywordRegex = new Regex(

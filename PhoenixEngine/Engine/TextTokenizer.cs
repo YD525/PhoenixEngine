@@ -104,7 +104,7 @@ namespace PhoenixEngine.Engine
         {
             if (Lang == Languages.Auto)
             {
-                Lang = LanguageHelper.DetectLanguageByLine(Text);
+                Lang = P_Language.DetectLanguageByLine(Text);
             }
 
             Text = Text.Replace('_', ' ').Replace('-', ' ');

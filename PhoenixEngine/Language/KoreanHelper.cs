@@ -2,7 +2,7 @@
 
 namespace PhoenixEngine.Language
 {
-    public class KoreanHelper
+    internal class KoreanHelper
     {
         // Matches modern Hangul syllables in the Unicode range U+AC00 to U+D7AF
         private static readonly Regex KoreanRegex = new Regex("[\uac00-\ud7af]+", RegexOptions.Compiled);

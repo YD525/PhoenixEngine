@@ -26,15 +26,15 @@ namespace PhoenixEngine.Platform
             if (From == Languages.Auto)
             {
                 Prompt.AppendLine(
-                    $"Translate the following text to {LanguageHelper.ToLanguageCode(To)}. " +
+                    $"Translate the following text to {P_Language.ToLanguageCode(To)}. " +
                     "The source language will be automatically detected."
                 );
             }
             else
             {
                 Prompt.AppendLine(
-                    $"Translate the following text from {LanguageHelper.ToLanguageCode(From)} " +
-                    $"to {LanguageHelper.ToLanguageCode(To)}."
+                    $"Translate the following text from {P_Language.ToLanguageCode(From)} " +
+                    $"to {P_Language.ToLanguageCode(To)}."
                 );
             }
 

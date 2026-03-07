@@ -134,7 +134,7 @@
     <Compile Include="Engine\ChunkHelper.cs" />
     <Compile Include="Engine\ADO\CloudDBCache.cs" />
     <Compile Include="Additional\FontColorFinder.cs" />
-    <Compile Include="Language\LanguageHelper.cs" />
+    <Compile Include="Language\Lang\Language.cs" />
     <Compile Include="Engine\ADO\LocalDBCache.cs" />
     <Compile Include="Additional\SpeechHelper.cs" />
     <Compile Include="Engine\TextTokenizer.cs" />

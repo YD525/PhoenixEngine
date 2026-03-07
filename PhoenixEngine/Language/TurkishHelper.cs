@@ -2,7 +2,7 @@
 
 namespace PhoenixEngine.Language
 {
-    public static class TurkishHelper
+    internal static class TurkishHelper
     {
         // Matches common Turkish function words: conjunctions, pronouns, question particles, etc.
         private static readonly Regex TurkishKeywordRegex = new Regex(

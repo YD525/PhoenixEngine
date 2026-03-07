@@ -225,11 +225,11 @@ namespace PhoenixEngine.Platform
         }
         public void SetFrom(Languages From)
         {
-            this.From = LanguageHelper.ToLanguageCode(From);
+            this.From = P_Language.ToLanguageCode(From);
         }
         public void SetTo(Languages To)
         {
-            this.To = LanguageHelper.ToLanguageCode(To);
+            this.To = P_Language.ToLanguageCode(To);
         }
 
         public void SetApiKey(string ApiKey)

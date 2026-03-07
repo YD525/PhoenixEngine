@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace PhoenixEngine.Language
 {
-    public static class PersianHelper
+    internal static class PersianHelper
     {
         // Common Persian function words / particles
         private static readonly string[] PersianKeywords = new[]

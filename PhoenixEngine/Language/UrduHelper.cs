@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace PhoenixEngine.Language
 {
-    public static class UrduHelper
+    internal static class UrduHelper
     {
         private static readonly Regex UrduCharRegex = new Regex(@"[\u0600-\u06FF]", RegexOptions.Compiled);
 

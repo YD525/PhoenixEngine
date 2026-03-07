@@ -2,7 +2,7 @@
 
 namespace PhoenixEngine.Language
 {
-    public static class EnglishHelper
+    internal static class EnglishHelper
     {
         // Matches English letters (a-z, A-Z), digits, whitespace, and common English punctuation marks.
         // Excludes accented characters (like é, ü etc.) to avoid误判其他语言

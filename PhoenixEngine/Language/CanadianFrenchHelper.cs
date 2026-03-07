@@ -2,7 +2,7 @@
 
 namespace PhoenixEngine.Language
 {
-    public static class CanadianFrenchHelper
+    internal static class CanadianFrenchHelper
     {
         // Matches common Quebecois (Canadian French) colloquial and slang words/expressions
         private static readonly Regex CanadianFrenchKeywordRegex = new Regex(

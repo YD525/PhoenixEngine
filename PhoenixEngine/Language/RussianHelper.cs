@@ -2,7 +2,7 @@
 
 namespace PhoenixEngine.Language
 {
-    public static class RussianHelper
+    internal static class RussianHelper
     {
         // Matches Cyrillic characters in the range U+0400 to U+04FF
         private static readonly Regex RussianRegex = new Regex(@"[\u0400-\u04FF]", RegexOptions.Compiled);

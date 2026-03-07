@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace PhoenixEngine.Language
 {
-    public static class ItalianHelper
+    internal static class ItalianHelper
     {
         // Common Italian function words: articles, conjunctions, prepositions, verbs, etc.
         private static readonly string[] ItalianKeywords = new[]

@@ -2,7 +2,7 @@
 
 namespace PhoenixEngine.Language
 {
-    public static class PortugueseHelper
+    internal static class PortugueseHelper
     {
         // Matches common Portuguese (both European and Brazilian) function words, pronouns, verbs, conjunctions, etc.
         private static readonly Regex PortugueseKeywordRegex = new Regex(

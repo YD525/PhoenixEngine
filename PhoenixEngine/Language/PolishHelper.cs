@@ -2,7 +2,7 @@
 
 namespace PhoenixEngine.Language
 {
-    public static class PolishHelper
+    internal static class PolishHelper
     {
         // Matches common Polish function words: conjunctions, prepositions, pronouns, verbs, particles, etc.
         private static readonly Regex PolishKeywordRegex = new Regex(

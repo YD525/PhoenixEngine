@@ -2,7 +2,7 @@
 
 namespace PhoenixEngine.Language
 {
-    public static class UkrainianHelper
+    internal static class UkrainianHelper
     {
         // Matches Ukrainian-specific characters: Ґ ґ Є є І і Ї ї
         private static readonly Regex UkrainianRegex = new Regex(@"[ґҐєЄіІїЇ]", RegexOptions.Compiled);

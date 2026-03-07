@@ -5,7 +5,7 @@ using PhoenixEngine.Engine;
 using PhoenixEngine.EngineManagement.Engine;
 using PhoenixEngine.Language;
 using PhoenixEngine.Unit;
-using static PhoenixEngine.Language.LanguageHelper;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace PhoenixEngine.Sequence
 {
@@ -30,16 +30,14 @@ namespace PhoenixEngine.Sequence
             }
             else
             {
-                FileLanguageDetect LangDetecter = new FileLanguageDetect();
+                LanguageDetector Detector = new LanguageDetector();
 
                 for (int i = 0; i < this.Units.Count; i++)
                 {
-                    LangDetecter.DetectLanguageByFile(this.Units[i].Original);
+                    P_Language.DetectLanguage(ref Detector,this.Units[i].Original);
                 }
 
-                this.DetectSourceLang = LangDetecter.GetLang();
-
-                LangDetecter = null;
+                this.DetectSourceLang = Detector.GetMaxLang();
             }
 
             return this.DetectSourceLang;

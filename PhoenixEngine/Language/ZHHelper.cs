@@ -2,7 +2,7 @@
 
 namespace PhoenixEngine.Language
 {
-    public static class ZHHelper
+    internal static class ZHHelper
     {
         // Matches CJK Unified Ideographs block (mainly simplified Chinese characters)
         private static readonly Regex ChineseRegex = new Regex("[\u4e00-\u9fff]+", RegexOptions.Compiled);

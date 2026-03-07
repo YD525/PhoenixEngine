@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace PhoenixEngine.Language
 {
-    public static class HindiHelper
+    internal static class HindiHelper
     {
         private static readonly Regex HindiCharRegex = new Regex(@"\p{IsDevanagari}", RegexOptions.Compiled);
 

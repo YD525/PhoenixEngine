@@ -40,7 +40,47 @@ namespace PhoenixEngine.Language
         Korean = 53,
         Thai = 55
     }
-    public static class LanguageConverter
+    public class LanguageDetector
+    {
+        public Dictionary<Languages, double> Array = new Dictionary<Languages, double>();
+
+        public void Add(Languages Lang)
+        {
+            if (Array.ContainsKey(Lang))
+            {
+                Array[Lang] = Array[Lang] + 1;
+            }
+            else
+            {
+                Array.Add(Lang, 1);
+            }
+        }
+
+        public void Add(Languages Lang, double Ratio)
+        {
+            if (Array.ContainsKey(Lang))
+            {
+                Array[Lang] = Array[Lang] + Ratio;
+            }
+            else
+            {
+                Array.Add(Lang, Ratio);
+            }
+        }
+
+
+        public Languages GetMaxLang()
+        {
+            if (Array.Count > 0)
+            {
+                return Array
+                  .OrderByDescending(kv => kv.Value)
+                  .First().Key;
+            }
+            return Languages.English;
+        }
+    }
+    public static class P_Language
     {
         private static readonly Dictionary<Languages, string> LanguageCodeMap = new Dictionary<Languages, string>()
         {
@@ -71,7 +111,7 @@ namespace PhoenixEngine.Language
         };
 
         private static readonly Dictionary<string, Languages> CodeToLanguageMap = new Dictionary<string, Languages>(StringComparer.OrdinalIgnoreCase);
-        static LanguageConverter()
+        static P_Language()
         {
             foreach (var pair in LanguageCodeMap)
             {
@@ -81,12 +121,10 @@ namespace PhoenixEngine.Language
                 }
             }
         }
-
         public static string ToLanguageCode(Languages lang)
         {
             return LanguageCodeMap.TryGetValue(lang, out var code) ? code : "";
         }
-
         public static Languages FromLanguageCode(string code)
         {
             if (string.IsNullOrWhiteSpace(code))
@@ -94,22 +132,7 @@ namespace PhoenixEngine.Language
 
             return CodeToLanguageMap.TryGetValue(code, out var lang) ? lang : Languages.Null;
         }
-    }
-
-    public class LanguageHelper
-    {
-        public static string ToLanguageCode(Languages Lang)
-        {
-            return LanguageConverter.ToLanguageCode(Lang);
-        }
-
-        public static Languages FromLanguageCode(string Code)
-        {
-            Languages Lang = LanguageConverter.FromLanguageCode(Code);
-            return Lang;
-        }
-
-        public static void DetectLanguage(ref LanguageDetect OneDetect, string Str)
+        public static void DetectLanguage(ref LanguageDetector OneDetect, string Str)
         {
             if (string.IsNullOrWhiteSpace(Str))
                 return;
@@ -137,7 +160,7 @@ namespace PhoenixEngine.Language
             {
                 var GetResult = ChineseVariantMap.CheckLangType(Str);
 
-                if (GetResult == ZHType.Traditional)  
+                if (GetResult == ZHType.Traditional)
                 {
                     OneDetect.Add(Languages.TraditionalChinese, 0.02);
                 }
@@ -235,33 +258,16 @@ namespace PhoenixEngine.Language
                 OneDetect.Add(Languages.English);
             }
         }
-
         public static Languages DetectLanguageByLine(string String)
         {
-            LanguageDetect OneDetect = new LanguageDetect();
+            LanguageDetector OneDetect = new LanguageDetector();
+
             DetectLanguage(ref OneDetect, String);
             return OneDetect.GetMaxLang();
         }
-
-        public class FileLanguageDetect
-        {
-            LanguageDetect LanguageDetectItem = new LanguageDetect();
-
-            public void DetectLanguageByFile(string Line)
-            {
-                DetectLanguage(ref LanguageDetectItem, Line);
-            }
-
-            public Languages GetLang()
-            {
-                return LanguageDetectItem.GetMaxLang();
-            }
-        }
-       
-
         public static Languages DetectLanguageByContent(string Text)
         {
-            LanguageDetect OneDetect = new LanguageDetect();
+            LanguageDetector OneDetect = new LanguageDetector();
 
             foreach (var GetLine in Text.Split(new char[2] { '\r', '\n' }))
             {
@@ -273,47 +279,5 @@ namespace PhoenixEngine.Language
 
             return OneDetect.GetMaxLang();
         }
-
-        public class LanguageDetect
-        {
-            public Dictionary<Languages, double> Array = new Dictionary<Languages, double>();
-
-            public void Add(Languages Lang)
-            {
-                if (Array.ContainsKey(Lang))
-                {
-                    Array[Lang] = Array[Lang] + 1;
-                }
-                else
-                {
-                    Array.Add(Lang, 1);
-                }
-            }
-
-            public void Add(Languages Lang,double Ratio)
-            {
-                if (Array.ContainsKey(Lang))
-                {
-                    Array[Lang] = Array[Lang] + Ratio;
-                }
-                else
-                {
-                    Array.Add(Lang, Ratio);
-                }
-            }
-
-
-            public Languages GetMaxLang()
-            {
-                if (Array.Count > 0)
-                {
-                    return Array
-                      .OrderByDescending(kv => kv.Value)
-                      .First().Key;
-                }
-                return Languages.English;
-            }
-        }
-
     }
 }
