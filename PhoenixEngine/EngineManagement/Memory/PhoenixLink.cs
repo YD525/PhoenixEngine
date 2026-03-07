@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Web.UI.WebControls;
 
 namespace PhoenixEngine.EngineManagement.Memory
 {
@@ -10,7 +11,7 @@ namespace PhoenixEngine.EngineManagement.Memory
         public P_Link<T> Next = null;
         public P_Link<T> Prev = null;
         private P_Link<T> Tail = null;
-      
+
         public P_Link<T> GetTail()
         {
             return Tail ?? this;
@@ -172,79 +173,90 @@ namespace PhoenixEngine.EngineManagement.Memory
             return Result;
         }
     }
-    public class P_DictLink<TKey,TValue>
+    public class P_DictLink<TKey, TValue>
     {
-        private object QueryLock = new object();                   
-        private Dictionary<TKey,int> DictData = new Dictionary<TKey,int>();
+        private object DictLock = new object();
+        private object CacheLock = new object();
 
+        private Dictionary<TKey, int> DictData = new Dictionary<TKey, int>();
         private Dictionary<TValue, int> CacheDict = new Dictionary<TValue, int>();
         private List<TValue> CacheList = new List<TValue>();
-
         private int AddData(TValue Data)
         {
-            lock (QueryLock)
+            lock (CacheLock)
             {
-                int Index = 0;
-
-                if (CacheDict.TryGetValue(Data, out Index))
-                {
+                if (CacheDict.TryGetValue(Data, out var Index))
                     return Index;
-                }
-                else
-                {
-                    Index = CacheList.Count;
-                    CacheList.Add(Data);
-                    CacheDict.Add(Data, Index);
 
-                    return Index;
-                }
+                Index = CacheList.Count;
+                CacheList.Add(Data);
+                CacheDict.Add(Data, Index);
+                return Index;
             }
         }
         public TValue this[TKey Key]
         {
             get
             {
-                lock (QueryLock)
+                int Index;
+                lock (DictLock)
                 {
-                    if (DictData.TryGetValue(Key, out var Value))
-                    {
-                        return CacheList[Value];
-                    }
+                    if (!DictData.TryGetValue(Key, out Index))
+                        return default;
+                }
 
-                    return default;
+                lock (CacheLock)
+                {
+                    return CacheList[Index];
                 }
             }
             set
             {
-                lock (QueryLock)
+                int Index = AddData(value);
+
+                lock (DictLock)
                 {
-                    DictData[Key] = AddData(value);
+                    DictData[Key] = Index;
                 }
             }
         }
-       
-
-        public Action<TKey, TValue> LinkCheck = null;
-        public void CheckLinks()
+        public void CheckLinks(Action<TKey, TValue> LinkCheck)
         {
-            if (LinkCheck != null)
+            if (LinkCheck == null) return;
+
+            Dictionary<TKey, int> SnapshotDict;
+            List<TValue> SnapshotCache;
+
+            lock (DictLock)
+                SnapshotDict = new Dictionary<TKey, int>(DictData);
+
+            lock (CacheLock)
+                SnapshotCache = new List<TValue>(CacheList);
+
+            foreach (var KV in SnapshotDict)
             {
-                lock (QueryLock)
-                {
-                    foreach (var KV in DictData)
-                    {
-                       
-                    }
-                }
+                TValue Value = SnapshotCache[KV.Value];
+                LinkCheck.Invoke(KV.Key, Value);
             }
+        }
+        public void Add(TKey Key, TValue Value)
+        {
+            int Index = 0;
+
+            lock (CacheLock)
+                Index = AddData(Value);
+
+            lock (DictLock)
+                DictData.Add(Key, Index);
         }
         public void Clear()
         {
-            lock (QueryLock)
+            lock (DictLock)
+                DictData.Clear();
+            lock (CacheLock)
             {
-                this.DictData.Clear();
-                this.CacheDict.Clear();
-                this.CacheList.Clear();
+                CacheDict.Clear();
+                CacheList.Clear();
             }
         }
     }
@@ -252,7 +264,7 @@ namespace PhoenixEngine.EngineManagement.Memory
     {
         public void Test()
         {
-            P_DictLink<string,string> SetLink = new P_DictLink<string, string>();
+            P_DictLink<string, string> SetLink = new P_DictLink<string, string>();
             //                    //Key
             //var Find = SetLink["XXXXXXXXXXXXXXXXXX"];
             //              //FileName ,   Key
