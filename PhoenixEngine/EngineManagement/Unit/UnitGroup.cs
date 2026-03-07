@@ -1,15 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using System.Threading;
-using PhoenixEngine.ConvertManager;
-using PhoenixEngine.DelegateManagement;
-using PhoenixEngine.EngineManagement.Engine;
-using PhoenixEngine.TranslateManage;
-using PhoenixEngine.TranslateManagement;
-using static PhoenixEngine.DelegateManagement.EngineEvents;
+﻿
 
-namespace PhoenixEngine.EngineManagement.Unit
+using System.Collections.Generic;
+using PhoenixEngine.Sequence;
+using PhoenixEngine.Memory;
+using System.Text.RegularExpressions;
+using PhoenixEngine.ConvertManager;
+using PhoenixEngine.Events;
+using static PhoenixEngine.Events.EngineEvents;
+using PhoenixEngine.EngineManagement.Engine;
+
+namespace PhoenixEngine.Unit
 {
     public class NeedConfirm
     {

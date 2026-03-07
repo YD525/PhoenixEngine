@@ -2,14 +2,13 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
-using PhoenixEngine.DelegateManagement;
 using PhoenixEngine.EngineManagement;
 using PhoenixEngine.EngineManagement.Engine;
-using PhoenixEngine.EngineManagement.EThread;
-using PhoenixEngine.EngineManagement.Sequence;
-using PhoenixEngine.EngineManagement.Unit;
+using PhoenixEngine.Events;
+using PhoenixEngine.PThread;
+using PhoenixEngine.Sequence;
 using PhoenixEngine.TranslateCore;
-using PhoenixEngine.TranslateManagement;
+using PhoenixEngine.Unit;
 
 namespace PhoenixEngine.TranslateManage
 {
@@ -29,7 +28,7 @@ namespace PhoenixEngine.TranslateManage
 
         public Translator TranslatorRef = null;
 
-        public PhoenixThreadPool<UnitGroup> TrdPool = null;
+        public P_ThreadPool<UnitGroup> TrdPool = null;
 
         public Dictionary<string, string> DequeueCache = new Dictionary<string, string>();
 
@@ -92,9 +91,9 @@ namespace PhoenixEngine.TranslateManage
 
         public Thread TransMainTrd = null;
 
-        private PhoenixThread<T> CreatePhoenixThread<T>(PhoenixThreadPool<T> PoolRef, T DataRef, Action<T> Job, Action<T> Destroyed) where T : class
+        private P_Thread<T> CreatePhoenixThread<T>(P_ThreadPool<T> PoolRef, T DataRef, Action<T> Job, Action<T> Destroyed) where T : class
         {
-            PhoenixThread<T> CreateTrd = new PhoenixThread<T>(PoolRef);
+            P_Thread<T> CreateTrd = new P_Thread<T>(PoolRef);
             CreateTrd.SetFunc(Job);
             CreateTrd.RegDestroyed(Destroyed);
             CreateTrd.SetData(DataRef);
@@ -133,7 +132,7 @@ namespace PhoenixEngine.TranslateManage
 
             if (TrdPool == null)
             {
-                TrdPool = new PhoenixThreadPool<UnitGroup>();
+                TrdPool = new P_ThreadPool<UnitGroup>();
                 TrdPool.ConcurrencyLimit = Phoenix.Config.MaxThreadCount;
             }
 

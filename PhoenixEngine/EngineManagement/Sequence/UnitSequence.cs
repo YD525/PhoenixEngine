@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
-using PhoenixEngine.EngineManagement.Unit;
+using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
 using PhoenixEngine.TranslateManagement;
+using PhoenixEngine.Unit;
 using static PhoenixEngine.EngineManagement.DataTransmission;
 
-namespace PhoenixEngine.EngineManagement
+namespace PhoenixEngine.Sequence
 {
     public enum AggregationMode
     {

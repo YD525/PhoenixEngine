@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using PhoenixEngine.TranslateManagement;
+using PhoenixEngine.Unit;
 using static PhoenixEngine.TranslateManagement.ChunkHelper;
 
 namespace PhoenixEngine.GameManagement

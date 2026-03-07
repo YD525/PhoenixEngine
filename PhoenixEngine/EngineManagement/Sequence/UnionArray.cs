@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using PhoenixEngine.EngineManagement;
 using PhoenixEngine.EngineManagement.Engine;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManagement;
+using PhoenixEngine.Unit;
 using static PhoenixEngine.TranslateCore.LanguageHelper;
 
-namespace PhoenixEngine.EngineManagement.Sequence
+namespace PhoenixEngine.Sequence
 {
     public class UnionArray
     {

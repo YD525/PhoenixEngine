@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
-using PhoenixEngine.EngineManagement.Sequence;
-using PhoenixEngine.EngineManagement.Unit;
 using PhoenixEngine.GameManagement;
+using PhoenixEngine.Sequence;
 using PhoenixEngine.TranslateManage;
-using PhoenixEngine.TranslateManagement;
+using PhoenixEngine.Unit;
 
 namespace PhoenixEngine.EngineManagement.Engine
 {

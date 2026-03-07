@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using PhoenixEngine.DelegateManagement;
+using PhoenixEngine.Events;
 using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
 

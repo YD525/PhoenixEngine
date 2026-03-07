@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
-using PhoenixEngine.EngineManagement.Unit;
-using PhoenixEngine.TranslateManagement;
+using PhoenixEngine.Unit;
 
-namespace PhoenixEngine.DelegateManagement
+namespace PhoenixEngine.Events
 {
     public class EngineEvents
     {

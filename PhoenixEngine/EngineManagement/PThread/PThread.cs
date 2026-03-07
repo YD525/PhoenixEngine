@@ -2,15 +2,15 @@
 using System.Collections.Generic;
 using System.Threading;
 
-namespace PhoenixEngine.EngineManagement.EThread
+namespace PhoenixEngine.PThread
 {
     public enum WorkState
     {
         Null = 0, WaitToCreated = 1, Working = 2, WorkEnd = 3
     }
-    public class PhoenixThreadPool<T> where T : class
+    public class P_ThreadPool<T> where T : class
     {
-        private List<PhoenixThread<T>> Threads = new List<PhoenixThread<T>>();
+        private List<P_Thread<T>> Threads = new List<P_Thread<T>>();
         public int ConcurrencyLimit = 0;
         public object SyncLock = new object();
 
@@ -48,7 +48,7 @@ namespace PhoenixEngine.EngineManagement.EThread
         {
             lock (SyncLock)
             {
-                List<PhoenixThread<T>> WaitDeletes = new List<PhoenixThread<T>>();
+                List<P_Thread<T>> WaitDeletes = new List<P_Thread<T>>();
 
                 for (int i = 0; i < Threads.Count; i++)
                 {
@@ -85,7 +85,7 @@ namespace PhoenixEngine.EngineManagement.EThread
                 return this.Threads.Count + 1;
             }
         }
-        public bool Put(PhoenixThread<T> ThreadRef, bool Run = true)
+        public bool Put(P_Thread<T> ThreadRef, bool Run = true)
         {
             if (!CanPut)
             {
@@ -145,7 +145,7 @@ namespace PhoenixEngine.EngineManagement.EThread
             }
         }
     }
-    public class PhoenixThread<T>
+    public class P_Thread<T>
     where T : class
     {
         public int ID = 0;
@@ -154,7 +154,7 @@ namespace PhoenixEngine.EngineManagement.EThread
         private T DataRef;
         private Action<T> OnDestroyedFunc;
 
-        public PhoenixThreadPool<T> ThreadPoolRef = null;
+        public P_ThreadPool<T> ThreadPoolRef = null;
 
         public bool SuspendTrd = false;
 
@@ -193,7 +193,7 @@ namespace PhoenixEngine.EngineManagement.EThread
                 }
             }
         }
-        public PhoenixThread(PhoenixThreadPool<T> ThreadPoolRef = null)
+        public P_Thread(P_ThreadPool<T> ThreadPoolRef = null)
         {
             this.ThreadPoolRef = ThreadPoolRef;
 

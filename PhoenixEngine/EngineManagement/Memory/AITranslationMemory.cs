@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web.UI.WebControls;
-using PhoenixEngine.EngineManagement.Unit;
 using PhoenixEngine.TranslateCore;
+using PhoenixEngine.TranslateManage;
 using PhoenixEngine.TranslateManagement;
+using PhoenixEngine.Unit;
 
-namespace PhoenixEngine.TranslateManage
+namespace PhoenixEngine.Memory
 {
     public class AITranslationMemory
     {

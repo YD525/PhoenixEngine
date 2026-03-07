@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.DataBaseManagement;
 using PhoenixEngine.LanguageManagement;
+using PhoenixEngine.Memory;
 using PhoenixEngine.PlatformManagement;
 using PhoenixEngine.RequestManagement;
 using PhoenixEngine.TranslateCore;

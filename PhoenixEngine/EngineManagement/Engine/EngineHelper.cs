@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using PhoenixEngine.TranslateCore;
-using PhoenixEngine.TranslateManage;
 using PhoenixEngine.TranslateManagement;
+using PhoenixEngine.Unit;
 
 namespace PhoenixEngine.EngineManagement.Engine
 {

@@ -1,8 +1,7 @@
-﻿using PhoenixEngine.DelegateManagement;
-using PhoenixEngine.EngineManagement.Unit;
-using static PhoenixEngine.DelegateManagement.EngineEvents;
+﻿using PhoenixEngine.Events;
+using static PhoenixEngine.Events.EngineEvents;
 
-namespace PhoenixEngine.TranslateManagement
+namespace PhoenixEngine.Unit
 {
     public class BaseUnit
     {

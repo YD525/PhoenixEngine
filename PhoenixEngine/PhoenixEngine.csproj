@@ -85,7 +85,7 @@
     <Compile Include="EngineManagement\Phoenix.cs" />
     <Compile Include="EngineManagement\Sequence\UnionArray.cs" />
     <Compile Include="EngineManagement\Sequence\UnitSequence.cs" />
-    <Compile Include="EngineManagement\EThread\PhoenixThread.cs" />
+    <Compile Include="EngineManagement\PThread\PThread.cs" />
     <Compile Include="EngineManagement\Unit\UnitGroup.cs" />
     <Compile Include="EngineManagement\Unit\UnitGroupExtend.cs" />
     <Compile Include="GameManagement\GameHelper.cs" />

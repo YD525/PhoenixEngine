@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace PhoenixEngine.EngineManagement
+namespace PhoenixEngine.Memory
 {
     public class P_Link<T> where T : new()
     {
