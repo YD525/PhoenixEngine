@@ -185,7 +185,7 @@ namespace PhoenixEngine.EngineManagement.Memory
     {
         private object QueryLock = new object();
                          //Leader Units
-        private Dictionary<int, P_Link<T>> DictData = new Dictionary<int, P_Link<T>>();
+        private Dictionary<int, T> DictData = new Dictionary<int, T>();
         private Dictionary<string,int> DictKeys = new Dictionary<string,int>();
         private int ConvertKey(string Key)
         {
@@ -203,27 +203,25 @@ namespace PhoenixEngine.EngineManagement.Memory
                 }
             }
         }
-        public P_Link<T> this[string Key]
+        public T this[string Key]
         {
             get
             {
                 lock (QueryLock)
                 {
-                    CheckLinks();
                     var IntKey = ConvertKey(Key);
                     if (DictData.ContainsKey(IntKey))
                     {
-                        return DictData[IntKey].GetHead();
+                        return DictData[IntKey];
                     }
 
-                    return new P_Link<T>();
+                    return new T();
                 }
             }
             set
             {
                 lock (QueryLock)
                 {
-                    CheckLinks();
                     var IntKey = ConvertKey(Key);
                     if (DictData.ContainsKey(IntKey))
                     {
@@ -233,7 +231,7 @@ namespace PhoenixEngine.EngineManagement.Memory
 
             }
         }
-        public P_Link<T> this[string Key1, string Key2]
+        public T this[string Key1, string Key2]
         {
             get
             {
@@ -241,14 +239,13 @@ namespace PhoenixEngine.EngineManagement.Memory
 
                 lock (QueryLock)
                 {
-                    CheckLinks();
                     var IntKey = ConvertKey(MergeKey);
                     if (DictData.ContainsKey(IntKey))
                     {
-                        return DictData[IntKey].GetHead();
+                        return DictData[IntKey];
                     }
 
-                    return new P_Link<T>();
+                    return new T();
                 }
             }
             set
@@ -257,7 +254,6 @@ namespace PhoenixEngine.EngineManagement.Memory
 
                 lock (QueryLock)
                 {
-                    CheckLinks();
                     var IntKey = ConvertKey(MergeKey);
                     if (DictData.ContainsKey(IntKey))
                     {
@@ -268,12 +264,12 @@ namespace PhoenixEngine.EngineManagement.Memory
             }
         }
 
-        public Action<string, P_Link<T>> LinkCheck = null;
+        public Action<string, T> LinkCheck = null;
         public void CheckLinks()
         {
             if (LinkCheck != null)
             {
-                foreach (var GetItem in new Dictionary<int, P_Link<T>>(DictData))
+                foreach (var GetItem in new Dictionary<int, T>(DictData))
                 {
                     string RealKey = "";
 
@@ -292,7 +288,6 @@ namespace PhoenixEngine.EngineManagement.Memory
             }
         }
     }
-
     public class LinkTest
     {
         public void Test()
