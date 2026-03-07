@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using PhoenixEngine.PlatformManagement.LocalAI;
 
 namespace PhoenixEngine.EngineManagement.Memory
 {
@@ -26,7 +21,8 @@ namespace PhoenixEngine.EngineManagement.Memory
         }
         public void Remove()
         {
-            var Head = GetHead();
+            if (Prev == null && Next == null && Head == null && Tail == null)
+                return;
 
             if (Prev != null)
                 Prev.Next = Next;
@@ -34,33 +30,28 @@ namespace PhoenixEngine.EngineManagement.Memory
             if (Next != null)
                 Next.Prev = Prev;
 
-            if (this == Head)
-            {
-                if (Next != null)
-                {
-                    Next.Tail = this.Tail;
-                    Next.Head = null;
+            if (Head != null && this == Head.Tail)
+                Head.Tail = Prev;
 
-                    var Node = Next.Next;
-                    while (Node != null)
-                    {
-                        Node.Head = Next;
-                        Node = Node.Next;
-                    }
+            if (Head == null && Next != null)
+            {
+                Next.Head = null;
+                Next.Tail = Tail;
+
+                var Node = Next.Next;
+                while (Node != null)
+                {
+                    Node.Head = Next;
+                    Node = Node.Next;
                 }
             }
-            else
-            if (this == Head.Tail)
-            {
-                Head.Tail = Prev;
-            }
 
+            Prev = null;
+            Next = null;
             Head = null;
             Tail = null;
-            Next = null;
-            Prev = null;
         }
-       
+
         public bool HaveValue()
         {
             if (Tail != null)
@@ -187,6 +178,8 @@ namespace PhoenixEngine.EngineManagement.Memory
                          //Leader Units
         private Dictionary<int, T> DictData = new Dictionary<int, T>();
         private Dictionary<string,int> DictKeys = new Dictionary<string,int>();
+
+        private int Seed = 0;
         private int ConvertKey(string Key)
         {
             lock (QueryLock)
@@ -197,7 +190,7 @@ namespace PhoenixEngine.EngineManagement.Memory
                 }
                 else
                 {
-                    int ConvertKey = Key.GetHashCode();
+                    int ConvertKey = Seed++;
                     DictKeys.Add(Key, ConvertKey);
                     return ConvertKey;
                 }
@@ -210,9 +203,10 @@ namespace PhoenixEngine.EngineManagement.Memory
                 lock (QueryLock)
                 {
                     var IntKey = ConvertKey(Key);
-                    if (DictData.ContainsKey(IntKey))
+
+                    if (DictData.TryGetValue(IntKey, out var Value))
                     {
-                        return DictData[IntKey];
+                        return Value;
                     }
 
                     return new T();
@@ -223,12 +217,8 @@ namespace PhoenixEngine.EngineManagement.Memory
                 lock (QueryLock)
                 {
                     var IntKey = ConvertKey(Key);
-                    if (DictData.ContainsKey(IntKey))
-                    {
-                        DictData[IntKey] = value;
-                    }
+                    DictData[IntKey] = value;
                 }
-
             }
         }
         public T this[string Key1, string Key2]
@@ -240,9 +230,10 @@ namespace PhoenixEngine.EngineManagement.Memory
                 lock (QueryLock)
                 {
                     var IntKey = ConvertKey(MergeKey);
-                    if (DictData.ContainsKey(IntKey))
+
+                    if (DictData.TryGetValue(IntKey, out var Value))
                     {
-                        return DictData[IntKey];
+                        return Value;
                     }
 
                     return new T();
@@ -255,10 +246,7 @@ namespace PhoenixEngine.EngineManagement.Memory
                 lock (QueryLock)
                 {
                     var IntKey = ConvertKey(MergeKey);
-                    if (DictData.ContainsKey(IntKey))
-                    {
-                        DictData[IntKey] = value;
-                    }
+                    DictData[IntKey] = value;
                 }
 
             }
@@ -285,6 +273,15 @@ namespace PhoenixEngine.EngineManagement.Memory
                     LinkCheck.Invoke(RealKey,GetItem.Value);
                 }
                 
+            }
+        }
+        public void Clear()
+        {
+            lock (QueryLock)
+            {
+                this.DictData.Clear();
+                this.DictKeys.Clear();
+                Seed = 0;
             }
         }
     }
