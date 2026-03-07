@@ -79,8 +79,8 @@
     <Compile Include="Engine\Events\EngineEvents.cs" />
     <Compile Include="Engine\ConfigExtend.cs" />
     <Compile Include="DelegateManagement\DataTransmission.cs" />
-    <Compile Include="Engine\Engine\EngineHelper.cs" />
-    <Compile Include="Engine\Engine\ProcContent.cs" />
+    <Compile Include="Engine\Core\EngineHelper.cs" />
+    <Compile Include="Engine\Core\ProcContent.cs" />
     <Compile Include="Engine\Memory\DataGear.cs" />
     <Compile Include="Engine\Phoenix.cs" />
     <Compile Include="Engine\Sequence\UnionArray.cs" />
@@ -130,8 +130,8 @@
     <Compile Include="Platform\Request\ProxyCenter.cs" />
     <Compile Include="Engine\ADO\AdvancedDictionary.cs" />
     <Compile Include="Engine\Memory\AITranslationMemory.cs" />
-    <Compile Include="Translate\TranslatorCore.cs" />
-    <Compile Include="Engine\ChunkHelper.cs" />
+    <Compile Include="Engine\Translate\TranslatorCore.cs" />
+    <Compile Include="Engine\Unit\UnitChunk.cs" />
     <Compile Include="Engine\ADO\CloudDBCache.cs" />
     <Compile Include="Additional\FontColorFinder.cs" />
     <Compile Include="Language\Lang\Language.cs" />
@@ -142,8 +142,8 @@
     <Compile Include="Engine\TranslationPreprocessor.cs" />
     <Compile Include="Engine\TranslationPreprocessorExtend.cs" />
     <Compile Include="Engine\Unit\BaseUnit.cs" />
-    <Compile Include="Translate\Translator.cs" />
-    <Compile Include="Translate\TranslatorExtend.cs" />
+    <Compile Include="Engine\Translate\Translator.cs" />
+    <Compile Include="Engine\Translate\TranslatorExtend.cs" />
     <Compile Include="Engine\UniqueKeyHelper.cs" />
   </ItemGroup>
   <ItemGroup>

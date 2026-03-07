@@ -8,7 +8,6 @@ using PhoenixEngine.GameManagement;
 using PhoenixEngine.Language;
 using PhoenixEngine.Sequence;
 using PhoenixEngine.Unit;
-using static PhoenixEngine.Engine.ChunkHelper;
 
 namespace PhoenixEngine.Translate
 {

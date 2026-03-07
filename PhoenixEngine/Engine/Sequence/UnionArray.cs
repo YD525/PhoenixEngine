@@ -5,7 +5,6 @@ using PhoenixEngine.Engine;
 using PhoenixEngine.EngineManagement.Engine;
 using PhoenixEngine.Language;
 using PhoenixEngine.Unit;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace PhoenixEngine.Sequence
 {
