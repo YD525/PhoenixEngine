@@ -203,6 +203,7 @@ namespace PhoenixEngine.TranslateManage
                     for (int ir = 0; ir < this.Content.SameItems[i].Units.Count; ir++)
                     {
                         var GetUnit = this.Content.SameItems[i].Units[ir];
+                        var Link = TranslatorRef.GetLink();
 
                         if (GetUnit.Translated.Length > 0)
                         {
@@ -210,7 +211,7 @@ namespace PhoenixEngine.TranslateManage
                             {
                                 TranslatedCount++;
                             }
-                            TranslatorRef.TranslatedLink[GetUnit.Key] = GetUnit.Translated;
+                            
                             CloudDBCache.AddCache(
                                 Phoenix.GetFileUniqueKey(),
                                 GetUnit.Key,
@@ -219,6 +220,8 @@ namespace PhoenixEngine.TranslateManage
                                 GetUnit.Translated
                             );
                             TranslatedQueue.Enqueue(GetUnit);
+
+                            Link[GetUnit.Key] = GetUnit.Translated;
 
                             continue;
                         }
@@ -230,7 +233,7 @@ namespace PhoenixEngine.TranslateManage
                                 TranslatedCount++;
                             }
                             GetUnit.Translated = CacheResult;
-                            TranslatorRef.TranslatedLink[GetUnit.Key] = CacheResult;
+                            
                             CloudDBCache.AddCache(
                                 Phoenix.GetFileUniqueKey(),
                                 GetUnit.Key,
@@ -239,6 +242,8 @@ namespace PhoenixEngine.TranslateManage
                                 GetUnit.Translated
                             );
                             TranslatedQueue.Enqueue(GetUnit);
+
+                            Link[GetUnit.Key] = CacheResult;
                         }
                     }
                 }
@@ -348,8 +353,6 @@ namespace PhoenixEngine.TranslateManage
             Cancel();
             this.Content?.Clear();
             this.TranslatedCount = Phoenix.GetTranslatedCount(Phoenix.GetFileUniqueKey());
-
-            GC.Collect();
         }
 
         public void Close()

@@ -28,8 +28,13 @@ namespace PhoenixEngine.TranslateManage
     
         public readonly object TransDataLocker = new object();
 
-        public Dictionary<string, string> TranslatedLink = new Dictionary<string, string>();
+        private Dictionary<string, string> DataLink = new Dictionary<string, string>();
         public int MaxTry = 10;
+
+        public Dictionary<string, string> GetLink()
+        {
+            return this.DataLink;
+        }
 
         public Translator(Languages SetFrom,Languages SetTo,bool ClearCache)
         {
@@ -78,7 +83,7 @@ namespace PhoenixEngine.TranslateManage
 
         public void ClearCache()
         {
-            TranslatedLink.Clear();
+            DataLink.Clear();
         }
 
         public void ClearAICache()
@@ -269,14 +274,14 @@ namespace PhoenixEngine.TranslateManage
         {
             try
             {
-                for (int i = 0; i < TranslatedLink.Count; i++)
+                for (int i = 0; i < DataLink.Count; i++)
                 {
                     try
                     {
-                        var GetHashKey = TranslatedLink.ElementAt(i).Key;
-                        if (TranslatedLink[GetHashKey].Trim().Length > 0)
+                        var GetHashKey = DataLink.ElementAt(i).Key;
+                        if (DataLink[GetHashKey].Trim().Length > 0)
                         {
-                            TranslationPreprocessor.UnifiedSymbols(this,GetHashKey, TranslatedLink[GetHashKey].Trim());
+                            TranslationPreprocessor.UnifiedSymbols(this,GetHashKey, DataLink[GetHashKey].Trim());
                         }
                     }
                     catch (System.Exception ex)

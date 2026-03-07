@@ -20,7 +20,9 @@ namespace PhoenixEngine.EngineManagement.Unit
                 {
                     BaseUnit GetUnit = Item.Units[i];
 
-                    TranslatorRef.TranslatedLink[GetUnit.Key] = GetUnit.Translated;
+                    var Link = TranslatorRef.GetLink();
+
+                    Link[GetUnit.Key] = GetUnit.Translated;
                 }
             }
         }

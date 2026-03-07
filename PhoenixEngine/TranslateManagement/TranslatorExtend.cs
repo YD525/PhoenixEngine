@@ -17,13 +17,15 @@ namespace PhoenixEngine.TranslateManagement
         {
             lock (Translator.TransDataLocker)
             {
-                if (Translator.TranslatedLink.ContainsKey(Key))
+                var Link = Translator.GetLink();
+
+                if (Link.ContainsKey(Key))
                 {
-                    Translator.TranslatedLink[Key] = Value;
+                    Link[Key] = Value;
                 }
                 else
                 {
-                    Translator.TranslatedLink.Add(Key, Value);
+                    Link.Add(Key, Value);
                 }
             }
         }
@@ -31,9 +33,11 @@ namespace PhoenixEngine.TranslateManagement
         {
             lock (Translator.TransDataLocker)
             {
-                if (Translator.TranslatedLink.ContainsKey(Key))
+                var Link = Translator.GetLink();
+
+                if (Link.ContainsKey(Key))
                 {
-                    return Translator.TranslatedLink[Key];
+                    return Link[Key];
                 }
                 else
                 {
@@ -45,14 +49,15 @@ namespace PhoenixEngine.TranslateManagement
         {
             lock (Translator.TransDataLocker)
             {
-                var GetResult = Translator.GetLink(Key);
+                var Link = Translator.GetLink();
+                var GetResult = Link[Key];
                 if (GetResult != null)
                 {
                     return GetResult;
                 }
                 else
                 {
-                    Translator.TranslatedLink.Add(Key, string.Empty);
+                    Translator.GetLink().Add(Key, string.Empty);
                 }
                 return string.Empty;
             }
@@ -128,15 +133,17 @@ namespace PhoenixEngine.TranslateManagement
         {
             int FileUniqueKey = Phoenix.GetFileUniqueKey();
 
+            var Link = Translator.GetLink();
+
             if (TransText.Trim().Length > 0)
             {
-                Translator.TranslatedLink[Key] = TransText;
+                Link[Key] = TransText;
             }
             else
             {
-                if (Translator.TranslatedLink.ContainsKey(Key))
+                if (Link.ContainsKey(Key))
                 {
-                    Translator.TranslatedLink.Remove(Key);
+                    Link.Remove(Key);
                 }
 
                 CloudDBCache.DeleteCache(FileUniqueKey, Key, Phoenix.To);
@@ -155,9 +162,11 @@ namespace PhoenixEngine.TranslateManagement
         {
             if (TransText.Trim().Length <= 0)
             {
-                if (Translator.TranslatedLink.ContainsKey(Key))
+                var Link = Translator.GetLink();
+
+                if (Link.ContainsKey(Key))
                 {
-                    Translator.TranslatedLink.Remove(Key);
+                    Link.Remove(Key);
                 }
 
                 CloudDBCache.DeleteCache(FileUniqueKey, Key, Phoenix.To);

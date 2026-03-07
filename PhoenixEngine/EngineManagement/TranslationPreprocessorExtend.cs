@@ -13,13 +13,15 @@ namespace PhoenixEngine.TranslateManagement
 
             new TranslationPreprocessor().NormalizePunctuation(ref NewStr);
 
+            var Link = Translator.GetLink();
+
             if (Regex.Replace(NewStr, @"\s+", "").Length > 0)
             {
-                Translator.TranslatedLink[GetKey] = NewStr;
+                Link[GetKey] = NewStr;
             }
             else
             {
-                Translator.TranslatedLink[GetKey] = string.Empty;
+                Link[GetKey] = string.Empty;
             }
         }
         public static string FormatStr(string Content)
