@@ -1,5 +1,4 @@
-﻿
-namespace PhoenixEngine.GameManagement
+﻿namespace PhoenixEngine.GameManagement
 {
     public enum Game
     { 

@@ -1,13 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using PhoenixEngine.EngineManagement;
 using PhoenixEngine.TranslateCore;
+using PhoenixEngine.TranslateManage;
 using PhoenixEngine.TranslateManagement;
 using static PhoenixEngine.EngineManagement.DataTransmission;
 
-namespace PhoenixEngine.TranslateManage
+namespace PhoenixEngine.Engine
 {
     public class ReplaceTag
     {

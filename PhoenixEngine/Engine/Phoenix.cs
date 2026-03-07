@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.DataBaseManagement;
-using PhoenixEngine.Engine;
 using PhoenixEngine.LanguageManagement;
 using PhoenixEngine.Memory;
 using PhoenixEngine.PlatformManagement;
@@ -13,7 +12,7 @@ using PhoenixEngine.TranslateCore;
 using PhoenixEngine.TranslateManage;
 using PhoenixEngine.TranslateManagement;
 
-namespace PhoenixEngine.EngineManagement
+namespace PhoenixEngine.Engine
 {
     public class ThreadUsageInfo
     {

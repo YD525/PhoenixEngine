@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using PhoenixEngine.ConvertManager;
 using PhoenixEngine.DataBaseManagement;
-using PhoenixEngine.EngineManagement;
 using PhoenixEngine.Memory;
 
-namespace PhoenixEngine.TranslateManagement
+namespace PhoenixEngine.Engine
 {
     public class UniqueKeyItem
     {

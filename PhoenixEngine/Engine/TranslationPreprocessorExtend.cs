@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Text.RegularExpressions;
-using System.Xml;
 using PhoenixEngine.TranslateManage;
 
-namespace PhoenixEngine.TranslateManagement
+namespace PhoenixEngine.Engine
 {
     public class TranslationPreprocessorExtend
     {

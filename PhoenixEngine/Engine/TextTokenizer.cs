@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using PhoenixEngine.TranslateCore;
 
-namespace PhoenixEngine.TranslateManagement
+namespace PhoenixEngine.Engine
 {
     public static class LanguageExtensions
     {
