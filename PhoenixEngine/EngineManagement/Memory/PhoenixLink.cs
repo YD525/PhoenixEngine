@@ -172,107 +172,70 @@ namespace PhoenixEngine.EngineManagement.Memory
             return Result;
         }
     }
-    public class P_DictLink<T> where T : new()
+    public class P_DictLink<TKey,TValue> where TValue : new()
     {
-        private object QueryLock = new object();
-                         //Leader Units
-        private Dictionary<int, T> DictData = new Dictionary<int, T>();
-        private Dictionary<string,int> DictKeys = new Dictionary<string,int>();
+        private object QueryLock = new object();                   
+        private Dictionary<TKey,int> DictData = new Dictionary<TKey,int>();
 
-        private int Seed = 0;
-        private int ConvertKey(string Key)
+        private Dictionary<TValue, int> CacheDict = new Dictionary<TValue, int>();
+        private List<TValue> CacheList = new List<TValue>();
+
+        private int AddData(TValue Data)
         {
             lock (QueryLock)
             {
-                if (DictKeys.ContainsKey(Key))
+                int Index = 0;
+
+                if (CacheDict.TryGetValue(Data, out Index))
                 {
-                    return DictKeys[Key];
+                    return Index;
                 }
                 else
                 {
-                    int ConvertKey = Seed++;
-                    DictKeys.Add(Key, ConvertKey);
-                    return ConvertKey;
+                    Index = CacheList.Count;
+                    CacheList.Add(Data);
+                    CacheDict.Add(Data, Index);
+
+                    return Index;
                 }
             }
         }
-        public T this[string Key]
+        public TValue this[TKey Key]
         {
             get
             {
                 lock (QueryLock)
                 {
-                    var IntKey = ConvertKey(Key);
-
-                    if (DictData.TryGetValue(IntKey, out var Value))
+                    if (DictData.TryGetValue(Key, out var Value))
                     {
-                        return Value;
+                        return CacheList[Value];
                     }
 
-                    return new T();
+                    return new TValue();
                 }
             }
             set
             {
                 lock (QueryLock)
                 {
-                    var IntKey = ConvertKey(Key);
-                    DictData[IntKey] = value;
+                    DictData[Key] = AddData(value);
                 }
             }
         }
-        public T this[string Key1, string Key2]
-        {
-            get
-            {
-                var MergeKey = Key1 + "_" + Key2;
+       
 
-                lock (QueryLock)
-                {
-                    var IntKey = ConvertKey(MergeKey);
-
-                    if (DictData.TryGetValue(IntKey, out var Value))
-                    {
-                        return Value;
-                    }
-
-                    return new T();
-                }
-            }
-            set
-            {
-                var MergeKey = Key1 + "_" + Key2;
-
-                lock (QueryLock)
-                {
-                    var IntKey = ConvertKey(MergeKey);
-                    DictData[IntKey] = value;
-                }
-
-            }
-        }
-
-        public Action<string, T> LinkCheck = null;
+        public Action<TKey, TValue> LinkCheck = null;
         public void CheckLinks()
         {
             if (LinkCheck != null)
             {
-                foreach (var GetItem in new Dictionary<int, T>(DictData))
+                lock (QueryLock)
                 {
-                    string RealKey = "";
-
-                    foreach (var GetKey in new Dictionary<string, int>(DictKeys))
+                    foreach (var KV in DictData)
                     {
-                        if (GetKey.Value.Equals(GetItem.Key))
-                        {
-                            RealKey = GetKey.Key;
-                            break;
-                        }
+                       
                     }
-
-                    LinkCheck.Invoke(RealKey,GetItem.Value);
                 }
-                
             }
         }
         public void Clear()
@@ -280,8 +243,8 @@ namespace PhoenixEngine.EngineManagement.Memory
             lock (QueryLock)
             {
                 this.DictData.Clear();
-                this.DictKeys.Clear();
-                Seed = 0;
+                this.CacheDict.Clear();
+                this.CacheList.Clear();
             }
         }
     }
@@ -289,11 +252,11 @@ namespace PhoenixEngine.EngineManagement.Memory
     {
         public void Test()
         {
-            P_DictLink<LinkTest> SetLink = new P_DictLink<LinkTest>();
-                                //Key
-            var Find = SetLink["XXXXXXXXXXXXXXXXXX"];
-                          //FileName ,   Key
-            Find = SetLink["XXXXXXXXXXXXXXXXXX",""];
+            //P_DictLink<LinkTest> SetLink = new P_DictLink<LinkTest>();
+            //                    //Key
+            //var Find = SetLink["XXXXXXXXXXXXXXXXXX"];
+            //              //FileName ,   Key
+            //Find = SetLink["XXXXXXXXXXXXXXXXXX",""];
         }
     }
 }
