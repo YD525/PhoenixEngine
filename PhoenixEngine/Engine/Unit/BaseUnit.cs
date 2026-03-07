@@ -1,4 +1,6 @@
-﻿using PhoenixEngine.Events;
+﻿using PhoenixEngine.Engine;
+using System.Collections.Generic;
+using PhoenixEngine.Events;
 using static PhoenixEngine.Events.EngineEvents;
 
 namespace PhoenixEngine.Unit
@@ -90,6 +92,14 @@ namespace PhoenixEngine.Unit
             this.Original = this.RealOriginal;
         }
        
+    }
+
+    public static class BaseUnitExtend
+    {
+        public static HashSet<string> ExtractTokens(this BaseUnit Unit)
+        {
+            return TextTokenizer.BuildTokenSignature(Phoenix.From, Unit.Original, 0);
+        }
     }
 
 }

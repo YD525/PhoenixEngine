@@ -4,13 +4,14 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using PhoenixEngine.Additional;
 using PhoenixEngine.ADO;
+using PhoenixEngine.Engine;
 using PhoenixEngine.Language;
 using PhoenixEngine.Memory;
 using PhoenixEngine.Platform;
 using PhoenixEngine.Request;
 using PhoenixEngine.Translate;
 
-namespace PhoenixEngine.Engine
+namespace PhoenixEngine
 {
     public class ThreadUsageInfo
     {

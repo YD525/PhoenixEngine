@@ -1,12 +1,9 @@
-﻿
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using PhoenixEngine.Sequence;
-using PhoenixEngine.Memory;
 using System.Text.RegularExpressions;
 using PhoenixEngine.Events;
 using static PhoenixEngine.Events.EngineEvents;
-using PhoenixEngine.EngineManagement.Engine;
+using PhoenixEngine.Engine;
 
 namespace PhoenixEngine.Unit
 {

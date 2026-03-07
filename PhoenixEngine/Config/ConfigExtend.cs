@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 using PhoenixEngine.Platform;
 using PhoenixEngine.Translate;
 
-namespace PhoenixEngine.Engine
+namespace PhoenixEngine
 {
     public class CustomPlatformInFo
     {

@@ -2,20 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using PhoenixEngine.Engine;
 using PhoenixEngine.Language;
 using PhoenixEngine.Unit;
 
-namespace PhoenixEngine.EngineManagement.Engine
+namespace PhoenixEngine.Engine
 {
-    public static class BaseUnitExtend
-    {
-        public static HashSet<string> ExtractTokens(this BaseUnit Unit)
-        {
-            return TextTokenizer.BuildTokenSignature(Phoenix.From, Unit.Original, 0);
-        }
-    }
-
     internal class ContextProc
     {
         #region Words Analysis

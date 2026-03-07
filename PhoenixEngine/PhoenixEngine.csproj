@@ -72,17 +72,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ConvertManagement\ConvertHelper.cs" />
+    <Compile Include="Convert\ConvertHelper.cs" />
     <Compile Include="DataBaseManagement\PageHelper.cs" />
     <Compile Include="Engine\ADO\PSQLite.cs" />
     <Compile Include="Engine\ADO\SqlSafeCodec.cs" />
     <Compile Include="Engine\Events\EngineEvents.cs" />
-    <Compile Include="Engine\ConfigExtend.cs" />
+    <Compile Include="Config\ConfigExtend.cs" />
     <Compile Include="DelegateManagement\DataTransmission.cs" />
-    <Compile Include="Engine\Core\EngineHelper.cs" />
+    <Compile Include="Engine\Context\ContextProc.cs" />
     <Compile Include="Engine\Core\ProcContent.cs" />
     <Compile Include="Engine\Memory\DataGear.cs" />
-    <Compile Include="Engine\Phoenix.cs" />
+    <Compile Include="Config\Phoenix.cs" />
     <Compile Include="Engine\Sequence\UnionArray.cs" />
     <Compile Include="Engine\Sequence\UnitSequence.cs" />
     <Compile Include="Engine\Thread\PThread.cs" />
@@ -138,7 +138,7 @@
     <Compile Include="Engine\ADO\LocalDBCache.cs" />
     <Compile Include="Additional\SpeechHelper.cs" />
     <Compile Include="Engine\TextTokenizer.cs" />
-    <Compile Include="Engine\EngineCore.cs" />
+    <Compile Include="Engine\Core\EngineCore.cs" />
     <Compile Include="Engine\TranslationPreprocessor.cs" />
     <Compile Include="Engine\TranslationPreprocessorExtend.cs" />
     <Compile Include="Engine\Unit\BaseUnit.cs" />
