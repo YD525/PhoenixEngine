@@ -6,220 +6,346 @@ using System.Threading;
 
 namespace PhoenixEngine.ADO
 {
-    public class P_SQLite
+    public class P_SQLite : IDisposable
     {
-        private string _SQLPath = null;
-        private SQLiteConnection _SharedConn;
-        private readonly object _ConnLocker = new object();
 
-        /// <summary>
-        /// Enable SQL logging
-        /// </summary>
+        /// <summary>Enable SQL logging</summary>
         public bool EnableSqlOutput { get; set; } = false;
 
-        /// <summary>
-        /// Number of retries if SQLite operation fails (e.g., Busy)
-        /// </summary>
+        /// <summary>Number of retries if SQLite operation fails (e.g., Busy)</summary>
         public int RetryCount { get; set; } = 3;
 
-        /// <summary>
-        /// Delay between retries in milliseconds
-        /// </summary>
+        /// <summary>Delay between retries in milliseconds</summary>
         public int RetryDelay { get; set; } = 200;
 
+
+        private string _SQLPath;
+        private string _ConnStr;
+
+        // Dedicated write connection — serialized via _WriteLock
+        private SQLiteConnection _WriteConn;
+        private readonly object _WriteLock = new object();
+
+        // Reader-writer lock: multiple concurrent reads, exclusive writes
+        // Read ops open their own short-lived connections (WAL allows true parallel reads)
+        private readonly ReaderWriterLockSlim _RWLock = new ReaderWriterLockSlim();
+
+        private bool _Disposed = false;
+
+
+        /// <summary>
+        /// Open database connection, return directly if already open
+        /// </summary>
         public string OpenSQL(string DBPath)
         {
             _SQLPath = DBPath;
-            string ConnStr = $"Data Source={_SQLPath};Pooling=true;Journal Mode=WAL;Synchronous=OFF;BusyTimeout=30000";
 
-            lock (_ConnLocker)
+            // Pooling=true: read connections are short-lived, let the pool reuse them
+            _ConnStr = $"Data Source={_SQLPath};Pooling=true;Journal Mode=WAL;Synchronous=NORMAL;BusyTimeout=30000";
+
+            lock (_WriteLock)
             {
-                if (_SharedConn != null)
-                {
-                    if (_SharedConn.State == ConnectionState.Open) return "true";
-                    _SharedConn.Close();
-                    _SharedConn.Dispose();
-                }
+                if (_WriteConn != null && _WriteConn.State == ConnectionState.Open)
+                    return "true";
 
-                _SharedConn = new SQLiteConnection(ConnStr);
-                _SharedConn.Open();
+                _WriteConn?.Dispose();
+                _WriteConn = new SQLiteConnection(_ConnStr);
+                _WriteConn.Open();
+                ApplyPragmas(_WriteConn); // Apply once on write connection
             }
-
-            EnableSQLiteCache(_SharedConn);
 
             return "true";
         }
 
         /// <summary>
-        /// Enable SQLite high-performance cache and WAL mode
-        /// Call this after opening the connection with OpenSql()
+        /// Apply high-performance PRAGMAs, call once after connection is open
         /// </summary>
-        /// <param name="conn">An already opened SQLiteConnection</param>
-        public void EnableSQLiteCache(SQLiteConnection Connect)
+        private void ApplyPragmas(SQLiteConnection Conn)
         {
-            if (Connect == null || Connect.State != ConnectionState.Open)
-                throw new InvalidOperationException("Connection must be open before enabling cache.");
-
-            using (var CMD = Connect.CreateCommand())
+            using (var CMD = Conn.CreateCommand())
             {
-                // Enable WAL (Write-Ahead Logging) mode for better concurrent read/write performance
+                // WAL mode: allows concurrent reads while writing
                 CMD.CommandText = "PRAGMA journal_mode=WAL;";
                 CMD.ExecuteNonQuery();
 
-                // Set synchronous to NORMAL to improve write performance
-                // Note: this reduces safety on power failure but speeds up writes
+                // NORMAL sync: balance between performance and safety
                 CMD.CommandText = "PRAGMA synchronous=NORMAL;";
                 CMD.ExecuteNonQuery();
 
-                // Set cache size (number of pages), larger cache improves read performance
+                // Cache size (pages), larger cache improves read performance
                 CMD.CommandText = "PRAGMA cache_size=10000;";
                 CMD.ExecuteNonQuery();
 
-                // Store temporary tables in memory to reduce disk IO
+                // Store temp tables in memory, reduce disk IO
                 CMD.CommandText = "PRAGMA temp_store=MEMORY;";
                 CMD.ExecuteNonQuery();
 
-                // Optional: attach an in-memory database as cache (read-only scenarios)
-                // cmd.CommandText = "ATTACH DATABASE ':memory:' AS memdb;";
-                // cmd.ExecuteNonQuery();
+                // Enable foreign key constraints (disabled by default)
+                CMD.CommandText = "PRAGMA foreign_keys=ON;";
+                CMD.ExecuteNonQuery();
             }
 
-            Console.WriteLine("[SQLite] Cache and WAL enabled.");
+            LogSQL("[SQLITE] PRAGMAS APPLIED: WAL / NORMAL / CACHE=10000 / TEMP=MEMORY / FK=ON");
         }
 
-        private SQLiteConnection SharedConn
+        /// <summary>
+        /// Open a short-lived read connection (WAL allows multiple concurrent readers)
+        /// </summary>
+        private SQLiteConnection OpenReadConn()
         {
-            get
-            {
-                if (_SharedConn == null) throw new InvalidOperationException("Database not opened. Call OpenSql() first.");
+            if (string.IsNullOrEmpty(_ConnStr))
+                throw new InvalidOperationException("DATABASE NOT OPENED. CALL OPENSQL() FIRST.");
 
-                if (_SharedConn.State != ConnectionState.Open)
-                {
-                    lock (_ConnLocker)
-                    {
-                        if (_SharedConn.State != ConnectionState.Open)
-                            _SharedConn.Open();
-                    }
-                }
-
-                return _SharedConn;
-            }
+            var Conn = new SQLiteConnection(_ConnStr);
+            Conn.Open();
+            return Conn;
         }
 
-        private void LogSQL(string SQL)
-        {
-            if (EnableSqlOutput)
-            {
-                System.Diagnostics.Debug.WriteLine("[SQLite] " + SQL);
-            }
-        }
-
-        private T ExecuteWithRetry<T>(Func<T> Action)
+        /// <summary>
+        /// Execute action with retry, show error dialog if all retries fail
+        /// </summary>
+        private T ExecuteWithRetry<T>(string SQL, Func<T> Action, T Fallback = default)
         {
             int Attempt = 0;
-            while (true)
+            Exception LastEx = null;
+
+            while (Attempt <= RetryCount)
             {
                 try
                 {
                     return Action();
                 }
-                catch (SQLiteException Ex)
+                catch (SQLiteException Ex) when (
+                    Ex.ResultCode == SQLiteErrorCode.Busy ||
+                    Ex.ResultCode == SQLiteErrorCode.Locked)
                 {
+                    // Database busy / locked, wait and retry
+                    LastEx = Ex;
                     Attempt++;
-                    if (Attempt > RetryCount)
-                        throw;
-
-                    // Optional: only retry for busy/locked errors
-                    if (Ex.ResultCode == SQLiteErrorCode.Busy || Ex.ResultCode == SQLiteErrorCode.Locked)
-                    {
+                    LogSQL($"[RETRY {Attempt}/{RetryCount}] BUSY/LOCKED: {Ex.Message}");
+                    if (Attempt <= RetryCount)
                         Thread.Sleep(RetryDelay);
-                        continue;
-                    }
-                    throw;
+                }
+                catch (Exception Ex)
+                {
+                    // Other errors (syntax, constraint, etc.) no retry, show dialog immediately
+                    LastEx = Ex;
+                    Attempt = RetryCount + 1; // Break out of loop
                 }
             }
+
+            // All retries exhausted, notify user
+            ShowErrorDialog(SQL, LastEx);
+            return Fallback;
         }
 
-        public List<Dictionary<string, object>> ExecuteQuery(string SQL)
+        public static Action<string> OnError = null;
+
+        /// <summary>
+        /// Show error dialog, thread-safe for UI invoke
+        /// </summary>
+        private static void ShowErrorDialog(string SQL, Exception Ex)
+        {
+            string Msg = $"DATABASE OPERATION FAILED, ALL RETRIES EXHAUSTED.\n\n"
+                       + $"ERROR TYPE: {Ex?.GetType().Name}\n"
+                       + $"ERROR MSG:  {Ex?.Message}\n\n"
+                       + $"SQL: {(SQL?.Length > 200 ? SQL.Substring(0, 200) + "…" : SQL)}";
+
+            if (OnError != null)
+            {
+                OnError.Invoke(Msg);
+            }
+            
+            Console.WriteLine(Msg);
+        }
+
+
+        private void LogSQL(string SQL)
+        {
+            if (EnableSqlOutput)
+                System.Diagnostics.Debug.WriteLine("[SQLITE] " + SQL);
+        }
+
+
+        /// <summary>
+        /// Execute query, return row list.
+        /// Uses a short-lived read connection — multiple threads can read in parallel under WAL.
+        /// </summary>
+        public List<Dictionary<string, object>> ExecuteQuery(string SQL, params SQLiteParameter[] Parameters)
         {
             LogSQL(SQL);
-            return ExecuteWithRetry(() =>
+
+            return ExecuteWithRetry(SQL, () =>
             {
-                lock (_ConnLocker)
+                // Shared read lock: multiple readers allowed simultaneously
+                _RWLock.EnterReadLock();
+                try
                 {
                     List<Dictionary<string, object>> Rows = new List<Dictionary<string, object>>();
-                    using (var CMD = new SQLiteCommand(SQL, SharedConn))
-                    using (var Reader = CMD.ExecuteReader())
+
+                    // Each read gets its own connection — no contention between readers
+                    using (var Conn = OpenReadConn())
+                    using (var CMD = new SQLiteCommand(SQL, Conn))
                     {
-                        while (Reader.Read())
+                        if (Parameters?.Length > 0)
+                            CMD.Parameters.AddRange(Parameters);
+
+                        using (var Reader = CMD.ExecuteReader())
                         {
-                            Dictionary<string, object> Row = new Dictionary<string, object>(Reader.FieldCount);
-                            for (int i = 0; i < Reader.FieldCount; i++)
+                            while (Reader.Read())
                             {
-                                string ColName = Reader.GetName(i);
+                                Dictionary<string, object> Row = new Dictionary<string, object>(Reader.FieldCount);
+                                for (int i = 0; i < Reader.FieldCount; i++)
+                                {
+                                    string ColName = Reader.GetName(i);
 
-                                if (string.Equals(ColName, "rowid", StringComparison.OrdinalIgnoreCase))
-                                    ColName = "Rowid";
+                                    if (string.Equals(ColName, "rowid", StringComparison.OrdinalIgnoreCase))
+                                        ColName = "Rowid";
 
-                                Row[ColName] = Reader.IsDBNull(i) ? null : Reader.GetValue(i);
+                                    Row[ColName] = Reader.IsDBNull(i) ? null : Reader.GetValue(i);
+                                }
+                                Rows.Add(Row);
                             }
-                            Rows.Add(Row);
                         }
                     }
+
                     return Rows;
                 }
-            });
+                finally
+                {
+                    _RWLock.ExitReadLock();
+                }
+            }, Fallback: new List<Dictionary<string, object>>());
         }
 
+        /// <summary>
+        /// Execute non-query (INSERT / UPDATE / DELETE), return affected row count, -1 on failure.
+        /// Acquires exclusive write lock — blocks until all active readers finish.
+        /// </summary>
         public int ExecuteNonQuery(string CommandText, params SQLiteParameter[] Parameters)
         {
             LogSQL(CommandText);
-            return ExecuteWithRetry(() =>
+
+            return ExecuteWithRetry(CommandText, () =>
             {
-                lock (_ConnLocker)
+                // Exclusive write lock: waits for all readers to finish, blocks new readers
+                _RWLock.EnterWriteLock();
+                try
                 {
-                    using (var CMD = SharedConn.CreateCommand())
+                    lock (_WriteLock)
                     {
-                        CMD.CommandText = CommandText;
-                        if (Parameters != null && Parameters.Length > 0)
-                            CMD.Parameters.AddRange(Parameters);
-                        return CMD.ExecuteNonQuery();
+                        using (var CMD = _WriteConn.CreateCommand())
+                        {
+                            CMD.CommandText = CommandText;
+                            if (Parameters?.Length > 0)
+                                CMD.Parameters.AddRange(Parameters);
+                            return CMD.ExecuteNonQuery();
+                        }
                     }
                 }
-            });
+                finally
+                {
+                    _RWLock.ExitWriteLock();
+                }
+            }, Fallback: -1);
         }
 
+        /// <summary>
+        /// Execute scalar query, return first column of first row, null on failure.
+        /// Uses a short-lived read connection — concurrent with other reads.
+        /// </summary>
         public object ExecuteScalar(string SQL, params SQLiteParameter[] Parameters)
         {
             LogSQL(SQL);
-            return ExecuteWithRetry(() =>
+
+            return ExecuteWithRetry(SQL, () =>
             {
-                lock (_ConnLocker)
+                _RWLock.EnterReadLock();
+                try
                 {
-                    using (var CMD = SharedConn.CreateCommand())
+                    using (var Conn = OpenReadConn())
+                    using (var CMD = new SQLiteCommand(SQL, Conn))
                     {
-                        CMD.CommandText = SQL;
                         CMD.CommandTimeout = 0;
-                        if (Parameters != null && Parameters.Length > 0)
+                        if (Parameters?.Length > 0)
                             CMD.Parameters.AddRange(Parameters);
                         return CMD.ExecuteScalar();
                     }
                 }
-            });
+                finally
+                {
+                    _RWLock.ExitReadLock();
+                }
+            }, Fallback: null);
+        }
+
+        /// <summary>
+        /// Execute multiple statements in a transaction, commit on all success, rollback on any failure.
+        /// Holds exclusive write lock for the full duration of the transaction.
+        /// </summary>
+        public bool ExecuteTransaction(IEnumerable<(string SQL, SQLiteParameter[] Params)> Commands)
+        {
+            _RWLock.EnterWriteLock();
+            try
+            {
+                lock (_WriteLock)
+                {
+                    using (var TX = _WriteConn.BeginTransaction())
+                    {
+                        try
+                        {
+                            foreach (var (SQL, Prms) in Commands)
+                            {
+                                LogSQL(SQL);
+                                using (var CMD = _WriteConn.CreateCommand())
+                                {
+                                    CMD.Transaction = TX;
+                                    CMD.CommandText = SQL;
+                                    if (Prms?.Length > 0)
+                                        CMD.Parameters.AddRange(Prms);
+                                    CMD.ExecuteNonQuery();
+                                }
+                            }
+                            TX.Commit();
+                            return true;
+                        }
+                        catch (Exception Ex)
+                        {
+                            TX.Rollback();
+                            ShowErrorDialog("EXECUTETRANSACTION", Ex);
+                            return false;
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                _RWLock.ExitWriteLock();
+            }
         }
 
         public void Close()
         {
-            lock (_ConnLocker)
+            lock (_WriteLock)
             {
-                if (_SharedConn != null)
+                if (_WriteConn != null)
                 {
-                    _SharedConn.Close();
-                    _SharedConn.Dispose();
-                    _SharedConn = null;
+                    _WriteConn.Close();
+                    _WriteConn.Dispose();
+                    _WriteConn = null;
                 }
             }
         }
-    }
 
+        public void Dispose()
+        {
+            if (!_Disposed)
+            {
+                Close();
+                _RWLock.Dispose();
+                _Disposed = true;
+            }
+            GC.SuppressFinalize(this);
+        }
+    }
 }
