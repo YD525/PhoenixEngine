@@ -180,7 +180,11 @@ namespace PhoenixEngine.Memory
         private Dictionary<TKey, int> DictData = new Dictionary<TKey, int>();
         private Dictionary<TValue, int> CacheDict = new Dictionary<TValue, int>();
         private List<TValue> CacheList = new List<TValue>();
-        public int Count { get { return DictData.Count; } }
+        public int Count { get 
+            { 
+                lock(DictLock)
+                return DictData.Count;
+            } }
         private int AddData(TValue Data)
         {
             lock (CacheLock)
