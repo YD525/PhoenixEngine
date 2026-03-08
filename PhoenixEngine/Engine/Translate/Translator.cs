@@ -274,7 +274,7 @@ namespace PhoenixEngine.Translate
         {
             try
             {
-                DataLink.CheckLinks(new Action<string, string>((Key, Value) =>
+                DataLink.CheckLinks(new Action<string, string,bool>((Key, Value,Unique) =>
                 {
                     var SetValue = Value.Trim();
                     try
