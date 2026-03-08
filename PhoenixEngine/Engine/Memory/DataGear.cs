@@ -174,124 +174,123 @@ namespace PhoenixEngine.Memory
     }
     public class P_Dict<TKey, TValue>
     {
-        private object DictLock = new object();
-        private object CacheLock = new object();
-
+        private object GlobalLock = new object();
         private Dictionary<TKey, int> DictData = new Dictionary<TKey, int>();
         private Dictionary<TValue, int> CacheDict = new Dictionary<TValue, int>();
         private List<TValue> CacheList = new List<TValue>();
-        public int Count { get 
-            { 
-                lock(DictLock)
-                return DictData.Count;
-            } }
+        private List<int> CacheRefCount = new List<int>();
+
+        public int Count
+        {
+            get { lock (GlobalLock) return DictData.Count; }
+        }
+
         private int AddData(TValue Data)
         {
-            lock (CacheLock)
-            {
-                if (CacheDict.TryGetValue(Data, out var Index))
-                    return Index;
-
-                Index = CacheList.Count;
-                CacheList.Add(Data);
-                CacheDict.Add(Data, Index);
+            if (CacheDict.TryGetValue(Data, out var Index))
                 return Index;
+            Index = CacheList.Count;
+            CacheList.Add(Data);
+            CacheDict.Add(Data, Index);
+            CacheRefCount.Add(0);
+            return Index;
+        }
+
+        public bool IsUnique(TKey Key)
+        {
+            lock (GlobalLock)
+            {
+                if (!DictData.TryGetValue(Key, out var Index))
+                    return false;
+                return CacheRefCount[Index] == 1;
             }
         }
+
         public TValue this[TKey Key]
         {
             get
             {
-                int Index;
-                lock (DictLock)
+                lock (GlobalLock)
                 {
-                    if (!DictData.TryGetValue(Key, out Index))
+                    if (!DictData.TryGetValue(Key, out var Index))
                         return default;
-                }
-
-                lock (CacheLock)
-                {
                     return CacheList[Index];
                 }
             }
             set
             {
-                int Index = AddData(value);
-
-                lock (DictLock)
+                lock (GlobalLock)
                 {
-                    DictData[Key] = Index;
+                    if (DictData.TryGetValue(Key, out var OldIndex))
+                    {
+                        TValue OldValue = CacheList[OldIndex];
+                        if (EqualityComparer<TValue>.Default.Equals(OldValue, value))
+                            return;
+                        if (CacheRefCount[OldIndex] == 1 && !CacheDict.ContainsKey(value))
+                        {
+                            CacheDict.Remove(OldValue);
+                            CacheList[OldIndex] = value;
+                            CacheDict[value] = OldIndex;
+                            return;
+                        }
+                        CacheRefCount[OldIndex]--;
+                    }
+                    int NewIndex = AddData(value);
+                    DictData[Key] = NewIndex;
+                    CacheRefCount[NewIndex]++;
                 }
             }
         }
-        public void CheckLinks(Action<TKey, TValue> LinkCheck)
+
+        public void CheckLinks(Action<TKey, TValue, bool> LinkCheck)
         {
             if (LinkCheck == null) return;
-
             Dictionary<TKey, int> SnapshotDict;
             List<TValue> SnapshotCache;
-
-            lock (DictLock)
+            List<int> SnapshotRef;
+            lock (GlobalLock)
+            {
                 SnapshotDict = new Dictionary<TKey, int>(DictData);
-
-            lock (CacheLock)
                 SnapshotCache = new List<TValue>(CacheList);
-
+                SnapshotRef = new List<int>(CacheRefCount);
+            }
             foreach (var KV in SnapshotDict)
             {
                 TValue Value = SnapshotCache[KV.Value];
-                LinkCheck.Invoke(KV.Key, Value);
+                bool Unique = SnapshotRef[KV.Value] == 1;
+                LinkCheck.Invoke(KV.Key, Value, Unique);
             }
         }
+
         public void Add(TKey Key, TValue Value)
         {
-            int Index = 0;
-
-            lock (CacheLock)
-                Index = AddData(Value);
-
-            lock (DictLock)
+            lock (GlobalLock)
+            {
+                int Index = AddData(Value);
                 DictData.Add(Key, Index);
+                CacheRefCount[Index]++;
+            }
         }
+
         public void Clear()
         {
-            lock (DictLock)
-                DictData.Clear();
-            lock (CacheLock)
+            lock (GlobalLock)
             {
+                DictData.Clear();
                 CacheDict.Clear();
                 CacheList.Clear();
+                CacheRefCount.Clear();
             }
         }
 
         public void Remove(TKey Key)
         {
-            lock (DictLock)
+            lock (GlobalLock)
             {
-                if (DictData.ContainsKey(Key))
-                {
-                    DictData.Remove(Key);
-                }
+                if (!DictData.TryGetValue(Key, out var Index)) return;
+                DictData.Remove(Key);
+                CacheRefCount[Index]--;
             }
-        }
-    }
-    public class LinkTest
-    {
-        public void Test()
-        {
-            P_Dict<string, string> SetLink = new P_Dict<string, string>();
-
-            SetLink.Add("1", "AAA");
-            SetLink.Add("2", "AAA");
-
-            SetLink["1212"] = "AAA";
-
-            var CCC = SetLink["13235"];
-
-            //                    //Key
-            //var Find = SetLink["XXXXXXXXXXXXXXXXXX"];
-            //              //FileName ,   Key
-            //Find = SetLink["XXXXXXXXXXXXXXXXXX",""];
         }
     }
 }
