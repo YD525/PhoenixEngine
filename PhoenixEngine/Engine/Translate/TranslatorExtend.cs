@@ -1,4 +1,5 @@
-﻿using PhoenixEngine.ADO;
+﻿using Newtonsoft.Json.Linq;
+using PhoenixEngine.ADO;
 using PhoenixEngine.Engine;
 
 namespace PhoenixEngine.Translate
@@ -18,14 +19,7 @@ namespace PhoenixEngine.Translate
             {
                 var Link = Translator.GetLink();
 
-                if (Link.ContainsKey(Key))
-                {
-                    Link[Key] = Value;
-                }
-                else
-                {
-                    Link.Add(Key, Value);
-                }
+                Link[Key] = Value;
             }
         }
         public static string GetLink(this Translator Translator, string Key)
@@ -34,9 +28,11 @@ namespace PhoenixEngine.Translate
             {
                 var Link = Translator.GetLink();
 
-                if (Link.ContainsKey(Key))
+                var Result = Link[Key];
+
+                if (Result != null)
                 {
-                    return Link[Key];
+                    return Result;
                 }
                 else
                 {
@@ -140,10 +136,7 @@ namespace PhoenixEngine.Translate
             }
             else
             {
-                if (Link.ContainsKey(Key))
-                {
-                    Link.Remove(Key);
-                }
+                Link.Remove(Key);
 
                 CloudDBCache.DeleteCache(FileUniqueKey, Key, Phoenix.To);
                 LocalDBCache.DeleteCache(FileUniqueKey, Key, Phoenix.To);
@@ -163,10 +156,7 @@ namespace PhoenixEngine.Translate
             {
                 var Link = Translator.GetLink();
 
-                if (Link.ContainsKey(Key))
-                {
-                    Link.Remove(Key);
-                }
+                Link.Remove(Key);
 
                 CloudDBCache.DeleteCache(FileUniqueKey, Key, Phoenix.To);
                 LocalDBCache.DeleteCache(FileUniqueKey, Key, Phoenix.To);

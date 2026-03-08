@@ -6,6 +6,7 @@ using PhoenixEngine.Engine;
 using PhoenixEngine.EngineManagement.Engine;
 using PhoenixEngine.GameManagement;
 using PhoenixEngine.Language;
+using PhoenixEngine.Memory;
 using PhoenixEngine.Sequence;
 using PhoenixEngine.Unit;
 
@@ -24,18 +25,18 @@ namespace PhoenixEngine.Translate
         public string AIParam = null;
         public EngineCore Core = new EngineCore();
         private TranslatorCore BatchCore = null;
-    
+
         public readonly object TransDataLocker = new object();
 
-        private Dictionary<string, string> DataLink = new Dictionary<string, string>();
+        private P_Dict<string, string> DataLink = new P_Dict<string, string>();
         public int MaxTry = 10;
 
-        public Dictionary<string, string> GetLink()
+        public P_Dict<string, string> GetLink()
         {
             return this.DataLink;
         }
 
-        public Translator(Languages SetFrom,Languages SetTo,bool ClearCache)
+        public Translator(Languages SetFrom, Languages SetTo, bool ClearCache)
         {
             if (BatchCore == null)
             {
@@ -60,7 +61,7 @@ namespace PhoenixEngine.Translate
             return new UnitGroup(Unit);
         }
 
-        public void Init(List<BaseUnit>BaseUnits,AggregationMode Mode)
+        public void Init(List<BaseUnit> BaseUnits, AggregationMode Mode)
         {
             if (BatchCore != null)
             {
@@ -100,12 +101,12 @@ namespace PhoenixEngine.Translate
                 {
                     this.BatchCore.Content.Clear();
                 }
-              
+
                 this.BatchCore.ProcStage = 0;
             }
         }
 
-        public List<BaseUnit> ChunkTranslationUnit(BaseUnit Unit,ref List<UnitChunk> Chunks)
+        public List<BaseUnit> ChunkTranslationUnit(BaseUnit Unit, ref List<UnitChunk> Chunks)
         {
             Chunks = new SkyrimBookHelper().ChunkBook(Unit);
 
@@ -128,7 +129,7 @@ namespace PhoenixEngine.Translate
 
             return Units;
         }
-        public UnitGroup Translate(BaseUnit Unit,bool CanSleep = true)
+        public UnitGroup Translate(BaseUnit Unit, bool CanSleep = true)
         {
             Game SetGameType = new Game();
             bool IsBook = false;
@@ -140,7 +141,7 @@ namespace PhoenixEngine.Translate
 
             UnitGroup SetGroup = ToUnitGroup(Unit);
 
-            return Translate(new TransParam(SetGroup,IsBook,CanSleep));
+            return Translate(new TransParam(SetGroup, IsBook, CanSleep));
         }
         public UnitGroup Translate(TransParam Params)
         {
@@ -214,7 +215,7 @@ namespace PhoenixEngine.Translate
                 foreach (var GetGroup in UnitGroups)
                 {
                     var ResultGroup = Core.CallOnce(this,
-                       Params.Preprocessor, GetGroup, From, To, AIParam, Params.CanSleep, false,false);
+                       Params.Preprocessor, GetGroup, From, To, AIParam, Params.CanSleep, false, false);
 
                     BaseUnits.AddRange(ResultGroup.Units);
                 }
@@ -258,14 +259,14 @@ namespace PhoenixEngine.Translate
 
                 ReturnItem.Units.Add(SingleUnit);
 
-                CloudDBCache.AddCache(SingleUnit.FileUniqueKey,SingleUnit.Key,(int)To,SingleUnit.Original,SingleUnit.Translated);
+                CloudDBCache.AddCache(SingleUnit.FileUniqueKey, SingleUnit.Key, (int)To, SingleUnit.Original, SingleUnit.Translated);
 
                 return ReturnItem;
             }
             else
             {
                 return Core.CallOnce(this,
-                    Params.Preprocessor, SetUnitGroup, From, To, AIParam, Params.CanSleep, true,true);
+                    Params.Preprocessor, SetUnitGroup, From, To, AIParam, Params.CanSleep, true, true);
             }
         }
 
@@ -273,21 +274,18 @@ namespace PhoenixEngine.Translate
         {
             try
             {
-                for (int i = 0; i < DataLink.Count; i++)
+                DataLink.CheckLinks(new Action<string, string>((Key, Value) =>
                 {
+                    var SetValue = Value.Trim();
                     try
                     {
-                        var GetHashKey = DataLink.ElementAt(i).Key;
-                        if (DataLink[GetHashKey].Trim().Length > 0)
+                        if (SetValue.Length > 0)
                         {
-                            TranslationPreprocessor.UnifiedSymbols(this,GetHashKey, DataLink[GetHashKey].Trim());
+                            TranslationPreprocessor.UnifiedSymbols(this, Key, SetValue);
                         }
                     }
-                    catch (System.Exception ex)
-                    {
-                        System.Console.WriteLine($"Error in WriteAllMemoryData loop at index {i}: {ex.Message}");
-                    }
-                }
+                    catch { }
+                }));
             }
             catch (System.Exception ex)
             {

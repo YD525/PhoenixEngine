@@ -9,7 +9,7 @@ using PhoenixEngine.Request;
 
 namespace PhoenixEngine.Language
 {
-    internal class ChineseVariantMap
+    public class ChineseVariantMap
     {
         public static void Init()
         {

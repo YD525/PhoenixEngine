@@ -258,6 +258,17 @@ namespace PhoenixEngine.Memory
                 CacheList.Clear();
             }
         }
+
+        public void Remove(TKey Key)
+        {
+            lock (DictLock)
+            {
+                if (DictData.ContainsKey(Key))
+                {
+                    DictData.Remove(Key);
+                }
+            }
+        }
     }
     public class LinkTest
     {
