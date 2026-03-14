@@ -359,17 +359,17 @@ namespace PhoenixEngine.Memory
             List<string> MemoryList = new List<string>();
             int UsedLength = 0;
 
-            UnitGroup LeaderSource = (UnitRef.LinkTo != null) ? UnitRef.LinkTo : UnitRef;
-            BaseUnit Leader = (LeaderSource.Units.Count > 0)
-                                         ? LeaderSource.Units[0]
-                                         : null;
+            UnitGroup LeaderSource = UnitRef;
+            while (LeaderSource.LinkTo != null)
+                LeaderSource = LeaderSource.LinkTo;
+
+            BaseUnit Leader = (LeaderSource.Units.Count > 0) ? LeaderSource.Units[0] : null;
 
             if (Leader != null)
             {
                 var LeaderCandidates = Phoenix.AIMemory.FindRelevantTranslationsPublic(
                     From, To, Leader.Original, ContextLength
                 );
-
                 if (LeaderCandidates.Count > 0)
                 {
                     string LeaderEntry = LeaderCandidates[0];
@@ -383,31 +383,24 @@ namespace PhoenixEngine.Memory
             }
 
             Dictionary<string, int> ScoreMap = new Dictionary<string, int>();
-
             foreach (var Unit in UnitRef.Units)
             {
                 var Candidates = Phoenix.AIMemory.FindRelevantTranslationsPublic(
                     From, To, Unit.Original, ContextLength - UsedLength
                 );
-
                 foreach (string Entry in Candidates)
                 {
                     if (MemorySet.Contains(Entry)) continue;
-
-                    if (!ScoreMap.ContainsKey(Entry))
-                        ScoreMap[Entry] = 0;
-
-                    ScoreMap[Entry]++;
+                    int Count;
+                    ScoreMap.TryGetValue(Entry, out Count);
+                    ScoreMap[Entry] = Count + 1;
                 }
             }
 
             foreach (var KV in ScoreMap.OrderByDescending(KV => KV.Value))
             {
-                if (UsedLength >= ContextLength)
-                    break;
-
-                if (UsedLength + KV.Key.Length > ContextLength)
-                    continue;
+                if (UsedLength >= ContextLength) break;
+                if (UsedLength + KV.Key.Length > ContextLength) continue;
 
                 MemorySet.Add(KV.Key);
                 MemoryList.Add(KV.Key);
