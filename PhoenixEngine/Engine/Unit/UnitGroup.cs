@@ -90,10 +90,14 @@ namespace PhoenixEngine.Unit
 
         public bool IsLeaderMemoryReady()
         {
-            if (LinkTo == null)
-                return true;
-
-            return LinkTo.IsMemoryCreated;
+            UnitGroup Current = this;
+            while (Current.LinkTo != null)
+            {
+                if (!Current.LinkTo.IsMemoryCreated)
+                    return false;
+                Current = Current.LinkTo;
+            }
+            return true;
         }
 
         public void BatchProc(int State)

@@ -68,7 +68,7 @@ namespace PhoenixEngine.Unit
                 {
                     var GetUnit = Item.Units[i];
 
-                    if (GetUnit.Translated.Trim().Length > 0 && !Sequences[GetUnit.Key].CanSkip)
+                    if (GetUnit.Translated.Trim().Length > 0)
                     { 
                         Phoenix.AIMemory.AddTranslation(TranslatorRef.From, TranslatorRef.To, GetUnit.Original, GetUnit.Translated);
                     }

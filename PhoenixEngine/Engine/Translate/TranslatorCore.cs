@@ -78,7 +78,7 @@ namespace PhoenixEngine.Translate
 
                 if (SetMode == AggregationMode.Aggregation)
                 {
-                    ProcContent.ArrangeForParallel(Content,Phoenix.Config.MaxThreadCount);
+                   ProcContent.ArrangeForParallel(Content,Phoenix.Config.MaxThreadCount);
                 }
 
                 ProcStage = 2;
@@ -150,14 +150,6 @@ namespace PhoenixEngine.Translate
 
             Action<UnitGroup> NormalCall = new Action<UnitGroup>((ItemRef) =>
             {
-                if (Phoenix.Config.ContextEnable)
-                {
-                    while (!ItemRef.IsLeaderMemoryReady())
-                    {
-                        Thread.Sleep(50);
-                    }
-                }
-
                 ItemRef = TranslatorRef.Translate(new TransParam(ItemRef, false, true));
             });
 

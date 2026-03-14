@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 using PhoenixEngine.Engine;
 using PhoenixEngine.GameManagement;
@@ -292,36 +293,30 @@ namespace PhoenixEngine.EngineManagement.Engine
                         Content.Units.Add(NewBucket);
                 }
 
-                bool MergeHappened = true;
-                while (MergeHappened)
+                var Sorted = Content.Units.OrderByDescending(u => u.TotalLength).ToList();
+                var Merged = new List<UnitGroup>();
+
+                foreach (var Unit in Sorted)
                 {
-                    MergeHappened = false;
-
-                    for (int i = 0; i < Content.Units.Count; i++)
+                    bool Placed = false;
+                    foreach (var Bucket in Merged)
                     {
-                        for (int j = i + 1; j < Content.Units.Count; j++)
+                        if (Bucket.TotalLength + Unit.TotalLength < TextLengthLimit)
                         {
-                            UnitGroup A = Content.Units[i];
-                            UnitGroup B = Content.Units[j];
-
-                            if (A.TotalLength + B.TotalLength < TextLengthLimit)
-                            {
-                                foreach (var Token in B.AllTokens)
-                                    A.AllTokens.Add(Token);
-
-                                foreach (var U in B.Units)
-                                    A.AddUnit(U);
-
-                                Content.Units.RemoveAt(j);
-                                MergeHappened = true;
-                                break;
-                            }
-                        }
-
-                        if (MergeHappened)
+                            foreach (var Token in Unit.AllTokens)
+                                Bucket.AllTokens.Add(Token);
+                            foreach (var U in Unit.Units)
+                                Bucket.AddUnit(U);
+                            Placed = true;
                             break;
+                        }
                     }
+
+                    if (!Placed)
+                        Merged.Add(Unit);
                 }
+
+                Content.Units = Merged;
 
                 Content.SameItems.AddRange(SameItems);
             }
@@ -337,7 +332,6 @@ namespace PhoenixEngine.EngineManagement.Engine
                 }
             }
 
-            string GetJson = JsonConvert.SerializeObject(Content, Formatting.Indented);
             return Content;
         }
 
