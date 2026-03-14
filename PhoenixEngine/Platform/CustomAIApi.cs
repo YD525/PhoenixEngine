@@ -43,7 +43,7 @@ namespace PhoenixEngine.Platform
 
             if (ConfigRef.ContextEnable && UseAIMemory)
             {
-                Related = AIMemoryRef.QueryAIMemory(FromLang, ToLang, Source, AIMemoryCountLimit);
+                Related = Source.QueryAIMemory(FromLang,ToLang,AIMemoryCountLimit);
             }
 
             if (ConfigRef.UserCustomAIPrompt.Trim().Length > 0)

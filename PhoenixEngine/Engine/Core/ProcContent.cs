@@ -203,7 +203,7 @@ namespace PhoenixEngine.EngineManagement.Engine
                             OverflowBucket.Mode = AggregationMode.Aggregation;
                             OverflowBucket.AnchorTokens = new HashSet<string>(ActiveBucket.AnchorTokens);
                             OverflowBucket.AllTokens = new HashSet<string>(ActiveBucket.AnchorTokens);
-                            OverflowBucket.LinkTo = ActiveBucket.Key;
+                            OverflowBucket.LinkTo = ActiveBucket;
                             OverflowBucket.AddUnit(Unit, UnitTokens);
 
                             Content.Units.Add(OverflowBucket);

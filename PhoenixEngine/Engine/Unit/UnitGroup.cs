@@ -3,7 +3,6 @@ using PhoenixEngine.Sequence;
 using System.Text.RegularExpressions;
 using PhoenixEngine.Events;
 using static PhoenixEngine.Events.EngineEvents;
-using PhoenixEngine.Engine;
 
 namespace PhoenixEngine.Unit
 {
@@ -84,7 +83,7 @@ namespace PhoenixEngine.Unit
 
         public HashSet<string> AnchorTokens = new HashSet<string>();
         public HashSet<string> AllTokens = new HashSet<string>();
-        public string LinkTo = "";
+        public UnitGroup LinkTo = null;
 
         public bool IsUnrelated = false;
 

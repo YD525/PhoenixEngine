@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Web.UI.WebControls;
 using PhoenixEngine.Engine;
 using PhoenixEngine.Language;
 using PhoenixEngine.Translate;
@@ -240,57 +241,11 @@ namespace PhoenixEngine.Memory
             }
         }
 
-        public List<string> QueryAIMemory(Languages From,Languages To,UnitGroup Item,int ContextLength)
+        public List<string> FindRelevantTranslationsPublic(Languages SourceLang,Languages TargetLang,string Query,int ContextLength)
         {
-            HashSet<string> MemorySet = new HashSet<string>();
-            List<string> MemoryList = new List<string>();
-
-            int UsedLength = 0;
-
-            for (int i = 0; i < Item.Units.Count; i++)
-            {
-                var Unit = Item.Units[i];
-                var Candidates = FindRelevantTranslations(
-                    From, To, Unit.Original, ContextLength
-                );
-
-                bool AddedForThisUnit = false;
-
-                foreach (var Text in Candidates)
-                {
-                    if (MemorySet.Contains(Text))
-                        continue;
-
-                    int Length = Text.Length;
-
-                    // Still Fits In The Context Budget
-                    if (UsedLength + Length <= ContextLength)
-                    {
-                        MemorySet.Add(Text);
-                        MemoryList.Add(Text);
-                        UsedLength += Length;
-                        AddedForThisUnit = true;
-                    }
-                    else
-                    {
-                        // Force Add One Entry If This Unit Has Not Contributed Yet
-                        if (!AddedForThisUnit && MemoryList.Count == 0)
-                        {
-                            MemorySet.Add(Text);
-                            MemoryList.Add(Text);
-                            UsedLength += Length;
-                        }
-                        break; // Stop Processing Current Unit
-                    }
-                }
-
-                // Stop If The Context Budget Is Exhausted
-                if (UsedLength >= ContextLength)
-                    break;
-            }
-
-            return MemoryList;
+            return FindRelevantTranslations(SourceLang, TargetLang, Query, ContextLength);
         }
+
         /// <summary>
         /// Find relevant translations using target language memory.
         /// Query tokenization uses source language.
@@ -392,6 +347,74 @@ namespace PhoenixEngine.Memory
             }
 
             ListToTrim = trimmed;
+        }
+    }
+
+
+    public static class UnitGroupAIMemory
+    {
+        public static List<string> QueryAIMemory(this UnitGroup UnitRef, Languages From, Languages To, int ContextLength)
+        {
+            HashSet<string> MemorySet = new HashSet<string>();
+            List<string> MemoryList = new List<string>();
+            int UsedLength = 0;
+
+            UnitGroup LeaderSource = (UnitRef.LinkTo != null) ? UnitRef.LinkTo : UnitRef;
+            BaseUnit Leader = (LeaderSource.Units.Count > 0)
+                                         ? LeaderSource.Units[0]
+                                         : null;
+
+            if (Leader != null)
+            {
+                var LeaderCandidates = Phoenix.AIMemory.FindRelevantTranslationsPublic(
+                    From, To, Leader.Original, ContextLength
+                );
+
+                if (LeaderCandidates.Count > 0)
+                {
+                    string LeaderEntry = LeaderCandidates[0];
+                    if (UsedLength + LeaderEntry.Length <= ContextLength)
+                    {
+                        MemorySet.Add(LeaderEntry);
+                        MemoryList.Add(LeaderEntry);
+                        UsedLength += LeaderEntry.Length;
+                    }
+                }
+            }
+
+            Dictionary<string, int> ScoreMap = new Dictionary<string, int>();
+
+            foreach (var Unit in UnitRef.Units)
+            {
+                var Candidates = Phoenix.AIMemory.FindRelevantTranslationsPublic(
+                    From, To, Unit.Original, ContextLength - UsedLength
+                );
+
+                foreach (string Entry in Candidates)
+                {
+                    if (MemorySet.Contains(Entry)) continue;
+
+                    if (!ScoreMap.ContainsKey(Entry))
+                        ScoreMap[Entry] = 0;
+
+                    ScoreMap[Entry]++;
+                }
+            }
+
+            foreach (var KV in ScoreMap.OrderByDescending(KV => KV.Value))
+            {
+                if (UsedLength >= ContextLength)
+                    break;
+
+                if (UsedLength + KV.Key.Length > ContextLength)
+                    continue;
+
+                MemorySet.Add(KV.Key);
+                MemoryList.Add(KV.Key);
+                UsedLength += KV.Key.Length;
+            }
+
+            return MemoryList;
         }
     }
 }

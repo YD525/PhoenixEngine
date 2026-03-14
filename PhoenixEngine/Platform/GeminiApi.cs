@@ -99,7 +99,7 @@ namespace PhoenixEngine.Platform
 
             if (ConfigRef.ContextEnable && UseAIMemory)
             {
-                Related = AIMemoryRef.QueryAIMemory(FromLang, ToLang, Source, AIMemoryCountLimit);
+                Related = Source.QueryAIMemory(FromLang,ToLang,AIMemoryCountLimit);
             }
 
             string TransSource = Source.GenContent();
