@@ -87,6 +87,7 @@ namespace PhoenixEngine.Unit
 
         public bool IsUnrelated = false;
         public volatile bool IsMemoryCreated = false;
+
         public bool IsLeaderMemoryReady()
         {
             if (LinkTo == null)

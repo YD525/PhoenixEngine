@@ -150,9 +150,12 @@ namespace PhoenixEngine.Translate
 
             Action<UnitGroup> NormalCall = new Action<UnitGroup>((ItemRef) =>
             {
-                while (!ItemRef.IsLeaderMemoryReady())
+                if (Phoenix.Config.ContextEnable)
                 {
-                    Thread.Sleep(50);
+                    while (!ItemRef.IsLeaderMemoryReady())
+                    {
+                        Thread.Sleep(50);
+                    }
                 }
 
                 ItemRef = TranslatorRef.Translate(new TransParam(ItemRef, false, true));
