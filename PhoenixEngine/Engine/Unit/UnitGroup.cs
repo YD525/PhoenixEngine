@@ -86,6 +86,14 @@ namespace PhoenixEngine.Unit
         public UnitGroup LinkTo = null;
 
         public bool IsUnrelated = false;
+        public volatile bool IsMemoryCreated = false;
+        public bool IsLeaderMemoryReady()
+        {
+            if (LinkTo == null)
+                return true;
+
+            return LinkTo.IsMemoryCreated;
+        }
 
         public void BatchProc(int State)
         {

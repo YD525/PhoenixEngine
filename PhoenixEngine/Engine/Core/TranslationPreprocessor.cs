@@ -241,16 +241,6 @@ namespace PhoenixEngine.Engine
             return Result;
         }
 
-        private bool IsSpaceLanguage(Languages lang)
-        {
-            return lang == Languages.English ||
-                   lang == Languages.German ||
-                   lang == Languages.Italian ||
-                   lang == Languages.Spanish ||
-                   lang == Languages.French ||
-                   lang == Languages.Portuguese;
-        }
-
         public bool ExactMatch(Languages From, Languages To, string Key, string Type, string Source, ref string Result)
         {
             var GetData = AdvancedDictionary.ExactMatch(From, To, Type, Source);

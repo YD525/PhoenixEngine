@@ -62,6 +62,8 @@ namespace PhoenixEngine.Unit
         {
             lock (TranslatorRef.TransDataLocker)
             {
+                Item.IsMemoryCreated = true;
+
                 for (int i = 0; i < Item.Units.Count; i++)
                 {
                     var GetUnit = Item.Units[i];

@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using PhoenixEngine.ADO;
-using PhoenixEngine.Engine;
 using PhoenixEngine.EngineManagement.Engine;
 using PhoenixEngine.Events;
 using PhoenixEngine.PThread;
@@ -76,6 +75,12 @@ namespace PhoenixEngine.Translate
                 ProcStage = 1;
                 SetData.Load(BaseUnits, TranslatorRef.From, ref MarkLeadersPercent);
                 Content = ProcContent.Build(TranslatorRef, SetData, SetMode);
+
+                if (SetMode == AggregationMode.Aggregation)
+                {
+                    ProcContent.ArrangeForParallel(Content,Phoenix.Config.MaxThreadCount);
+                }
+
                 ProcStage = 2;
 
                 if (Phoenix.Config.MaxThreadCount <= 0)
@@ -145,6 +150,11 @@ namespace PhoenixEngine.Translate
 
             Action<UnitGroup> NormalCall = new Action<UnitGroup>((ItemRef) =>
             {
+                while (!ItemRef.IsLeaderMemoryReady())
+                {
+                    Thread.Sleep(50);
+                }
+
                 ItemRef = TranslatorRef.Translate(new TransParam(ItemRef, false, true));
             });
 

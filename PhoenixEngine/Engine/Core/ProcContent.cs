@@ -340,5 +340,64 @@ namespace PhoenixEngine.EngineManagement.Engine
             string GetJson = JsonConvert.SerializeObject(Content, Formatting.Indented);
             return Content;
         }
+
+        public static void ArrangeForParallel(ProcContent Content, int ThreadCount)
+        {
+            List<UnitGroup> Source = new List<UnitGroup>(Content.Units);
+            List<UnitGroup> Result = new List<UnitGroup>();
+
+            Dictionary<UnitGroup, int> BatchIndexMap = new Dictionary<UnitGroup, int>();
+
+            Queue<UnitGroup> Pending = new Queue<UnitGroup>(Source);
+
+            int BatchIndex = 0;
+
+            while (Pending.Count > 0)
+            {
+                List<UnitGroup> Slot = new List<UnitGroup>();
+                List<UnitGroup> Deferred = new List<UnitGroup>();
+
+                foreach (var Group in Pending)
+                {
+                    if (Slot.Count >= ThreadCount)
+                    {
+                        Deferred.Add(Group);
+                        continue;
+                    }
+
+                    if (Group.LinkTo != null)
+                    {
+                        if (!BatchIndexMap.TryGetValue(Group.LinkTo, out int LeaderBatch))
+                        {
+                            Deferred.Add(Group);
+                            continue;
+                        }
+
+                        if (LeaderBatch >= BatchIndex)
+                        {
+                            Deferred.Add(Group);
+                            continue;
+                        }
+                    }
+
+                    Slot.Add(Group);
+                    BatchIndexMap[Group] = BatchIndex;
+                }
+
+                if (Slot.Count == 0 && Deferred.Count > 0)
+                {
+                    var Force = Deferred[0];
+                    Deferred.RemoveAt(0);
+                    Slot.Add(Force);
+                    BatchIndexMap[Force] = BatchIndex;
+                }
+
+                Result.AddRange(Slot);
+                Pending = new Queue<UnitGroup>(Deferred);
+                BatchIndex++;
+            }
+
+            Content.Units = Result;
+        }
     }
 }
