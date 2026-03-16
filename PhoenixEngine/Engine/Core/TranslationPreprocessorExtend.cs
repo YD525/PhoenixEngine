@@ -23,11 +23,7 @@ namespace PhoenixEngine.Engine
                 Link[GetKey] = string.Empty;
             }
         }
-        public static string FormatStr(string Content)
-        {
-            new TranslationPreprocessor().OptimizeStrings(ref Content);
-            return Content;
-        }
+        
         public string ReturnStr(string Str)
         {
             if (string.IsNullOrWhiteSpace(Str.Replace("　", "").Replace(" ", "")))
@@ -107,19 +103,7 @@ namespace PhoenixEngine.Engine
             ProcessEscapeCharacters(ref Input);
             ProcessEmptyEndLine(ref Input);
         }
-        public bool IsNullOrEmpty(string Input)
-        {
-            if (Input == null)
-            {
-                return true;
-            }
-            if (Input.Trim().Length == 0)
-            {
-                return true;
-            }
 
-            return false;
-        }
         public bool IsNumeric(string Input)
         {
             if (string.IsNullOrWhiteSpace(Input))
@@ -266,30 +250,5 @@ namespace PhoenixEngine.Engine
             Input = Regex.Replace(Input, @"\\'", "'");
             Input = Regex.Replace(Input, @"\\\\", "\\");       
         }
-
-        public static bool IsValidTranslation(string text)
-        {
-            if (string.IsNullOrEmpty(text)) return false;
-
-            if (text.Contains("\uFFFD") || text.Contains("�"))
-            {
-                return false;
-            }
-
-            foreach (char c in text)
-            {
-                if (char.IsLetterOrDigit(c) || char.IsPunctuation(c) || char.IsSymbol(c) || char.IsWhiteSpace(c))
-                    continue;
-
-                if (c == '_' || c == '(' || c == ')') continue;
-
-                return false;
-            }
-
-            if (text.Contains(@"\u")) return false;
-
-            return true;
-        }
-
     }
 }

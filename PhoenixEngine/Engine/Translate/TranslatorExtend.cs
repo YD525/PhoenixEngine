@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-using PhoenixEngine.ADO;
-using PhoenixEngine.Engine;
+﻿using PhoenixEngine.ADO;
 
 namespace PhoenixEngine.Translate
 {

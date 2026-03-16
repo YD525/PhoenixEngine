@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using PhoenixEngine.Engine;
 using PhoenixEngine.Translate;
 
 namespace PhoenixEngine.Platform

@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using PhoenixEngine.Engine;
 
 namespace PhoenixEngine.Request
 {

@@ -2,7 +2,6 @@
 using PhoenixEngine.Sequence;
 using System.Text.RegularExpressions;
 using PhoenixEngine.Events;
-using static PhoenixEngine.Events.EngineEvents;
 
 namespace PhoenixEngine.Unit
 {

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using PhoenixEngine.Engine;
-using PhoenixEngine.EngineManagement.Engine;
 using PhoenixEngine.Language;
 using PhoenixEngine.Unit;
 
@@ -172,15 +171,6 @@ namespace PhoenixEngine.Sequence
             foreach (var K in RemoveLeaders)
             {
                 Leaders.Remove(K);
-            }
-
-            if (Leaders.Count < 1500)
-            {
-                AutoLeaderTrd = ContextProc.SortLeadersAndCalculateThreads(DetectSourceLang, Phoenix.Config.MaxThreadCount, ref Leaders);
-            }
-            else
-            {
-                AutoLeaderTrd = 3;
             }
 
             MarkLeadersPercent = 100;
