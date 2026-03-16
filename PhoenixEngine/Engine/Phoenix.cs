@@ -1,5 +1,4 @@
-﻿using System.Data.SQLite;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using PhoenixEngine.Additional;
@@ -80,7 +79,7 @@ namespace PhoenixEngine
 
             if (!File.Exists(GetFilePath))
             {
-                SQLiteConnection.CreateFile(GetFilePath);
+                P_SQLite.CreateDataBase(GetFilePath);
             }
 
             LocalDB.OpenSQL(GetFilePath);

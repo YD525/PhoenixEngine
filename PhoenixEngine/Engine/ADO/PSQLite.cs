@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
 using System.Threading;
+using System.Web.UI;
 
 namespace PhoenixEngine.ADO
 {
@@ -155,7 +156,7 @@ namespace PhoenixEngine.ADO
             {
                 OnError.Invoke(Msg);
             }
-            
+
             Console.WriteLine(Msg);
         }
 
@@ -346,6 +347,11 @@ namespace PhoenixEngine.ADO
                 _Disposed = true;
             }
             GC.SuppressFinalize(this);
+        }
+
+        public static void CreateDataBase(string Path)
+        {
+            SQLiteConnection.CreateFile(Path);
         }
     }
 }
