@@ -427,7 +427,7 @@ namespace PhoenixEngine.Platform
             string raw = GetTagValue(tag);
 
             if (originalToken == null || originalToken.Type == JTokenType.Null)
-                return JValue.CreateNull();
+                return new JValue((object)null);
 
             switch (originalToken.Type)
             {
