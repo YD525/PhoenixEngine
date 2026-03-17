@@ -55,12 +55,11 @@ namespace PhoenixEngine.EngineManagement.Engine
 
         public void Clear()
         {
-            this.Units.Clear();
-            this.SameItems.Clear();
-            this.Books.Clear();
-
+            this.Units?.Clear();
+            this.SameItems?.Clear();
+            this.Books?.Clear();
             this.GenKey = 0;
-            this.UnionData.Clear();
+            this.UnionData?.Clear();
         }
 
         private void BuildTranslatedMap(List<UnitGroup> Groups, Dictionary<string, string> TranslatedMap)

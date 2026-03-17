@@ -354,6 +354,11 @@ namespace PhoenixEngine.Translate
             ProcStage = 0;
             IsStop = false;
 
+            IsWork = false;
+            while (TranslatedQueue.TryDequeue(out _)) { }
+
+            MarkLeadersPercent = 0;
+
             Cancel();
             this.Content?.Clear();
             this.TranslatedCount = Phoenix.GetTranslatedCount(Phoenix.GetFileUniqueKey());
