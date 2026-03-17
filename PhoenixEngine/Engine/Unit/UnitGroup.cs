@@ -76,6 +76,7 @@ namespace PhoenixEngine.Unit
     {
         public string Key = "";
         public int TotalLength;
+        public int TokenLength;
 
         public List<BaseUnit> Units = new List<BaseUnit>();
         public AggregationMode Mode = AggregationMode.Null;
@@ -159,25 +160,38 @@ namespace PhoenixEngine.Unit
                 Units.Add(First);
             }
         }
+
         public bool IsSimilarTo(HashSet<string> UnitTokens, int MatchCount)
         {
             return TokenCoverageRatio(this.AnchorTokens, UnitTokens) >= MatchCount;
         }
+
         public void AddUnit(BaseUnit Unit)
         {
             Units.Add(Unit);
             TotalLength += Unit.Original.Length;
         }
-        public void AddUnit(BaseUnit Unit, HashSet<string> UnitTokens)
+
+        public void AddUnit(BaseUnit Unit, int TokenLen)
         {
             Units.Add(Unit);
             TotalLength += Unit.Original.Length;
+            TokenLength += TokenLen;
+        }
+
+        public void AddUnit(BaseUnit Unit, HashSet<string> UnitTokens, int TokenLen)
+        {
+            Units.Add(Unit);
+            TotalLength += Unit.Original.Length;
+            TokenLength += TokenLen;
             AllTokens.UnionWith(UnitTokens);
         }
+
         public string GenContent()
         {
             return UnitGroup.GenContent(this.Units);
         }
+
         public static string GenContent(List<BaseUnit> Array)
         {
             if (Array.Count == 1)
@@ -198,6 +212,7 @@ namespace PhoenixEngine.Unit
             }
             return Html;
         }
+
         public ConfirmPasser AnalysisContent(string Content)
         {
             ConfirmPasser WaitConfirm = new ConfirmPasser(this.Units);
@@ -229,6 +244,7 @@ namespace PhoenixEngine.Unit
 
             return WaitConfirm;
         }
+
         private static int TokenCoverageRatio(HashSet<string> A, HashSet<string> B)
         {
             if (A == null || B == null || A.Count == 0 || B.Count == 0)
@@ -252,15 +268,15 @@ namespace PhoenixEngine.Unit
         {
             GroupContext GenContent = new GroupContext();
 
-            if(EngineEvents.SetBaseUnitStateChangedCallback !=null)
-            for (int i = 0; i < this.Units.Count; i++)
-            {
-                UnitContext<BaseUnit> Data = this.Units[i].ApplyStateChange(State);
-                if (Data != null)
+            if (EngineEvents.SetBaseUnitStateChangedCallback != null)
+                for (int i = 0; i < this.Units.Count; i++)
                 {
-                    GenContent.AddSign(Data.Key, Data.ControlSignal);
+                    UnitContext<BaseUnit> Data = this.Units[i].ApplyStateChange(State);
+                    if (Data != null)
+                    {
+                        GenContent.AddSign(Data.Key, Data.ControlSignal);
+                    }
                 }
-            }
 
             return GenContent;
         }

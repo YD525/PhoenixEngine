@@ -190,16 +190,19 @@ namespace PhoenixEngine.Translate
 
                 for (int i = 0; i < Units.Count; i++)
                 {
-                    if (SetLength < ProcContent.TextLengthLimit)
+                    int UnitTokenLen = ProcContent.CalcTokenLength(Units[i].Original, this.From);
+
+                    if (SetLength + UnitTokenLen < ProcContent.TokenLengthLimit)
                     {
-                        SetLength += Units[i].Original.Length;
+                        SetLength += UnitTokenLen;
                         NewUnitGroup.Units.Add(Units[i]);
                     }
                     else
                     {
+                        if (NewUnitGroup.Units.Count > 0)
                         UnitGroups.Add(NewUnitGroup);
                         NewUnitGroup = new UnitGroup();
-                        SetLength = Units[i].Original.Length;
+                        SetLength = UnitTokenLen;
                         NewUnitGroup.Units.Add(Units[i]);
                     }
                 }

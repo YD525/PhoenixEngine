@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using PhoenixEngine.GameManagement;
+using PhoenixEngine.Language;
 using PhoenixEngine.Sequence;
 using PhoenixEngine.Translate;
 using PhoenixEngine.Unit;
@@ -9,7 +10,7 @@ namespace PhoenixEngine.EngineManagement.Engine
 {
     public class ProcContent
     {
-        public static int TextLengthLimit = 2000;
+        public static int TokenLengthLimit = 2000;
 
         public int GenKey = 0;
 
@@ -29,6 +30,34 @@ namespace PhoenixEngine.EngineManagement.Engine
         public Translator GetTranslator()
         {
             return this.TranslatorRef;
+        }
+
+        public static int CalcTokenLength(string Text, Languages From)
+        {
+            if (string.IsNullOrEmpty(Text))
+                return 0;
+
+            int RawLength = Text.Length;
+
+            switch (From)
+            {
+                case Languages.SimplifiedChinese:
+                case Languages.TraditionalChinese:
+                case Languages.Japanese:
+                case Languages.Korean:
+                    return (int)(RawLength * 2.5);
+
+                case Languages.Thai:
+                case Languages.Hindi:
+                case Languages.Urdu:
+                case Languages.Persian:
+                case Languages.Russian:
+                case Languages.Ukrainian:
+                    return (int)(RawLength * 1.5);
+
+                default:
+                    return RawLength;
+            }
         }
 
         public int GetUnitsCount()
@@ -105,7 +134,7 @@ namespace PhoenixEngine.EngineManagement.Engine
             }
         }
 
-        private static UnitGroup MakeSoloBucket(ref int GenKey, BaseUnit Unit)
+        private static UnitGroup MakeSoloBucket(ref int GenKey, BaseUnit Unit, int TokenLen)
         {
             GenKey++;
             UnitGroup Solo = new UnitGroup();
@@ -113,7 +142,7 @@ namespace PhoenixEngine.EngineManagement.Engine
             Solo.Mode = AggregationMode.Aggregation;
             Solo.AnchorTokens = new HashSet<string>();
             Solo.AllTokens = new HashSet<string>();
-            Solo.AddUnit(Unit);
+            Solo.AddUnit(Unit, TokenLen);
             return Solo;
         }
 
@@ -121,6 +150,8 @@ namespace PhoenixEngine.EngineManagement.Engine
         {
             ProcContent Content = new ProcContent(Translator);
             Content.UnionData = Data;
+
+            Languages From = Translator.From;
 
             if (SetMode == AggregationMode.Aggregation)
             {
@@ -147,12 +178,14 @@ namespace PhoenixEngine.EngineManagement.Engine
                     SeenTexts.Add(Leader.Original);
                     Content.GenKey++;
 
+                    int LeaderTokenLen = CalcTokenLength(Leader.Original, From);
+
                     UnitGroup Bucket = new UnitGroup();
                     Bucket.Key = Leader.Key;
                     Bucket.Mode = AggregationMode.Aggregation;
                     Bucket.AnchorTokens = Leader.ExtractTokens();
                     Bucket.AllTokens = new HashSet<string>(Bucket.AnchorTokens);
-                    Bucket.AddUnit(Leader);
+                    Bucket.AddUnit(Leader, LeaderTokenLen);
 
                     Content.Units.Add(Bucket);
                     LeaderKeyMap[Leader.Key] = Bucket;
@@ -180,6 +213,8 @@ namespace PhoenixEngine.EngineManagement.Engine
                     var UnitTokens = Unit.ExtractTokens();
                     bool Assigned = false;
 
+                    int UnitTokenLen = CalcTokenLength(Unit.Original, From);
+
                     foreach (var Leader in Data.Leaders.Values)
                     {
                         if (!LeaderKeyMap.TryGetValue(Leader.Key, out UnitGroup ActiveBucket))
@@ -188,9 +223,9 @@ namespace PhoenixEngine.EngineManagement.Engine
                         if (!ActiveBucket.IsSimilarTo(UnitTokens, 1))
                             continue;
 
-                        if (ActiveBucket.TotalLength + Unit.Original.Length < TextLengthLimit)
+                        if (ActiveBucket.TokenLength + UnitTokenLen < TokenLengthLimit)
                         {
-                            ActiveBucket.AddUnit(Unit, UnitTokens);
+                            ActiveBucket.AddUnit(Unit, UnitTokens, UnitTokenLen);
                         }
                         else
                         {
@@ -202,7 +237,7 @@ namespace PhoenixEngine.EngineManagement.Engine
                             OverflowBucket.AnchorTokens = new HashSet<string>(ActiveBucket.AnchorTokens);
                             OverflowBucket.AllTokens = new HashSet<string>(ActiveBucket.AnchorTokens);
                             OverflowBucket.LinkTo = ActiveBucket;
-                            OverflowBucket.AddUnit(Unit, UnitTokens);
+                            OverflowBucket.AddUnit(Unit, UnitTokens, UnitTokenLen);
 
                             Content.Units.Add(OverflowBucket);
                             LeaderKeyMap[Leader.Key] = OverflowBucket;
@@ -222,9 +257,11 @@ namespace PhoenixEngine.EngineManagement.Engine
                 {
                     BaseUnit GetFirst = RemainingUnits.Dequeue();
 
-                    if (GetFirst.Original.Length >= TextLengthLimit)
+                    int FirstTokenLen = CalcTokenLength(GetFirst.Original, From);
+
+                    if (FirstTokenLen >= TokenLengthLimit)
                     {
-                        Content.Units.Add(MakeSoloBucket(ref Content.GenKey, GetFirst));
+                        Content.Units.Add(MakeSoloBucket(ref Content.GenKey, GetFirst, FirstTokenLen));
                         continue;
                     }
 
@@ -235,7 +272,7 @@ namespace PhoenixEngine.EngineManagement.Engine
                     {
                         var Group = Content.Units[i];
 
-                        int Remaining = TextLengthLimit - Group.TotalLength - GetFirst.Original.Length;
+                        int Remaining = TokenLengthLimit - Group.TokenLength - FirstTokenLen;
 
                         if (Remaining < 0)
                             continue;
@@ -248,7 +285,7 @@ namespace PhoenixEngine.EngineManagement.Engine
                     }
 
                     if (BestIndex != -1)
-                        Content.Units[BestIndex].AddUnit(GetFirst);
+                        Content.Units[BestIndex].AddUnit(GetFirst, FirstTokenLen);
                     else
                         StillRemaining.Enqueue(GetFirst);
                 }
@@ -257,10 +294,12 @@ namespace PhoenixEngine.EngineManagement.Engine
                 {
                     BaseUnit Head = StillRemaining.Peek();
 
-                    if (Head.Original.Length >= TextLengthLimit)
+                    int HeadTokenLen = CalcTokenLength(Head.Original, From);
+
+                    if (HeadTokenLen >= TokenLengthLimit)
                     {
                         StillRemaining.Dequeue();
-                        Content.Units.Add(MakeSoloBucket(ref Content.GenKey, Head));
+                        Content.Units.Add(MakeSoloBucket(ref Content.GenKey, Head, HeadTokenLen));
                         continue;
                     }
 
@@ -274,11 +313,12 @@ namespace PhoenixEngine.EngineManagement.Engine
                     while (StillRemaining.Count > 0)
                     {
                         BaseUnit Peek = StillRemaining.Peek();
+                        int PeekTokenLen = CalcTokenLength(Peek.Original, From);
 
-                        if (NewBucket.TotalLength + Peek.Original.Length < TextLengthLimit)
+                        if (NewBucket.TokenLength + PeekTokenLen < TokenLengthLimit)
                         {
                             StillRemaining.Dequeue();
-                            NewBucket.AddUnit(Peek);
+                            NewBucket.AddUnit(Peek, PeekTokenLen);
                         }
                         else
                         {
@@ -290,7 +330,7 @@ namespace PhoenixEngine.EngineManagement.Engine
                         Content.Units.Add(NewBucket);
                 }
 
-                var Sorted = Content.Units.OrderByDescending(u => u.TotalLength).ToList();
+                var Sorted = Content.Units.OrderByDescending(u => u.TokenLength).ToList();
                 var Merged = new List<UnitGroup>();
 
                 foreach (var Unit in Sorted)
@@ -298,12 +338,12 @@ namespace PhoenixEngine.EngineManagement.Engine
                     bool Placed = false;
                     foreach (var Bucket in Merged)
                     {
-                        if (Bucket.TotalLength + Unit.TotalLength < TextLengthLimit)
+                        if (Bucket.TokenLength + Unit.TokenLength < TokenLengthLimit)
                         {
                             foreach (var Token in Unit.AllTokens)
                                 Bucket.AllTokens.Add(Token);
                             foreach (var U in Unit.Units)
-                                Bucket.AddUnit(U);
+                                Bucket.AddUnit(U, CalcTokenLength(U.Original, From));
                             Placed = true;
                             break;
                         }
