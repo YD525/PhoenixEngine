@@ -245,9 +245,11 @@ namespace PhoenixEngine.Engine
                         return Item;
                     }
 
+                    string SetType = "";
+
                     GetTrans = CurrentEngine.Call(ref Item,ref Sequences,From,To,
                     true, Phoenix.Config.ContextLimit,
-                    AIParam);
+                    AIParam,ref SetType);
 
                     try
                     {
@@ -281,7 +283,14 @@ namespace PhoenixEngine.Engine
                     List<BaseUnit> NotPassUnits = new List<BaseUnit>();
                     List<BaseUnit> PassUnits = new List<BaseUnit>();
 
-                    bool Passed = Passer.TryPass(ref NotPassUnits, ref PassUnits);
+                    bool IsDeepL = false;
+
+                    if (SetType.Equals("DeepL"))
+                    {
+                        IsDeepL = true;
+                    }
+
+                    bool Passed = Passer.TryPass(ref NotPassUnits, ref PassUnits, IsDeepL);
 
                     for (int i = 0; i < PassUnits.Count; i++)
                     {
@@ -363,8 +372,9 @@ namespace PhoenixEngine.Engine
                     Thread.Sleep(1000);
                 }
             }
+
             public string Call(ref UnitGroup Source,ref Dictionary<string, UnitSequence> Sequences,
-               Languages From,Languages To,bool UseAIMemory,int AIMemoryQueryCount,string AIParam)
+               Languages From,Languages To,bool UseAIMemory,int AIMemoryQueryCount,string AIParam,ref string SetType)
             {
                 Source.StartGeneratePlaceholder(From, To, ref Sequences);
 
@@ -440,6 +450,8 @@ namespace PhoenixEngine.Engine
 
                                 Call.Output();
 
+                                SetType = "DeepL";
+
                                 if (GetData.Trim().Length == 0)
                                 {
                                     this.CallCountDown = 0;
@@ -493,6 +505,8 @@ namespace PhoenixEngine.Engine
 
                                 Call.Output();
 
+                                SetType = SetApi.CustomID.ToString();
+
                                 if (GetData.Trim().Length == 0)
                                 {
                                     this.CallCountDown = 0;
@@ -541,6 +555,8 @@ namespace PhoenixEngine.Engine
                                     this.CallCountDown = 0;
                                 }
                                 Call.Output();
+
+                                SetType = "LMStudio";
                             }
                             else
                             {
@@ -592,6 +608,8 @@ namespace PhoenixEngine.Engine
                                 }
 
                                 Call.Output();
+
+                                SetType = "ChatGpt";
                             }
                             else
                             {
@@ -644,6 +662,8 @@ namespace PhoenixEngine.Engine
                                 }
 
                                 Call.Output();
+
+                                SetType = "Gemini";
                             }
                             else
                             {
@@ -696,6 +716,8 @@ namespace PhoenixEngine.Engine
                                 }
 
                                 Call.Output();
+
+                                SetType = "DeepSeek";
                             }
                             else
                             {
@@ -749,6 +771,8 @@ namespace PhoenixEngine.Engine
                                 }
 
                                 Call.Output();
+
+                                SetType = SetApi.CustomID.ToString();
                             }
                             else
                             {
@@ -794,6 +818,8 @@ namespace PhoenixEngine.Engine
                                 }
 
                                 Call.Output();
+
+                                SetType = SetApi.CustomID.ToString();
                             }
                             else
                             {

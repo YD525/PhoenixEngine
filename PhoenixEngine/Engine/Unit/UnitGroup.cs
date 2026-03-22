@@ -25,7 +25,7 @@ namespace PhoenixEngine.Unit
             ParentRef = Units;
             this.Units.AddRange(Units);
         }
-        public bool TryPass(ref List<BaseUnit> NotPassUnits, ref List<BaseUnit> PassUnits)
+        public bool TryPass(ref List<BaseUnit> NotPassUnits, ref List<BaseUnit> PassUnits,bool IsDeepL)
         {
             for (int i = 0; i < Units.Count; i++)
             {
@@ -34,6 +34,11 @@ namespace PhoenixEngine.Unit
                     if (i == NeedConfirms[ir].Index)
                     {
                         this.Units[i].Translated = NeedConfirms[ir].Result;
+
+                        if (IsDeepL)
+                        {
+                            this.Units[i].Translated = this.Units[i].Translated.TrimEnd('\r', '\n');
+                        }
                     }
                 }
             }
@@ -194,14 +199,6 @@ namespace PhoenixEngine.Unit
 
         public static string GenContent(List<BaseUnit> Array)
         {
-            if (Array.Count == 1)
-            {
-                if (Array[0].Translated.Length == 0)
-                {
-                    return string.Format("<li data-unit-id='{0}'>{1}</li>\n", 0 + 100, Array[0].Original);
-                }
-            }
-
             string Html = "";
             for (int i = 0; i < Array.Count; i++)
             {
@@ -218,12 +215,12 @@ namespace PhoenixEngine.Unit
             ConfirmPasser WaitConfirm = new ConfirmPasser(this.Units);
 
             string Pattern =
-                @"<\s*li\b[\s\S]*?data-unit-id\s*=\s*'(\d+)'[\s\S]*?>\s*([\s\S]*?)\s*</\s*li\s*>";
+                @"<li[^>]*data-unit-id\s*=\s*'(\d+)'[^>]*>\s*(.*?)(?:\s*</li>)*\s*(?=<li|\Z)";
 
             var Matches = Regex.Matches(
                 Content,
                 Pattern,
-                RegexOptions.IgnoreCase
+                RegexOptions.IgnoreCase | RegexOptions.Singleline
             );
 
             foreach (Match match in Matches)
