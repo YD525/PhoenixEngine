@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using System.Text.RegularExpressions;
 using PhoenixEngine.Translate;
 
@@ -23,7 +24,7 @@ namespace PhoenixEngine.Engine
                 Link[GetKey] = string.Empty;
             }
         }
-        
+
         public string ReturnStr(string Str)
         {
             if (string.IsNullOrWhiteSpace(Str.Replace("　", "").Replace(" ", "")))
@@ -165,7 +166,7 @@ namespace PhoenixEngine.Engine
             Str = Str.Replace("’", "'");
             Str = Str.Replace("“", "\"");
             Str = Str.Replace("”", "\"");
-            Str = Str.Replace("＂", "\""); 
+            Str = Str.Replace("＂", "\"");
             Str = Str.Replace("。", ".");
             Str = Str.Replace("，", ",");
             Str = Str.Replace("：", ":");
@@ -248,7 +249,45 @@ namespace PhoenixEngine.Engine
             Input = Regex.Replace(Input, @"\\f", "\f");
             Input = Regex.Replace(Input, @"\\""", "\"");
             Input = Regex.Replace(Input, @"\\'", "'");
-            Input = Regex.Replace(Input, @"\\\\", "\\");       
+            Input = Regex.Replace(Input, @"\\\\", "\\");
+        }
+
+
+        private static readonly Regex SplitRegex = new Regex("(<[^<>]+>|\\[[^\\[\\]]+\\])", RegexOptions.Compiled);
+        public static string ToFullWidthSymbols(string Value)
+        {
+            if (string.IsNullOrEmpty(Value))
+                return Value;
+
+            var Parts = SplitRegex.Split(Value);
+            var NStringBuilder = new StringBuilder(Value.Length);
+
+            foreach (var Part in Parts)
+            {
+                if (Part.Length > 1 &&
+                   ((Part[0] == '<' && Part[Part.Length - 1] == '>') ||
+                   (Part[0] == '[' && Part[Part.Length - 1] == ']')))
+                {
+                    NStringBuilder.Append(Part);
+                }
+                else
+                {
+                    NStringBuilder.Append(ReplaceWithFullWidthSymbols(Part));
+                }
+            }
+
+            return NStringBuilder.ToString();
+        }
+
+        private static string ReplaceWithFullWidthSymbols(string text)
+        {
+            return text
+                .Replace(",", "，")
+                .Replace(".", "。")
+                .Replace(":", "：")
+                .Replace(";", "；")
+                .Replace("!", "！")
+                .Replace("?", "？");
         }
     }
 }
