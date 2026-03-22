@@ -279,9 +279,9 @@ namespace PhoenixEngine.Engine
             return NStringBuilder.ToString();
         }
 
-        private static string ReplaceWithFullWidthSymbols(string text)
+        private static string ReplaceWithFullWidthSymbols(string Text)
         {
-            return text
+            return Text
                 .Replace(",", "，")
                 .Replace(".", "。")
                 .Replace(":", "：")
