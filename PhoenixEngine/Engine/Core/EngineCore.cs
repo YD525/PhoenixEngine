@@ -184,6 +184,9 @@ namespace PhoenixEngine.Engine
                 }
             }
         }
+
+
+
         /// <summary>
         /// Multithreaded translation entry
         /// </summary>
@@ -236,6 +239,8 @@ namespace PhoenixEngine.Engine
 
                 if (CurrentEngine != null)
                 {
+                    int MaxTry = 10;
+
                     NextCall:
 
                     string GetTrans = "";
@@ -302,7 +307,23 @@ namespace PhoenixEngine.Engine
 
                     if (!Passed)
                     {
-                        goto NextCall;
+                        //I hadn't anticipated that DeepL would consistently omit HTML content—and, as it happened, this specific section lacked any throttling and executed a direct `goto`.
+
+                        Thread.Sleep(Phoenix.Config.ThrottleDelayMs);
+
+                        //Continue to impose penalties.
+                        if (PassUnits.Count == 0)
+                        {
+                            Thread.Sleep(1000);
+                        }
+
+                        //Preventing Infinite Loops
+                        if (MaxTry > 0)
+                        {
+                            MaxTry--;
+
+                            goto NextCall;
+                        }
                     }
 
                     Item.EndPreProcess(From, To, ref Sequences);
