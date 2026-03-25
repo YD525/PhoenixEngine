@@ -14,6 +14,7 @@ namespace PhoenixEngine.Platform
     {
         public List<string> text { get; set; }
         public string target_lang { get; set; } = "";
+        public string tag_handling { get; set; } = "html";
     }
 
     public class DeepLResult
