@@ -27,8 +27,6 @@ namespace PhoenixEngine.Platform
         }
         public string QuickTrans(string ApiKey, UnitGroup Source, Languages FromLang, Languages ToLang, ref PlatformCall Call)
         {
-            CustomReqCore Core = new CustomReqCore();
-
             var InFo = Phoenix.Config.GetPlatformData(CustomID).CustomInFo;
 
             string TransSource = Source.GenContent();
@@ -45,6 +43,9 @@ namespace PhoenixEngine.Platform
             Core.SetSource(TransSource);
 
             Core.SetQueryRule(InFo.QueryRule);
+
+            Core.SetSignMode(InFo.Sign);
+            Core.SetSignParams(InFo.SignParams);
 
             string Send = "";
             string Recv = "";

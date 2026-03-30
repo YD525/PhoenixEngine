@@ -25,6 +25,12 @@ namespace PhoenixEngine
 
         public bool IsPost = true;
 
+        public SignEncode Sign = SignEncode.Null;
+       
+        public string SignParams = "";
+
+        public bool SignToLower = false;
+
         public CustomPlatformType Type = CustomPlatformType.Null;
 
         public ReqQueryRuleItem QueryRule = new ReqQueryRuleItem();

@@ -20,6 +20,8 @@ namespace PhoenixEngine.Platform
         public AITranslationMemory AIMemoryRef { get; set; } = null;
         public EngineConfigJson ConfigRef { get; set; } = null;
         public WebProxy ProxyRef { get; set; } = null;
+
+        public CustomReqCore Core = new CustomReqCore();
         public int CustomID { get; set; } = 0;
         public void Init(int CustomID, AITranslationMemory AIMemory, EngineConfigJson Config, WebProxy Proxy)
         { 
@@ -32,8 +34,6 @@ namespace PhoenixEngine.Platform
 
         public string QuickTrans(string ApiKey,List<ReplaceTag> CustomWords, UnitGroup Source, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam, ref AICall Call)
         {
-            CustomReqCore Core = new CustomReqCore();
-
             var InFo = Phoenix.Config.GetPlatformData(CustomID).CustomInFo;
 
             Core.SetApiKey(ApiKey);

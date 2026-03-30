@@ -21,6 +21,8 @@ namespace PhoenixEngine.Platform.LocalAI
 
         public AITranslationMemory AIMemoryRef { get; set; } = null;
         public EngineConfigJson ConfigRef { get; set; } = null;
+
+        public CustomReqCore Core = new CustomReqCore();
         public int LocalPort { get; set; } = 0;
         public int CustomID { get; set; } = 0;
         public void Init(int CustomID, AITranslationMemory AIMemory, EngineConfigJson Config)
@@ -32,8 +34,6 @@ namespace PhoenixEngine.Platform.LocalAI
 
         public string QuickTrans(List<ReplaceTag> CustomWords, UnitGroup Source, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam, ref AICall Call)
         {
-            CustomReqCore Core = new CustomReqCore();
-
             var InFo = Phoenix.Config.GetPlatformData(CustomID).CustomInFo;
 
             Core.SetQueryRule(InFo.QueryRule);

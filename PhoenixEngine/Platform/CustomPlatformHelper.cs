@@ -319,6 +319,15 @@ namespace PhoenixEngine.Platform
         public string SignParams = "";
         public bool SignToLower = false;
 
+        public void SetSignMode(SignEncode Encode)
+        {
+            this.SignMode = Encode;
+        }
+        public void SetSignParams(string Params)
+        { 
+           this.SignParams = Params;
+        }
+
         public string CreateSign()
         {
             string MergeLine = "";
