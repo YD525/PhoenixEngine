@@ -165,7 +165,10 @@ namespace PhoenixEngine.ADO
             if (EnableSqlOutput)
                 System.Diagnostics.Debug.WriteLine("[SQLITE] " + SQL);
         }
-
+        public List<Dictionary<string, object>> P_ExecuteQuery(string SQL)
+        {
+            return ExecuteQuery(SQL);
+        }
 
         /// <summary>
         /// Execute query, return row list.
