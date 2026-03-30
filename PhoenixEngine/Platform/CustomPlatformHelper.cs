@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
+using System.Security.Cryptography;
 using System.Text;
 using System.Web;
 using Newtonsoft.Json.Linq;
@@ -159,6 +160,138 @@ namespace PhoenixEngine.Platform
         }
     }
 
+
+    public enum SignEncode
+    { 
+       Null = 0,MD5 = 1, MD5_16Bit = 2, SHA256 = 3, SHA512 = 5, SHA384 = 6
+    }
+
+    internal class SignEncoder
+    {
+        public static string ComputeSHA256Hash(string Input,bool ToLower = false)
+        {
+            byte[] InputBytes = Encoding.UTF8.GetBytes(Input);
+
+            using (SHA256 Sha256 = SHA256.Create())
+            {
+                byte[] HashBytes = Sha256.ComputeHash(InputBytes);
+
+                StringBuilder NStringBuilder = new StringBuilder();
+
+                foreach (byte Byte in HashBytes)
+                {
+                    NStringBuilder.Append(Byte.ToString("x2"));
+                }
+
+                if (ToLower)
+                {
+                    return NStringBuilder.ToString().ToLower();
+                }
+                else
+                {
+                    return NStringBuilder.ToString().ToUpper();
+                }
+            }
+        }
+
+        public static string ComputeSHA512Hash(string Input,bool ToLower = false)
+        {
+            byte[] InputBytes = Encoding.UTF8.GetBytes(Input);
+
+            using (SHA512 Sha512 = SHA512.Create())
+            {
+                byte[] HashBytes = Sha512.ComputeHash(InputBytes);
+
+                StringBuilder NStringBuilder = new StringBuilder();
+
+                foreach (byte Byte in HashBytes)
+                {
+                    NStringBuilder.Append(Byte.ToString("x2"));
+                }
+                if (ToLower)
+                {
+                    return NStringBuilder.ToString().Replace("-", "").ToLower();
+                }
+                else
+                {
+                    return NStringBuilder.ToString().Replace("-", "").ToUpper();
+                }
+            }
+        }
+
+        public static string ComputeSHA384Hash(string Input,bool ToLower = false)
+        {
+            byte[] InputBytes = Encoding.UTF8.GetBytes(Input);
+
+            using (SHA384 Sha384 = SHA384.Create())
+            {
+                byte[] HashBytes = Sha384.ComputeHash(InputBytes);
+
+                StringBuilder NStringBuilder = new StringBuilder();
+
+                foreach (byte Byte in HashBytes)
+                {
+                    NStringBuilder.Append(Byte.ToString("x2"));
+                }
+
+                if (ToLower)
+                {
+                    return NStringBuilder.ToString().Replace("-", "").ToLower();
+                }
+                else
+                {
+                    return NStringBuilder.ToString().Replace("-", "").ToUpper();
+                }
+            }
+        }
+
+        public static string ComputeMD5Hash(string Input,bool ToLower = false)
+        {
+            using (MD5 MD5 = MD5.Create())
+            {
+                byte[] InputBytes = Encoding.UTF8.GetBytes(Input);
+
+                byte[] HashBytes = MD5.ComputeHash(InputBytes);
+
+                StringBuilder NStringBuilder = new StringBuilder();
+                foreach (byte Byte in HashBytes)
+                {
+                    NStringBuilder.Append(Byte.ToString("x2"));
+                }
+
+                if (ToLower)
+                {
+                    return NStringBuilder.ToString().ToLower();
+                }
+                else
+                {
+                    return NStringBuilder.ToString().ToUpper();
+
+                }
+            }
+        }
+
+        public static string ComputeMD5_16BitHash(string Input,bool ToLower = false)
+        {
+            using (MD5 MD5 = MD5.Create())
+            {
+                byte[] HashBytes = MD5.ComputeHash(Encoding.UTF8.GetBytes(Input));
+
+                if (ToLower)
+                {
+                    return BitConverter.ToString(HashBytes, 4, 8).Replace("-", "").ToLower();
+                }
+                else
+                {
+                    return BitConverter.ToString(HashBytes, 4, 8).Replace("-", "").ToUpper();
+
+                }
+            }
+        }
+
+
+    }
+
     public class CustomReqCore
     {
         private string _Url = "";
@@ -170,48 +303,122 @@ namespace PhoenixEngine.Platform
         private string Prompt = "";
         private string Model = "";
 
-        public static string ApiKeySign = "{API_KEY}";
-        public static string PromptSign = "{AI_Prompt}";
-        public static string SourceSign = "{SourceStr}";
-        public static string ModelSign = "{AI_Model}";
-        public static string FromSign = "{P_From}";
-        public static string ToSign = "{P_To}";
+        public static string ApiKeyAuto = "{API_KEY}";
+        public static string PromptAuto = "{AI_Prompt}";
+        public static string SourceAuto = "{SourceStr}";
+        public static string ModelAuto = "{AI_Model}";
+        public static string FromAuto = "{P_From}";
+        public static string ToAuto = "{P_To}";
+        public static string SignAuto = "{P_Sign}";
 
         public string From = "";
         public string To = "";
         public string Source = "";
+        public SignEncode SignMode = SignEncode.Null;
+
+        public string SignParams = "";
+        public bool SignToLower = false;
+
+        public string CreateSign()
+        {
+            string MergeLine = "";
+            foreach (var GetKey in SignParams.Split(','))
+            {
+                if (GetKey.Length == 0)
+                {
+                    continue;
+                }
+
+                int SetState = 0;
+
+                foreach (var GetHeaderKey in GetHeaderKeyValues())
+                {
+                    if (GetHeaderKey.Key.Equals(GetKey))
+                    {
+                        MergeLine += GetHeaderKey.Value;
+                        SetState = 1;
+                        break;
+                    }
+                }
+
+                if (SetState == 0)
+                foreach (var GetPayLoadKey in GetPayLoadKeyValues())
+                {
+                    if (GetPayLoadKey.Key.Equals(GetKey))
+                    {
+                        MergeLine += GetPayLoadKey.Value;
+                        SetState = 1;
+                        break;
+                    }
+                }
+            }
+
+            if (this.SignMode == SignEncode.MD5)
+            {
+                return SignEncoder.ComputeMD5Hash(MergeLine,SignToLower);
+            }
+            else
+            if (this.SignMode == SignEncode.MD5_16Bit)
+            {
+                return SignEncoder.ComputeMD5_16BitHash(MergeLine, SignToLower);
+            }
+            else
+            if (this.SignMode == SignEncode.SHA256)
+            {
+                return SignEncoder.ComputeSHA256Hash(MergeLine, SignToLower);
+            }
+            else
+            if (this.SignMode == SignEncode.SHA384)
+            {
+                return SignEncoder.ComputeSHA384Hash(MergeLine, SignToLower);
+            }
+            else
+            if (this.SignMode == SignEncode.SHA512)
+            {
+                return SignEncoder.ComputeSHA512Hash(MergeLine, SignToLower);
+            }
+            else
+            {
+                return string.Empty;
+            }
+        }
 
         public string GetTagValue(ReqReplaceTag Tag)
         {
             string Value = Tag.GetValue();
-            if (Value.Equals(ApiKeySign))
+            if (Value.Equals(ApiKeyAuto))
             {
                 return ApiKey;
             }
             else
-            if (Value.Equals(PromptSign))
+            if (Value.Equals(PromptAuto))
             {
                 return Prompt;
             }
             else
-            if (Value.Equals(SourceSign))
+            if (Value.Equals(SourceAuto))
             {
                 return Source;
             }
             else
-            if (Value.Equals(ModelSign))
+            if (Value.Equals(ModelAuto))
             {
                 return Model;
             }
             else
-            if (Value.Equals(FromSign))
+            if (Value.Equals(FromAuto))
             {
                 return From;
             }
             else
-            if (Value.Equals(ToSign))
+            if (Value.Equals(ToAuto))
             {
                 return To;
+            }
+            else
+            if (Value.Equals(SignAuto))
+            {
+                return CreateSign();
             }
             else
             {
