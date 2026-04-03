@@ -57,7 +57,7 @@ namespace PhoenixEngine.Translate
 
         public UnitGroup ToUnitGroup(BaseUnit Unit)
         {
-            return new UnitGroup(Unit);
+            return new UnitGroup(this,Unit);
         }
 
         public void Init(List<BaseUnit> BaseUnits, AggregationMode Mode)
@@ -293,6 +293,49 @@ namespace PhoenixEngine.Translate
             {
                 System.Console.WriteLine($"Error in WriteAllMemoryData: {ex.Message}");
             }
+        }
+
+        public void AddAIMemory(string Original, string Translated)
+        {
+            Phoenix.AIMemory.AddTranslation(this.From, this.To, Original, Translated);
+        }
+
+        public int GetTranslatedCount()
+        {
+            if (LastLoadFileName.Length == 0) return 0;
+            string SqlOrder = $@"SELECT COUNT(*) AS TotalCount
+FROM (
+    SELECT Key
+    FROM LocalTranslation
+    WHERE FileUniqueKey = '{FileUniqueKey}' And [To] = '{(int)this.To}'
+    
+    UNION  
+    SELECT Key
+    FROM CloudTranslation
+    WHERE FileUniqueKey = '{FileUniqueKey}' And [To] = '{(int)this.To}'
+) AS Combined;";
+
+            int GetCount = ConvertHelper.ObjToInt(Phoenix.LocalDB.ExecuteScalar(SqlOrder));
+
+            return GetCount;
+        }
+
+        private int FileUniqueKey = 0;
+        public string LastLoadFileName = "";
+        public void LoadFile(string FilePath, bool CanSkipFuzzyMatching = false)
+        {
+            UniqueKeyItem NewKey = new UniqueKeyItem();
+            FileUniqueKey = UniqueKeyHelper.AddItemByReturn(ref NewKey, FilePath, CanSkipFuzzyMatching);
+            LastLoadFileName = NewKey.FileName;
+        }
+
+        public void Close()
+        {
+            FileUniqueKey = 0;
+        }
+        public int GetFileUniqueKey()
+        {
+            return FileUniqueKey;
         }
     }
 

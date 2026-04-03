@@ -1,6 +1,7 @@
 ﻿using PhoenixEngine.Engine;
 using System.Collections.Generic;
 using PhoenixEngine.Events;
+using PhoenixEngine.Translate;
 
 namespace PhoenixEngine.Unit
 {
@@ -95,9 +96,9 @@ namespace PhoenixEngine.Unit
 
     public static class BaseUnitExtend
     {
-        public static HashSet<string> ExtractTokens(this BaseUnit Unit)
+        public static HashSet<string> ExtractTokens(this BaseUnit Unit,Translator TranslatorRef)
         {
-            return TextTokenizer.BuildTokenSignature(Phoenix.From, Unit.Original, 0);
+            return TextTokenizer.BuildTokenSignature(TranslatorRef.From, Unit.Original, 0);
         }
     }
 

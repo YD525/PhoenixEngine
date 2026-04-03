@@ -71,7 +71,7 @@ namespace PhoenixEngine.Translate
         }
         public static QueryTransItem QueryTransData(this Translator Translator,string Key)
         {
-            int FileUniqueKey = Phoenix.GetFileUniqueKey();
+            int FileUniqueKey = Translator.GetFileUniqueKey();
 
             QueryTransItem NQueryTransItem = new QueryTransItem();
 
@@ -81,7 +81,7 @@ namespace PhoenixEngine.Translate
 
             if (GetRamSource.Trim().Length == 0)
             {
-                TransText = LocalDBCache.GetCacheText(FileUniqueKey, Key, Phoenix.To);
+                TransText = LocalDBCache.GetCacheText(FileUniqueKey, Key, Translator.To);
 
                 if (TransText.Trim().Length > 0)
                 {
@@ -89,7 +89,7 @@ namespace PhoenixEngine.Translate
                 }
                 else
                 {
-                    TransText = CloudDBCache.FindCache(FileUniqueKey, Key, Phoenix.To);
+                    TransText = CloudDBCache.FindCache(FileUniqueKey, Key, Translator.To);
 
                     if (TransText.Trim().Length > 0)
                     {
@@ -102,7 +102,7 @@ namespace PhoenixEngine.Translate
             }
             else
             {
-                var GetStr = CloudDBCache.FindCache(FileUniqueKey, Key, Phoenix.To);
+                var GetStr = CloudDBCache.FindCache(FileUniqueKey, Key, Translator.To);
                 TransText = GetRamSource;
 
                 if (GetStr.Equals(GetRamSource))
@@ -124,7 +124,7 @@ namespace PhoenixEngine.Translate
         }
         public static bool AutoSetLink(this Translator Translator, string Key, string SourceText, string TransText)
         {
-            int FileUniqueKey = Phoenix.GetFileUniqueKey();
+            int FileUniqueKey = Translator.GetFileUniqueKey();
 
             var Link = Translator.GetLink();
 
@@ -136,15 +136,15 @@ namespace PhoenixEngine.Translate
             {
                 Link.Remove(Key);
 
-                CloudDBCache.DeleteCache(FileUniqueKey, Key, Phoenix.To);
-                LocalDBCache.DeleteCache(FileUniqueKey, Key, Phoenix.To);
+                CloudDBCache.DeleteCache(FileUniqueKey, Key, Translator.To);
+                LocalDBCache.DeleteCache(FileUniqueKey, Key, Translator.To);
 
                 return true;
             }
 
-            var GetState = LocalDBCache.UPDateLocalTransItem(FileUniqueKey, Key, (int)Phoenix.To, SourceText, TransText, 0);
+            var GetState = LocalDBCache.UPDateLocalTransItem(FileUniqueKey, Key, (int)Translator.To, SourceText, TransText, 0);
 
-            Phoenix.GetTranslatedCount(Phoenix.GetFileUniqueKey());
+            Translator.GetTranslatedCount();
 
             return GetState;
         }
@@ -156,15 +156,15 @@ namespace PhoenixEngine.Translate
 
                 Link.Remove(Key);
 
-                CloudDBCache.DeleteCache(FileUniqueKey, Key, Phoenix.To);
-                LocalDBCache.DeleteCache(FileUniqueKey, Key, Phoenix.To);
+                CloudDBCache.DeleteCache(FileUniqueKey, Key, Translator.To);
+                LocalDBCache.DeleteCache(FileUniqueKey, Key, Translator.To);
 
                 return true;
             }
 
-            var GetState = CloudDBCache.AddCache(FileUniqueKey, Key, (int)Phoenix.To, SourceText, TransText);
+            var GetState = CloudDBCache.AddCache(FileUniqueKey, Key, (int)Translator.To, SourceText, TransText);
 
-            Phoenix.GetTranslatedCount(Phoenix.GetFileUniqueKey());
+            Translator.GetTranslatedCount();
 
             return GetState;
         }

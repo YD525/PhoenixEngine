@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using PhoenixEngine.Additional;
 using PhoenixEngine.ADO;
 using PhoenixEngine.Engine;
+using PhoenixEngine.Engine.ADO;
 using PhoenixEngine.Language;
 using PhoenixEngine.Memory;
 using PhoenixEngine.Platform;
@@ -97,23 +98,15 @@ namespace PhoenixEngine
             Phoenix.LoadConfig();
             ProxyCenter.UsingProxy();
 
+            WordAutoComplete.DatabaseDirectory = GetFullPath(@"\wordfreq\");
+            WordAutoComplete.Init();
+
             ReSetKeyData();
         }
 
         public static void Vacuum()
         {
             LocalDB.ExecuteNonQuery("vacuum");
-        }
-
-        public static string LastLoadFileName = "";
-
-        public static void LoadFile(string FilePath, bool CanSkipFuzzyMatching = false)
-        {
-            UniqueKeyItem NewKey = new UniqueKeyItem();
-            var UniqueKey = UniqueKeyHelper.AddItemByReturn(ref NewKey, FilePath, CanSkipFuzzyMatching);
-            LastLoadFileName = NewKey.FileName;
-
-            ChangeUniqueKey(UniqueKey);
         }
 
         public static string GetFullPath(string Path)
@@ -128,63 +121,15 @@ namespace PhoenixEngine
             }
             return GetShellPath + Path;
         }
-
-        public static Languages From = Languages.English;
-
-        public static Languages To = Languages.English;
-
-        public static bool ConfigLanguage(Languages SetFrom, Languages SetTo)
-        {
-            if (SetFrom != Languages.Null && SetTo != Languages.Null)
-            {
-                Phoenix.From = SetFrom;
-                Phoenix.To = SetTo;
-                return true;
-            }
-            return false;
-        }
-
-        private static int FileUniqueKey = 0;
-
-        public static void ChangeUniqueKey(int Rowid)
-        {
-            FileUniqueKey = Rowid;
-            GetTranslatedCount(FileUniqueKey);
-        }
-
-        public static int GetTranslatedCount(int FileUniqueKey)
-        {
-            if (LastLoadFileName.Length == 0) return 0;
-            string SqlOrder = $@"SELECT COUNT(*) AS TotalCount
-FROM (
-    SELECT Key
-    FROM LocalTranslation
-    WHERE FileUniqueKey = '{FileUniqueKey}' And [To] = '{(int)Phoenix.To}'
-    
-    UNION  
-    SELECT Key
-    FROM CloudTranslation
-    WHERE FileUniqueKey = '{FileUniqueKey}' And [To] = '{(int)Phoenix.To}'
-) AS Combined;";
-
-            int GetCount = ConvertHelper.ObjToInt(Phoenix.LocalDB.ExecuteScalar(SqlOrder));
-
-            return GetCount;
-        }
-        public static int GetFileUniqueKey()
-        {
-            return Phoenix.FileUniqueKey;
-        }
-
         public static void ReSetKeyData()
         {
             KeyData = new KeyManage();
             KeyData.Init();
         }
 
-        public static void AddAIMemory(string Original, string Translated)
+        public static void AddAIMemory(Translator TranslatorRef, string Original, string Translated)
         {
-            Phoenix.AIMemory.AddTranslation(Phoenix.From, Phoenix.To, Original, Translated);
+            Phoenix.AIMemory.AddTranslation(TranslatorRef.From, TranslatorRef.To, Original, Translated);
         }
 
         public static string AppendDollarWrappedReplacements(string input)

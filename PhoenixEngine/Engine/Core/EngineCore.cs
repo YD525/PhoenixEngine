@@ -208,7 +208,7 @@ namespace PhoenixEngine.Engine
 
             CheckCanSkip(Sequences,ref Item);
 
-            Item.CenterPreProcess(From, To, ref Sequences);
+            Item.CenterPreProcess(TranslatorRef, From, To, ref Sequences);
 
             CheckCanSkip(Sequences, ref Item);
 
@@ -252,7 +252,7 @@ namespace PhoenixEngine.Engine
 
                     string SetType = "";
 
-                    GetTrans = CurrentEngine.Call(ref Item,ref Sequences,From,To,
+                    GetTrans = CurrentEngine.Call(TranslatorRef,ref Item,ref Sequences,From,To,
                     true, Phoenix.Config.ContextLimit,
                     AIParam,ref SetType);
 
@@ -394,10 +394,10 @@ namespace PhoenixEngine.Engine
                 }
             }
 
-            public string Call(ref UnitGroup Source,ref Dictionary<string, UnitSequence> Sequences,
+            public string Call(Translator TranslatorRef, ref UnitGroup Source,ref Dictionary<string, UnitSequence> Sequences,
                Languages From,Languages To,bool UseAIMemory,int AIMemoryQueryCount,string AIParam,ref string SetType)
             {
-                Source.StartGeneratePlaceholder(From, To, ref Sequences);
+                Source.StartGeneratePlaceholder(TranslatorRef, From, To, ref Sequences);
 
                 CheckCanGeneratePlaceholder(Sequences, ref Source);
                 CheckCanSkip(Sequences, ref Source);

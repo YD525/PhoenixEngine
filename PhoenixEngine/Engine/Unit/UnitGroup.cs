@@ -2,6 +2,7 @@
 using PhoenixEngine.Sequence;
 using System.Text.RegularExpressions;
 using PhoenixEngine.Events;
+using PhoenixEngine.Translate;
 
 namespace PhoenixEngine.Unit
 {
@@ -128,9 +129,9 @@ namespace PhoenixEngine.Unit
 
         }
 
-        public UnitGroup(BaseUnit SingleUnit)
+        public UnitGroup(Translator TranslatorRef, BaseUnit SingleUnit)
         {
-            Init(0, SingleUnit, AggregationMode.Single);
+            Init(TranslatorRef, 0, SingleUnit, AggregationMode.Single);
         }
 
         public BaseUnit GetFrist()
@@ -142,7 +143,7 @@ namespace PhoenixEngine.Unit
             return null;
         }
 
-        public void Init(int Key, BaseUnit First, AggregationMode SetMode)
+        public void Init(Translator TranslatorRef, int Key,BaseUnit First, AggregationMode SetMode)
         {
             this.Mode = SetMode;
 
@@ -150,7 +151,7 @@ namespace PhoenixEngine.Unit
             {
                 this.Key = Key.ToString();
 
-                AnchorTokens = First.ExtractTokens();
+                AnchorTokens = First.ExtractTokens(TranslatorRef);
                 AllTokens = new HashSet<string>(AnchorTokens);
 
                 Units.Add(First);

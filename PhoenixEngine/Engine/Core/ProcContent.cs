@@ -165,13 +165,13 @@ namespace PhoenixEngine.EngineManagement.Engine
                     Game GameType = Game.Null;
                     if (SkyrimBookHelper.IsSkyrimBook(Leader, ref GameType))
                     {
-                        Content.Books.Add(new UnitGroup(Leader));
+                        Content.Books.Add(new UnitGroup(Translator,Leader));
                         continue;
                     }
 
                     if (SeenTexts.Contains(Leader.Original))
                     {
-                        SameItems.Add(new UnitGroup(Leader));
+                        SameItems.Add(new UnitGroup(Translator,Leader));
                         continue;
                     }
 
@@ -183,7 +183,7 @@ namespace PhoenixEngine.EngineManagement.Engine
                     UnitGroup Bucket = new UnitGroup();
                     Bucket.Key = Leader.Key;
                     Bucket.Mode = AggregationMode.Aggregation;
-                    Bucket.AnchorTokens = Leader.ExtractTokens();
+                    Bucket.AnchorTokens = Leader.ExtractTokens(Translator);
                     Bucket.AllTokens = new HashSet<string>(Bucket.AnchorTokens);
                     Bucket.AddUnit(Leader, LeaderTokenLen);
 
@@ -198,19 +198,19 @@ namespace PhoenixEngine.EngineManagement.Engine
                     Game GameType = Game.Null;
                     if (SkyrimBookHelper.IsSkyrimBook(Unit, ref GameType))
                     {
-                        Content.Books.Add(new UnitGroup(Unit));
+                        Content.Books.Add(new UnitGroup(Translator,Unit));
                         continue;
                     }
 
                     if (SeenTexts.Contains(Unit.Original))
                     {
-                        SameItems.Add(new UnitGroup(Unit));
+                        SameItems.Add(new UnitGroup(Translator,Unit));
                         continue;
                     }
 
                     SeenTexts.Add(Unit.Original);
 
-                    var UnitTokens = Unit.ExtractTokens();
+                    var UnitTokens = Unit.ExtractTokens(Translator);
                     bool Assigned = false;
 
                     int UnitTokenLen = CalcTokenLength(Unit.Original, From);

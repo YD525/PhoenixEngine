@@ -133,7 +133,7 @@ namespace PhoenixEngine.Translate
         {
             int TrdDelayMs = Phoenix.Config.ThrottleDelayMs;
 
-            TranslatedCount = Phoenix.GetTranslatedCount(Phoenix.GetFileUniqueKey());
+            TranslatedCount = TranslatorRef.GetTranslatedCount();
 
             if (TrdPool == null)
             {
@@ -217,7 +217,7 @@ namespace PhoenixEngine.Translate
                             }
                             
                             CloudDBCache.AddCache(
-                                Phoenix.GetFileUniqueKey(),
+                                TranslatorRef.GetFileUniqueKey(),
                                 GetUnit.Key,
                                 (int)TranslatorRef.To,
                                 GetUnit.Original,
@@ -239,7 +239,7 @@ namespace PhoenixEngine.Translate
                             GetUnit.Translated = CacheResult;
                             
                             CloudDBCache.AddCache(
-                                Phoenix.GetFileUniqueKey(),
+                                TranslatorRef.GetFileUniqueKey(),
                                 GetUnit.Key,
                                 (int)TranslatorRef.To,
                                 GetUnit.Original,
@@ -361,7 +361,7 @@ namespace PhoenixEngine.Translate
 
             Cancel();
             this.Content?.Clear();
-            this.TranslatedCount = Phoenix.GetTranslatedCount(Phoenix.GetFileUniqueKey());
+            this.TranslatedCount = TranslatorRef.GetTranslatedCount();
         }
 
         public void Close()

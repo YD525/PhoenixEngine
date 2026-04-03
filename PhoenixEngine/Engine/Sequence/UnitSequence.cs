@@ -117,7 +117,7 @@ namespace PhoenixEngine.Sequence
         /// <param name="Sequences"></param>
         /// <param name="CanSkipSleep"></param>
         public static void CenterPreProcess(this UnitGroup Item,
-          Languages From, Languages To,
+          Translator TranslatorRef,Languages From, Languages To,
           ref Dictionary<string, UnitSequence> Sequences)
         {
             for (int i = 0; i < Item.Units.Count; i++)
@@ -134,7 +134,7 @@ namespace PhoenixEngine.Sequence
                     CacheCall Call = new CacheCall();
                     Call.SendString = Source;
 
-                    string GetCacheStr = CloudDBCache.FindCache(Phoenix.GetFileUniqueKey(), GetUnit.Key, To);
+                    string GetCacheStr = CloudDBCache.FindCache(TranslatorRef.GetFileUniqueKey(), GetUnit.Key, To);
 
                     if (GetCacheStr.Trim().Length > 0)
                     {
@@ -190,7 +190,7 @@ namespace PhoenixEngine.Sequence
         }
 
         public static void StartGeneratePlaceholder(this UnitGroup Item,
-            Languages From, Languages To,
+            Translator TranslatorRef,Languages From, Languages To,
             ref Dictionary<string, UnitSequence> Sequences)
         {
             for (int i = 0; i < Item.Units.Count; i++)
@@ -213,7 +213,7 @@ namespace PhoenixEngine.Sequence
 
                     NPreTranslateCall.SendString = Source;
 
-                    Source = Preprocessor.GeneratePlaceholderText(Phoenix.LastLoadFileName, From, To, Source, GetUnit.Type, out CanTrans);
+                    Source = Preprocessor.GeneratePlaceholderText(TranslatorRef.LastLoadFileName, From, To, Source, GetUnit.Type, out CanTrans);
 
                     CustomWords.Clear();
                     foreach (var GetWord in Preprocessor.ReplaceTags)

@@ -144,7 +144,7 @@ namespace PhoenixEngine.Engine.ADO
             foreach (var GetFile in Directory.GetFiles(WordAutoComplete.DatabaseDirectory, "*.db"))
             {
                 FileInfo GetInfo = new FileInfo(GetFile);
-                var GetName = GetInfo.Name.Replace("_", "-");
+                var GetName = Path.GetFileNameWithoutExtension(GetInfo.Name).Replace("_", "-");
                 Languages GetLang = P_Language.FromLanguageCode(GetName);
 
                 if (!WordCompleters.ContainsKey(GetLang))
