@@ -98,9 +98,43 @@ namespace PhoenixEngine.Engine.ADO
             Node.Frequency = Freq;
         }
 
-        public List<string> Query(string Prefix)
+        private void CountNodes(TrieNode Node, ref int Count)
         {
-            if (string.IsNullOrEmpty(Prefix) || CurrentLanguage == Languages.Null)
+            if (Node.Frequency.HasValue)
+                Count++;
+            foreach (var KV in Node.Children)
+                CountNodes(KV.Value, ref Count);
+        }
+
+        public int CountWords()
+        {
+            int Count = 0;
+            CountNodes(_Root, ref Count);
+            return Count;
+        }
+        public List<string> Query(string UserText)
+        {
+            if (string.IsNullOrEmpty(UserText) || CurrentLanguage == Languages.Null)
+                return new List<string>();
+
+            string Prefix;
+
+            if (CurrentLanguage.IsSpaceDelimitedLanguage())
+            {
+                string[] Parts = UserText.TrimEnd().Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                Prefix = Parts.Length > 0 ? Parts[Parts.Length - 1] : string.Empty;
+            }
+            else if (CurrentLanguage.IsNoSpaceLanguage())
+            {
+                Prefix = ExtractNoSpacePrefix(UserText, 6);
+            }
+            else
+            {
+                string[] Parts = UserText.TrimEnd().Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                Prefix = Parts.Length > 0 ? Parts[Parts.Length - 1] : string.Empty;
+            }
+
+            if (string.IsNullOrEmpty(Prefix))
                 return new List<string>();
 
             Prefix = Prefix.ToLowerInvariant();
@@ -115,11 +149,43 @@ namespace PhoenixEngine.Engine.ADO
             var Results = new List<(string Word, double Freq)>();
             CollectWords(Node, Prefix, Results);
             Results.Sort((a, b) => b.Freq.CompareTo(a.Freq));
-
             return Results
                 .Take(MaxResults)
                 .Select(r => r.Word)
                 .ToList();
+        }
+
+        private string ExtractNoSpacePrefix(string UserText, int MaxChars)
+        {
+            int End = UserText.Length - 1;
+            while (End >= 0 && char.IsWhiteSpace(UserText[End]))
+                End--;
+
+            if (End < 0)
+                return string.Empty;
+
+            int Start = End;
+            int Count = 0;
+            while (Start > 0 && Count < MaxChars)
+            {
+                char Prev = UserText[Start - 1];
+                if (char.IsWhiteSpace(Prev) || char.IsPunctuation(Prev) || char.IsSymbol(Prev)
+                    || IsCJKPunctuation(Prev))
+                    break;
+                Start--;
+                Count++;
+            }
+
+            return UserText.Substring(Start, End - Start + 1);
+        }
+
+        private bool IsCJKPunctuation(char C)
+        {
+            return C == '，' || C == '。' || C == '！' || C == '？' ||
+                   C == '；' || C == '：' || C == '"' || C == '"' ||
+                   C == '、' || C == '「' || C == '」' || C == '【' || C == '】' ||
+                   C == '《' || C == '》' || C == '・' || C == '。' ||
+                   C == '　'; 
         }
 
         private void CollectWords(TrieNode Node, string Current, List<(string, double)> Results)
