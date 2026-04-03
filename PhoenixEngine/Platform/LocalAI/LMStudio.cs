@@ -98,41 +98,46 @@ namespace PhoenixEngine.Platform.LocalAI
 
             return string.Empty;
         }
+
+        public static object SingleLock = new object();
         public OpenAIResponse CallAI(OpenAIItem Item,ref string Recv)
         {
-            string GenUrl = "http://localhost" + ":" + LocalPort + "/v1/chat/completions";
-            string GetJson = JsonConvert.SerializeObject(Item);
-            WebHeaderCollection Headers = new WebHeaderCollection();
-            //Headers.Add("Authorization", string.Format("Bearer {0}", DeFine.GlobalLocalSetting.LMKey));
-            HttpItem Http = new HttpItem()
+            lock (SingleLock)
             {
-                URL = GenUrl,
-                UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
-                Method = "Post",
-                Header = Headers,
-                Accept = "*/*",
-                Postdata = GetJson,
-                Cookie = "",
-                ContentType = "application/json; charset=utf-8",
-                Encoding = Encoding.UTF8
-                //ProxyIp = ProxyCenter.GlobalProxyIP
-            };
-            try
-            {
-                Http.Header.Add("Accept-Encoding", " gzip");
-            }
-            catch { }
+                string GenUrl = "http://localhost" + ":" + LocalPort + "/v1/chat/completions";
+                string GetJson = JsonConvert.SerializeObject(Item);
+                WebHeaderCollection Headers = new WebHeaderCollection();
+                //Headers.Add("Authorization", string.Format("Bearer {0}", DeFine.GlobalLocalSetting.LMKey));
+                HttpItem Http = new HttpItem()
+                {
+                    URL = GenUrl,
+                    UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
+                    Method = "Post",
+                    Header = Headers,
+                    Accept = "*/*",
+                    Postdata = GetJson,
+                    Cookie = "",
+                    ContentType = "application/json; charset=utf-8",
+                    Encoding = Encoding.UTF8
+                    //ProxyIp = ProxyCenter.GlobalProxyIP
+                };
+                try
+                {
+                    Http.Header.Add("Accept-Encoding", " gzip");
+                }
+                catch { }
 
-            string GetResult = new HttpHelper().GetHtml(Http).Html;
+                string GetResult = new HttpHelper().GetHtml(Http).Html;
+                Recv = GetResult;
 
-            Recv = GetResult;
-            try
-            {
-                return JsonConvert.DeserializeObject<OpenAIResponse>(GetResult);
-            }
-            catch
-            {
-                return null;
+                try
+                {
+                    return JsonConvert.DeserializeObject<OpenAIResponse>(GetResult);
+                }
+                catch
+                {
+                    return null;
+                }
             }
         }
         //"Important: When translating, strictly keep any text inside angle brackets (< >) or square brackets ([ ]) unchanged. Do not modify, translate, or remove them.\n\n"

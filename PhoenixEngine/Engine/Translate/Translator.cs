@@ -326,6 +326,8 @@ FROM (
 
         public void Close()
         {
+            GetBatchCore()?.Close();
+            GetLink()?.Clear();
             FileUniqueKey = 0;
         }
         public int GetFileUniqueKey()

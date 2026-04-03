@@ -394,6 +394,13 @@ namespace PhoenixEngine.Engine
                 }
             }
 
+            public static bool IsLocked(object Obj)
+            {
+                bool LockTaken = false;
+                Monitor.TryEnter(Obj, 0, ref LockTaken);
+                if (LockTaken) Monitor.Exit(Obj);
+                return !LockTaken;
+            }
             public string Call(Translator TranslatorRef, ref UnitGroup Source,ref Dictionary<string, UnitSequence> Sequences,
                Languages From,Languages To,bool UseAIMemory,int AIMemoryQueryCount,string AIParam,ref string SetType)
             {
@@ -546,6 +553,17 @@ namespace PhoenixEngine.Engine
                         {
                             if (Phoenix.Config.GetPlatformData(LMStudio.Type).Enable)
                             {
+                                if (IsLocked(LMStudio.SingleLock))
+                                {
+                                    this.CallCountDown = 0;
+
+                                    while (IsLocked(LMStudio.SingleLock))
+                                    {
+                                        Thread.Sleep(200);
+                                    }
+                                }
+                               
+
                                 LMStudio SetApi = ((LMStudio)this.ApiRef);
                                 AICall Call = new AICall();
 

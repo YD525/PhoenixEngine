@@ -215,13 +215,11 @@ namespace PhoenixEngine.Unit
         {
             ConfirmPasser WaitConfirm = new ConfirmPasser(this.Units);
 
-            string Pattern =
-                @"<li[^>]*data-unit-id\s*=\s*'(\d+)'[^>]*>\s*(.*?)(?:\s*</li>)*\s*(?=<li|\Z)";
-
+            string Pattern = @"<li[^>]*data-unit-id\s*=\s*'(\d+)'[^>]*>\s*([\s\S]*?)(?=\s*</li>|\s*<li|\z)";
             var Matches = Regex.Matches(
                 Content,
                 Pattern,
-                RegexOptions.IgnoreCase | RegexOptions.Singleline
+                RegexOptions.IgnoreCase  
             );
 
             foreach (Match match in Matches)
