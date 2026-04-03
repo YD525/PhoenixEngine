@@ -117,12 +117,21 @@ namespace PhoenixEngine.Engine.ADO
             if (string.IsNullOrEmpty(UserText) || CurrentLanguage == Languages.Null)
                 return new List<string>();
 
-            string Prefix;
+            string Prefix = string.Empty;
+            char[] Separators = new char[] { ' ', '\t', '\r', '\n' };
+
+            if (UserText.Length > 0 && Separators.Contains(UserText[UserText.Length - 1]))
+            {
+                return new List<string>();
+            }
 
             if (CurrentLanguage.IsSpaceDelimitedLanguage())
             {
-                string[] Parts = UserText.TrimEnd().Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-                Prefix = Parts.Length > 0 ? Parts[Parts.Length - 1] : string.Empty;
+                string[] Parts = UserText.Split(Separators, StringSplitOptions.RemoveEmptyEntries);
+
+                if (Parts.Length == 0) return new List<string>();
+
+                Prefix = Parts[Parts.Length - 1];
             }
             else if (CurrentLanguage.IsNoSpaceLanguage())
             {
@@ -130,8 +139,11 @@ namespace PhoenixEngine.Engine.ADO
             }
             else
             {
-                string[] Parts = UserText.TrimEnd().Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-                Prefix = Parts.Length > 0 ? Parts[Parts.Length - 1] : string.Empty;
+                string[] Parts = UserText.Split(Separators, StringSplitOptions.RemoveEmptyEntries);
+
+                if (Parts.Length == 0) return new List<string>();
+
+                Prefix = Parts[Parts.Length - 1];
             }
 
             if (string.IsNullOrEmpty(Prefix))
@@ -148,33 +160,44 @@ namespace PhoenixEngine.Engine.ADO
 
             var Results = new List<(string Word, double Freq)>();
             CollectWords(Node, Prefix, Results);
-            Results.Sort((a, b) => b.Freq.CompareTo(a.Freq));
+
+            Results.Sort((A, B) => B.Freq.CompareTo(A.Freq));
+
             return Results
                 .Take(MaxResults)
-                .Select(r => r.Word)
+                .Select(R => R.Word)
                 .ToList();
         }
 
         private string ExtractNoSpacePrefix(string UserText, int MaxChars)
         {
+            if (string.IsNullOrEmpty(UserText)) return string.Empty;
+
             int End = UserText.Length - 1;
-            while (End >= 0 && char.IsWhiteSpace(UserText[End]))
-                End--;
 
-            if (End < 0)
+            if (char.IsWhiteSpace(UserText[End]))
+            {
                 return string.Empty;
+            }
 
-            int Start = End;
+            int Start = End + 1; 
             int Count = 0;
+
             while (Start > 0 && Count < MaxChars)
             {
                 char Prev = UserText[Start - 1];
-                if (char.IsWhiteSpace(Prev) || char.IsPunctuation(Prev) || char.IsSymbol(Prev)
-                    || IsCJKPunctuation(Prev))
+
+                if (char.IsWhiteSpace(Prev) || char.IsPunctuation(Prev) ||
+                    char.IsSymbol(Prev) || IsCJKPunctuation(Prev))
+                {
                     break;
+                }
+
                 Start--;
                 Count++;
             }
+
+            if (Start > End) return string.Empty;
 
             return UserText.Substring(Start, End - Start + 1);
         }
