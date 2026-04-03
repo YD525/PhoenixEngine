@@ -144,8 +144,6 @@ namespace PhoenixEngine.Translate
 
             var GetState = LocalDBCache.UPDateLocalTransItem(FileUniqueKey, Key, (int)Translator.To, SourceText, TransText, 0);
 
-            Translator.GetTranslatedCount();
-
             return GetState;
         }
         public static bool SetCloudData(this Translator Translator,int FileUniqueKey, string Key, string SourceText, string TransText)
