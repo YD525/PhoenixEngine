@@ -13,18 +13,10 @@ using PhoenixEngine.Translate;
 
 namespace PhoenixEngine
 {
-    public class ThreadUsageInfo
-    {
-        public int CurrentThreads { get; set; } = 0;
-        public int MaxThreads { get; set; } = 0;
-    }
-
     public class Phoenix : ConfigExtend
     {
         public static AITranslationMemory AIMemory = new AITranslationMemory();
-
-        public static string Version = "3.1.1.8";
-        public static string CurrentPath = "";
+        public static string Version = "3.1.2.8";
 
         public static object QueryPlatformDataLock = new object();
 
@@ -72,9 +64,11 @@ namespace PhoenixEngine
         {
             return Phoenix.Version;
         }
-        public static void Init()
+
+        private static string CurrentPath = "";
+        public static void Init(string StartupPath)
         {
-            CurrentPath = GetFullPath(@"\");
+            CurrentPath = StartupPath;
 
             string GetFilePath = GetFullPath(@"\Engine.db");
 
@@ -111,7 +105,7 @@ namespace PhoenixEngine
 
         public static string GetFullPath(string Path)
         {
-            string GetShellPath = System.AppContext.BaseDirectory;
+            string GetShellPath = CurrentPath;
             if (GetShellPath.EndsWith(@"\"))
             {
                 if (Path.StartsWith(@"\"))
@@ -130,18 +124,6 @@ namespace PhoenixEngine
         public static void AddAIMemory(Translator TranslatorRef, string Original, string Translated)
         {
             Phoenix.AIMemory.AddTranslation(TranslatorRef.From, TranslatorRef.To, Original, Translated);
-        }
-
-        public static string AppendDollarWrappedReplacements(string input)
-        {
-            // Create a regex to match text wrapped in $$...$$
-            Regex OneRegex = new Regex(@"\$\$(.+?)\$\$");
-
-            // Replace each match with {content}
-            string Replaced = OneRegex.Replace(input, match => "{" + match.Groups[1].Value + "}");
-
-            // Return the processed text only (original text is not preserved)
-            return Replaced;
         }
     }
 }

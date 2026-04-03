@@ -270,7 +270,7 @@ namespace PhoenixEngine
         {
             string GetJson = JsonConvert.SerializeObject(Config);
             var EncryptedBytes = XOREncrypt(Encoding.UTF8.GetBytes(GetJson));
-            File.WriteAllBytes(Phoenix.CurrentPath + "EngineConfig.data", EncryptedBytes);
+            File.WriteAllBytes(Phoenix.GetFullPath("EngineConfig.data"), EncryptedBytes);
         }
 
         public static bool CheckAvailableNodes()
@@ -301,7 +301,7 @@ namespace PhoenixEngine
         public static void LoadConfig()
         {
             NextCall:
-            string SetFullPath = Phoenix.CurrentPath + "EngineConfig.data";
+            string SetFullPath = Phoenix.GetFullPath("EngineConfig.data");
             if (!File.Exists(SetFullPath))
             {
                 SetDefaultModel();
