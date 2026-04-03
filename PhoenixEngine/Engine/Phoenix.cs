@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using PhoenixEngine.Additional;
@@ -66,7 +67,7 @@ namespace PhoenixEngine
         }
 
         private static string CurrentPath = "";
-        public static void Init(string StartupPath)
+        public static void Init(string StartupPath,Action<int>StepAction = null)
         {
             CurrentPath = StartupPath;
 
@@ -75,27 +76,36 @@ namespace PhoenixEngine
             if (!File.Exists(GetFilePath))
             {
                 P_SQLite.CreateDataBase(GetFilePath);
+                StepAction?.Invoke(1);
             }
 
             LocalDB.OpenSQL(GetFilePath);
 
             AdvancedDictionary.Init();
+            StepAction?.Invoke(2);
 
             CloudDBCache.Init();
             LocalDBCache.Init();
             FontColorFinder.Init();
+            StepAction?.Invoke(3);
 
             ChineseVariantMap.Init();
+            StepAction?.Invoke(5);
 
             UniqueKeyHelper.Init();
+            StepAction?.Invoke(6);
 
             Phoenix.LoadConfig();
+            StepAction?.Invoke(7);
             ProxyCenter.UsingProxy();
+            StepAction?.Invoke(8);
 
             WordAutoComplete.DatabaseDirectory = GetFullPath(@"\wordfreq\");
             WordAutoComplete.Init();
+            StepAction?.Invoke(9);
 
             ReSetKeyData();
+            StepAction?.Invoke(10);
         }
 
         public static void Vacuum()
