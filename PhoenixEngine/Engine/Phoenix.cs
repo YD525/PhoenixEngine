@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using PhoenixEngine.Additional;
 using PhoenixEngine.ADO;
 using PhoenixEngine.Engine;
@@ -75,37 +74,38 @@ namespace PhoenixEngine
 
             if (!File.Exists(GetFilePath))
             {
-                P_SQLite.CreateDataBase(GetFilePath);
                 StepAction?.Invoke(1);
+                P_SQLite.CreateDataBase(GetFilePath);
             }
 
             LocalDB.OpenSQL(GetFilePath);
 
-            AdvancedDictionary.Init();
             StepAction?.Invoke(2);
+            AdvancedDictionary.Init();
 
+            StepAction?.Invoke(3);
             CloudDBCache.Init();
             LocalDBCache.Init();
             FontColorFinder.Init();
-            StepAction?.Invoke(3);
 
-            ChineseVariantMap.Init();
             StepAction?.Invoke(5);
+            ChineseVariantMap.Init();
 
-            UniqueKeyHelper.Init();
             StepAction?.Invoke(6);
+            UniqueKeyHelper.Init();
 
-            Phoenix.LoadConfig();
             StepAction?.Invoke(7);
-            ProxyCenter.UsingProxy();
-            StepAction?.Invoke(8);
+            Phoenix.LoadConfig();
 
+            StepAction?.Invoke(8);
+            ProxyCenter.UsingProxy();
+
+            StepAction?.Invoke(9);
             WordAutoComplete.DatabaseDirectory = GetFullPath(@"\wordfreq\");
             WordAutoComplete.Init();
-            StepAction?.Invoke(9);
 
-            ReSetKeyData();
             StepAction?.Invoke(10);
+            ReSetKeyData();
         }
 
         public static void Vacuum()
