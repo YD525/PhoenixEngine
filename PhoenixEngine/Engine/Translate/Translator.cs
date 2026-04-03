@@ -62,6 +62,18 @@ namespace PhoenixEngine.Translate
 
         public void Init(List<BaseUnit> BaseUnits, AggregationMode Mode)
         {
+            if (this.BatchCore != null)
+            {
+                this.BatchCore.Cancel();
+
+                if (this.BatchCore.Content != null)
+                {
+                    this.BatchCore.Content.Clear();
+                }
+
+                this.BatchCore.ProcStage = 0;
+            }
+
             if (BatchCore != null)
             {
                 if (!BatchCore.Init(BaseUnits, Mode))
@@ -89,22 +101,6 @@ namespace PhoenixEngine.Translate
         {
             Phoenix.AIMemory.Clear();
         }
-
-        public void ReInit()
-        {
-            if (this.BatchCore != null)
-            {
-                this.BatchCore.Cancel();
-
-                if (this.BatchCore.Content != null)
-                {
-                    this.BatchCore.Content.Clear();
-                }
-
-                this.BatchCore.ProcStage = 0;
-            }
-        }
-
         public List<BaseUnit> ChunkTranslationUnit(BaseUnit Unit, ref List<UnitChunk> Chunks)
         {
             Chunks = new SkyrimBookHelper().ChunkBook(Unit);
@@ -299,8 +295,7 @@ namespace PhoenixEngine.Translate
         {
             Phoenix.AIMemory.AddTranslation(this.From, this.To, Original, Translated);
         }
-
-        public int GetTranslatedCount()
+        public int CalcTranslatedCount()
         {
             if (LastLoadFileName.Length == 0) return 0;
             string SqlOrder = $@"SELECT COUNT(*) AS TotalCount

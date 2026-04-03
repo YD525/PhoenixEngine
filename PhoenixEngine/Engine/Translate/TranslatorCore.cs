@@ -71,6 +71,7 @@ namespace PhoenixEngine.Translate
             if (ProcStage == 0)
             {
                 Clear();
+                this.TranslatorRef.SyncTranslatedCount();
                 UnionArray SetData = new UnionArray();
                 ProcStage = 1;
                 SetData.Load(BaseUnits, TranslatorRef.From, ref MarkLeadersPercent);
@@ -133,7 +134,7 @@ namespace PhoenixEngine.Translate
         {
             int TrdDelayMs = Phoenix.Config.ThrottleDelayMs;
 
-            TranslatedCount = TranslatorRef.GetTranslatedCount();
+            TranslatedCount = TranslatorRef.CalcTranslatedCount();
 
             if (TrdPool == null)
             {
@@ -361,13 +362,12 @@ namespace PhoenixEngine.Translate
 
             Cancel();
             this.Content?.Clear();
-            this.TranslatedCount = TranslatorRef.GetTranslatedCount();
+            this.TranslatedCount = 0;
         }
 
         public void Close()
         {
             Clear();
-            this.TranslatedCount = 0;
         }
     }
 }

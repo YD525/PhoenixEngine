@@ -146,6 +146,11 @@ namespace PhoenixEngine.Translate
 
             return GetState;
         }
+
+        public static void SyncTranslatedCount(this Translator Translator)
+        {
+            Translator.GetBatchCore().TranslatedCount = Translator.CalcTranslatedCount();
+        }
         public static bool SetCloudData(this Translator Translator,int FileUniqueKey, string Key, string SourceText, string TransText)
         {
             if (TransText.Trim().Length <= 0)
@@ -162,7 +167,7 @@ namespace PhoenixEngine.Translate
 
             var GetState = CloudDBCache.AddCache(FileUniqueKey, Key, (int)Translator.To, SourceText, TransText);
 
-            Translator.GetTranslatedCount();
+            Translator.CalcTranslatedCount();
 
             return GetState;
         }
