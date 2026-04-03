@@ -16,9 +16,7 @@ namespace PhoenixEngine.Engine.ADO
     public class WordAutoComplete : IDisposable
     {
         private readonly TrieNode _Root = new TrieNode();
-        private readonly P_SQLite _DB = new P_SQLite();
-
-      
+        private readonly P_SQLite _DB = new P_SQLite(); 
 
         public Languages CurrentLanguage { get; private set; } = Languages.Null;
 
@@ -143,13 +141,18 @@ namespace PhoenixEngine.Engine.ADO
 
         public static void Init()
         {
-            foreach (var GetFile in Directory.GetFiles(WordAutoComplete.DatabaseDirectory, ".db"))
-            { 
-            
+            foreach (var GetFile in Directory.GetFiles(WordAutoComplete.DatabaseDirectory, "*.db"))
+            {
+                FileInfo GetInfo = new FileInfo(GetFile);
+                var GetName = GetInfo.Name.Replace("_", "-");
+                Languages GetLang = P_Language.FromLanguageCode(GetName);
+
+                if (!WordCompleters.ContainsKey(GetLang))
+                {
+                    WordCompleters.Add(GetLang,new WordAutoComplete());
+                    WordCompleters[GetLang].LoadWords(GetLang);
+                }
             }
-        
         }
-
-
     }
 }

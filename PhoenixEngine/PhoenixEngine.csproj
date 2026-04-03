@@ -72,7 +72,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Convert\ConvertHelper.cs" />
-    <Compile Include="Engine\ADO\Autocomplete.cs" />
+    <Compile Include="Engine\ADO\WordAutoComplete.cs" />
     <Compile Include="Engine\ADO\PageHelper.cs" />
     <Compile Include="Engine\ADO\PSQLite.cs" />
     <Compile Include="Engine\ADO\SqlSafeCodec.cs" />
