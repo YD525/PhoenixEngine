@@ -116,13 +116,12 @@ namespace PhoenixEngine
         public static string GetFullPath(string Path)
         {
             string GetShellPath = CurrentPath;
-            if (GetShellPath.EndsWith(@"\"))
+
+            if (Path.StartsWith(@"\"))
             {
-                if (Path.StartsWith(@"\"))
-                {
-                    Path = Path.Substring(1);
-                }
+                Path = Path.Substring(1);
             }
+
             return GetShellPath + Path;
         }
         public static void ReSetKeyData()
