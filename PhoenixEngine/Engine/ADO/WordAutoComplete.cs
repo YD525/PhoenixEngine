@@ -22,7 +22,7 @@ namespace PhoenixEngine.Engine.ADO
 
         public static string DatabaseDirectory { get; set; } = "";
 
-        public int MaxResults { get; set; } = 10;
+        public int MaxResults { get; set; } = 30;
 
 
         public static string GetDatabaseName(Languages Language)
