@@ -65,6 +65,7 @@ namespace PhoenixEngine
             return Phoenix.Version;
         }
 
+        public static string PluginsPath = @"\CorePlugins\";
         private static string CurrentPath = "";
         public static void Init(string StartupPath,Action<int>StepAction = null)
         {
@@ -101,7 +102,7 @@ namespace PhoenixEngine
             ProxyCenter.UsingProxy();
 
             StepAction?.Invoke(9);
-            WordAutoComplete.DatabaseDirectory = GetFullPath(@"\wordfreq\");
+            WordAutoComplete.DatabaseDirectory = GetFullPath(PluginsPath);
             WordAutoComplete.Init();
 
             StepAction?.Invoke(10);
