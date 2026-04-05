@@ -141,6 +141,10 @@ namespace PhoenixEngine.Translate
                 TrdPool = new P_ThreadPool<UnitGroup>();
                 TrdPool.ConcurrencyLimit = Phoenix.Config.MaxThreadCount;
             }
+            else
+            {
+                TrdPool.ConcurrencyLimit = Phoenix.Config.MaxThreadCount;
+            }
 
             double ThrottleLimit = ((double)TrdPool.ConcurrencyLimit * (double)Phoenix.Config.ThrottleRatio);
 

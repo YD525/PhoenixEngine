@@ -19,7 +19,7 @@ namespace PhoenixEngine.Sequence
         public bool CanSkip = false;//This indicates that the specified object can be skipped.
         public bool HasOuterQuotes = false;
         public bool CanSkipSleep = false;
-        public bool HavePlaceholder = false;
+        public bool HasPlaceholder = false;
         public int Step = 0;
         public bool CanUPDateDB = true;
         public TranslationPreprocessor Preprocessor = null;
@@ -231,12 +231,12 @@ namespace PhoenixEngine.Sequence
 
                     GetUnit.Original = Sequences[GetUnit.Key].Data;
 
-                    Sequences[GetUnit.Key].HavePlaceholder = true;
+                    Sequences[GetUnit.Key].HasPlaceholder = Preprocessor.HasPlaceholder;
 
                     if (!CanTrans)
                     {
                         Sequences[GetUnit.Key].Data = Preprocessor.RestoreFromPlaceholder(Source, To);
-                        Sequences[GetUnit.Key].HavePlaceholder = false;
+                        Sequences[GetUnit.Key].HasPlaceholder = false;
                         Sequences[GetUnit.Key].CanUPDateDB = false;
 
                         GetUnit.Translated = Sequences[GetUnit.Key].Data;
@@ -262,11 +262,11 @@ namespace PhoenixEngine.Sequence
                 var Preprocessor = Sequences[GetUnit.Key].Preprocessor;
                 Sequences[GetUnit.Key].Step = 8;
 
-                if (Sequences[GetUnit.Key].HavePlaceholder)
+                if (Sequences[GetUnit.Key].HasPlaceholder)
                 {
                     GetUnit.Translated = Preprocessor.RestoreFromPlaceholder(Sequences[GetUnit.Key].Data, To);
                     Sequences[GetUnit.Key].Data = GetUnit.Translated;
-                    Sequences[GetUnit.Key].HavePlaceholder = false;
+                    Sequences[GetUnit.Key].HasPlaceholder = false;
                 }
             }
         }
