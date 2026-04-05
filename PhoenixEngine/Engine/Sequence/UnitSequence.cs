@@ -51,7 +51,7 @@ namespace PhoenixEngine.Sequence
 
                 Sequences.Add(GetUnit.Key,new UnitSequence(false));
                 Sequences[GetUnit.Key].Step = 0;
-                Sequences[GetUnit.Key].Preprocessor = new TranslationPreprocessor();
+                Sequences[GetUnit.Key].Preprocessor =TranslationPreprocessor.Clone(Preprocessor);
 
                 if (Preprocessor.IsOnlySymbolsAndSpaces(Source))//Skip pure symbol content.
                 {
@@ -235,6 +235,10 @@ namespace PhoenixEngine.Sequence
 
                     if (Preprocessor.HasPlaceholder)
                     {
+                        if (!Source.Contains("["))
+                        { 
+                        
+                        }
 
                     }
                     else
