@@ -51,7 +51,7 @@ namespace PhoenixEngine.Sequence
 
                 Sequences.Add(GetUnit.Key,new UnitSequence(false));
                 Sequences[GetUnit.Key].Step = 0;
-                Sequences[GetUnit.Key].Preprocessor = TranslationPreprocessor.Clone(Preprocessor);
+                Sequences[GetUnit.Key].Preprocessor = new TranslationPreprocessor();
 
                 if (Preprocessor.IsOnlySymbolsAndSpaces(Source))//Skip pure symbol content.
                 {
@@ -232,6 +232,11 @@ namespace PhoenixEngine.Sequence
                     GetUnit.Original = Sequences[GetUnit.Key].Data;
 
                     Sequences[GetUnit.Key].HasPlaceholder = Preprocessor.HasPlaceholder;
+
+                    if (Preprocessor.HasPlaceholder)
+                    { 
+                    
+                    }
 
                     if (!CanTrans)
                     {
