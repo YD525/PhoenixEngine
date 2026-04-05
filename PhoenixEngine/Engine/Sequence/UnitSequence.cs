@@ -234,8 +234,15 @@ namespace PhoenixEngine.Sequence
                     Sequences[GetUnit.Key].HasPlaceholder = Preprocessor.HasPlaceholder;
 
                     if (Preprocessor.HasPlaceholder)
-                    { 
-                    
+                    {
+
+                    }
+                    else
+                    {
+                        if (Source.Contains("["))
+                        { 
+                        
+                        }
                     }
 
                     if (!CanTrans)
