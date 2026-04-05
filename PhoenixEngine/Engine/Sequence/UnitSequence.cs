@@ -233,22 +233,6 @@ namespace PhoenixEngine.Sequence
 
                     Sequences[GetUnit.Key].HasPlaceholder = Preprocessor.HasPlaceholder;
 
-                    if (Preprocessor.HasPlaceholder)
-                    {
-                        if (!Source.Contains("["))
-                        { 
-                        
-                        }
-
-                    }
-                    else
-                    {
-                        if (Source.Contains("["))
-                        { 
-                        
-                        }
-                    }
-
                     if (!CanTrans)
                     {
                         Sequences[GetUnit.Key].Data = Preprocessor.RestoreFromPlaceholder(Source, To);

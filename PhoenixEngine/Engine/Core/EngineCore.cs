@@ -330,14 +330,6 @@ namespace PhoenixEngine.Engine
 
                     Item.EndGeneratePlaceholder(From, To, ref Sequences);
 
-                    string Debug = "";
-
-                    Debug = "";
-                    foreach (var Get in Item.Units)
-                    {
-                        Debug += Get.Translated + "\n";
-                    }
-
                     if (UseAIMemory)
                     {
                         Item.UPDateAIMemory(TranslatorRef, Sequences);
