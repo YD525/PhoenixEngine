@@ -181,10 +181,6 @@ namespace PhoenixEngine.Sequence
                     {
                         continue;
                     }
-                    else
-                    { 
-                    
-                    }
                 }
             }
         }
