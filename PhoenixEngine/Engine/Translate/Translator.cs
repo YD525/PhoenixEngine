@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 using PhoenixEngine.ADO;
 using PhoenixEngine.Engine;
 using PhoenixEngine.EngineManagement.Engine;
@@ -207,6 +208,9 @@ namespace PhoenixEngine.Translate
                     UnitGroups.Add(NewUnitGroup);
                     NewUnitGroup = null;
                 }
+
+
+                string GetJson = JsonConvert.SerializeObject(UnitGroups, Formatting.Indented);
 
                 List<BaseUnit> BaseUnits = new List<BaseUnit>();
 
