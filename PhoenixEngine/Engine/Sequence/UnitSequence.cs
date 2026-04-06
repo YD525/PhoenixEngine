@@ -90,19 +90,6 @@ namespace PhoenixEngine.Sequence
 
                     Sequences[GetUnit.Key].Data = Content;
                     GetUnit.Original = Sequences[GetUnit.Key].Data;
-
-                    //Match DataBase
-                    string GetMatchResult = "";
-                    if (Preprocessor.ExactMatch(From, To, GetUnit.Key, GetUnit.Type, Content, ref GetMatchResult))
-                    {
-                        Sequences[GetUnit.Key].Data = GetMatchResult;
-                        GetUnit.Translated = Sequences[GetUnit.Key].Data;
-                        Sequences[GetUnit.Key].CanSkip = true;
-                    }
-                    else
-                    {
-                        Sequences[GetUnit.Key].Data = Content;
-                    }
                 }
 
             }

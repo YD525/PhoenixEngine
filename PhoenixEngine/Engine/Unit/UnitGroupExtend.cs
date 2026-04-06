@@ -69,7 +69,7 @@ namespace PhoenixEngine.Unit
 
                     if (GetUnit.Translated.Trim().Length > 0)
                     { 
-                        Phoenix.AIMemory.AddTranslation(TranslatorRef.From, TranslatorRef.To, GetUnit.Original, GetUnit.Translated);
+                        Phoenix.AIMemory.AddTranslation(TranslatorRef.From, TranslatorRef.To, GetUnit.GetRealOriginal(), GetUnit.Translated);
                     }
                 }
             }

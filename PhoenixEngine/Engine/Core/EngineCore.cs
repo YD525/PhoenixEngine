@@ -334,14 +334,6 @@ namespace PhoenixEngine.Engine
                         }
                     }
 
-                    foreach (var Get in Item.Units)
-                    {
-                        if (Get.Original.Equals("Moorside Inn"))
-                        { 
-                        
-                        }
-                    }
-
                     Item.EndPreProcess(From, To, ref Sequences);
 
                     Item.EndGeneratePlaceholder(From, To, ref Sequences);
