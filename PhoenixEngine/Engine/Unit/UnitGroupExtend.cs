@@ -45,7 +45,9 @@ namespace PhoenixEngine.Unit
                     {
                         if (Sequences[GetUnit.Key].CanUPDateDB)
                         {
-                            TranslatorRef.SetCloudData(GetUnit.FileUniqueKey,GetUnit.Key, GetUnit.Original, GetUnit.Translated);
+                            string Source = GetUnit.GetRealOriginal();
+                           
+                            TranslatorRef.SetCloudData(GetUnit.FileUniqueKey,GetUnit.Key, Source, GetUnit.Translated);
                         }
                     }
                     catch

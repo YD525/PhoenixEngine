@@ -177,9 +177,13 @@ namespace PhoenixEngine.Sequence
 
                 if (!Sequences[GetUnit.Key].CanSkip)
                 {
-                    if (FindTranslatedCache(TranslatorRef, GetUnit, From, To, Source,ref Sequences))
+                    if (FindTranslatedCache(TranslatorRef, GetUnit, From, To, Source, ref Sequences))
                     {
                         continue;
+                    }
+                    else
+                    { 
+                    
                     }
                 }
             }
@@ -240,17 +244,6 @@ namespace PhoenixEngine.Sequence
                         Sequences[GetUnit.Key].CanSkip = true;
 
                         TranslatorRef.AddAIMemory(GetUnit.Original, Sequences[GetUnit.Key].Data);
-                    }
-                    else
-                    {
-                        if (Preprocessor.HasPlaceholder)
-                        {
-                            if (FindTranslatedCache(TranslatorRef, GetUnit, From, To, Source, ref Sequences))
-                            {
-                                Sequences[GetUnit.Key].CanSkip = true;
-                                TranslatorRef.AddAIMemory(GetUnit.GetRealOriginal(), Sequences[GetUnit.Key].Data);
-                            }
-                        }
                     }
                 }
                 else

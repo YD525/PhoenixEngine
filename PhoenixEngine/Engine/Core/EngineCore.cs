@@ -166,24 +166,7 @@ namespace PhoenixEngine.Engine
                 }
             }
         }
-        public static void CheckCanGeneratePlaceholder(Dictionary<string, UnitSequence> Sequences, ref UnitGroup Item)
-        {
-            foreach (var GetSeq in new Dictionary<string, UnitSequence>(Sequences))
-            {
-                foreach (var GetBaseUnit in Item.Units)
-                {
-                    if (GetBaseUnit.Key.Equals(GetSeq.Key))
-                    {
-                        var GetSignResult = GetBaseUnit.ApplyStateChange(UnitTranslationState.GeneratePlaceholder);
-                        if (GetSignResult.ControlSignal.Sign > 0)
-                        {
-                            Item.ReSet(GetSignResult.ControlSignal.Index);
-                            continue;
-                        }
-                    }
-                }
-            }
-        }
+       
 
 
 
@@ -231,6 +214,18 @@ namespace PhoenixEngine.Engine
                                 SortByCallCountDescending();
 
                                 break;
+                            }
+                        }
+
+                        if (CurrentEngine == null)
+                        {
+                            bool AllZero = EngineNodes.All(e => e.CallCountDown <= 0);
+                            if (AllZero && EngineNodes.Count > 0)
+                            {
+                                foreach (var Node in EngineNodes)
+                                {
+                                    Node.CallCountDown = Node.MaxCallCount;
+                                }
                             }
                         }
                     }
@@ -404,8 +399,7 @@ namespace PhoenixEngine.Engine
                Languages From,Languages To,bool UseAIMemory,int AIMemoryQueryLimit,string AIParam,ref string SetType)
             {
                 Source.StartGeneratePlaceholder(TranslatorRef, From, To, ref Sequences);
-
-                CheckCanGeneratePlaceholder(Sequences, ref Source);
+              
                 CheckCanSkip(Sequences, ref Source);
 
                 string GetSource = Source.GenContent();
