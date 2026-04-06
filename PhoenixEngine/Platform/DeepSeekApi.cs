@@ -97,7 +97,7 @@ namespace PhoenixEngine.Platform
             string TransSource = Source.GenContent(ref CanTrans);
             if (!CanTrans)
             {
-                return "";
+                return "<empty>";
             }
 
             if (ConfigRef.ContextEnable && UseAIMemory)

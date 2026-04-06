@@ -49,7 +49,7 @@ namespace PhoenixEngine.Platform.LocalAI
             string TransSource = Source.GenContent(ref CanTrans);
             if (!CanTrans)
             {
-                return "";
+                return "<empty>";
             }
 
             if (ConfigRef.UserCustomAIPrompt.Trim().Length > 0)

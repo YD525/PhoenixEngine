@@ -33,7 +33,7 @@ namespace PhoenixEngine.Platform
             string TransSource = Source.GenContent(ref CanTrans);
             if (!CanTrans)
             {
-                return "";
+                return "<empty>";
             }
 
             Core.SetApiKey(ApiKey);

@@ -21,6 +21,9 @@ namespace PhoenixEngine.Unit
         private List<BaseUnit> ParentRef = new List<BaseUnit>();
         public List<BaseUnit> Units = new List<BaseUnit>();
         public List<NeedConfirm> NeedConfirms = new List<NeedConfirm>();
+
+        public bool Empty = false;
+
         public ConfirmPasser(List<BaseUnit> Units)
         {
             ParentRef = Units;
@@ -28,6 +31,11 @@ namespace PhoenixEngine.Unit
         }
         public bool TryPass(ref List<BaseUnit> NotPassUnits, ref List<BaseUnit> PassUnits,bool IsDeepL)
         {
+            if (this.Empty == true)
+            {
+                return true;
+            }
+
             for (int i = 0; i < Units.Count; i++)
             {
                 for (int ir = 0; ir < NeedConfirms.Count; ir++)
@@ -216,6 +224,11 @@ namespace PhoenixEngine.Unit
         public ConfirmPasser AnalysisContent(string Content)
         {
             ConfirmPasser WaitConfirm = new ConfirmPasser(this.Units);
+
+            if (Content == "<empty>")
+            {
+                WaitConfirm.Empty = true;
+            }     
 
             string Pattern = @"<li[^>]*data-unit-id\s*=\s*'(\d+)'[^>]*>\s*([\s\S]*?)(?=\s*</li>|\s*<li|\z)";
             var Matches = Regex.Matches(

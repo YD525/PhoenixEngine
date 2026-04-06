@@ -401,7 +401,7 @@ namespace PhoenixEngine.Engine
                 string GetSource = Source.GenContent(ref CanTrans);
                 if (!CanTrans)
                 {
-                    return "";
+                    return "<empty>";
                 }
 
                 if (GetSource.Length == 0)

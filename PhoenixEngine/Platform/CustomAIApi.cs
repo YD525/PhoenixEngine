@@ -55,7 +55,7 @@ namespace PhoenixEngine.Platform
             string GetSource = Source.GenContent(ref CanTrans);
             if (!CanTrans)
             {
-                return "";
+                return "<empty>";
             }
 
             var GetTransSource = AIPrompt.GenerateTranslationPrompt(FromLang, ToLang, GetSource, Related, CustomWords, AIParam);

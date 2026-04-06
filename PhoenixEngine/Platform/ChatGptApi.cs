@@ -140,7 +140,7 @@ namespace PhoenixEngine.Platform
             string TransSource = Source.GenContent(ref CanTrans);
             if (!CanTrans)
             {
-                return "";
+                return "<empty>";
             }
 
             var GetTransSource = AIPrompt.GenerateTranslationPrompt(FromLang, ToLang, TransSource,Related, CustomWords, AIParam);
