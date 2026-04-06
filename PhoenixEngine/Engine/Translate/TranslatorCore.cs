@@ -112,13 +112,13 @@ namespace PhoenixEngine.Translate
 
             while (true)
             {
-                bool PoolEmpty = GetWorkingThreadCount() == 0;
+                bool PoolEmpty = TrdPool.GetCount() == 0;
                 bool QueueEmpty = TranslatedQueue.IsEmpty;
 
                 if (PoolEmpty && QueueEmpty)
                 {
                     EmptyConfirmCount++;
-                    if (EmptyConfirmCount >= 5) 
+                    if (EmptyConfirmCount >= 3)
                         break;
                 }
                 else
@@ -126,7 +126,7 @@ namespace PhoenixEngine.Translate
                     EmptyConfirmCount = 0;
                 }
 
-                Thread.Sleep(100); 
+                Thread.Sleep(100);
             }
         }
 

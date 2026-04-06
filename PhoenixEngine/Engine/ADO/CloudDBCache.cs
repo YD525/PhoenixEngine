@@ -109,6 +109,10 @@ CREATE TABLE [CloudTranslation](
         {
             try
             {
+                if (P_Language.DetectLanguageByLine(Source) == Languages.SimplifiedChinese)
+                { 
+                
+                }
                 new TranslationPreprocessor().OptimizeStrings(ref Source);
 
                 int GetRowID = ConvertHelper.ObjToInt(Phoenix.LocalDB.ExecuteScalar(String.Format("Select Rowid From CloudTranslation Where [FileUniqueKey] = {0} And [Key] = '{1}' And [To] = {2}", FileUniqueKey, Key, To)));
