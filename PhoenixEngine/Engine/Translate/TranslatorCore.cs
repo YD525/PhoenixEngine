@@ -132,7 +132,6 @@ namespace PhoenixEngine.Translate
 
         public void Start()
         {
-            var Get = GetCount();
             int TrdDelayMs = Phoenix.Config.ThrottleDelayMs;
 
             TranslatedCount = TranslatorRef.CalcTranslatedCount();
