@@ -144,34 +144,6 @@ namespace PhoenixEngine.Sequence
                         Sequences[GetUnit.Key].CanSkip = true;
                         continue;
                     }
-
-                    if (Phoenix.Config.EnableGlobalSearch)
-                    {
-                        var MatchItem = CloudDBCache.Match((int)To, Source);
-                        if (MatchItem != null)
-                        {
-                            Call.ReceiveString = GetCacheStr;
-                            try
-                            {
-                                Call.Log = "Data available for translation was retrieved from the database. File:" + UniqueKeyHelper.RowidToOriginalKey(MatchItem.FileUniqueKey);
-                            }
-                            catch { }
-
-                            Call.Output();
-
-                            Sequences[GetUnit.Key].CanSkipSleep = true;
-
-                            if (Source.Length > 0 && Phoenix.Config.ContextEnable)
-                            {
-                                Phoenix.AIMemory.AddTranslation(From, To, GetUnit.Original, MatchItem.Result);
-                            }
-
-                            Sequences[GetUnit.Key].Data = MatchItem.Result;
-                            GetUnit.Translated = Sequences[GetUnit.Key].Data;
-                            Sequences[GetUnit.Key].CanSkip = true;
-                            continue;
-                        }
-                    }
                 }
             }
         }
