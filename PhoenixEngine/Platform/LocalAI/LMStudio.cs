@@ -149,7 +149,13 @@ namespace PhoenixEngine.Platform.LocalAI
             {
                 Related = Source.QueryAIMemory(FromLang, ToLang,AIMemoryCountLimit);
             }
-            string TransSource = Source.GenContent();
+
+            bool CanTrans = false;
+            string TransSource = Source.GenContent(ref CanTrans);
+            if (!CanTrans)
+            {
+                return "";
+            }
 
             if (ConfigRef.UserCustomAIPrompt.Trim().Length > 0)
             {

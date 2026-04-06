@@ -185,9 +185,7 @@ namespace PhoenixEngine.Engine
                 return Item;
             }
 
-            Dictionary<string, UnitSequence> Sequences = null;
-
-            Item.StartPreProcess(Preprocessor, From, To, ref Sequences);
+            Item.StartPreProcess(Preprocessor, From, To, out Dictionary<string, UnitSequence>  Sequences);
 
             CheckCanSkip(Sequences, ref Item);
 
@@ -399,7 +397,12 @@ namespace PhoenixEngine.Engine
               
                 CheckCanSkip(Sequences, ref Source);
 
-                string GetSource = Source.GenContent();
+                bool CanTrans = false;
+                string GetSource = Source.GenContent(ref CanTrans);
+                if (!CanTrans)
+                {
+                    return "";
+                }
 
                 if (GetSource.Length == 0)
                 {
@@ -421,6 +424,7 @@ namespace PhoenixEngine.Engine
 
                     foreach (var GetSeq in new Dictionary<string, UnitSequence>(Sequences))
                     {
+                        if(GetSeq.Value.HasPlaceholder)
                         CustomWords.AddRange(GetSeq.Value.Preprocessor.ReplaceTags);
                     }
 

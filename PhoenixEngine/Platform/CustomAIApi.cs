@@ -51,9 +51,14 @@ namespace PhoenixEngine.Platform
                 AIParam = AIParam + "\n" + ConfigRef.UserCustomAIPrompt;
             }
 
-            string TransSource = Source.GenContent();
+            bool CanTrans = false;
+            string GetSource = Source.GenContent(ref CanTrans);
+            if (!CanTrans)
+            {
+                return "";
+            }
 
-            var GetTransSource = AIPrompt.GenerateTranslationPrompt(FromLang, ToLang, TransSource,Related, CustomWords, AIParam);
+            var GetTransSource = AIPrompt.GenerateTranslationPrompt(FromLang, ToLang, GetSource, Related, CustomWords, AIParam);
 
             string Send = GetTransSource;
             string Recv = "";

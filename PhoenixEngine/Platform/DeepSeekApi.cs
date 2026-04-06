@@ -93,7 +93,12 @@ namespace PhoenixEngine.Platform
         {
             List<string> Related = new List<string>();
 
-            string TransSource = Source.GenContent();
+            bool CanTrans = false;
+            string TransSource = Source.GenContent(ref CanTrans);
+            if (!CanTrans)
+            {
+                return "";
+            }
 
             if (ConfigRef.ContextEnable && UseAIMemory)
             {

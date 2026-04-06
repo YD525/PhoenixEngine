@@ -40,7 +40,7 @@ namespace PhoenixEngine.Sequence
         public static void StartPreProcess(this UnitGroup Item,
             TranslationPreprocessor Preprocessor,
             Languages From,Languages To,
-            ref Dictionary<string,UnitSequence> Sequences)
+            out Dictionary<string,UnitSequence> Sequences)
         {
             Sequences = new Dictionary<string, UnitSequence>();
 

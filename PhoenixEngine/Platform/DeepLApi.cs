@@ -51,7 +51,14 @@ namespace PhoenixEngine.Platform
             {
                 DeepLItem NDeepLItem = new DeepLItem();
                 NDeepLItem.target_lang = P_Language.ToLanguageCode(ToLang).ToUpper();
-                string TransSource = Source.GenContent();
+
+                bool CanTrans = false;
+                string TransSource = Source.GenContent(ref CanTrans);
+                if (!CanTrans)
+                {
+                    return "";
+                }
+
                 NDeepLItem.text = new List<string>() { TransSource };
 
                 string Send = JsonConvert.SerializeObject(NDeepLItem);

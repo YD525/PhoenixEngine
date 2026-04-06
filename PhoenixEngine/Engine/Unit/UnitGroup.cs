@@ -193,19 +193,21 @@ namespace PhoenixEngine.Unit
             AllTokens.UnionWith(UnitTokens);
         }
 
-        public string GenContent()
+        public string GenContent(ref bool CanTrans)
         {
-            return UnitGroup.GenContent(this.Units);
+            return UnitGroup.GenContent(this.Units,ref CanTrans);
         }
 
-        public static string GenContent(List<BaseUnit> Array)
+        public static string GenContent(List<BaseUnit> Array,ref bool CanTrans)
         {
+            CanTrans = false;
             string Html = "";
             for (int i = 0; i < Array.Count; i++)
             {
                 if (Array[i].Translated.Length == 0)
                 {
                     Html += string.Format("<li data-unit-id='{0}'>{1}</li>\n", i + 100, Array[i].Original);
+                    CanTrans = true;
                 }
             }
             return Html;
