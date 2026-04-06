@@ -180,6 +180,8 @@ namespace PhoenixEngine.Translate
                     }
                 }
 
+                string GetJson = JsonConvert.SerializeObject(Units, Formatting.Indented);
+
                 List<UnitGroup> UnitGroups = new List<UnitGroup>();
                 int SetLength = 0;
 
@@ -208,9 +210,7 @@ namespace PhoenixEngine.Translate
                     UnitGroups.Add(NewUnitGroup);
                     NewUnitGroup = null;
                 }
-
-
-                string GetJson = JsonConvert.SerializeObject(UnitGroups, Formatting.Indented);
+                
 
                 List<BaseUnit> BaseUnits = new List<BaseUnit>();
 
