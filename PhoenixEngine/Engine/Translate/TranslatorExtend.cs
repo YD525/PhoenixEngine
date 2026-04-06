@@ -70,7 +70,7 @@ namespace PhoenixEngine.Translate
                 Translator.UnifiedSymbols();
             }
         }
-        public static QueryTransItem QueryTransData(this Translator Translator, string Key,string Type,string Source)
+        public static QueryTransItem QueryTransData(this Translator Translator, string Key,string Type,string Source,bool CanQueryAdvancedDictionary)
         {
             int FileUniqueKey = Translator.GetFileUniqueKey();
 
@@ -98,7 +98,7 @@ namespace PhoenixEngine.Translate
                     }
                 }
 
-                if (TransText?.Length == 0)
+                if (TransText?.Length == 0 && CanQueryAdvancedDictionary)
                 {
                     var Query = AdvancedDictionary.ExactMatch(Translator.From, Translator.To, Type, Source);
                     if (Query != null)

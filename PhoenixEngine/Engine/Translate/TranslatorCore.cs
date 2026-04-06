@@ -118,7 +118,7 @@ namespace PhoenixEngine.Translate
                 if (PoolEmpty && QueueEmpty)
                 {
                     EmptyConfirmCount++;
-                    if (EmptyConfirmCount >= 2)
+                    if (EmptyConfirmCount >= 5) 
                         break;
                 }
                 else
@@ -126,12 +126,13 @@ namespace PhoenixEngine.Translate
                     EmptyConfirmCount = 0;
                 }
 
-                Thread.Sleep(50);
+                Thread.Sleep(100); 
             }
         }
 
         public void Start()
         {
+            var Get = GetCount();
             int TrdDelayMs = Phoenix.Config.ThrottleDelayMs;
 
             TranslatedCount = TranslatorRef.CalcTranslatedCount();

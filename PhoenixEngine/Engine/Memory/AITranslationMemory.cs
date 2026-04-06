@@ -179,6 +179,10 @@ namespace PhoenixEngine.Memory
         public void AddTranslation(Languages SourceLang, Languages TargetLang,
                                    string Original, string Translated)
         {
+            if (Original == "Moorside Inn")
+            { 
+            
+            }
             // Auto detect source
             if (SourceLang == Languages.Auto)
                 SourceLang = P_Language.DetectLanguageByLine(Original);
