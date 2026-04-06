@@ -229,6 +229,8 @@ namespace PhoenixEngine.Sequence
 
                         GetUnit.Translated = Sequences[GetUnit.Key].Data;
                         Sequences[GetUnit.Key].CanSkip = true;
+
+                        TranslatorRef.AddAIMemory(GetUnit.Original, Sequences[GetUnit.Key].Data);
                     }
                 }
                 else

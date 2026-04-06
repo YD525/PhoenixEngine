@@ -202,14 +202,6 @@ namespace PhoenixEngine.Engine
                 return Item;
             }
 
-            foreach (var Get in Item.Units)
-            {
-                if (Get.Original.Equals("Moorside Inn"))
-                {
-
-                }
-            }
-
             Dictionary<string, UnitSequence> Sequences = null;
 
             Item.StartPreProcess(Preprocessor,From,To, ref Sequences);
