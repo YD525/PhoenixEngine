@@ -53,9 +53,6 @@ namespace PhoenixEngine.GameManagement
         }
         public List<UnitChunk> ChunkBook(BaseUnit Unit)
         {
-            //Okay, I just need to take care of this.
-            //My real concern is that if the user isn't using local AI, but rather cloud-based AI, SSELex, due to its context-aware generation, might waste a lot of tokens.
-
             List<UnitChunk> UnitChunks = new List<UnitChunk>();
 
             if (!IsInit)
@@ -105,6 +102,11 @@ namespace PhoenixEngine.GameManagement
                         i++;
                     }
 
+                    if (TempText.Contains("expedition"))
+                    { 
+                    
+                    }
+
                     Block++;
                     UnitChunks.Add(new UnitChunk(Unit.Key, Unit.Key + "_" + Block, false, TempText));
                     TempText = string.Empty;
@@ -113,6 +115,11 @@ namespace PhoenixEngine.GameManagement
 
             if (TempText.Length > 0)
             {
+                if (TempText.Contains("expedition"))
+                {
+
+                }
+
                 Block++;
                 UnitChunks.Add(new UnitChunk(Unit.Key, Unit.Key + "_" + Block, false, TempText));
                 TempText = string.Empty;
