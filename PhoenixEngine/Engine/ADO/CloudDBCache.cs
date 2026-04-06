@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using PhoenixEngine.Engine;
 using PhoenixEngine.Language;
 
 namespace PhoenixEngine.ADO
@@ -108,6 +109,7 @@ CREATE TABLE [CloudTranslation](
         {
             try
             {
+                new TranslationPreprocessor().OptimizeStrings(ref Source);
 
                 int GetRowID = ConvertHelper.ObjToInt(Phoenix.LocalDB.ExecuteScalar(String.Format("Select Rowid From CloudTranslation Where [FileUniqueKey] = {0} And [Key] = '{1}' And [To] = {2}", FileUniqueKey, Key, To)));
 
@@ -134,6 +136,8 @@ CREATE TABLE [CloudTranslation](
         {
             try
             {
+                new TranslationPreprocessor().OptimizeStrings(ref Source);
+
                 List<CloudTranslationItem> CloudTranslationItems = new List<CloudTranslationItem>();
 
                 string SqlOrder = "Select * From CloudTranslation Where [To] = {0} And [Source] = '{1}' Limit 5";
@@ -165,6 +169,7 @@ CREATE TABLE [CloudTranslation](
         {
             try
             {
+                new TranslationPreprocessor().OptimizeStrings(ref Source);
 
                 string SqlOrder = "Select * From CloudTranslation Where [To] = {0} And [Source] = '{1}' Limit 1";
                 List<Dictionary<string, object>> NTable = Phoenix.LocalDB.ExecuteQuery(string.Format(SqlOrder, To, SQLSafeCodec.Encode(Source)));
@@ -195,6 +200,8 @@ CREATE TABLE [CloudTranslation](
         {
             try
             {
+                new TranslationPreprocessor().OptimizeStrings(ref Source);
+
                 List<CloudTranslationItem> CloudTranslationItems = new List<CloudTranslationItem>();
 
                 string SqlOrder = "Select * From CloudTranslation Where [To] = {0} And [Source] = '{1}' And Rowid != {2} Limit 5";

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using PhoenixEngine.Engine;
 using PhoenixEngine.Language;
 
 namespace PhoenixEngine.ADO
@@ -84,6 +85,8 @@ CREATE TABLE [LocalTranslation](
 
         public static List<CloudTranslationItem> MatchLocalItem(int To, string Source, int Limit = 5)
         {
+            new TranslationPreprocessor().OptimizeStrings(ref Source);
+
             try
             {
                 List<CloudTranslationItem> CloudTranslationItems = new List<CloudTranslationItem>();
@@ -134,6 +137,8 @@ CREATE TABLE [LocalTranslation](
 
         public static bool DeleteCacheBySource(int FileUniqueKey,string Source,Languages TargetLanguage)
         {
+            new TranslationPreprocessor().OptimizeStrings(ref Source);
+
             try 
             {
                 string SqlOrder = "Delete From LocalTranslation Where [FileUniqueKey] = {0} And [Source] = '{1}' And [To] = {2}";
@@ -232,6 +237,8 @@ CREATE TABLE [LocalTranslation](
         {
             if (Result.Length > 0)
             {
+                new TranslationPreprocessor().OptimizeStrings(ref Source);
+
                 int GetRowID = ConvertHelper.ObjToInt(Phoenix.LocalDB.ExecuteScalar(String.Format("Select Rowid From LocalTranslation Where [FileUniqueKey] = '{0}' And [Key] = '{1}' And [To] = {2}", FileUniqueKey, Key, To)));
 
                 if (GetRowID <= 0)
