@@ -105,6 +105,8 @@ namespace PhoenixEngine.Translate
         public List<BaseUnit> ChunkTranslationUnit(BaseUnit Unit, ref List<UnitChunk> Chunks)
         {
             Chunks = new SkyrimBookHelper().ChunkBook(Unit);
+            //Damn it... IsCode = true;
+            var Get = Chunks[10];
 
             List<BaseUnit> Units = new List<BaseUnit>();
             foreach (UnitChunk Chunk in Chunks)
@@ -179,6 +181,8 @@ namespace PhoenixEngine.Translate
                         }
                     }
                 }
+
+                var Get = Units[10];
 
                 string GetJsonA = JsonConvert.SerializeObject(Units, Formatting.Indented);
 

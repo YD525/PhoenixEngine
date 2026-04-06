@@ -87,11 +87,6 @@ namespace PhoenixEngine.GameManagement
                     {
                         if (LastSetChar.Chars.Contains(GetChar))
                         {
-                            if (TempText.Contains("expedition"))
-                            {
-
-                            }
-
                             Block++;
                             UnitChunks.Add(new UnitChunk(Unit.Key, Unit.Key + "_" + Block, true, TempText));
                             TempText = string.Empty;
@@ -106,12 +101,6 @@ namespace PhoenixEngine.GameManagement
                     {
                         i++;
                     }
-
-                    if (TempText.Contains("expedition"))
-                    { 
-                    
-                    }
-
                     Block++;
                     UnitChunks.Add(new UnitChunk(Unit.Key, Unit.Key + "_" + Block, false, TempText));
                     TempText = string.Empty;
@@ -120,11 +109,6 @@ namespace PhoenixEngine.GameManagement
 
             if (TempText.Length > 0)
             {
-                if (TempText.Contains("expedition"))
-                {
-
-                }
-
                 Block++;
                 UnitChunks.Add(new UnitChunk(Unit.Key, Unit.Key + "_" + Block, false, TempText));
                 TempText = string.Empty;
