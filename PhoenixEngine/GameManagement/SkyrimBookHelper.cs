@@ -87,6 +87,11 @@ namespace PhoenixEngine.GameManagement
                     {
                         if (LastSetChar.Chars.Contains(GetChar))
                         {
+                            if (TempText.Contains("expedition"))
+                            {
+
+                            }
+
                             Block++;
                             UnitChunks.Add(new UnitChunk(Unit.Key, Unit.Key + "_" + Block, true, TempText));
                             TempText = string.Empty;
