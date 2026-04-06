@@ -178,7 +178,7 @@ namespace PhoenixEngine.Engine
         /// <param name="SourceStr"></param>
         /// <returns></returns>
         public UnitGroup CallOnce(Translator TranslatorRef, TranslationPreprocessor Preprocessor, UnitGroup Item,
-     Languages From, Languages To, string AIParam, bool CanSleep, bool UseAIMemory, bool CanUPDate)
+        Languages From, Languages To, string AIParam, bool CanSleep, bool UseAIMemory, bool CanUPDate)
         {
             if (!Item.ApplyStateChange(UnitTranslationState.Preparing).CanDo(-1))
             {
@@ -203,20 +203,23 @@ namespace PhoenixEngine.Engine
                 {
                     try
                     {
-                        for (int I = 0; I < EngineNodes.Count; I++)
+                        for (int i = 0; i < EngineNodes.Count; i++)
                         {
-                            if (EngineNodes[I].CallCountDown > 0)
+                            if (EngineNodes[i].CallCountDown > 0)
                             {
-                                EngineNodes[I].CallCountDown--;
-                                CurrentEngine = EngineNodes[I];
+                                EngineNodes[i].CallCountDown--;
+
+                                CurrentEngine = EngineNodes[i];
+
                                 SortByCallCountDescending();
+
                                 break;
                             }
                         }
 
                         if (CurrentEngine == null)
                         {
-                            bool AllZero = EngineNodes.All(E => E.CallCountDown <= 0);
+                            bool AllZero = EngineNodes.All(e => e.CallCountDown <= 0);
                             if (AllZero && EngineNodes.Count > 0)
                             {
                                 foreach (var Node in EngineNodes)
@@ -229,22 +232,11 @@ namespace PhoenixEngine.Engine
                     catch { }
                 }
 
-                if (CurrentEngine == null)
-                {
-                    Thread.Sleep(50);
-
-                    if (EngineNodes.Count == 0)
-                    {
-                        ReloadEngine();
-                        if (EngineNodes.Count == 0)
-                            return null;
-                    }
-                }
-                else
+                if (CurrentEngine != null)
                 {
                     int MaxTry = 10;
 
-                NextCall:
+                    NextCall:
 
                     string GetTrans = "";
 
@@ -256,8 +248,8 @@ namespace PhoenixEngine.Engine
                     string SetType = "";
 
                     GetTrans = CurrentEngine.Call(TranslatorRef, ref Item, ref Sequences, From, To,
-                        true, Phoenix.Config.ContextLimit,
-                        AIParam, ref SetType);
+                    true, Phoenix.Config.ContextLimit,
+                    AIParam, ref SetType);
 
                     try
                     {
@@ -265,6 +257,7 @@ namespace PhoenixEngine.Engine
                         {
                             GetTrans = Regex.Unescape(GetTrans);
                         }
+
                     }
                     catch
                     {
@@ -299,9 +292,9 @@ namespace PhoenixEngine.Engine
 
                     bool Passed = Passer.TryPass(ref NotPassUnits, ref PassUnits, IsDeepL);
 
-                    for (int I = 0; I < PassUnits.Count; I++)
+                    for (int i = 0; i < PassUnits.Count; i++)
                     {
-                        var PassUnit = PassUnits[I];
+                        var PassUnit = PassUnits[i];
                         Sequences[PassUnit.Key].CanSkip = true;
                         Sequences[PassUnit.Key].Step = 6;
                         Sequences[PassUnit.Key].Data = PassUnit.Translated;
@@ -319,6 +312,7 @@ namespace PhoenixEngine.Engine
                         if (MaxTry > 0)
                         {
                             MaxTry--;
+
                             goto NextCall;
                         }
                     }
@@ -343,6 +337,13 @@ namespace PhoenixEngine.Engine
                     }
 
                     return Item;
+                }
+
+                ReloadEngine();
+
+                if (EngineNodes.Count == 0)
+                {
+                    return null;
                 }
             }
 
