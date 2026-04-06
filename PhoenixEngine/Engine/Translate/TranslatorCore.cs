@@ -69,12 +69,12 @@ namespace PhoenixEngine.Translate
             return Content.GetCount();
         }
 
-        public bool Init(List<BaseUnit> BaseUnits, AggregationMode SetMode)
+        public bool Init(List<BaseUnit> BaseUnits, AggregationMode SetMode,int Addition)
         {
             if (ProcStage == 0)
             {
                 Clear();
-                this.TranslatorRef.SyncTranslatedCount();
+                this.TranslatorRef.SyncTranslatedCount(Addition);
                 UnionArray SetData = new UnionArray();
                 ProcStage = 1;
                 SetData.Load(BaseUnits, TranslatorRef.From, ref MarkLeadersPercent);
@@ -138,7 +138,7 @@ namespace PhoenixEngine.Translate
         {
             int TrdDelayMs = Phoenix.Config.ThrottleDelayMs;
 
-            TranslatedCount = TranslatorRef.CalcTranslatedCount();
+            TranslatedCount = TranslatorRef.CalcTranslatedCount(0);
 
             if (TrdPool == null)
             {

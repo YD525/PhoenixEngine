@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using PhoenixEngine.ADO;
 using PhoenixEngine.Engine;
 using PhoenixEngine.EngineManagement.Engine;
@@ -61,7 +61,7 @@ namespace PhoenixEngine.Translate
             return new UnitGroup(this,Unit);
         }
 
-        public void Init(List<BaseUnit> BaseUnits, AggregationMode Mode)
+        public void Init(List<BaseUnit> BaseUnits, AggregationMode Mode,int Addition)
         {
             if (this.BatchCore != null)
             {
@@ -77,7 +77,7 @@ namespace PhoenixEngine.Translate
 
             if (BatchCore != null)
             {
-                if (!BatchCore.Init(BaseUnits, Mode))
+                if (!BatchCore.Init(BaseUnits, Mode, Addition))
                 {
                     throw (new Exception("Translator->Attempting to initialize at the wrong stage."));
                 }
@@ -296,7 +296,7 @@ namespace PhoenixEngine.Translate
         {
             Phoenix.AIMemory.AddTranslation(this.From, this.To, Original, Translated);
         }
-        public int CalcTranslatedCount()
+        public int CalcTranslatedCount(int Addition)
         {
             if (LastLoadFileName.Length == 0) return 0;
             string SqlOrder = $@"SELECT COUNT(*) AS TotalCount
@@ -313,7 +313,7 @@ FROM (
 
             int GetCount = ConvertHelper.ObjToInt(Phoenix.LocalDB.ExecuteScalar(SqlOrder));
 
-            return GetCount;
+            return GetCount + Addition;
         }
 
         private int FileUniqueKey = 0;

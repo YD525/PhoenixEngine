@@ -130,10 +130,5 @@ namespace PhoenixEngine
             KeyData = new KeyManage();
             KeyData.Init();
         }
-
-        public static void AddAIMemory(Translator TranslatorRef, string Original, string Translated)
-        {
-            Phoenix.AIMemory.AddTranslation(TranslatorRef.From, TranslatorRef.To, Original, Translated);
-        }
     }
 }
