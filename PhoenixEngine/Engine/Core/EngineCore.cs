@@ -339,6 +339,7 @@ namespace PhoenixEngine.Engine
                     return Item;
                 }
 
+                Thread.Sleep(1);
                 ReloadEngine();
 
                 if (EngineNodes.Count == 0)
