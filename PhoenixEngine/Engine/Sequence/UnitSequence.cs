@@ -94,6 +94,65 @@ namespace PhoenixEngine.Sequence
 
             }
         }
+
+        public static bool FindTranslatedCache(Translator TranslatorRef,BaseUnit GetUnit,Languages From,Languages To,string Source, ref Dictionary<string, UnitSequence> Sequences)
+        {
+            CacheCall Call = new CacheCall();
+            Call.SendString = Source;
+
+            string GetCacheStr = CloudDBCache.FindCache(TranslatorRef.GetFileUniqueKey(), GetUnit.Key, To);
+
+            if (GetCacheStr.Trim().Length > 0)
+            {
+                Call.ReceiveString = GetCacheStr;
+
+                Call.Log = "Cache From Database";
+
+                Call.Output();
+
+                Sequences[GetUnit.Key].CanSkipSleep = true;
+
+                //Update AI memory
+                if (Source.Length > 0 && Phoenix.Config.ContextEnable)
+                {
+                    Phoenix.AIMemory.AddTranslation(From, To, GetUnit.Original, GetCacheStr);
+                }
+
+                Sequences[GetUnit.Key].Data = GetCacheStr;
+                GetUnit.Translated = Sequences[GetUnit.Key].Data;
+                Sequences[GetUnit.Key].CanSkip = true;
+                return true;
+            }
+            if (Phoenix.Config.EnableGlobalSearch)
+            {
+                var MatchItem = CloudDBCache.Match((int)To, Source);
+                if (MatchItem != null)
+                {
+                    Call.ReceiveString = GetCacheStr;
+                    try
+                    {
+                        Call.Log = "Data available for translation was retrieved from the database. File:" + UniqueKeyHelper.RowidToOriginalKey(MatchItem.FileUniqueKey);
+                    }
+                    catch { }
+
+                    Call.Output();
+
+                    Sequences[GetUnit.Key].CanSkipSleep = true;
+
+                    if (Source.Length > 0 && Phoenix.Config.ContextEnable)
+                    {
+                        Phoenix.AIMemory.AddTranslation(From, To, GetUnit.Original, MatchItem.Result);
+                    }
+
+                    Sequences[GetUnit.Key].Data = MatchItem.Result;
+                    GetUnit.Translated = Sequences[GetUnit.Key].Data;
+                    Sequences[GetUnit.Key].CanSkip = true;
+                    return true;
+                }
+            }
+
+            return false;
+        }
         /// <summary>
         /// The second stage involves matching the database.
         /// </summary>
@@ -118,30 +177,8 @@ namespace PhoenixEngine.Sequence
 
                 if (!Sequences[GetUnit.Key].CanSkip)
                 {
-                    CacheCall Call = new CacheCall();
-                    Call.SendString = Source;
-
-                    string GetCacheStr = CloudDBCache.FindCache(TranslatorRef.GetFileUniqueKey(), GetUnit.Key, To);
-
-                    if (GetCacheStr.Trim().Length > 0)
+                    if (FindTranslatedCache(TranslatorRef, GetUnit, From, To, Source,ref Sequences))
                     {
-                        Call.ReceiveString = GetCacheStr;
-
-                        Call.Log = "Cache From Database";
-
-                        Call.Output();
-
-                        Sequences[GetUnit.Key].CanSkipSleep = true;
-
-                        //Update AI memory
-                        if (Source.Length > 0 && Phoenix.Config.ContextEnable)
-                        {
-                            Phoenix.AIMemory.AddTranslation(From, To, GetUnit.Original, GetCacheStr);
-                        }
-
-                        Sequences[GetUnit.Key].Data = GetCacheStr;
-                        GetUnit.Translated = Sequences[GetUnit.Key].Data;
-                        Sequences[GetUnit.Key].CanSkip = true;
                         continue;
                     }
                 }
@@ -203,6 +240,17 @@ namespace PhoenixEngine.Sequence
                         Sequences[GetUnit.Key].CanSkip = true;
 
                         TranslatorRef.AddAIMemory(GetUnit.Original, Sequences[GetUnit.Key].Data);
+                    }
+                    else
+                    {
+                        if (Preprocessor.HasPlaceholder)
+                        {
+                            if (FindTranslatedCache(TranslatorRef, GetUnit, From, To, Source, ref Sequences))
+                            {
+                                Sequences[GetUnit.Key].CanSkip = true;
+                                TranslatorRef.AddAIMemory(GetUnit.GetRealOriginal(), Sequences[GetUnit.Key].Data);
+                            }
+                        }
                     }
                 }
                 else

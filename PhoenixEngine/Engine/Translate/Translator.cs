@@ -258,7 +258,7 @@ namespace PhoenixEngine.Translate
 
                 ReturnItem.Units.Add(SingleUnit);
 
-                CloudDBCache.AddCache(SingleUnit.FileUniqueKey, SingleUnit.Key, (int)To, SingleUnit.Original, SingleUnit.Translated);
+                CloudDBCache.AddCache(SingleUnit.FileUniqueKey, SingleUnit.Key, (int)To, SingleUnit.GetRealOriginal(), SingleUnit.Translated);
 
                 return ReturnItem;
             }
