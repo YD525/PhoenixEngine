@@ -166,7 +166,7 @@ namespace PhoenixEngine.Engine
                 }
             }
         }
-       
+
 
 
 
@@ -177,8 +177,8 @@ namespace PhoenixEngine.Engine
         /// <param name="Target"></param>
         /// <param name="SourceStr"></param>
         /// <returns></returns>
-        public UnitGroup CallOnce(Translator TranslatorRef, TranslationPreprocessor Preprocessor,UnitGroup Item,
-        Languages From, Languages To,string AIParam, bool CanSleep, bool UseAIMemory,bool CanUPDate)
+        public UnitGroup CallOnce(Translator TranslatorRef, TranslationPreprocessor Preprocessor, UnitGroup Item,
+     Languages From, Languages To, string AIParam, bool CanSleep, bool UseAIMemory, bool CanUPDate)
         {
             if (!Item.ApplyStateChange(UnitTranslationState.Preparing).CanDo(-1))
             {
@@ -187,9 +187,9 @@ namespace PhoenixEngine.Engine
 
             Dictionary<string, UnitSequence> Sequences = null;
 
-            Item.StartPreProcess(Preprocessor,From,To, ref Sequences);
+            Item.StartPreProcess(Preprocessor, From, To, ref Sequences);
 
-            CheckCanSkip(Sequences,ref Item);
+            CheckCanSkip(Sequences, ref Item);
 
             Item.CenterPreProcess(TranslatorRef, From, To, ref Sequences);
 
@@ -203,23 +203,20 @@ namespace PhoenixEngine.Engine
                 {
                     try
                     {
-                        for (int i = 0; i < EngineNodes.Count; i++)
+                        for (int I = 0; I < EngineNodes.Count; I++)
                         {
-                            if (EngineNodes[i].CallCountDown > 0)
+                            if (EngineNodes[I].CallCountDown > 0)
                             {
-                                EngineNodes[i].CallCountDown--;
-
-                                CurrentEngine = EngineNodes[i];
-
+                                EngineNodes[I].CallCountDown--;
+                                CurrentEngine = EngineNodes[I];
                                 SortByCallCountDescending();
-
                                 break;
                             }
                         }
 
                         if (CurrentEngine == null)
                         {
-                            bool AllZero = EngineNodes.All(e => e.CallCountDown <= 0);
+                            bool AllZero = EngineNodes.All(E => E.CallCountDown <= 0);
                             if (AllZero && EngineNodes.Count > 0)
                             {
                                 foreach (var Node in EngineNodes)
@@ -232,11 +229,22 @@ namespace PhoenixEngine.Engine
                     catch { }
                 }
 
-                if (CurrentEngine != null)
+                if (CurrentEngine == null)
+                {
+                    Thread.Sleep(50);
+
+                    if (EngineNodes.Count == 0)
+                    {
+                        ReloadEngine();
+                        if (EngineNodes.Count == 0)
+                            return null;
+                    }
+                }
+                else
                 {
                     int MaxTry = 10;
 
-                    NextCall:
+                NextCall:
 
                     string GetTrans = "";
 
@@ -247,9 +255,9 @@ namespace PhoenixEngine.Engine
 
                     string SetType = "";
 
-                    GetTrans = CurrentEngine.Call(TranslatorRef,ref Item,ref Sequences,From,To,
-                    true, Phoenix.Config.ContextLimit,
-                    AIParam,ref SetType);
+                    GetTrans = CurrentEngine.Call(TranslatorRef, ref Item, ref Sequences, From, To,
+                        true, Phoenix.Config.ContextLimit,
+                        AIParam, ref SetType);
 
                     try
                     {
@@ -257,7 +265,6 @@ namespace PhoenixEngine.Engine
                         {
                             GetTrans = Regex.Unescape(GetTrans);
                         }
-
                     }
                     catch
                     {
@@ -292,9 +299,9 @@ namespace PhoenixEngine.Engine
 
                     bool Passed = Passer.TryPass(ref NotPassUnits, ref PassUnits, IsDeepL);
 
-                    for (int i = 0; i < PassUnits.Count; i++)
+                    for (int I = 0; I < PassUnits.Count; I++)
                     {
-                        var PassUnit = PassUnits[i];
+                        var PassUnit = PassUnits[I];
                         Sequences[PassUnit.Key].CanSkip = true;
                         Sequences[PassUnit.Key].Step = 6;
                         Sequences[PassUnit.Key].Data = PassUnit.Translated;
@@ -302,21 +309,16 @@ namespace PhoenixEngine.Engine
 
                     if (!Passed)
                     {
-                        //I hadn't anticipated that DeepL would consistently omit HTML content—and, as it happened, this specific section lacked any throttling and executed a direct `goto`.
-
                         Thread.Sleep(Phoenix.Config.ThrottleDelayMs);
 
-                        //Continue to impose penalties.
                         if (PassUnits.Count == 0)
                         {
                             Thread.Sleep(1000);
                         }
 
-                        //Preventing Infinite Loops
                         if (MaxTry > 0)
                         {
                             MaxTry--;
-
                             goto NextCall;
                         }
                     }
@@ -341,13 +343,6 @@ namespace PhoenixEngine.Engine
                     }
 
                     return Item;
-                }
-
-                ReloadEngine();
-
-                if (EngineNodes.Count == 0)
-                { 
-                   return null;
                 }
             }
 
