@@ -235,6 +235,7 @@ namespace PhoenixEngine.Sequence
 
                     if (!CanTrans)
                     {
+                        GetUnit.Original = GetUnit.GetRealOriginal();
                         Sequences[GetUnit.Key].Data = Preprocessor.RestoreFromPlaceholder(Source, To);
                         Sequences[GetUnit.Key].HasPlaceholder = false;
                         Sequences[GetUnit.Key].CanUPDateDB = false;
