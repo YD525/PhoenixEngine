@@ -148,7 +148,11 @@ FROM AdvancedDictionary_Old;";
 
         public static AdvancedDictionaryItem ExactMatch(Languages From,Languages To,string Type,string Source)
         {
-            string SqlOrder = "Select Rowid,* From AdvancedDictionary Where [ExactMatch] = 1 And [From] = {0} And [To] = {1} And ([Type] Is NULL OR [Type] = '' OR [Type] = '{2}') And [Source] = '{3}' And [IgnoreCase] = 1 Limit 1";
+            if (Source == "Moorside Inn")
+            { 
+            
+            }
+            string SqlOrder = "Select Rowid,* From AdvancedDictionary Where [ExactMatch] = 1 And [From] = {0} And [To] = {1} And ([Type] Is NULL OR [Type] = '' OR [Type] = '{2}') And [Source] = '{3}' Limit 1";
 
             List<Dictionary<string, object>> NTable = Phoenix.LocalDB.ExecuteQuery(string.Format(SqlOrder,(int)From,(int)To,SQLSafeCodec.Encode(Type),SQLSafeCodec.Encode(Source)));
             if (NTable.Count > 0)

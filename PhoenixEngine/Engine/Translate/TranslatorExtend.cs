@@ -9,6 +9,7 @@ namespace PhoenixEngine.Translate
             public string Key = "";
             public string TransText = "";
             public bool FromCloud = false;
+            public bool FromDictionary = false;
             public int State = 0;
         }
         public static void SetLink(this Translator Translator, string Key, string Value)
@@ -69,7 +70,7 @@ namespace PhoenixEngine.Translate
                 Translator.UnifiedSymbols();
             }
         }
-        public static QueryTransItem QueryTransData(this Translator Translator,string Key)
+        public static QueryTransItem QueryTransData(this Translator Translator, string Key,string Type,string Source)
         {
             int FileUniqueKey = Translator.GetFileUniqueKey();
 
@@ -97,6 +98,18 @@ namespace PhoenixEngine.Translate
                     }
                 }
 
+                if (TransText?.Length == 0)
+                {
+                    var Query = AdvancedDictionary.ExactMatch(Translator.From, Translator.To, Type, Source);
+                    if (Query != null)
+                    {
+                        if (Query?.Result.Length > 0)
+                        {
+                            TransText = Query.Result;
+                            NQueryTransItem.FromDictionary = true;
+                        }
+                    }
+                }
 
                 NQueryTransItem.State = 1;
             }
