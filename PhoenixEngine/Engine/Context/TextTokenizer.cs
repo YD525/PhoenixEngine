@@ -23,7 +23,8 @@ namespace PhoenixEngine.Engine
             Lang == Languages.French ||
             Lang == Languages.Vietnamese ||
             Lang == Languages.Polish ||
-            Lang == Languages.Persian;
+            Lang == Languages.Persian ||
+            Lang == Languages.Czech;
         }
         public static bool IsNoSpaceLanguage(this Languages Lang)
         {

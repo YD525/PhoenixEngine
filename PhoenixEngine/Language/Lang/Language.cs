@@ -27,6 +27,7 @@ namespace PhoenixEngine.Language
         // Slavic / Eastern European
         Russian = 20,
         Ukrainian = 21,
+        Czech = 22,
 
         // South Asian / Middle Eastern (RTL / special word boundaries)
         Hindi = 30,
@@ -95,6 +96,7 @@ namespace PhoenixEngine.Language
             [Languages.Portuguese] = "pt",
             [Languages.Russian] = "ru",
             [Languages.Ukrainian] = "uk",
+            [Languages.Czech] = "cs",
             [Languages.Italian] = "it",
             [Languages.Spanish] = "es",
             [Languages.Hindi] = "hi",
