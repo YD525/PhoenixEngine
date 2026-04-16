@@ -93,6 +93,7 @@
     <Compile Include="Language\BrazilianPortugueseHelper.cs" />
     <Compile Include="Language\CanadianFrenchHelper.cs" />
     <Compile Include="Language\ChineseVariantMap.cs" />
+    <Compile Include="Language\CzechHelper.cs" />
     <Compile Include="Language\EnglishHelper.cs" />
     <Compile Include="Language\FrenchHelper.cs" />
     <Compile Include="Language\GermanHelper.cs" />
