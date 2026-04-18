@@ -25,7 +25,7 @@ namespace PhoenixEngine.Platform
             this.ConfigRef = Config;
         }
 
-        public AwaitHumanTranslationHandler WaitHumanInput = null;
+        public static AwaitHumanTranslationHandler WaitHumanInput = null;
         public delegate string AwaitHumanTranslationHandler(string SendStr);
         public string CallHuman(List<ReplaceTag> CustomWords, UnitGroup Source, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam, ref AICall Call)
         {
@@ -61,7 +61,7 @@ namespace PhoenixEngine.Platform
 
             Call.SendString = Send;
 
-            string Recv = WaitHumanInput.Invoke(Send);
+            string Recv = HumanTranslationApi.WaitHumanInput.Invoke(Send);
 
             Call.ReceiveString = Recv;
 
