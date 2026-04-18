@@ -316,6 +316,11 @@ namespace PhoenixEngine
                 {
                     EnableCount++;
                 }
+                else
+                if (Phoenix.Config.PlatformConfigs[GetKey].Platform == PlatformType.HumanTranslation)
+                {
+                    EnableCount++;
+                }
             }
             if (EnableCount > 0)
             {
