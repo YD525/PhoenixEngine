@@ -139,6 +139,14 @@ namespace PhoenixEngine.Engine
                     }
                 }
 
+                var HumanConfig = Phoenix.Config.GetPlatformData(HumanTranslationApi.Type);
+                if (HumanConfig.Enable)
+                {
+                    HumanTranslationApi NHumanTranslationApi = new HumanTranslationApi();
+                    NHumanTranslationApi.Init(0, Phoenix.AIMemory, Phoenix.Config);
+                    EngineNodes.Add(new EngineNode(NHumanTranslationApi, 1));
+                }
+
                 KeyData = null;
             }
         }
@@ -541,7 +549,7 @@ namespace PhoenixEngine.Engine
                         }
                     }
                     else
-                    if (this.ApiRef is ChatGptApi || this.ApiRef is GeminiApi || this.ApiRef is DeepSeekApi || this.ApiRef is LMStudio || this.ApiRef is CustomAIApi || this.ApiRef is CustomLocalAIApi)
+                    if (this.ApiRef is ChatGptApi || this.ApiRef is GeminiApi || this.ApiRef is DeepSeekApi || this.ApiRef is LMStudio || this.ApiRef is CustomAIApi || this.ApiRef is CustomLocalAIApi || this.ApiRef is HumanTranslationApi)
                     {
                         if (this.ApiRef is LMStudio)
                         {
@@ -556,7 +564,7 @@ namespace PhoenixEngine.Engine
                                         Thread.Sleep(200);
                                     }
                                 }
-                               
+
 
                                 LMStudio SetApi = ((LMStudio)this.ApiRef);
                                 AICall Call = new AICall();
@@ -597,7 +605,7 @@ namespace PhoenixEngine.Engine
                             }
                         }
                         else
-                          if (this.ApiRef is ChatGptApi)
+                        if (this.ApiRef is ChatGptApi)
                         {
                             if (Phoenix.Config.GetPlatformData(ChatGptApi.Type).Enable)
                             {
@@ -650,7 +658,7 @@ namespace PhoenixEngine.Engine
                             }
                         }
                         else
-                          if (this.ApiRef is GeminiApi)
+                        if (this.ApiRef is GeminiApi)
                         {
                             if (Phoenix.Config.GetPlatformData(GeminiApi.Type).Enable)
                             {
@@ -704,7 +712,7 @@ namespace PhoenixEngine.Engine
                             }
                         }
                         else
-                          if (this.ApiRef is DeepSeekApi)
+                        if (this.ApiRef is DeepSeekApi)
                         {
                             if (Phoenix.Config.GetPlatformData(DeepSeekApi.Type).Enable)
                             {
@@ -758,7 +766,7 @@ namespace PhoenixEngine.Engine
                             }
                         }
                         else
-                          if (this.ApiRef is CustomAIApi)
+                        if (this.ApiRef is CustomAIApi)
                         {
                             CustomAIApi SetApi = ((CustomAIApi)this.ApiRef);
 
@@ -777,8 +785,8 @@ namespace PhoenixEngine.Engine
                                 {
                                     CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
 
-                                    GetData = SetApi.QuickTrans(CurrentApiKey,CustomWords,Source, From, To, UseAIMemory, AIMemoryQueryLimit, AIParam, ref Call).Trim();
-                                    Passed = TranslationPreprocessor.Instance.SecondaryQualityInspection(GetData,CustomWords);
+                                    GetData = SetApi.QuickTrans(CurrentApiKey, CustomWords, Source, From, To, UseAIMemory, AIMemoryQueryLimit, AIParam, ref Call).Trim();
+                                    Passed = TranslationPreprocessor.Instance.SecondaryQualityInspection(GetData, CustomWords);
 
                                     if (!Passed && MaxTry > 0)
                                     {
@@ -813,7 +821,7 @@ namespace PhoenixEngine.Engine
                             }
                         }
                         else
-                          if (this.ApiRef is CustomLocalAIApi)
+                        if (this.ApiRef is CustomLocalAIApi)
                         {
                             CustomLocalAIApi SetApi = ((CustomLocalAIApi)this.ApiRef);
 
@@ -829,7 +837,53 @@ namespace PhoenixEngine.Engine
                                 //Detecting the quality of AI-translated content
                                 do
                                 {
-                                    GetData = SetApi.QuickTrans(CustomWords,Source, From, To, UseAIMemory, AIMemoryQueryLimit, AIParam, ref Call).Trim();
+                                    GetData = SetApi.QuickTrans(CustomWords, Source, From, To, UseAIMemory, AIMemoryQueryLimit, AIParam, ref Call).Trim();
+                                    Passed = TranslationPreprocessor.Instance.SecondaryQualityInspection(GetData, CustomWords);
+
+                                    if (!Passed && MaxTry > 0)
+                                    {
+                                        Thread.Sleep(Phoenix.Config.ReTryWaitTime);
+                                        MaxTry--;
+                                    }
+                                    else
+                                    {
+                                        break;
+                                    }
+                                } while (!Passed);
+
+                                TransText = GetData;
+
+                                if (GetData.Trim().Length == 0)
+                                {
+                                    this.CallCountDown = 0;
+                                }
+
+                                Call.Output();
+
+                                SetType = SetApi.CustomID.ToString();
+                            }
+                            else
+                            {
+                                this.CallCountDown = 0;
+                            }
+                        }
+                        else
+                        if (this.ApiRef is HumanTranslationApi)
+                        {
+                            HumanTranslationApi SetApi = ((HumanTranslationApi)this.ApiRef);
+                            if (Phoenix.Config.GetPlatformData(HumanTranslationApi.Type).Enable)
+                            {
+                                var Type = SetApi.CustomID;
+                                AICall Call = new AICall();
+
+                                string GetData = null;
+                                bool Passed = false;
+                                int MaxTry = MaxTranslationAttempts;
+
+                                //Detecting the quality of AI-translated content
+                                do
+                                {
+                                    GetData = SetApi.CallHuman(CustomWords, Source, From, To, UseAIMemory, AIMemoryQueryLimit, AIParam, ref Call).Trim();
                                     Passed = TranslationPreprocessor.Instance.SecondaryQualityInspection(GetData, CustomWords);
 
                                     if (!Passed && MaxTry > 0)

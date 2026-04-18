@@ -1,19 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using PhoenixEngine.Engine;
 using PhoenixEngine.Language;
 using PhoenixEngine.Memory;
 using PhoenixEngine.P_Delegate;
+using PhoenixEngine.Translate;
 using PhoenixEngine.Unit;
 
 namespace PhoenixEngine.Platform
 {
     public class HumanTranslationApi
     {
+        public static PlatformType Type = PlatformType.HumanTranslation;
+
         public EngineConfigJson ConfigRef { get; set; } = null;
         public AITranslationMemory AIMemoryRef { get; set; } = null;
 
@@ -54,11 +53,19 @@ namespace PhoenixEngine.Platform
                 return "<empty>";
             }
 
+            Call.Platform = PlatformType.HumanTranslation;
+
             var GetTransSource = AIPrompt.GenerateTranslationPrompt(FromLang, ToLang, TransSource, Related, CustomWords, AIParam);
 
             string Send = GetTransSource;
 
-            return WaitHumanInput.Invoke(Send);
+            Call.SendString = Send;
+
+            string Recv = WaitHumanInput.Invoke(Send);
+
+            Call.ReceiveString = Recv;
+
+            return Recv;
         }
     }
 }
