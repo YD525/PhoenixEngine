@@ -118,6 +118,7 @@
     <Compile Include="Platform\CustomApi.cs" />
     <Compile Include="Platform\CustomAIApi.cs" />
     <Compile Include="Platform\CustomPlatformHelper.cs" />
+    <Compile Include="Platform\HumanTranslationApi.cs" />
     <Compile Include="Platform\LocalAI\CustomLocalAIApi.cs" />
     <Compile Include="Platform\DeepLApi.cs" />
     <Compile Include="Platform\DeepSeekApi.cs" />

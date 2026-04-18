@@ -58,6 +58,11 @@ namespace PhoenixEngine
     }
     public class EngineConfigJson
     {
+        #region Init
+
+        public int Init = 0;
+
+        #endregion
         #region RequestConfig
 
         /// <summary>
@@ -230,6 +235,8 @@ namespace PhoenixEngine
                 Config.PlatformConfigs.Add((int)PlatformType.DeepSeek, new PlatformConfig(PlatformType.DeepSeek));
                 Config.PlatformConfigs.Add((int)PlatformType.DeepL, new PlatformConfig(PlatformType.DeepL));
 
+                Config.PlatformConfigs.Add((int)PlatformType.HumanTranslation, new PlatformConfig(PlatformType.HumanTranslation));
+
                 if (Config.PlatformConfigs[(int)PlatformType.LMLocalAI].LocalPort == 0)
                 {
                     Config.PlatformConfigs[(int)PlatformType.LMLocalAI].LocalPort = 1234;
@@ -248,6 +255,24 @@ namespace PhoenixEngine
                 }
 
                 Config.PlatformConfigs[(int)PlatformType.DeepL].IsFree = true;
+
+                if (Config.Init == 0)
+                {
+                    int EnableCount = 0;
+                    foreach (var GetItem in new Dictionary<int, PlatformConfig>(Config.PlatformConfigs))
+                    {
+                        if (GetItem.Value.Enable && GetItem.Value.Platform!= PlatformType.HumanTranslation)
+                        { 
+                           EnableCount++;
+                        }
+                    }
+
+                    if (EnableCount == 0)
+                    {
+                        Config.PlatformConfigs[(int)PlatformType.HumanTranslation].Enable = true;
+                    }
+                    Config.Init = 1;
+                }
             }
         }
         private static byte[] XOREncrypt(byte[] data)

@@ -865,6 +865,6 @@ namespace PhoenixEngine.Platform
 
     public enum CustomPlatformType
     { 
-        Null = 0, LocalAI = 1, CloudAI = 2 ,Traditional = 3
+        Null = 0, LocalAI = 1, CloudAI = 2 ,Traditional = 3 , Interactive = 5
     }
 }
