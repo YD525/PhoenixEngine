@@ -317,7 +317,7 @@ namespace PhoenixEngine
                     EnableCount++;
                 }
                 else
-                if (Phoenix.Config.PlatformConfigs[GetKey].Platform == PlatformType.HumanTranslation)
+                if (Phoenix.Config.PlatformConfigs[GetKey].Platform == PlatformType.HumanTranslation && Phoenix.Config.PlatformConfigs[GetKey].Enable)
                 {
                     EnableCount++;
                 }
