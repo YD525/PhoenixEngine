@@ -219,6 +219,11 @@ namespace PhoenixEngine.Language
             {
                 OneDetect.Add(Languages.Polish, PolishHelper.GetPolishScore(Str));
             }
+            else
+            if (CzechHelper.IsProbablyCzech(Str))
+            {
+                OneDetect.Add(Languages.Czech, CzechHelper.GetCzechScore(Str));
+            }
 
             if (TurkishHelper.IsProbablyTurkish(Str))
             {
@@ -229,7 +234,7 @@ namespace PhoenixEngine.Language
             {
                 OneDetect.Add(Languages.Hindi, HindiHelper.GetHindiScore(Str));
             }
-
+            else
             if (UrduHelper.IsProbablyUrdu(Str))
             {
                 OneDetect.Add(Languages.Urdu, UrduHelper.GetUrduScore(Str));
