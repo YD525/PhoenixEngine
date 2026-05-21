@@ -33,6 +33,7 @@ namespace PhoenixEngine.Language
         Hindi = 30,
         Urdu = 31,
         Persian = 32,
+        Arabic = 33,
 
         // East Asian (no explicit word delimiters)
         TraditionalChinese = 50,
@@ -108,6 +109,7 @@ namespace PhoenixEngine.Language
             [Languages.Polish] = "pl",
             [Languages.Thai] = "th",
             [Languages.Persian] = "fa",
+            [Languages.Arabic] = "ar",
             [Languages.Auto] = "auto",
             [Languages.Null] = ""
         };
@@ -255,6 +257,11 @@ namespace PhoenixEngine.Language
                 OneDetect.Add(Languages.Thai, ThaiHelper.GetThaiScore(Str));
             }
 
+            if (ArabicHelper.IsProbablyArabic(Str))
+            {
+                OneDetect.Add(Languages.Arabic, ArabicHelper.GetArabicScore(Str));
+            }
+            else
             if (PersianHelper.IsProbablyPersian(Str))
             {
                 OneDetect.Add(Languages.Persian, PersianHelper.GetPersianScore(Str));

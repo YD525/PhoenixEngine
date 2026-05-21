@@ -90,6 +90,7 @@
     <Compile Include="Engine\Unit\UnitGroupExtend.cs" />
     <Compile Include="GameManagement\GameHelper.cs" />
     <Compile Include="GameManagement\SkyrimBookHelper.cs" />
+    <Compile Include="Language\ArabicHelper.cs" />
     <Compile Include="Language\BrazilianPortugueseHelper.cs" />
     <Compile Include="Language\CanadianFrenchHelper.cs" />
     <Compile Include="Language\ChineseVariantMap.cs" />
