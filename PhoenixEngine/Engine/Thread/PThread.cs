@@ -8,31 +8,119 @@ namespace PhoenixEngine.PThread
     {
         Null = 0, WaitToCreated = 1, Working = 2, WorkEnd = 3
     }
+
+    public static class IdGenerator
+    {
+        private static readonly int _MachineId;
+        private static int _Sequence = 0;
+        private static long _LastTimestamp = -1;
+        private static readonly object _Lock = new object();
+        static IdGenerator()
+        {
+            _MachineId = (System.Diagnostics.Process.GetCurrentProcess().Id & 0x3FF);
+        }
+        public static long CreateId(DateTime CurrentTime)
+        {
+            lock (_Lock)
+            {
+                long Timestamp = ((DateTimeOffset)CurrentTime).ToUnixTimeMilliseconds();
+
+                if (Timestamp < _LastTimestamp)
+                    Timestamp = _LastTimestamp + 1;
+
+                if (Timestamp == _LastTimestamp)
+                {
+                    _Sequence = (_Sequence + 1) & 0x1FFF;
+                    if (_Sequence == 0)
+                    {
+                        while (Timestamp <= _LastTimestamp)
+                            Timestamp = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeMilliseconds();
+                    }
+                }
+                else
+                {
+                    _Sequence = 0;
+                    _LastTimestamp = Timestamp;
+                }
+
+                long ID = ((long)Timestamp << 23)
+                | (((long)_MachineId & 0x3FF) << 13)
+                | ((long)_Sequence & 0x1FFF);
+
+                return ID;
+            }
+        }
+    }
+
     public class P_ThreadPool<T> where T : class
     {
-        private List<P_Thread<T>> Threads = new List<P_Thread<T>>();
+        private List<Do_Thread<T>> Threads = new List<Do_Thread<T>>();
         public int ConcurrencyLimit = 0;
         public object SyncLock = new object();
 
         private bool CanPut = true;
+
+        private readonly Timer _CleanTimer;
+        private volatile int _LastCleanTime = 0;
+        public P_ThreadPool()
+        {
+            _CleanTimer = new Timer(_ =>
+            {
+                int Now = Environment.TickCount;
+                if (Now - _LastCleanTime < 2000)
+                    return;
+
+                _LastCleanTime = Now;
+
+                if (Monitor.TryEnter(SyncLock))
+                {
+                    try
+                    {
+                        SyncPool();
+                    }
+                    finally
+                    {
+                        Monitor.Exit(SyncLock);
+                    }
+                }
+            }, null, 1000, 1000);
+        }
+        ~P_ThreadPool()
+        {
+            try
+            {
+                if (_CleanTimer != null)
+                {
+                    _CleanTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                    _CleanTimer.Dispose();
+                }
+
+                lock (SyncLock)
+                {
+                    CanPut = false;
+
+                    foreach (var t in Threads)
+                        t.Cancel();
+
+                    Threads.Clear();
+                }
+            }
+            catch { }
+        }
+
         public int GetWorkingThreadCount()
         {
             lock (SyncLock)
             {
-                NextTry:
-                try
+                int WorkCount = 0;
+
+                for (int i = 0; i < Threads.Count; i++)
                 {
-                    int WorkCount = 0;
-                    for (int i = 0; i < Threads.Count; i++)
-                    {
-                        if (Threads[i].State == WorkState.Working)
-                        {
-                            WorkCount++;
-                        }
-                    }
-                    return WorkCount;
+                    if (Threads[i].IsWorking())
+                        WorkCount++;
                 }
-                catch { goto NextTry; }
+
+                return WorkCount;
             }
         }
 
@@ -40,31 +128,33 @@ namespace PhoenixEngine.PThread
         {
             lock (SyncLock)
             {
-                return this.Threads.Count;
+                return Threads.Count;
             }
         }
 
+        private volatile int _Cleaning = 0;
         public void SyncPool()
         {
-            lock (SyncLock)
+            if (Interlocked.Exchange(ref _Cleaning, 1) == 1)
+                return;
+
+            try
             {
-                List<P_Thread<T>> WaitDeletes = new List<P_Thread<T>>();
-
-                for (int i = 0; i < Threads.Count; i++)
+                lock (SyncLock)
                 {
-                    if (Threads[i].State == WorkState.WorkEnd)
-                    {
-                        WaitDeletes.Add(Threads[i]);
-                    }
-                }
+                    if (Threads.Count == 0)
+                        return;
 
-                foreach (var GetTrd in WaitDeletes)
-                {
-                    Threads.Remove(GetTrd);
+                    Threads.RemoveAll(t => t.WorkEnd);
                 }
             }
+            finally
+            {
+                Interlocked.Exchange(ref _Cleaning, 0);
+            }
         }
-        public void DeleteTrdByID(int ID)
+
+        public void DeleteTrdByID(long ID)
         {
             lock (SyncLock)
             {
@@ -78,50 +168,40 @@ namespace PhoenixEngine.PThread
                 }
             }
         }
-        public int GenID()
+
+        public bool Put(T Param,Do_Thread<T> ThreadRef, bool Run = true)
         {
-            lock (SyncLock)
-            {
-                return this.Threads.Count + 1;
-            }
-        }
-        public bool Put(P_Thread<T> ThreadRef, bool Run = true)
-        {
-            if (!CanPut)
-            {
-                return false;
-            }
+            SyncPool();
+
+            if (!CanPut) return false;
 
             lock (SyncLock)
             {
-                if ((ConcurrencyLimit - 1) < this.Threads.Count)
-                {
+                _LastCleanTime = Environment.TickCount;
+
+                if (ConcurrencyLimit > 0 &&
+                    Threads.Count >= ConcurrencyLimit)
                     return false;
-                }
 
                 Threads.Add(ThreadRef);
-
-                if (Run)
-                {
-                    ThreadRef.Start();
-                }
-
-                return true;
             }
+
+            if (Run)
+                ThreadRef.Do(Param);
+
+            return true;
         }
+
         public void CloseAll()
         {
             lock (SyncLock)
             {
-                while (Threads.Count > 0)
+                foreach (var T in Threads)
                 {
-                    try
-                    {
-                        Threads[0].Close(true);
-                        Threads.RemoveAt(0);
-                    }
-                    catch { }
+                    T.Cancel();
                 }
+
+                Threads.Clear();
             }
         }
 
@@ -134,129 +214,274 @@ namespace PhoenixEngine.PThread
                     Threads[i].Suspend(Check);
                 }
 
-                if (Check)
-                {
-                    CanPut = false;
-                }
-                else
-                {
-                    CanPut = true;
-                }
+                CanPut = !Check;
             }
         }
     }
-    public class P_Thread<T>
+
+    public class Do_Thread<T>
     where T : class
     {
-        public int ID = 0;
-        public WorkState State = WorkState.Null;
-        private Action<T> JobFunc;
-        private T DataRef;
-        private Action<T> OnDestroyedFunc;
+        private readonly Action<T, CancellationToken, ManualResetEventSlim> _DoAction;
+        private readonly Action _CancelAction;
 
-        public P_ThreadPool<T> ThreadPoolRef = null;
+        private readonly object _StateLock = new object();
 
-        public bool SuspendTrd = false;
+        private CancellationTokenSource _DoCts = null;
+        private Thread _DoThread = null;
 
-        private Thread CurrentTrd = null;
+        private bool _ForceStarting = false;
+        private long _ActiveEpoch = 0;
 
-        public void GenThread()
+        public string Name { get; set; }
+
+        public bool WorkEnd { get; private set; }
+
+        private volatile bool Doing;
+        private volatile bool Canceling;
+
+        public volatile bool IsSuspended = false;
+
+        public long ID = 0;
+
+        public bool IsWorking()
         {
-            if (CurrentTrd == null)
+            return !WorkEnd && Doing;
+        }
+
+        public Action<int, string> LogHandler { get; set; }
+
+        public Do_Thread(
+            Action<T, CancellationToken, ManualResetEventSlim> DoAction,
+            Action CancelAction,
+            string Name = null)
+        {
+            this._DoAction = DoAction;
+            this._CancelAction = CancelAction;
+            this.Name = Name;
+            this.ID = IdGenerator.CreateId(DateTime.Now);
+        }
+
+        private readonly ManualResetEventSlim _PauseEvent = new ManualResetEventSlim(true);
+        public void Suspend(bool Check)
+        {
+            IsSuspended = Check;
+
+            if (Check)
             {
-                CurrentTrd = new Thread(() =>
+                _PauseEvent.Reset();   
+            }
+            else
+            {
+                _PauseEvent.Set(); 
+            }
+        }
+        public bool Do(T Param,bool ForceStart = false)
+        {
+            bool NeedNormalStart = false;
+
+            lock (_StateLock)
+            {
+                if (Doing || Canceling)
                 {
-                    State = WorkState.Working;
-                    JobFunc?.Invoke(this.DataRef);
-                    while (this.SuspendTrd)
-                    {
-                        Thread.Sleep(500);
-                    }
-                    OnDestroyedFunc?.Invoke(this.DataRef);
-                    State = WorkState.WorkEnd;
+                    if (!ForceStart)
+                        return false;
 
-                    if (this.ThreadPoolRef != null)
-                    {
-                        this.ThreadPoolRef.DeleteTrdByID(this.ID);
-                    }
+                    if (_ForceStarting)
+                        return false;
 
-                    CurrentTrd = null;
-                });
-
-                if (this.ThreadPoolRef != null)
-                {
-                    this.ID = this.ThreadPoolRef.GenID();
+                    _ForceStarting = true;
                 }
                 else
                 {
-                    this.ID = Guid.NewGuid().GetHashCode();
+                    NeedNormalStart = true;
                 }
             }
-        }
-        public P_Thread(P_ThreadPool<T> ThreadPoolRef = null)
-        {
-            this.ThreadPoolRef = ThreadPoolRef;
 
-            State = WorkState.WaitToCreated;
-            GenThread();
-        }
-        public void SetData(T DataRef)
-        { 
-            this.DataRef = DataRef;
-        }
-        public void SetFunc(Action<T> SetJob)
-        {
-            this.JobFunc = SetJob;
-        }
-        public void RegDestroyed(Action<T> EndCall)
-        {
-            this.OnDestroyedFunc = EndCall;
-        }
-        public bool Start(bool IsBackground = false)
-        {
-            return Start(DataRef, IsBackground);
-        }
-        public bool Start(T DataRef,bool IsBackground = false)
-        {
-            GenThread();
+            if (NeedNormalStart)
+                StartDoThread(Param);
+            else
+                StartForceThread(Param);
 
-            if (this.State != WorkState.Working)
+            return true;
+        }
+
+        public void Cancel()
+        {
+            Suspend(false);
+
+            CancellationTokenSource LocalCts = null;
+
+            lock (_StateLock)
             {
-                this.DataRef = DataRef;
-                CurrentTrd.IsBackground = IsBackground;
-                CurrentTrd.Start();
+                if (!Doing || Canceling)
+                    return;
 
-                return true;
+                Canceling = true;
+                IsSuccess = false;
+                WorkEnd = false;
+                LocalCts = _DoCts;
             }
 
-            return false;
-        }
-
-        public bool Suspend(bool Check)
-        {
-            SuspendTrd = Check;
-            return SuspendTrd;
-        }
-
-        public void Close(bool System = false)
-        {
-            if (this.State == WorkState.Working)
+            ThreadPool.QueueUserWorkItem(_ =>
             {
                 try
                 {
-                    CurrentTrd.Abort();
-                    CurrentTrd = null;
+                    LocalCts?.Cancel();
+                    _CancelAction?.Invoke();
                 }
-                catch { }
+                catch (Exception Ex)
+                {
+                    Log(-1, "Cancel exception: " + Ex.Message);
+                }
+            });
+        }
+
+        public volatile bool IsSuccess;
+        private void StartDoThread(T Param)
+        {
+            long LocalEpoch;
+
+            lock (_StateLock)
+            {
+                _ActiveEpoch++;
+                LocalEpoch = _ActiveEpoch;
+
+                Doing = true;
+                Canceling = false;
+                WorkEnd = false;
+
+                _DoCts = new CancellationTokenSource();
             }
 
-            if (!System)
+            CancellationToken Token = _DoCts.Token;
+
+            _DoThread = new Thread(() =>
             {
-                if (this.ThreadPoolRef != null)
+                CancellationTokenSource DisposeCts = null;
+
+                try
                 {
-                    this.ThreadPoolRef.DeleteTrdByID(this.ID);
+                    _DoAction?.Invoke(Param,Token,_PauseEvent);
+
+                    lock (_StateLock)
+                    {
+                        if (_ActiveEpoch == LocalEpoch)
+                        {
+                            IsSuccess = true;
+                        }
+                    }
                 }
-            }
+                catch (OperationCanceledException)
+                {
+                    Log(1, "Task canceled");
+                    if (_ActiveEpoch == LocalEpoch)
+                       IsSuccess = false;
+                }
+                catch (Exception Ex)
+                {
+                    Log(-1, "Task execution error: " + Ex.Message);
+                    if (_ActiveEpoch == LocalEpoch)
+                        IsSuccess = false;
+                }
+                finally
+                {
+                    lock (_StateLock)
+                    {
+                        if (_ActiveEpoch == LocalEpoch)
+                        {
+                            Doing = false;
+                            Canceling = false;
+                            WorkEnd = true;
+                            DisposeCts = _DoCts;
+                            _DoCts = null;
+                        }
+                    }
+
+                    DisposeCts?.Dispose();
+                }
+            })
+            {
+                IsBackground = true,
+                Name = Name ?? $"DoItem_{LocalEpoch}"
+            };
+
+            _DoThread.Start();
+        }
+
+        private void StartForceThread(T Param)
+        {
+            Thread ForceThread = new Thread(() =>
+            {
+                try
+                {
+                    Log(1, "Force start requested");
+
+                    Cancel();
+
+                    int WaitCount = 24;
+                    bool Safe = false;
+
+                    while (WaitCount-- > 0)
+                    {
+                        bool DoingLocal;
+                        bool CancelLocal;
+                        bool AliveLocal;
+
+                        lock (_StateLock)
+                        {
+                            DoingLocal = Doing;
+                            CancelLocal = Canceling;
+                            AliveLocal = _DoThread != null && _DoThread.IsAlive;
+                        }
+
+                        if (!DoingLocal && !CancelLocal && !AliveLocal)
+                        {
+                            Safe = true;
+                            break;
+                        }
+
+                        Thread.Sleep(500);
+                    }
+
+                    if (Safe)
+                    {
+                        lock (_StateLock)
+                        {
+                            if (!_ForceStarting)
+                                return;
+                        }
+
+                        StartDoThread(Param);
+                    }
+                    else
+                    {
+                        Log(-1, "Force start failed: task not stopped");
+                    }
+                }
+                catch (Exception Ex)
+                {
+                    Log(-1, "Force thread error: " + Ex.Message);
+                }
+                finally
+                {
+                    lock (_StateLock)
+                    {
+                        _ForceStarting = false;
+                    }
+                }
+            })
+            {
+                IsBackground = true,
+                Name = "DoItem_ForceScheduler"
+            };
+
+            ForceThread.Start();
+        }
+
+        private void Log(int level, string message)
+        {
+            LogHandler?.Invoke(level, message);
         }
     }
 }

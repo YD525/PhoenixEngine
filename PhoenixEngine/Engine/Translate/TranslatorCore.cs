@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Net.Http.Headers;
 using System.Threading;
+using Newtonsoft.Json.Linq;
+using System.Web.UI.WebControls;
+using System.Web.UI;
 using PhoenixEngine.ADO;
 using PhoenixEngine.EngineManagement.Engine;
 using PhoenixEngine.Events;
@@ -100,15 +104,6 @@ namespace PhoenixEngine.Translate
 
         public Thread TransMainTrd = null;
 
-        private P_Thread<T> CreatePhoenixThread<T>(P_ThreadPool<T> PoolRef, T DataRef, Action<T> Job, Action<T> Destroyed) where T : class
-        {
-            P_Thread<T> CreateTrd = new P_Thread<T>(PoolRef);
-            CreateTrd.SetFunc(Job);
-            CreateTrd.RegDestroyed(Destroyed);
-            CreateTrd.SetData(DataRef);
-            return CreateTrd;
-        }
-
         private void WaitAllDone(Func<bool> ForDoneCheck = null)
         {
             int EmptyConfirmCount = 0;
@@ -152,22 +147,6 @@ namespace PhoenixEngine.Translate
 
             double ThrottleLimit = ((double)TrdPool.ConcurrencyLimit * (double)Phoenix.Config.ThrottleRatio);
 
-            Action<UnitGroup> WorkEndCall = new Action<UnitGroup>((Item) =>
-            {
-                AddTranslated(Item);
-            });
-
-            Action<UnitGroup> NormalCall = new Action<UnitGroup>((ItemRef) =>
-            {
-                ItemRef = TranslatorRef.Translate(new TransParam(ItemRef, false, true));
-            });
-
-            Action<UnitGroup> BookCall = new Action<UnitGroup>((ItemRef) =>
-            {
-                ItemRef = TranslatorRef.Translate(new TransParam(ItemRef, true, true));
-                Thread.Sleep(100);
-            });
-
             TransMainTrd = new Thread(() =>
             {
                 this.IsWork = true;
@@ -182,7 +161,23 @@ namespace PhoenixEngine.Translate
                     if (!GetUnit.ApplyStateChange(UnitTranslationState.Created).CanDo(-1))
                         continue;
 
-                    while (!TrdPool.Put(CreatePhoenixThread<UnitGroup>(TrdPool, GetUnit, NormalCall, WorkEndCall)))
+                    while (!TrdPool.Put(GetUnit,new Do_Thread<UnitGroup>(
+                        new Action<UnitGroup, CancellationToken, ManualResetEventSlim>((UnitRef,Token,Pause) =>
+                        {
+                            Token.ThrowIfCancellationRequested();
+
+                            Thread.Sleep(100);
+
+                            Pause.Wait(Token);
+
+                            Token.ThrowIfCancellationRequested();
+
+                            UnitRef = TranslatorRef.Translate(new TransParam(UnitRef, false, true));
+
+                            Token.ThrowIfCancellationRequested();
+
+                            AddTranslated(UnitRef);
+                        }),null)))
                     {
                         if (GetCount() > ThrottleLimit)
                             Thread.Sleep(TrdDelayMs);
@@ -201,7 +196,23 @@ namespace PhoenixEngine.Translate
                     if (!GetBook.ApplyStateChange(UnitTranslationState.Created).CanDo(-1))
                         continue;
 
-                    while (!TrdPool.Put(CreatePhoenixThread<UnitGroup>(TrdPool, GetBook, BookCall, WorkEndCall)))
+                    while (!TrdPool.Put(GetBook, new Do_Thread<UnitGroup>(
+                         new Action<UnitGroup, CancellationToken, ManualResetEventSlim>((BookRef, Token, Pause) =>
+                         {
+                             Token.ThrowIfCancellationRequested();
+
+                             Thread.Sleep(100);
+
+                             Pause.Wait(Token);
+
+                             Token.ThrowIfCancellationRequested();
+
+                             BookRef = TranslatorRef.Translate(new TransParam(BookRef, false, true));
+
+                             Token.ThrowIfCancellationRequested();
+
+                             AddTranslated(BookRef);
+                         }), null)))
                     {
                         if (GetCount() > ThrottleLimit)
                             Thread.Sleep(TrdDelayMs);
