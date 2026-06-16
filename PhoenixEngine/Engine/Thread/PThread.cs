@@ -11,41 +11,45 @@ namespace PhoenixEngine.PThread
 
     public static class IdGenerator
     {
-        private static readonly int _MachineId;
+        private static readonly int _UniqueId;
         private static int _Sequence = 0;
         private static long _LastTimestamp = -1;
         private static readonly object _Lock = new object();
         static IdGenerator()
         {
-            _MachineId = (System.Diagnostics.Process.GetCurrentProcess().Id & 0x3FF);
+            _UniqueId = Guid.NewGuid().GetHashCode();
         }
         public static long CreateId(DateTime CurrentTime)
         {
             lock (_Lock)
             {
-                long Timestamp = ((DateTimeOffset)CurrentTime).ToUnixTimeMilliseconds();
+                long Timestamp = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeMilliseconds();
 
                 if (Timestamp < _LastTimestamp)
-                    Timestamp = _LastTimestamp + 1;
+                {
+                    Timestamp = _LastTimestamp;
+                }
 
                 if (Timestamp == _LastTimestamp)
                 {
-                    _Sequence = (_Sequence + 1) & 0x1FFF;
+                    _Sequence = (_Sequence + 1) & 0x1FFF; // 0 ~ 8191
+
                     if (_Sequence == 0)
                     {
-                        while (Timestamp <= _LastTimestamp)
-                            Timestamp = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeMilliseconds();
+                        Timestamp = _LastTimestamp + 1;
+                        _Sequence = 0;
                     }
                 }
                 else
                 {
                     _Sequence = 0;
-                    _LastTimestamp = Timestamp;
                 }
 
-                long ID = ((long)Timestamp << 23)
-                | (((long)_MachineId & 0x3FF) << 13)
-                | ((long)_Sequence & 0x1FFF);
+                _LastTimestamp = Timestamp;
+
+                long ID = (Timestamp << 23)
+                        | (((long)_UniqueId & 0x3FF) << 13)
+                        | ((long)_Sequence & 0x1FFF);
 
                 return ID;
             }
@@ -67,7 +71,7 @@ namespace PhoenixEngine.PThread
             _CleanTimer = new Timer(_ =>
             {
                 int Now = Environment.TickCount;
-                if (Now - _LastCleanTime < 2000)
+                if ((uint)Now - (uint)_LastCleanTime < 2000)
                     return;
 
                 _LastCleanTime = Now;
@@ -85,27 +89,45 @@ namespace PhoenixEngine.PThread
                 }
             }, null, 1000, 1000);
         }
+
         ~P_ThreadPool()
         {
+            Dispose(false);
+        }
+
+        private int _Disposed = 0;
+        protected virtual void Dispose(bool Disposing)
+        {
+            if (Interlocked.Exchange(ref _Disposed, 1) == 1)
+                return;
+
             try
             {
-                if (_CleanTimer != null)
-                {
-                    _CleanTimer.Change(Timeout.Infinite, Timeout.Infinite);
-                    _CleanTimer.Dispose();
-                }
+                _CleanTimer?.Change(Timeout.Infinite, Timeout.Infinite);
+                _CleanTimer?.Dispose();
+            }
+            catch { }
 
+            if (Disposing)
+            {
                 lock (SyncLock)
                 {
                     CanPut = false;
 
                     foreach (var t in Threads)
-                        t.Cancel();
+                    {
+                        try { t.Cancel(); } catch { }
+                    }
 
                     Threads.Clear();
                 }
             }
-            catch { }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         public int GetWorkingThreadCount()
@@ -171,12 +193,14 @@ namespace PhoenixEngine.PThread
 
         public bool Put(T Param,Do_Thread<T> ThreadRef, bool Run = true)
         {
-            SyncPool();
+            if (Volatile.Read(ref _Disposed) == 1) return false;
 
-            if (!CanPut) return false;
+            SyncPool();
 
             lock (SyncLock)
             {
+                if (!CanPut) return false;
+
                 _LastCleanTime = Environment.TickCount;
 
                 if (ConcurrencyLimit > 0 &&
@@ -319,8 +343,9 @@ namespace PhoenixEngine.PThread
 
                 Canceling = true;
                 IsSuccess = false;
-                WorkEnd = false;
                 LocalCts = _DoCts;
+
+                WorkEnd = true;
             }
 
             ThreadPool.QueueUserWorkItem(_ =>
