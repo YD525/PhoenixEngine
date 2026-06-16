@@ -15,11 +15,13 @@ namespace PhoenixEngine.PThread
         private static int _Sequence = 0;
         private static long _LastTimestamp = -1;
         private static readonly object _Lock = new object();
+
         static IdGenerator()
         {
-            _UniqueId = Guid.NewGuid().GetHashCode();
+            _UniqueId = Math.Abs(Guid.NewGuid().GetHashCode()) & 0x3FF;
         }
-        public static long CreateId(DateTime CurrentTime)
+
+        public static long CreateId()
         {
             lock (_Lock)
             {
@@ -48,7 +50,7 @@ namespace PhoenixEngine.PThread
                 _LastTimestamp = Timestamp;
 
                 long ID = (Timestamp << 23)
-                        | (((long)_UniqueId & 0x3FF) << 13)
+                        | ((long)_UniqueId << 13) 
                         | ((long)_Sequence & 0x1FFF);
 
                 return ID;
@@ -153,26 +155,18 @@ namespace PhoenixEngine.PThread
                 return Threads.Count;
             }
         }
-
-        private volatile int _Cleaning = 0;
-        public void SyncPool()
+        private void SyncPoolInternal()
         {
-            if (Interlocked.Exchange(ref _Cleaning, 1) == 1)
+            if (Threads.Count == 0)
                 return;
 
-            try
+            Threads.RemoveAll(t => t.WorkEnd);
+        }
+        public void SyncPool()
+        {
+            lock (SyncLock)
             {
-                lock (SyncLock)
-                {
-                    if (Threads.Count == 0)
-                        return;
-
-                    Threads.RemoveAll(t => t.WorkEnd);
-                }
-            }
-            finally
-            {
-                Interlocked.Exchange(ref _Cleaning, 0);
+                SyncPoolInternal();
             }
         }
 
@@ -195,10 +189,10 @@ namespace PhoenixEngine.PThread
         {
             if (Volatile.Read(ref _Disposed) == 1) return false;
 
-            SyncPool();
-
             lock (SyncLock)
             {
+                SyncPoolInternal();
+
                 if (!CanPut) return false;
 
                 _LastCleanTime = Environment.TickCount;
@@ -283,7 +277,7 @@ namespace PhoenixEngine.PThread
             this._DoAction = DoAction;
             this._CancelAction = CancelAction;
             this.Name = Name;
-            this.ID = IdGenerator.CreateId(DateTime.Now);
+            this.ID = IdGenerator.CreateId();
         }
 
         private readonly ManualResetEventSlim _PauseEvent = new ManualResetEventSlim(true);
