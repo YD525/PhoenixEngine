@@ -13,7 +13,7 @@ namespace PhoenixEngine.Translate
 {
     public class TranslatorCore
     {
-        public readonly object UnitsReadLock = new object();
+        public readonly object CacheSetGetLock = new object();
 
         public ProcContent Content = null;
 
@@ -231,10 +231,7 @@ namespace PhoenixEngine.Translate
 
                         if (GetUnit.Translated.Length > 0)
                         {
-                            lock (UnitsReadLock)
-                            {
-                                TranslatedCount++;
-                            }
+                            TranslatedCount++;
 
                             CloudDBCache.AddCache(
                                 TranslatorRef.GetFileUniqueKey(),
@@ -250,12 +247,23 @@ namespace PhoenixEngine.Translate
                             continue;
                         }
 
-                        if (DequeueCache.TryGetValue(GetUnit.Original, out var CacheResult))
+                        bool GetState = false;
+                        string CacheResult = "";
+
+                        lock (CacheSetGetLock)
                         {
-                            lock (UnitsReadLock)
+                            if (DequeueCache.TryGetValue(GetUnit.Original, out var TempCacheResult))
                             {
-                                TranslatedCount++;
+                                GetState = true;
+                                CacheResult = TempCacheResult;
                             }
+                        }
+                        
+
+                        if (GetState)
+                        {
+                            TranslatedCount++;
+
                             GetUnit.Translated = CacheResult;
 
                             CloudDBCache.AddCache(
@@ -274,6 +282,7 @@ namespace PhoenixEngine.Translate
 
                 WaitAllDone();
 
+                lock(CacheSetGetLock)
                 DequeueCache.Clear();
 
                 this.IsWorking = false;
@@ -313,14 +322,11 @@ namespace PhoenixEngine.Translate
             TrdPool.SuspendAll(true);
         }
 
-        public int TranslatedCount = 0;
+        public volatile int TranslatedCount = 0;
 
         private void AddTranslated(UnitGroup Item)
         {
-            lock (UnitsReadLock)
-            {
-                TranslatedCount += Item.Units.Count;
-            }
+            TranslatedCount += Item.Units.Count;
 
             if (!Item.ApplyStateChange(UnitTranslationState.Queued).CanDo(-1))
                 return;
@@ -343,7 +349,9 @@ namespace PhoenixEngine.Translate
 
                     if (State)
                     {
+                        lock(CacheSetGetLock)
                         DequeueCache[Item.GetRealOriginal()] = Item.Translated;
+
                         return Item;
                     }
                     else
@@ -367,7 +375,9 @@ namespace PhoenixEngine.Translate
         }
         public void Close()
         {
+            lock (CacheSetGetLock)
             DequeueCache.Clear();
+
             ProcStage = 0;
             IsStop = false;
             UnitForDone = false;
