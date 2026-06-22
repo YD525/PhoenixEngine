@@ -33,7 +33,7 @@ namespace PhoenixEngine.Translate
 
         public int ProcStage = 0;
 
-        public bool IsWork = false;
+        public bool IsWorking = false;
 
         private volatile bool UnitForDone = false;
         private volatile bool BookForDone = false;
@@ -73,7 +73,7 @@ namespace PhoenixEngine.Translate
         {
             if (ProcStage == 0)
             {
-                Clear();
+                this.Close();
                 this.TranslatorRef.SyncTranslatedCount(Addition);
                 UnionArray SetData = new UnionArray();
                 ProcStage = 1;
@@ -145,7 +145,7 @@ namespace PhoenixEngine.Translate
 
             TransMainTrd = new Thread(() =>
             {
-                this.IsWork = true;
+                this.IsWorking = true;
                 this.ProcStage = 3;
                 UnitForDone = false;
                 BookForDone = false;
@@ -276,7 +276,7 @@ namespace PhoenixEngine.Translate
 
                 DequeueCache.Clear();
 
-                this.IsWork = false;
+                this.IsWorking = false;
                 this.ProcStage = 10;
                 TrdPool?.Dispose();
                 TrdPool = null;
@@ -298,7 +298,7 @@ namespace PhoenixEngine.Translate
             if (TrdPool != null)
                 TrdPool.CloseAll();
 
-            IsWork = false;
+            IsWorking = false;
         }
 
         public void Keep()
@@ -368,17 +368,17 @@ namespace PhoenixEngine.Translate
                 return null;
             }
         }
-
-        private void Clear()
+        public void Close()
         {
-            TrdPool?.CloseAll();
             DequeueCache.Clear();
             ProcStage = 0;
             IsStop = false;
             UnitForDone = false;
             BookForDone = false;
+            IsWorking = false;
+            TrdPool = null;
+            TrdPool?.Dispose();
 
-            IsWork = false;
             while (TranslatedQueue.TryDequeue(out _)) { }
 
             MarkLeadersPercent = 0;
@@ -386,11 +386,6 @@ namespace PhoenixEngine.Translate
             Cancel();
             this.Content?.Clear();
             this.TranslatedCount = 0;
-        }
-
-        public void Close()
-        {
-            Clear();
         }
     }
 }
