@@ -376,8 +376,8 @@ namespace PhoenixEngine.Translate
             UnitForDone = false;
             BookForDone = false;
             IsWorking = false;
-            TrdPool = null;
             TrdPool?.Dispose();
+            TrdPool = null;
 
             while (TranslatedQueue.TryDequeue(out _)) { }
 
