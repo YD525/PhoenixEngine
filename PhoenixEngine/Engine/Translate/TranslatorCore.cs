@@ -328,14 +328,6 @@ namespace PhoenixEngine.Translate
         }
 
         private CancellationTokenSource _CancelSource;
-        public void Cancel()
-        {
-            _CancelSource?.Cancel();
-
-            TrdPool?.CloseAll();
-
-            IsWorking = false;
-        }
 
         public void Keep()
         {
@@ -412,12 +404,12 @@ namespace PhoenixEngine.Translate
             IsWorking = false;
             TrdPool?.Dispose();
             TrdPool = null;
+            _CancelSource?.Cancel();
 
             while (TranslatedQueue.TryDequeue(out _)) { }
 
             MarkLeadersPercent = 0;
 
-            Cancel();
             this.Content?.Clear();
             Interlocked.Exchange(ref TranslatedCount, 0);
         }

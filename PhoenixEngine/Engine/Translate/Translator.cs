@@ -65,7 +65,7 @@ namespace PhoenixEngine.Translate
         {
             if (this.BatchCore != null)
             {
-                this.BatchCore.Cancel();
+                this.BatchCore.Close();
 
                 if (this.BatchCore.Content != null)
                 {
