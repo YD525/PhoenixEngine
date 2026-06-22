@@ -13,27 +13,28 @@ namespace PhoenixEngine.Translate
 {
     public class TranslatorCore
     {
-        public readonly object CacheSetGetLock = new object();
-
         public ProcContent Content = null;
 
         public ConcurrentQueue<BaseUnit> TranslatedQueue = new ConcurrentQueue<BaseUnit>();
 
-        public int AutoThreadLimit = 0;
+        public volatile int AutoThreadLimit = 0;
 
-        public bool IsStop = false;
+        public double MarkLeadersPercent = 0;
 
-        public bool SkipWordAnalysis = false;
+        public volatile bool IsStop = false;
+
+        public volatile bool SkipWordAnalysis = false;
 
         public Translator TranslatorRef = null;
 
         public P_ThreadPool<UnitGroup> TrdPool = null;
 
+        public readonly object CacheSetGetLock = new object();
         public Dictionary<string, string> DequeueCache = new Dictionary<string, string>();
 
-        public int ProcStage = 0;
+        public volatile int ProcStage = 0;
 
-        public bool IsWorking = false;
+        public volatile bool IsWorking = false;
 
         private volatile bool UnitForDone = false;
         private volatile bool BookForDone = false;
@@ -57,12 +58,6 @@ namespace PhoenixEngine.Translate
             }
             return 0;
         }
-
-        public readonly object TranslatedAddLocker = new object();
-
-        public object WaitTranslateLock = new object();
-
-        public double MarkLeadersPercent = 0;
 
         public int GetCount()
         {
@@ -129,7 +124,7 @@ namespace PhoenixEngine.Translate
         {
             int TrdDelayMs = Phoenix.Config.ThrottleDelayMs;
 
-            TranslatedCount = TranslatorRef.CalcTranslatedCount(0);
+            Interlocked.Exchange(ref TranslatedCount, TranslatorRef.CalcTranslatedCount(0));
 
             if (TrdPool == null)
             {
@@ -231,7 +226,7 @@ namespace PhoenixEngine.Translate
 
                         if (GetUnit.Translated.Length > 0)
                         {
-                            TranslatedCount++;
+                            Interlocked.Increment(ref TranslatedCount);
 
                             CloudDBCache.AddCache(
                                 TranslatorRef.GetFileUniqueKey(),
@@ -262,7 +257,7 @@ namespace PhoenixEngine.Translate
 
                         if (GetState)
                         {
-                            TranslatedCount++;
+                            Interlocked.Increment(ref TranslatedCount);
 
                             GetUnit.Translated = CacheResult;
 
@@ -326,7 +321,7 @@ namespace PhoenixEngine.Translate
 
         private void AddTranslated(UnitGroup Item)
         {
-            TranslatedCount += Item.Units.Count;
+            Interlocked.Add(ref TranslatedCount, Item.Units.Count);
 
             if (!Item.ApplyStateChange(UnitTranslationState.Queued).CanDo(-1))
                 return;
@@ -392,7 +387,7 @@ namespace PhoenixEngine.Translate
 
             Cancel();
             this.Content?.Clear();
-            this.TranslatedCount = 0;
+            Interlocked.Exchange(ref TranslatedCount, 0);
         }
     }
 }
