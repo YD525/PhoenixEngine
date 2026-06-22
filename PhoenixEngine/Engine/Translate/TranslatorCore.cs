@@ -170,7 +170,7 @@ namespace PhoenixEngine.Translate
 
                             UnitRef = TranslatorRef.Translate(new TransParam(UnitRef, false, true));
 
-                            Token.ThrowIfCancellationRequested();
+                            //Token.ThrowIfCancellationRequested();
 
                             AddTranslated(UnitRef);
                         }),null)))
@@ -205,7 +205,7 @@ namespace PhoenixEngine.Translate
 
                              BookRef = TranslatorRef.Translate(new TransParam(BookRef, false, true));
 
-                             Token.ThrowIfCancellationRequested();
+                             //Token.ThrowIfCancellationRequested();
 
                              AddTranslated(BookRef);
                          }), null)))
