@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
+using Newtonsoft.Json.Linq;
 using PhoenixEngine.ADO;
 using PhoenixEngine.EngineManagement.Engine;
 using PhoenixEngine.Events;
@@ -64,7 +65,7 @@ namespace PhoenixEngine.Translate
             return Content.GetCount();
         }
 
-        public bool Init(List<BaseUnit> BaseUnits, AggregationMode SetMode,int Addition)
+        public bool Init(List<BaseUnit> BaseUnits, AggregationMode SetMode, int Addition)
         {
             if (ProcStage == 0)
             {
@@ -95,12 +96,14 @@ namespace PhoenixEngine.Translate
 
         public Thread TransMainTrd = null;
 
-        private void WaitAllDone(Func<bool> ForDoneCheck = null)
+        private void WaitAllDone(CancellationToken Token, Func<bool> ForDoneCheck = null)
         {
             int EmptyConfirmCount = 0;
 
             while (true)
             {
+                Token.ThrowIfCancellationRequested();
+
                 bool ForDone = ForDoneCheck == null || ForDoneCheck();
                 bool PoolEmpty = TrdPool.GetCount() == 0;
                 bool QueueEmpty = TranslatedQueue.IsEmpty;
@@ -122,6 +125,11 @@ namespace PhoenixEngine.Translate
 
         public void Start()
         {
+            _CancelSource?.Dispose();
+            _CancelSource = new CancellationTokenSource();
+
+            var MainTrdToken = _CancelSource.Token;
+
             int TrdDelayMs = Phoenix.Config.ThrottleDelayMs;
 
             Interlocked.Exchange(ref TranslatedCount, TranslatorRef.CalcTranslatedCount(0));
@@ -140,167 +148,191 @@ namespace PhoenixEngine.Translate
 
             TransMainTrd = new Thread(() =>
             {
-                this.IsWorking = true;
-                this.ProcStage = 3;
-                UnitForDone = false;
-                BookForDone = false;
-
-                for (int I = 0; I < this.Content.Units.Count; I++)
+                try
                 {
-                    UnitGroup GetUnit = this.Content.Units[I];
+                    MainTrdToken.ThrowIfCancellationRequested();
 
-                    if (!GetUnit.ApplyStateChange(UnitTranslationState.Created).CanDo(-1))
-                        continue;
+                    this.IsWorking = true;
+                    this.ProcStage = 3;
+                    UnitForDone = false;
+                    BookForDone = false;
 
-                    while (!TrdPool.Put(GetUnit,new Do_Thread<UnitGroup>(
-                        new Action<UnitGroup, CancellationToken, ManualResetEventSlim>((UnitRef,Token,Pause) =>
-                        {
-                            Token.ThrowIfCancellationRequested();
-
-                            Thread.Sleep(100);
-
-                            Pause.Wait(Token);
-
-                            Token.ThrowIfCancellationRequested();
-
-                            UnitRef = TranslatorRef.Translate(new TransParam(UnitRef, false, true));
-
-                            //Token.ThrowIfCancellationRequested();
-
-                            AddTranslated(UnitRef);
-                        }),null)))
+                    for (int I = 0; I < this.Content.Units.Count; I++)
                     {
-                        if (GetCount() > ThrottleLimit)
-                            Thread.Sleep(TrdDelayMs);
-                    }
-                }
+                        MainTrdToken.ThrowIfCancellationRequested();
 
-                UnitForDone = true;
-                WaitAllDone(() => UnitForDone);
+                        UnitGroup GetUnit = this.Content.Units[I];
 
-                this.ProcStage = 5;
-
-                for (int I = 0; I < this.Content.Books.Count; I++)
-                {
-                    UnitGroup GetBook = this.Content.Books[I];
-
-                    if (!GetBook.ApplyStateChange(UnitTranslationState.Created).CanDo(-1))
-                        continue;
-
-                    while (!TrdPool.Put(GetBook, new Do_Thread<UnitGroup>(
-                         new Action<UnitGroup, CancellationToken, ManualResetEventSlim>((BookRef, Token, Pause) =>
-                         {
-                             Token.ThrowIfCancellationRequested();
-
-                             Thread.Sleep(100);
-
-                             Pause.Wait(Token);
-
-                             Token.ThrowIfCancellationRequested();
-
-                             BookRef = TranslatorRef.Translate(new TransParam(BookRef, false, true));
-
-                             //Token.ThrowIfCancellationRequested();
-
-                             AddTranslated(BookRef);
-                         }), null)))
-                    {
-                        if (GetCount() > ThrottleLimit)
-                            Thread.Sleep(TrdDelayMs);
-                    }
-                }
-
-                BookForDone = true;
-                WaitAllDone(() => BookForDone);
-
-                this.ProcStage = 6;
-
-                this.Content.SyncSameItemsFromTranslated();
-
-                for (int I = 0; I < this.Content.SameItems.Count; I++)
-                {
-                    for (int Ir = 0; Ir < this.Content.SameItems[I].Units.Count; Ir++)
-                    {
-                        var GetUnit = this.Content.SameItems[I].Units[Ir];
-                        var Link = TranslatorRef.GetLink();
-
-                        if (GetUnit.Translated.Length > 0)
-                        {
-                            Interlocked.Increment(ref TranslatedCount);
-
-                            CloudDBCache.AddCache(
-                                TranslatorRef.GetFileUniqueKey(),
-                                GetUnit.Key,
-                                (int)TranslatorRef.To,
-                                GetUnit.Original,
-                                GetUnit.Translated
-                            );
-                            TranslatedQueue.Enqueue(GetUnit);
-
-                            Link[GetUnit.Key] = GetUnit.Translated;
-
+                        if (!GetUnit.ApplyStateChange(UnitTranslationState.Created).CanDo(-1))
                             continue;
-                        }
 
-                        bool GetState = false;
-                        string CacheResult = "";
-
-                        lock (CacheSetGetLock)
-                        {
-                            if (DequeueCache.TryGetValue(GetUnit.Original, out var TempCacheResult))
+                        while (!TrdPool.Put(GetUnit, new Do_Thread<UnitGroup>(
+                            new Action<UnitGroup, CancellationToken, ManualResetEventSlim>((UnitRef, Token, Pause) =>
                             {
-                                GetState = true;
-                                CacheResult = TempCacheResult;
+                                Token.ThrowIfCancellationRequested();
+
+                                Thread.Sleep(100);
+
+                                Pause.Wait(Token);
+
+                                Token.ThrowIfCancellationRequested();
+
+                                UnitRef = TranslatorRef.Translate(new TransParam(UnitRef, false, true));
+
+                                //Token.ThrowIfCancellationRequested();
+
+                                AddTranslated(UnitRef);
+                            }), null)))
+                        {
+                            MainTrdToken.ThrowIfCancellationRequested();
+                            if (GetCount() > ThrottleLimit)
+                                Thread.Sleep(TrdDelayMs);
+                        }
+                    }
+
+                    MainTrdToken.ThrowIfCancellationRequested();
+
+                    UnitForDone = true;
+                    WaitAllDone(MainTrdToken, () => UnitForDone);
+
+                    MainTrdToken.ThrowIfCancellationRequested();
+
+                    this.ProcStage = 5;
+
+                    for (int I = 0; I < this.Content.Books.Count; I++)
+                    {
+                        MainTrdToken.ThrowIfCancellationRequested();
+
+                        UnitGroup GetBook = this.Content.Books[I];
+
+                        if (!GetBook.ApplyStateChange(UnitTranslationState.Created).CanDo(-1))
+                            continue;
+
+                        while (!TrdPool.Put(GetBook, new Do_Thread<UnitGroup>(
+                             new Action<UnitGroup, CancellationToken, ManualResetEventSlim>((BookRef, Token, Pause) =>
+                             {
+                                 Token.ThrowIfCancellationRequested();
+
+                                 Thread.Sleep(100);
+
+                                 Pause.Wait(Token);
+
+                                 Token.ThrowIfCancellationRequested();
+
+                                 BookRef = TranslatorRef.Translate(new TransParam(BookRef, false, true));
+
+                                 //Token.ThrowIfCancellationRequested();
+
+                                 AddTranslated(BookRef);
+                             }), null)))
+                        {
+                            MainTrdToken.ThrowIfCancellationRequested();
+                            if (GetCount() > ThrottleLimit)
+                                Thread.Sleep(TrdDelayMs);
+                        }
+                    }
+
+                    MainTrdToken.ThrowIfCancellationRequested();
+
+                    BookForDone = true;
+                    WaitAllDone(MainTrdToken, () => BookForDone);
+
+                    MainTrdToken.ThrowIfCancellationRequested();
+
+                    this.ProcStage = 6;
+
+                    this.Content.SyncSameItemsFromTranslated();
+
+                    for (int I = 0; I < this.Content.SameItems.Count; I++)
+                    {
+                        MainTrdToken.ThrowIfCancellationRequested();
+
+                        for (int Ir = 0; Ir < this.Content.SameItems[I].Units.Count; Ir++)
+                        {
+                            MainTrdToken.ThrowIfCancellationRequested();
+
+                            var GetUnit = this.Content.SameItems[I].Units[Ir];
+                            var Link = TranslatorRef.GetLink();
+
+                            if (GetUnit.Translated.Length > 0)
+                            {
+                                Interlocked.Increment(ref TranslatedCount);
+
+                                CloudDBCache.AddCache(
+                                    TranslatorRef.GetFileUniqueKey(),
+                                    GetUnit.Key,
+                                    (int)TranslatorRef.To,
+                                    GetUnit.Original,
+                                    GetUnit.Translated
+                                );
+                                TranslatedQueue.Enqueue(GetUnit);
+
+                                Link[GetUnit.Key] = GetUnit.Translated;
+
+                                continue;
+                            }
+
+                            bool GetState = false;
+                            string CacheResult = "";
+
+                            lock (CacheSetGetLock)
+                            {
+                                if (DequeueCache.TryGetValue(GetUnit.Original, out var TempCacheResult))
+                                {
+                                    GetState = true;
+                                    CacheResult = TempCacheResult;
+                                }
+                            }
+
+
+                            if (GetState)
+                            {
+                                Interlocked.Increment(ref TranslatedCount);
+
+                                GetUnit.Translated = CacheResult;
+
+                                CloudDBCache.AddCache(
+                                    TranslatorRef.GetFileUniqueKey(),
+                                    GetUnit.Key,
+                                    (int)TranslatorRef.To,
+                                    GetUnit.Original,
+                                    GetUnit.Translated
+                                );
+                                TranslatedQueue.Enqueue(GetUnit);
+
+                                Link[GetUnit.Key] = CacheResult;
                             }
                         }
-                        
-
-                        if (GetState)
-                        {
-                            Interlocked.Increment(ref TranslatedCount);
-
-                            GetUnit.Translated = CacheResult;
-
-                            CloudDBCache.AddCache(
-                                TranslatorRef.GetFileUniqueKey(),
-                                GetUnit.Key,
-                                (int)TranslatorRef.To,
-                                GetUnit.Original,
-                                GetUnit.Translated
-                            );
-                            TranslatedQueue.Enqueue(GetUnit);
-
-                            Link[GetUnit.Key] = CacheResult;
-                        }
                     }
+
+                    MainTrdToken.ThrowIfCancellationRequested();
+
+                    WaitAllDone(MainTrdToken);
                 }
+                catch (OperationCanceledException) { }
+                catch (Exception) { }
+                finally
+                {
+                    lock (CacheSetGetLock)
+                        DequeueCache.Clear();
 
-                WaitAllDone();
-
-                lock(CacheSetGetLock)
-                DequeueCache.Clear();
-
-                this.IsWorking = false;
-                this.ProcStage = 10;
-                TrdPool?.Dispose();
-                TrdPool = null;
-                TransMainTrd = null;
+                    this.IsWorking = false;
+                    this.ProcStage = 10;
+                    TrdPool?.Dispose();
+                    TrdPool = null;
+                    TransMainTrd = null;
+                }
             });
 
             TransMainTrd.Start();
         }
 
+        private CancellationTokenSource _CancelSource;
         public void Cancel()
         {
-            if (TransMainTrd != null)
-            {
-                try { TransMainTrd.Abort(); }
-                catch { }
-                TransMainTrd = null;
-            }
+            _CancelSource?.Cancel();
 
-            if (TrdPool != null)
-                TrdPool.CloseAll();
+            TrdPool?.CloseAll();
 
             IsWorking = false;
         }
@@ -344,8 +376,8 @@ namespace PhoenixEngine.Translate
 
                     if (State)
                     {
-                        lock(CacheSetGetLock)
-                        DequeueCache[Item.GetRealOriginal()] = Item.Translated;
+                        lock (CacheSetGetLock)
+                            DequeueCache[Item.GetRealOriginal()] = Item.Translated;
 
                         return Item;
                     }
@@ -371,7 +403,7 @@ namespace PhoenixEngine.Translate
         public void Close()
         {
             lock (CacheSetGetLock)
-            DequeueCache.Clear();
+                DequeueCache.Clear();
 
             ProcStage = 0;
             IsStop = false;
