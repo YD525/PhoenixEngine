@@ -278,6 +278,8 @@ namespace PhoenixEngine.Translate
 
                 this.IsWork = false;
                 this.ProcStage = 10;
+                TrdPool?.Dispose();
+                TrdPool = null;
                 TransMainTrd = null;
             });
 

@@ -92,11 +92,6 @@ namespace PhoenixEngine.PThread
             }, null, 1000, 1000);
         }
 
-        ~P_ThreadPool()
-        {
-            Dispose(false);
-        }
-
         private int _Disposed = 0;
         protected virtual void Dispose(bool Disposing)
         {
