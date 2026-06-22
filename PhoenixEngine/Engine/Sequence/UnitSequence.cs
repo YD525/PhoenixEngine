@@ -21,7 +21,7 @@ namespace PhoenixEngine.Sequence
         public bool CanSkipSleep = false;
         public bool HasPlaceholder = false;
         public int Step = 0;
-        public bool CanUPDateDB = true;
+        public bool CanUpdateDB = true;
         public TranslationPreprocessor Preprocessor = null;
 
         public UnitSequence(bool CanSkip)
@@ -234,7 +234,7 @@ namespace PhoenixEngine.Sequence
                         GetUnit.Original = GetUnit.GetRealOriginal();
                         Sequences[GetUnit.Key].Data = Preprocessor.RestoreFromPlaceholder(Source, To);
                         Sequences[GetUnit.Key].HasPlaceholder = false;
-                        Sequences[GetUnit.Key].CanUPDateDB = false;
+                        Sequences[GetUnit.Key].CanUpdateDB = false;
 
                         GetUnit.Translated = Sequences[GetUnit.Key].Data;
                         Sequences[GetUnit.Key].CanSkip = true;

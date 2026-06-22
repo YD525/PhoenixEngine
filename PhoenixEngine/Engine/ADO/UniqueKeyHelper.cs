@@ -133,8 +133,8 @@ CREATE TABLE [UniqueKeys](
                DateTime.Now,
                DateTime.Now);
 
-            int UPDateRowid;
-            if (!UPDateItem(GenUniqueKeyItem, FilePath, out UPDateRowid))
+            int UpdateRowid;
+            if (!UpdateItem(GenUniqueKeyItem, FilePath, out UpdateRowid))
             {
                 string SqlOrder = "";
 
@@ -184,7 +184,7 @@ CREATE TABLE [UniqueKeys](
             }
             else
             {
-                return UPDateRowid;
+                return UpdateRowid;
             }
 
             return -1;
@@ -198,7 +198,7 @@ CREATE TABLE [UniqueKeys](
         /// <returns>True if update affected rows, false otherwise</returns>
         public static bool UpdateOldFiles(string OriginalKey, UniqueKeyItem KeyItem)
         {
-            string SqlOrder = "UPDate UniqueKeys Set FileName = '{1}',FileExtension = '{2}',UpdateTime = '{3}' Where OriginalKey = '{0}';";
+            string SqlOrder = "Update UniqueKeys Set FileName = '{1}',FileExtension = '{2}',UpdateTime = '{3}' Where OriginalKey = '{0}';";
             int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,SQLSafeCodec.Encode(OriginalKey),SQLSafeCodec.Encode(KeyItem.FileName),KeyItem.FileExtension,KeyItem.UpdateTime));
             if (State != 0)
             {
@@ -215,7 +215,7 @@ CREATE TABLE [UniqueKeys](
         /// <param name="FilePath">File path (not used here)</param>
         /// <param name="Rowid">Output Rowid of existing record, 0 if not exists</param>
         /// <returns>True if record existed and updated, false if new</returns>
-        private static bool UPDateItem(UniqueKeyItem GenUniqueKeyItem, string FilePath, out int Rowid)
+        private static bool UpdateItem(UniqueKeyItem GenUniqueKeyItem, string FilePath, out int Rowid)
         {
             Rowid = 0;
 
@@ -227,7 +227,7 @@ CREATE TABLE [UniqueKeys](
             {
                 Rowid = GetRowid;
 
-                SqlOrder = "UPDate UniqueKeys Set FileName = '{1}',FileExtension = '{2}',UpdateTime = '{3}',CreatTime = '{4}' Where [OriginalKey] = '{0}';";
+                SqlOrder = "Update UniqueKeys Set FileName = '{1}',FileExtension = '{2}',UpdateTime = '{3}',CreatTime = '{4}' Where [OriginalKey] = '{0}';";
 
                 int State = Phoenix.LocalDB.ExecuteNonQuery(
                     string.Format(SqlOrder,

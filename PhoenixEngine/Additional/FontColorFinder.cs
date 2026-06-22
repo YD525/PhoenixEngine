@@ -125,7 +125,7 @@ CREATE TABLE [FontColors](
                 }
                 else
                 {
-                    string SqlOrder = "UPDate FontColors Set [R] = {1},[G] = {2},[B] = {3} Where Rowid = {0}";
+                    string SqlOrder = "Update FontColors Set [R] = {1},[G] = {2},[B] = {3} Where Rowid = {0}";
                     int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, GetRowID, R, G, B));
                     if (State != 0)
                     {

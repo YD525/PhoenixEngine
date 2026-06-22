@@ -155,7 +155,7 @@ namespace PhoenixEngine.Translate
                 return true;
             }
 
-            var GetState = LocalDBCache.UPDateLocalTransItem(FileUniqueKey, Key, (int)Translator.To, SourceText, TransText, 0);
+            var GetState = LocalDBCache.UpdateLocalTransItem(FileUniqueKey, Key, (int)Translator.To, SourceText, TransText, 0);
 
             return GetState;
         }

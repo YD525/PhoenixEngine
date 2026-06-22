@@ -11,7 +11,7 @@ namespace PhoenixEngine.Unit
         /// Associating all objects with TranslatedLink is used to bridge the gap with the target program.
         /// </summary>
         /// <param name=""></param>
-        public static void UPDateLink(this UnitGroup Item,Translator TranslatorRef)
+        public static void UpdateLink(this UnitGroup Item,Translator TranslatorRef)
         {
             lock (TranslatorRef.TransDataLocker)
             {
@@ -32,7 +32,7 @@ namespace PhoenixEngine.Unit
         /// <param name="Item"></param>
         /// <param name="TranslatorRef"></param>
         /// <param name="UnitGroups"></param>
-        public static void UPDateCloudData(this UnitGroup Item,Translator TranslatorRef,Dictionary<string, UnitSequence> Sequences)
+        public static void UpdateCloudData(this UnitGroup Item,Translator TranslatorRef,Dictionary<string, UnitSequence> Sequences)
         {
             lock (TranslatorRef.TransDataLocker)
             {
@@ -43,7 +43,7 @@ namespace PhoenixEngine.Unit
                     NextTry:
                     try
                     {
-                        if (Sequences[GetUnit.Key].CanUPDateDB)
+                        if (Sequences[GetUnit.Key].CanUpdateDB)
                         {
                             string Source = GetUnit.GetRealOriginal();
                            
@@ -59,7 +59,7 @@ namespace PhoenixEngine.Unit
             }
         }
 
-        public static void UPDateAIMemory(this UnitGroup Item, Translator TranslatorRef, Dictionary<string, UnitSequence> Sequences)
+        public static void UpdateAIMemory(this UnitGroup Item, Translator TranslatorRef, Dictionary<string, UnitSequence> Sequences)
         {
             lock (TranslatorRef.TransDataLocker)
             {

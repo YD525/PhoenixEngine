@@ -186,7 +186,7 @@ namespace PhoenixEngine.Engine
         /// <param name="SourceStr"></param>
         /// <returns></returns>
         public UnitGroup CallOnce(Translator TranslatorRef, TranslationPreprocessor Preprocessor, UnitGroup Item,
-        Languages From, Languages To, string AIParam, bool CanSleep, bool UseAIMemory, bool CanUPDate)
+        Languages From, Languages To, string AIParam, bool CanSleep, bool UseAIMemory, bool CanUpdate)
         {
             if (!Item.ApplyStateChange(UnitTranslationState.Preparing).CanDo(-1))
             {
@@ -329,12 +329,12 @@ namespace PhoenixEngine.Engine
 
                     if (UseAIMemory)
                     {
-                        Item.UPDateAIMemory(TranslatorRef, Sequences);
+                        Item.UpdateAIMemory(TranslatorRef, Sequences);
                     }
 
-                    if (CanUPDate)
+                    if (CanUpdate)
                     {
-                        Item.UPDateCloudData(TranslatorRef, Sequences);
+                        Item.UpdateCloudData(TranslatorRef, Sequences);
                     }
 
                     if (!Item.ApplyStateChange(UnitTranslationState.Completed).CanDo(-1))

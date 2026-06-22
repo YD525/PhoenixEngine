@@ -233,7 +233,7 @@ CREATE TABLE [LocalTranslation](
             catch { return string.Empty; }
         }
 
-        public static bool UPDateLocalTransItem(int FileUniqueKey, string Key, int To, string Source, string Result, int Index)
+        public static bool UpdateLocalTransItem(int FileUniqueKey, string Key, int To, string Source, string Result, int Index)
         {
             if (Result.Length > 0)
             {
@@ -268,7 +268,7 @@ CREATE TABLE [LocalTranslation](
                 }
                 else
                 {
-                    string SqlOrder = "UPDate LocalTranslation Set [Result] = '{1}',[Index] = {2} Where Rowid = {0}";
+                    string SqlOrder = "Update LocalTranslation Set [Result] = '{1}',[Index] = {2} Where Rowid = {0}";
                     int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, GetRowID, SQLSafeCodec.Encode(Result), Index));
                     if (State != 0)
                     {
