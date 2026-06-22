@@ -335,32 +335,29 @@ namespace PhoenixEngine.Translate
         {
             try
             {
-                lock (UnitsReadLock)
+                if (TranslatedQueue.Count > 0)
                 {
-                    if (TranslatedQueue.Count > 0)
+                    var State = TranslatedQueue.TryDequeue(out BaseUnit Item);
+
+                    IsEnd = false;
+
+                    if (State)
                     {
-                        var State = TranslatedQueue.TryDequeue(out BaseUnit Item);
-
-                        IsEnd = false;
-
-                        if (State)
-                        {
-                            DequeueCache[Item.GetRealOriginal()] = Item.Translated;
-                            return Item;
-                        }
-                        else
-                        {
-                            return null;
-                        }
+                        DequeueCache[Item.GetRealOriginal()] = Item.Translated;
+                        return Item;
                     }
-
-                    if (this.ProcStage == 10 && GetWorkingThreadCount() == 0)
-                        IsEnd = true;
                     else
-                        IsEnd = false;
-
-                    return null;
+                    {
+                        return null;
+                    }
                 }
+
+                if (this.ProcStage == 10 && GetWorkingThreadCount() == 0)
+                    IsEnd = true;
+                else
+                    IsEnd = false;
+
+                return null;
             }
             catch
             {
