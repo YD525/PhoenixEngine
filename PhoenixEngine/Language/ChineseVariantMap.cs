@@ -48,7 +48,7 @@ namespace PhoenixEngine.Language
             for (int i = 0; i < GetResult.Count; i++)
             {
                 var Row = GetResult[i];
-                string GetStr = ConvertHelper.ObjToStr(Row["Traditional"]);
+                string GetStr = P_Convert.ObjToStr(Row["Traditional"]);
                 if (!RamWords.Contains(GetStr))
                 {
                     RamWords.Add(GetStr);

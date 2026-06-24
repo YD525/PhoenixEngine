@@ -6,7 +6,7 @@ namespace PhoenixEngine
     {
         public static int GetPageCount(string TableName, string Where)
         {
-            int GetCount = ConvertHelper.ObjToInt(Phoenix.LocalDB.ExecuteScalar(string.Format("Select Count(*) From {0} ", TableName) + Where));
+            int GetCount = P_Convert.ObjToInt(Phoenix.LocalDB.ExecuteScalar(string.Format("Select Count(*) From {0} ", TableName) + Where));
             int PageCount = GetCount / Phoenix.Config.DefPageSize;
             if (GetCount % Phoenix.Config.DefPageSize > 0)
             {

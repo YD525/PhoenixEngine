@@ -26,11 +26,11 @@ namespace PhoenixEngine.Additional
 
             public FontColor(object FileUniqueKey, object Key, object R, object G, object B)
             {
-                this.FileUniqueKey = ConvertHelper.ObjToInt(FileUniqueKey);
-                this.Key = ConvertHelper.ObjToStr(Key);
-                this.R = ConvertHelper.ObjToInt(R);
-                this.G = ConvertHelper.ObjToInt(G);
-                this.B = ConvertHelper.ObjToInt(B);
+                this.FileUniqueKey = P_Convert.ObjToInt(FileUniqueKey);
+                this.Key = P_Convert.ObjToStr(Key);
+                this.R = P_Convert.ObjToInt(R);
+                this.G = P_Convert.ObjToInt(G);
+                this.B = P_Convert.ObjToInt(B);
             }
         }
         public static void Init()
@@ -112,7 +112,7 @@ CREATE TABLE [FontColors](
         {
             if ((R == 255 && G == 255 && B == 255) == false)
             {
-                int GetRowID = ConvertHelper.ObjToInt(Phoenix.LocalDB.ExecuteScalar(String.Format("Select Rowid From FontColors Where [FileUniqueKey] = {0} And [Key] = '{1}'", FileUniqueKey, Key)));
+                int GetRowID = P_Convert.ObjToInt(Phoenix.LocalDB.ExecuteScalar(String.Format("Select Rowid From FontColors Where [FileUniqueKey] = {0} And [Key] = '{1}'", FileUniqueKey, Key)));
 
                 if (GetRowID < 0)
                 {

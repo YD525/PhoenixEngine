@@ -18,21 +18,21 @@ namespace PhoenixEngine.Engine
 
         public UniqueKeyItem(object Rowid,object OriginalKey, object FileName, object FileExtension, object UpdateTime, object CreatTime)
         {
-            this.Rowid = ConvertHelper.ObjToInt(Rowid);
-            this.OriginalKey = ConvertHelper.ObjToStr(OriginalKey);
-            this.FileName = ConvertHelper.ObjToStr(FileName);
-            this.FileExtension = ConvertHelper.ObjToStr(FileExtension);
-            this.UpdateTime = ConvertHelper.ObjToStr(UpdateTime);
-            this.CreatTime = ConvertHelper.ObjToStr(CreatTime);
+            this.Rowid = P_Convert.ObjToInt(Rowid);
+            this.OriginalKey = P_Convert.ObjToStr(OriginalKey);
+            this.FileName = P_Convert.ObjToStr(FileName);
+            this.FileExtension = P_Convert.ObjToStr(FileExtension);
+            this.UpdateTime = P_Convert.ObjToStr(UpdateTime);
+            this.CreatTime = P_Convert.ObjToStr(CreatTime);
         }
 
         public UniqueKeyItem(string OriginalKey, string FileName, string FileExtension, DateTime UpdateTime, DateTime CreatTime)
         {
-            this.OriginalKey = ConvertHelper.ObjToStr(OriginalKey);
-            this.FileName = ConvertHelper.ObjToStr(FileName);
-            this.FileExtension = ConvertHelper.ObjToStr(FileExtension);
-            this.UpdateTime = ConvertHelper.DateTimeToStr(UpdateTime);
-            this.CreatTime = ConvertHelper.DateTimeToStr(CreatTime);
+            this.OriginalKey = P_Convert.ObjToStr(OriginalKey);
+            this.FileName = P_Convert.ObjToStr(FileName);
+            this.FileExtension = P_Convert.ObjToStr(FileExtension);
+            this.UpdateTime = P_Convert.DateTimeToStr(UpdateTime);
+            this.CreatTime = P_Convert.DateTimeToStr(CreatTime);
         }
     }
 
@@ -60,7 +60,7 @@ CREATE TABLE [UniqueKeys](
         public static string RowidToOriginalKey(int RowID)
         {
             string SqlOrder = "Select OriginalKey From UniqueKeys Where Rowid = {0}";
-            string GetOriginalKey = SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Phoenix.LocalDB.ExecuteScalar(string.Format(SqlOrder,RowID))));
+            string GetOriginalKey = SQLSafeCodec.Decode(P_Convert.ObjToStr(Phoenix.LocalDB.ExecuteScalar(string.Format(SqlOrder,RowID))));
             return GetOriginalKey;
         }
 
@@ -111,7 +111,7 @@ CREATE TABLE [UniqueKeys](
         public static int GetUniqueKeysCount()
         {
             string SqlOrder = "SELECT COUNT(*) FROM UniqueKeys;";
-            int Count = ConvertHelper.ObjToInt(Phoenix.LocalDB.ExecuteScalar(SqlOrder));
+            int Count = P_Convert.ObjToInt(Phoenix.LocalDB.ExecuteScalar(SqlOrder));
             return Count;
         }
 
@@ -165,7 +165,7 @@ CREATE TABLE [UniqueKeys](
 
                 SqlOrder = "Insert Into UniqueKeys(OriginalKey,FileName,FileExtension,UpdateTime,CreatTime)Values('{0}','{1}','{2}','{3}','{4}')";
 
-                int State = ConvertHelper.ObjToInt(Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,
+                int State = P_Convert.ObjToInt(Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,
                     SQLSafeCodec.Encode(GenUniqueKeyItem.OriginalKey),
                     SQLSafeCodec.Encode(GenUniqueKeyItem.FileName),
                     GenUniqueKeyItem.FileExtension,
@@ -175,7 +175,7 @@ CREATE TABLE [UniqueKeys](
 
                 if (State != 0)
                 {
-                    int NewRowid = ConvertHelper.ObjToInt(
+                    int NewRowid = P_Convert.ObjToInt(
                     Phoenix.LocalDB.ExecuteScalar(
                      $"Select Rowid From UniqueKeys Where OriginalKey = '{SQLSafeCodec.Encode(GenUniqueKeyItem.OriginalKey)}';"
                     ));
@@ -221,7 +221,7 @@ CREATE TABLE [UniqueKeys](
 
             string SqlOrder = "Select Rowid From UniqueKeys Where [OriginalKey] = '{0}';";
 
-            int GetRowid = ConvertHelper.ObjToInt(Phoenix.LocalDB.ExecuteScalar(string.Format(SqlOrder, SQLSafeCodec.Encode(GenUniqueKeyItem.OriginalKey))));
+            int GetRowid = P_Convert.ObjToInt(Phoenix.LocalDB.ExecuteScalar(string.Format(SqlOrder, SQLSafeCodec.Encode(GenUniqueKeyItem.OriginalKey))));
 
             if (GetRowid > 0)
             {
@@ -262,8 +262,8 @@ CREATE TABLE [UniqueKeys](
 
                     return new UniqueKeyItem(
                         Row["Rowid"],
-                        SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["OriginalKey"])),
-                        SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["FileName"])),
+                        SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["OriginalKey"])),
+                        SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["FileName"])),
                         Row["FileExtension"],
                         Row["UpdateTime"],
                         Row["CreatTime"]
@@ -297,8 +297,8 @@ CREATE TABLE [UniqueKeys](
 
                     UniqueKeyItems.Add(new UniqueKeyItem(
                         Row["Rowid"],
-                        SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["OriginalKey"])),
-                        SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["FileName"])),
+                        SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["OriginalKey"])),
+                        SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["FileName"])),
                         Row["FileExtension"],
                         Row["UpdateTime"],
                         Row["CreatTime"]
@@ -328,8 +328,8 @@ CREATE TABLE [UniqueKeys](
 
                     UniqueKeyItems.Add(new UniqueKeyItem(
                         Row["Rowid"],
-                        SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["OriginalKey"])),
-                        SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["FileName"])),
+                        SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["OriginalKey"])),
+                        SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["FileName"])),
                         Row["FileExtension"],
                         Row["UpdateTime"],
                         Row["CreatTime"]

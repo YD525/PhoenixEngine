@@ -310,7 +310,7 @@ FROM (
     WHERE FileUniqueKey = '{FileUniqueKey}' And [To] = '{(int)this.To}'
 ) AS Combined;";
 
-            int GetCount = ConvertHelper.ObjToInt(Phoenix.LocalDB.ExecuteScalar(SqlOrder));
+            int GetCount = P_Convert.ObjToInt(Phoenix.LocalDB.ExecuteScalar(SqlOrder));
 
             return GetCount + Addition;
         }

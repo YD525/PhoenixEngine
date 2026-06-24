@@ -26,28 +26,28 @@ namespace PhoenixEngine.ADO
         }
         public AdvancedDictionaryItem(object TargetFileName, object Type, object Source, object Result, object From, object To, object ExactMatch, object IgnoreCase, object Regex)
         {
-            this.TargetFileName = ConvertHelper.ObjToStr(TargetFileName);
-            this.Type = ConvertHelper.ObjToStr(Type);
-            this.Source = ConvertHelper.ObjToStr(Source);
-            this.Result = ConvertHelper.ObjToStr(Result);
-            this.From = ConvertHelper.ObjToInt(From);
-            this.To = ConvertHelper.ObjToInt(To);
-            this.ExactMatch = ConvertHelper.ObjToInt(ExactMatch);
-            this.IgnoreCase = ConvertHelper.ObjToInt(IgnoreCase);
-            this.Regex = ConvertHelper.ObjToStr(Regex);
+            this.TargetFileName = P_Convert.ObjToStr(TargetFileName);
+            this.Type = P_Convert.ObjToStr(Type);
+            this.Source = P_Convert.ObjToStr(Source);
+            this.Result = P_Convert.ObjToStr(Result);
+            this.From = P_Convert.ObjToInt(From);
+            this.To = P_Convert.ObjToInt(To);
+            this.ExactMatch = P_Convert.ObjToInt(ExactMatch);
+            this.IgnoreCase = P_Convert.ObjToInt(IgnoreCase);
+            this.Regex = P_Convert.ObjToStr(Regex);
         }
         public AdvancedDictionaryItem(object Rowid,object TargetFileName, object Type, object Source, object Result, object From, object To, object ExactMatch, object IgnoreCase, object Regex)
         {
-            this.Rowid = ConvertHelper.ObjToInt(Rowid);
-            this.TargetFileName = ConvertHelper.ObjToStr(TargetFileName);
-            this.Type = ConvertHelper.ObjToStr(Type);
-            this.Source = ConvertHelper.ObjToStr(Source);
-            this.Result = ConvertHelper.ObjToStr(Result);
-            this.From = ConvertHelper.ObjToInt(From);
-            this.To = ConvertHelper.ObjToInt(To);
-            this.ExactMatch = ConvertHelper.ObjToInt(ExactMatch);
-            this.IgnoreCase = ConvertHelper.ObjToInt(IgnoreCase);
-            this.Regex = ConvertHelper.ObjToStr(Regex);
+            this.Rowid = P_Convert.ObjToInt(Rowid);
+            this.TargetFileName = P_Convert.ObjToStr(TargetFileName);
+            this.Type = P_Convert.ObjToStr(Type);
+            this.Source = P_Convert.ObjToStr(Source);
+            this.Result = P_Convert.ObjToStr(Result);
+            this.From = P_Convert.ObjToInt(From);
+            this.To = P_Convert.ObjToInt(To);
+            this.ExactMatch = P_Convert.ObjToInt(ExactMatch);
+            this.IgnoreCase = P_Convert.ObjToInt(IgnoreCase);
+            this.Regex = P_Convert.ObjToStr(Regex);
         }
     }
     public class AdvancedDictionary
@@ -132,7 +132,7 @@ FROM AdvancedDictionary_Old;";
         public static string GetSourceByRowid(int Rowid)
         {
             string SqlOrder = "Select [Source] From AdvancedDictionary Where Rowid = {0}";
-            return SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Phoenix.LocalDB.ExecuteScalar(string.Format(SqlOrder,Rowid))));
+            return SQLSafeCodec.Decode(P_Convert.ObjToStr(Phoenix.LocalDB.ExecuteScalar(string.Format(SqlOrder,Rowid))));
         }
         public static bool IsRegexMatch(string Input, string SetRegex)
         {
@@ -157,15 +157,15 @@ FROM AdvancedDictionary_Old;";
 
                 return new AdvancedDictionaryItem(
                     Row["Rowid"],
-                    SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["TargetFileName"])),
-                    SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Type"])),
-                    SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Source"])),
-                    SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Result"])),
+                    SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["TargetFileName"])),
+                    SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["Type"])),
+                    SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["Source"])),
+                    SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["Result"])),
                     Row["From"],
                     Row["To"],
                     Row["ExactMatch"],
                     Row["IgnoreCase"],
-                    SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Regex"]))
+                    SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["Regex"]))
                 );
             }
 
@@ -337,15 +337,15 @@ WHERE
                 var Row = NTable[i];
                 var Get = new AdvancedDictionaryItem(
                 Row["Rowid"],
-                SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["TargetFileName"])),
-                SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Type"])),
-                SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Source"])),
-                SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Result"])),
+                SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["TargetFileName"])),
+                SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["Type"])),
+                SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["Source"])),
+                SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["Result"])),
                 Row["From"],
                 Row["To"],
                 Row["ExactMatch"],
                 Row["IgnoreCase"],
-                SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Regex"]))
+                SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["Regex"]))
             );
                 if (Get.Regex.Trim().Length > 0)
                 {
@@ -442,15 +442,15 @@ Regex = '{SQLSafeCodec.Encode(item.Regex)}'";
 
                 Items.Add(new AdvancedDictionaryItem(
                     Row["Rowid"],
-                    SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["TargetFileName"])),
-                    SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Type"])),
-                    SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Source"])),
-                    SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Result"])),
+                    SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["TargetFileName"])),
+                    SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["Type"])),
+                    SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["Source"])),
+                    SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["Result"])),
                     Row["From"],
                     Row["To"],
                     Row["ExactMatch"],
                     Row["IgnoreCase"],
-                    SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Regex"]))
+                    SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["Regex"]))
                 ));
             }
 
@@ -471,15 +471,15 @@ Regex = '{SQLSafeCodec.Encode(item.Regex)}'";
                 var Row = NTable[i];
 
                 Items.Add(new AdvancedDictionaryItem(
-                    SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["TargetFileName"])),
-                    SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Type"])),
-                    SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Source"])),
-                    SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Result"])),
+                    SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["TargetFileName"])),
+                    SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["Type"])),
+                    SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["Source"])),
+                    SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["Result"])),
                     Row["From"],
                     Row["To"],
                     Row["ExactMatch"],
                     Row["IgnoreCase"],
-                    SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Regex"]))
+                    SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["Regex"]))
                 ));
             }
 

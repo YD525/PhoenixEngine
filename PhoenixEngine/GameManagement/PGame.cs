@@ -13,6 +13,17 @@ namespace PhoenixEngine.GameManagement
 
     public class P_Skyrim
     {
+        public List<CheckChar> CheckChars = new List<CheckChar>();
+
+        public bool IsInit = false;
+        public void Init()
+        {
+            CheckChars.Add(new CheckChar("<", ">"));
+            CheckChars.Add(new CheckChar("[", "]"));
+
+            IsInit = true;
+        }
+
         public static bool IsBookContent(BaseUnit Item, ref P_Game DetectGame)
         {
             if (Item.Type == "BOOK" && Item.Key.EndsWith("DESC"))
@@ -33,17 +44,6 @@ namespace PhoenixEngine.GameManagement
             }
         }
 
-        public List<CheckChar> CheckChars = new List<CheckChar>();
-
-        public bool IsInit = false;
-        public void Init()
-        {
-            CheckChars.Add(new CheckChar("<", ">"));
-            CheckChars.Add(new CheckChar("[", "]"));
-
-            IsInit = true;
-        }
-
         public CheckChar CheckCode(string Char)
         {
             for (int i = 0; i < this.CheckChars.Count; i++)
@@ -58,6 +58,7 @@ namespace PhoenixEngine.GameManagement
             }
             return null;
         }
+
         public List<UnitChunk> ChunkBook(BaseUnit Unit)
         {
             List<UnitChunk> UnitChunks = new List<UnitChunk>();

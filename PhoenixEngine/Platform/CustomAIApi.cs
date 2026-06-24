@@ -93,7 +93,7 @@ namespace PhoenixEngine.Platform
                     else
                     if (Core.QueryRule.LeftStr.Trim().Length > 0)
                     {
-                        TransStr = ConvertHelper.StringDivision(Result, Core.QueryRule.LeftStr, Core.QueryRule.RightStr);
+                        TransStr = P_Convert.StringDivision(Result, Core.QueryRule.LeftStr, Core.QueryRule.RightStr);
                     }
                     else
                     {

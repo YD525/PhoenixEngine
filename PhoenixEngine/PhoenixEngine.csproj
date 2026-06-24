@@ -88,7 +88,7 @@
     <Compile Include="Engine\Thread\PThread.cs" />
     <Compile Include="Engine\Unit\UnitGroup.cs" />
     <Compile Include="Engine\Unit\UnitGroupExtend.cs" />
-    <Compile Include="GameManagement\Game.cs" />
+    <Compile Include="GameManagement\PGame.cs" />
     <Compile Include="Language\ArabicHelper.cs" />
     <Compile Include="Language\BrazilianPortugueseHelper.cs" />
     <Compile Include="Language\CanadianFrenchHelper.cs" />

@@ -17,11 +17,11 @@ namespace PhoenixEngine.ADO
 
         public CloudTranslationItem(object FileUniqueKey, object Key, object To, object Source, object Result)
         {
-            this.FileUniqueKey = ConvertHelper.ObjToInt(FileUniqueKey);
-            this.Key = ConvertHelper.ObjToStr(Key);
-            this.To = ConvertHelper.ObjToInt(To);
-            this.Source = ConvertHelper.ObjToStr(Source);
-            this.Result = ConvertHelper.ObjToStr(Result);
+            this.FileUniqueKey = P_Convert.ObjToInt(FileUniqueKey);
+            this.Key = P_Convert.ObjToStr(Key);
+            this.To = P_Convert.ObjToInt(To);
+            this.Source = P_Convert.ObjToStr(Source);
+            this.Result = P_Convert.ObjToStr(Result);
         }
     }
 
@@ -93,7 +93,7 @@ CREATE TABLE [CloudTranslation](
             {
                 string SqlOrder = "Select Result From CloudTranslation Where [FileUniqueKey] = '{0}' And [Key] = '{1}' And [To] = {2}";
 
-                string GetResult = ConvertHelper.ObjToStr(Phoenix.LocalDB.ExecuteScalar(string.Format(SqlOrder, FileUniqueKey, Key, (int)TargetLanguage)));
+                string GetResult = P_Convert.ObjToStr(Phoenix.LocalDB.ExecuteScalar(string.Format(SqlOrder, FileUniqueKey, Key, (int)TargetLanguage)));
 
                 if (GetResult.Trim().Length > 0)
                 {
@@ -111,7 +111,7 @@ CREATE TABLE [CloudTranslation](
             {
                 new TranslationPreprocessor().OptimizeStrings(ref Source);
 
-                int GetRowID = ConvertHelper.ObjToInt(Phoenix.LocalDB.ExecuteScalar(String.Format("Select Rowid From CloudTranslation Where [FileUniqueKey] = {0} And [Key] = '{1}' And [To] = {2}", FileUniqueKey, Key, To)));
+                int GetRowID = P_Convert.ObjToInt(Phoenix.LocalDB.ExecuteScalar(String.Format("Select Rowid From CloudTranslation Where [FileUniqueKey] = {0} And [Key] = '{1}' And [To] = {2}", FileUniqueKey, Key, To)));
 
                 if (GetRowID <= 0)
                 {
@@ -152,8 +152,8 @@ CREATE TABLE [CloudTranslation](
                             Row["FileUniqueKey"],
                             Row["Key"],
                             Row["To"],
-                            SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Source"])),
-                            SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Result"]))
+                            SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["Source"])),
+                            SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["Result"]))
                         ));
                     }
                 }
@@ -183,8 +183,8 @@ CREATE TABLE [CloudTranslation](
                             Row["FileUniqueKey"],
                             Row["Key"],
                             Row["To"],
-                            SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Source"])),
-                            SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Result"]))
+                            SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["Source"])),
+                            SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["Result"]))
                         );
                     }
                 }
@@ -216,8 +216,8 @@ CREATE TABLE [CloudTranslation](
                             Row["FileUniqueKey"],
                             Row["Key"],
                             Row["To"],
-                            SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Source"])),
-                            SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Result"]))
+                            SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["Source"])),
+                            SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["Result"]))
                         ));
                     }
                 }
@@ -241,8 +241,8 @@ CREATE TABLE [CloudTranslation](
                 if (GetResult.Count > 0)
                 {
                     var Row = GetResult[0];
-                    string GetStr = SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Result"]));
-                    ID = ConvertHelper.ObjToInt(Row["Rowid"]);
+                    string GetStr = SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["Result"]));
+                    ID = P_Convert.ObjToInt(Row["Rowid"]);
                     return GetStr;
                 }
 

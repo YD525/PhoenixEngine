@@ -239,7 +239,7 @@ namespace PhoenixEngine.Unit
 
             foreach (Match match in Matches)
             {
-                int ID = ConvertHelper.ObjToInt(match.Groups[1].Value);
+                int ID = P_Convert.ObjToInt(match.Groups[1].Value);
                 string Result = match.Groups[2].Value.Trim();
                 if (ID >= 100)
                 {

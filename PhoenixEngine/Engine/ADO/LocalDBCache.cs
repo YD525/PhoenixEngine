@@ -26,10 +26,10 @@ namespace PhoenixEngine.ADO
 
         public LocalTransItem(object FileUniqueKey, object Key, object To, object Result)
         {
-            this.FileUniqueKey = ConvertHelper.ObjToInt(FileUniqueKey);
-            this.Key = ConvertHelper.ObjToStr(Key);
-            this.To = ConvertHelper.ObjToInt(To);
-            this.Result = ConvertHelper.ObjToStr(Result);
+            this.FileUniqueKey = P_Convert.ObjToInt(FileUniqueKey);
+            this.Key = P_Convert.ObjToStr(Key);
+            this.To = P_Convert.ObjToInt(To);
+            this.Result = P_Convert.ObjToStr(Result);
             this.Index = 0;
         }
     }
@@ -103,8 +103,8 @@ CREATE TABLE [LocalTranslation](
                             Row["FileUniqueKey"],
                             Row["Key"],
                             Row["To"],
-                            SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Source"])),
-                            SQLSafeCodec.Decode(ConvertHelper.ObjToStr(Row["Result"]))
+                            SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["Source"])),
+                            SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["Result"]))
                         ));
                     }
                 }
@@ -197,7 +197,7 @@ CREATE TABLE [LocalTranslation](
             {
                 string SqlOrder = "Select Result From LocalTranslation Where [FileUniqueKey] = {0} And [Key] = '{1}' And [To] = {2}";
 
-                string GetText = ConvertHelper.ObjToStr(Phoenix.LocalDB.ExecuteScalar(string.Format(SqlOrder, FileUniqueKey, Key, (int)TargetLanguage)));
+                string GetText = P_Convert.ObjToStr(Phoenix.LocalDB.ExecuteScalar(string.Format(SqlOrder, FileUniqueKey, Key, (int)TargetLanguage)));
 
                 if (GetText.Trim().Length > 0)
                 {
@@ -221,7 +221,7 @@ CREATE TABLE [LocalTranslation](
             {
                 string SqlOrder = "Select Result From LocalTranslation Where [FileUniqueKey] = {0} And [Key] = '{1}' And [To] = {2}";
 
-                string GetResult = ConvertHelper.ObjToStr(Phoenix.LocalDB.ExecuteScalar(string.Format(SqlOrder, FileUniqueKey, Key, To)));
+                string GetResult = P_Convert.ObjToStr(Phoenix.LocalDB.ExecuteScalar(string.Format(SqlOrder, FileUniqueKey, Key, To)));
 
                 if (GetResult.Trim().Length > 0)
                 {
@@ -239,7 +239,7 @@ CREATE TABLE [LocalTranslation](
             {
                 new TranslationPreprocessor().OptimizeStrings(ref Source);
 
-                int GetRowID = ConvertHelper.ObjToInt(Phoenix.LocalDB.ExecuteScalar(String.Format("Select Rowid From LocalTranslation Where [FileUniqueKey] = '{0}' And [Key] = '{1}' And [To] = {2}", FileUniqueKey, Key, To)));
+                int GetRowID = P_Convert.ObjToInt(Phoenix.LocalDB.ExecuteScalar(String.Format("Select Rowid From LocalTranslation Where [FileUniqueKey] = '{0}' And [Key] = '{1}' And [To] = {2}", FileUniqueKey, Key, To)));
 
                 if (GetRowID <= 0)
                 {
