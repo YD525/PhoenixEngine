@@ -38,6 +38,9 @@ namespace PhoenixEngine.Translate
         private volatile bool UnitForDone = false;
         private volatile bool BookForDone = false;
 
+        public volatile int BaseTranslatedCount = 0;
+        public volatile int TranslatedCount = 0;
+
         public TranslatorCore(Translator SetTranslator, bool ClearCache = false)
         {
             ProcStage = 0;
@@ -130,7 +133,7 @@ namespace PhoenixEngine.Translate
 
             int TrdDelayMs = Phoenix.Config.ThrottleDelayMs;
 
-            Interlocked.Exchange(ref TranslatedCount, TranslatorRef.CalcTranslatedCount(0));
+            BaseTranslatedCount = TranslatorRef.CalcTranslatedCount(0);
 
             if (TrdPool == null)
             {
@@ -254,8 +257,6 @@ namespace PhoenixEngine.Translate
 
                             if (GetUnit.Translated.Length > 0)
                             {
-                                Interlocked.Increment(ref TranslatedCount);
-
                                 CloudDBCache.AddCache(
                                     TranslatorRef.GetFileUniqueKey(),
                                     GetUnit.Key,
@@ -285,8 +286,6 @@ namespace PhoenixEngine.Translate
 
                             if (GetState)
                             {
-                                Interlocked.Increment(ref TranslatedCount);
-
                                 GetUnit.Translated = CacheResult;
 
                                 CloudDBCache.AddCache(
@@ -339,12 +338,8 @@ namespace PhoenixEngine.Translate
             TrdPool.SuspendAll(true);
         }
 
-        public volatile int TranslatedCount = 0;
-
         private void AddTranslated(UnitGroup Item)
         {
-            Interlocked.Add(ref TranslatedCount, Item.Units.Count);
-
             if (!Item.ApplyStateChange(UnitTranslationState.Queued).CanDo(-1))
                 return;
 
@@ -366,6 +361,8 @@ namespace PhoenixEngine.Translate
 
                     if (State)
                     {
+                        Interlocked.Increment(ref TranslatedCount);
+
                         lock (CacheSetGetLock)
                             DequeueCache[Item.GetRealOriginal()] = Item.Translated;
 
@@ -409,7 +406,9 @@ namespace PhoenixEngine.Translate
             MarkLeadersPercent = 0;
 
             this.Content?.Clear();
+
             Interlocked.Exchange(ref TranslatedCount, 0);
+            BaseTranslatedCount = 0;
         }
     }
 }
