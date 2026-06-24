@@ -105,7 +105,7 @@ namespace PhoenixEngine
 
         /// <summary>
         /// The ratio of the maximum thread count at which throttling is triggered. 
-        /// Range is 0 to 1, default is 0.5 meaning throttling starts when over 50% usage.
+        /// Range is 0 to 1, default is 0.7 meaning throttling starts when over 70% usage.
         /// </summary>
         public double ThrottleRatio { get; set; } = 0.7;
 
@@ -159,7 +159,7 @@ namespace PhoenixEngine
         /// <summary>
         /// Waiting time for retrying.
         /// </summary>
-        public int ReTryWaitTime = 1000;
+        public int ReTryWaitTime = 1000;//ms
 
         #endregion
 

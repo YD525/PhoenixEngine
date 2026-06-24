@@ -126,7 +126,7 @@ namespace PhoenixEngine.Translate
         }
         public UnitGroup Translate(BaseUnit Unit, bool CanSleep = true)
         {
-            Game SetGameType = new Game();
+            P_Game SetGameType = new P_Game();
             bool IsBook = false;
 
             if (SkyrimBookHelper.IsSkyrimBook(Unit, ref SetGameType))
@@ -342,10 +342,10 @@ FROM (
         public bool CanSleep; //A thread can be suspended for a certain period of time.
         public bool IsBook;//Book type requires special handling.
         public TranslationPreprocessor Preprocessor = null;//Allows passing custom preprocessors.
-        public Game GameType = Game.Null;//Specify the game type; currently, this feature is only for identification.
+        public P_Game GameType = P_Game.Null;//Specify the game type; currently, this feature is only for identification.
         public UnitGroup Data;//Data that needs to be translated.
 
-        public TransParam(UnitGroup Data, bool IsBook, bool CanSleep, TranslationPreprocessor SetPreprocessor = null, Game GameType = Game.Null)
+        public TransParam(UnitGroup Data, bool IsBook, bool CanSleep, TranslationPreprocessor SetPreprocessor = null, P_Game GameType = P_Game.Null)
         {
             this.CanSleep = CanSleep;
             this.IsBook = IsBook;

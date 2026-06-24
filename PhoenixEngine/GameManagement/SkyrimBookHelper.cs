@@ -6,7 +6,7 @@ namespace PhoenixEngine.GameManagement
 {
     public class SkyrimBookHelper
     {
-        public static bool IsSkyrimBook(BaseUnit Item, ref Game DetectGame)
+        public static bool IsSkyrimBook(BaseUnit Item, ref P_Game DetectGame)
         {
             if (Item.Type == "BOOK" && Item.Key.EndsWith("DESC"))
             {

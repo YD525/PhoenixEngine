@@ -162,7 +162,7 @@ namespace PhoenixEngine.EngineManagement.Engine
 
                 foreach (var Leader in Data.Leaders.Values)
                 {
-                    Game GameType = Game.Null;
+                    P_Game GameType = P_Game.Null;
                     if (SkyrimBookHelper.IsSkyrimBook(Leader, ref GameType))
                     {
                         Content.Books.Add(new UnitGroup(Translator,Leader));
@@ -195,7 +195,7 @@ namespace PhoenixEngine.EngineManagement.Engine
 
                 foreach (var Unit in Data.Units)
                 {
-                    Game GameType = Game.Null;
+                    P_Game GameType = P_Game.Null;
                     if (SkyrimBookHelper.IsSkyrimBook(Unit, ref GameType))
                     {
                         Content.Books.Add(new UnitGroup(Translator,Unit));
