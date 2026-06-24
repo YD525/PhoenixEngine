@@ -21,8 +21,6 @@ namespace PhoenixEngine.Translate
 
         public double MarkLeadersPercent = 0;
 
-        public volatile bool IsStop = false;
-
         public volatile bool SkipWordAnalysis = false;
 
         public Translator TranslatorRef = null;
@@ -34,6 +32,7 @@ namespace PhoenixEngine.Translate
 
         public volatile int ProcStage = 0;
 
+        public volatile bool IsStopped = false;
         public volatile bool IsWorking = false;
 
         private volatile bool UnitForDone = false;
@@ -330,13 +329,13 @@ namespace PhoenixEngine.Translate
 
         public void Keep()
         {
-            IsStop = false;
+            IsStopped = false;
             TrdPool.SuspendAll(false);
         }
 
         public void Stop()
         {
-            IsStop = true;
+            IsStopped = true;
             TrdPool.SuspendAll(true);
         }
 
@@ -397,7 +396,7 @@ namespace PhoenixEngine.Translate
                 DequeueCache.Clear();
 
             ProcStage = 0;
-            IsStop = false;
+            IsStopped = false;
             UnitForDone = false;
             BookForDone = false;
             IsWorking = false;
