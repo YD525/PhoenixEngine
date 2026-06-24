@@ -2,7 +2,7 @@
 
 namespace PhoenixEngine.Common
 {
-    internal class P_Convert
+    public class P_Convert
     {
         public static string DateTimeToStr(DateTime Time)
         {
