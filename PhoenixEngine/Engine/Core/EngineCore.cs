@@ -185,7 +185,7 @@ namespace PhoenixEngine.Engine
         /// <param name="Target"></param>
         /// <param name="SourceStr"></param>
         /// <returns></returns>
-        public UnitGroup CallOnce(Translator TranslatorRef, TranslationPreprocessor Preprocessor, UnitGroup Item,
+        public UnitGroup CallOnce(CancellationToken CancelToken,Translator TranslatorRef, TranslationPreprocessor Preprocessor, UnitGroup Item,
         Languages From, Languages To, string AIParam, bool CanSleep, bool UseAIMemory, bool CanUpdate)
         {
             if (!Item.ApplyStateChange(UnitTranslationState.Preparing).CanDo(-1))
@@ -253,7 +253,7 @@ namespace PhoenixEngine.Engine
 
                     string SetType = "";
 
-                    GetTrans = CurrentEngine.Call(TranslatorRef, ref Item, ref Sequences, From, To,
+                    GetTrans = CurrentEngine.Call(CancelToken, TranslatorRef, ref Item, ref Sequences, From, To,
                     true, Phoenix.Config.ContextLimit,
                     AIParam, ref SetType);
 
@@ -398,7 +398,7 @@ namespace PhoenixEngine.Engine
                 if (LockTaken) Monitor.Exit(Obj);
                 return !LockTaken;
             }
-            public string Call(Translator TranslatorRef, ref UnitGroup Source,ref Dictionary<string, UnitSequence> Sequences,
+            public string Call(CancellationToken CancelToken,Translator TranslatorRef, ref UnitGroup Source,ref Dictionary<string, UnitSequence> Sequences,
                Languages From,Languages To,bool UseAIMemory,int AIMemoryQueryLimit,string AIParam,ref string SetType)
             {
                 Source.StartGeneratePlaceholder(TranslatorRef, From, To, ref Sequences);
@@ -455,6 +455,8 @@ namespace PhoenixEngine.Engine
                                 //Detecting the quality of AI-translated content
                                 do
                                 {
+                                    CancelToken.ThrowIfCancellationRequested();
+
                                     CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
 
                                     GetData = SetApi.QuickTrans(CurrentApiKey, Source, From, To, ref Call).Trim();
@@ -510,6 +512,8 @@ namespace PhoenixEngine.Engine
                                 //Detecting the quality of AI-translated content
                                 do
                                 {
+                                    CancelToken.ThrowIfCancellationRequested();
+
                                     CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
 
                                     GetData = SetApi.QuickTrans(CurrentApiKey, Source, From, To, ref Call).Trim();
@@ -561,6 +565,8 @@ namespace PhoenixEngine.Engine
 
                                     while (IsLocked(LMStudio.SingleLock))
                                     {
+                                        CancelToken.ThrowIfCancellationRequested();
+
                                         Thread.Sleep(200);
                                     }
                                 }
@@ -575,6 +581,8 @@ namespace PhoenixEngine.Engine
 
                                 do
                                 {
+                                    CancelToken.ThrowIfCancellationRequested();
+
                                     GetData = SetApi.QuickTrans(CustomWords, Source, From, To, UseAIMemory, AIMemoryQueryLimit, AIParam, ref Call).Trim();
                                     Passed = TranslationPreprocessor.Instance.SecondaryQualityInspection(GetData, CustomWords);
 
@@ -620,6 +628,8 @@ namespace PhoenixEngine.Engine
 
                                 do
                                 {
+                                    CancelToken.ThrowIfCancellationRequested();
+
                                     CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
 
                                     GetData = SetApi.QuickTrans(CurrentApiKey, CustomWords, Source, From, To, UseAIMemory, AIMemoryQueryLimit, AIParam, ref Call).Trim();
@@ -674,6 +684,8 @@ namespace PhoenixEngine.Engine
 
                                 do
                                 {
+                                    CancelToken.ThrowIfCancellationRequested();
+
                                     CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
 
                                     GetData = SetApi.QuickTrans(CurrentApiKey, CustomWords, Source, From, To, UseAIMemory, AIMemoryQueryLimit, AIParam, ref Call).Trim();
@@ -728,6 +740,8 @@ namespace PhoenixEngine.Engine
                                 //Detecting the quality of AI-translated content
                                 do
                                 {
+                                    CancelToken.ThrowIfCancellationRequested();
+
                                     CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
 
                                     GetData = SetApi.QuickTrans(CurrentApiKey, CustomWords, Source, From, To, UseAIMemory, AIMemoryQueryLimit, AIParam, ref Call).Trim();
@@ -783,6 +797,8 @@ namespace PhoenixEngine.Engine
                                 //Detecting the quality of AI-translated content
                                 do
                                 {
+                                    CancelToken.ThrowIfCancellationRequested();
+
                                     CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
 
                                     GetData = SetApi.QuickTrans(CurrentApiKey, CustomWords, Source, From, To, UseAIMemory, AIMemoryQueryLimit, AIParam, ref Call).Trim();
@@ -837,6 +853,8 @@ namespace PhoenixEngine.Engine
                                 //Detecting the quality of AI-translated content
                                 do
                                 {
+                                    CancelToken.ThrowIfCancellationRequested();
+
                                     GetData = SetApi.QuickTrans(CustomWords, Source, From, To, UseAIMemory, AIMemoryQueryLimit, AIParam, ref Call).Trim();
                                     Passed = TranslationPreprocessor.Instance.SecondaryQualityInspection(GetData, CustomWords);
 
@@ -883,6 +901,8 @@ namespace PhoenixEngine.Engine
                                 //Detecting the quality of AI-translated content
                                 do
                                 {
+                                    CancelToken.ThrowIfCancellationRequested();
+
                                     GetData = SetApi.CallHuman(CustomWords, Source, From, To, UseAIMemory, AIMemoryQueryLimit, AIParam, ref Call).Trim();
                                     Passed = TranslationPreprocessor.Instance.SecondaryQualityInspection(GetData, CustomWords);
 

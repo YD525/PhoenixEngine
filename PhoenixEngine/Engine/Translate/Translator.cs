@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using PhoenixEngine.ADO;
 using PhoenixEngine.Common;
 using PhoenixEngine.Engine;
@@ -124,7 +125,7 @@ namespace PhoenixEngine.Translate
 
             return Units;
         }
-        public UnitGroup Translate(BaseUnit Unit, bool CanSleep = true)
+        public UnitGroup Translate(BaseUnit Unit, CancellationToken CancelToken, bool CanSleep = true)
         {
             P_Game SetGameType = new P_Game();
             bool IsBook = false;
@@ -136,9 +137,9 @@ namespace PhoenixEngine.Translate
 
             UnitGroup SetGroup = ToUnitGroup(Unit);
 
-            return Translate(new TransParam(SetGroup, IsBook, CanSleep));
+            return Translate(new TransParam(SetGroup, IsBook, CanSleep), CancelToken);
         }
-        public UnitGroup Translate(TransParam Params)
+        public UnitGroup Translate(TransParam Params,CancellationToken CancelToken)
         {
             if (this.From == this.To)
             {
@@ -212,7 +213,7 @@ namespace PhoenixEngine.Translate
 
                 foreach (var GetGroup in UnitGroups)
                 {
-                    var ResultGroup = Core.CallOnce(this,
+                    var ResultGroup = Core.CallOnce(CancelToken, this,
                        Params.Preprocessor, GetGroup, From, To, AIParam, Params.CanSleep, false, false);
 
                     BaseUnits.AddRange(ResultGroup.Units);
@@ -263,7 +264,7 @@ namespace PhoenixEngine.Translate
             }
             else
             {
-                return Core.CallOnce(this,
+                return Core.CallOnce(CancelToken, this,
                     Params.Preprocessor, SetUnitGroup, From, To, AIParam, Params.CanSleep, true, true);
             }
         }
