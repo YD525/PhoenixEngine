@@ -3,6 +3,7 @@ using PhoenixEngine.Sequence;
 using System.Text.RegularExpressions;
 using PhoenixEngine.Events;
 using PhoenixEngine.Translate;
+using PhoenixEngine.Common;
 
 namespace PhoenixEngine.Unit
 {

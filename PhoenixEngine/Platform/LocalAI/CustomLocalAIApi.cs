@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Net;
 using System.Text;
+using PhoenixEngine.Common;
 using PhoenixEngine.Engine;
 using PhoenixEngine.Language;
 using PhoenixEngine.Memory;
@@ -92,7 +93,7 @@ namespace PhoenixEngine.Platform.LocalAI
                     else
                     if (Core.QueryRule.LeftStr.Trim().Length > 0)
                     {
-                        TransStr = P_Convert.StringDivision(Result, Core.QueryRule.LeftStr, Core.QueryRule.RightStr);
+                        TransStr = Result.StringDivision(Core.QueryRule.LeftStr, Core.QueryRule.RightStr);
                     }
                     else
                     {

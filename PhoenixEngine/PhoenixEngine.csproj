@@ -71,7 +71,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Convert\ConvertHelper.cs" />
+    <Compile Include="Common\PConvert.cs" />
+    <Compile Include="Common\PString.cs" />
     <Compile Include="Engine\ADO\WordAutoComplete.cs" />
     <Compile Include="Engine\ADO\PageHelper.cs" />
     <Compile Include="Engine\ADO\PSQLite.cs" />

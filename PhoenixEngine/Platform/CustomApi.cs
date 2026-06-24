@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Text;
 using Newtonsoft.Json;
+using PhoenixEngine.Common;
 using PhoenixEngine.Language;
 using PhoenixEngine.P_Delegate;
 using PhoenixEngine.Request;
@@ -111,7 +112,7 @@ namespace PhoenixEngine.Platform
                 else
                 if (Core.QueryRule.LeftStr.Trim().Length > 0)
                 {
-                    TransStr = P_Convert.StringDivision(GetResult, Core.QueryRule.LeftStr, Core.QueryRule.RightStr);
+                    TransStr = GetResult.StringDivision(Core.QueryRule.LeftStr, Core.QueryRule.RightStr);
                 }
                 else
                 {

@@ -1,26 +1,12 @@
 ﻿using System;
 
-namespace PhoenixEngine
+namespace PhoenixEngine.Common
 {
     internal class P_Convert
     {
         public static string DateTimeToStr(DateTime Time)
         {
             return Time.ToString("yyyy-MM-dd HH:mm:ss");
-        }
-
-        public static string StringDivision(string Message, string Left, string Right)
-        {
-            if (Message.Contains(Left) && Message.Contains(Right))
-            {
-                string GetLeftString = Message.Substring(Message.IndexOf(Left) + Left.Length);
-                string GetRightString = GetLeftString.Substring(0, GetLeftString.IndexOf(Right));
-                return GetRightString;
-            }
-            else
-            {
-                return string.Empty;
-            }
         }
       
         public static string ObjToStr(object Item)
