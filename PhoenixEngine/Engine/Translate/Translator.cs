@@ -103,7 +103,7 @@ namespace PhoenixEngine.Translate
         }
         public List<BaseUnit> ChunkTranslationUnit(BaseUnit Unit, ref List<UnitChunk> Chunks)
         {
-            Chunks = new SkyrimBookHelper().ChunkBook(Unit);
+            Chunks = new P_Skyrim().ChunkBook(Unit);
 
             List<BaseUnit> Units = new List<BaseUnit>();
             foreach (UnitChunk Chunk in Chunks)
@@ -129,7 +129,7 @@ namespace PhoenixEngine.Translate
             P_Game SetGameType = new P_Game();
             bool IsBook = false;
 
-            if (SkyrimBookHelper.IsSkyrimBook(Unit, ref SetGameType))
+            if (P_Skyrim.IsBookContent(Unit, ref SetGameType))
             {
                 IsBook = true;
             }
