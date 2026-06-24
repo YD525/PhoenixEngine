@@ -76,7 +76,7 @@
     <Compile Include="Engine\ADO\WordAutoComplete.cs" />
     <Compile Include="Engine\ADO\Pagination.cs" />
     <Compile Include="Engine\ADO\PSQLite.cs" />
-    <Compile Include="Engine\ADO\SqlSafeCodec.cs" />
+    <Compile Include="Engine\ADO\SQLSafeCodec.cs" />
     <Compile Include="Engine\Events\EngineEvents.cs" />
     <Compile Include="Config\ConfigExtend.cs" />
     <Compile Include="Delegate\DataTransmission.cs" />
