@@ -3,7 +3,7 @@ using PhoenixEngine.Common;
 
 namespace PhoenixEngine
 {
-    public class PageHelper
+    public class P_SQL_Pagination
     {
         public static int GetPageCount(string TableName, string Where)
         {
@@ -28,13 +28,13 @@ namespace PhoenixEngine
 
     }
 
-    public class PageItem<T> where T : new()
+    public class P_SQL_Page<T> where T : new()
     {
         public T CurrentPage = new T();
         public int PageNo = 0;
         public int MaxPage = 0;
 
-        public PageItem(T Source, int PageNo, int MaxPage)
+        public P_SQL_Page(T Source, int PageNo, int MaxPage)
         {
             this.CurrentPage = Source;
             this.PageNo = PageNo;

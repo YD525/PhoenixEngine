@@ -74,7 +74,7 @@
     <Compile Include="Common\PConvert.cs" />
     <Compile Include="Common\PString.cs" />
     <Compile Include="Engine\ADO\WordAutoComplete.cs" />
-    <Compile Include="Engine\ADO\PageHelper.cs" />
+    <Compile Include="Engine\ADO\Pagination.cs" />
     <Compile Include="Engine\ADO\PSQLite.cs" />
     <Compile Include="Engine\ADO\SqlSafeCodec.cs" />
     <Compile Include="Engine\Events\EngineEvents.cs" />

@@ -428,13 +428,13 @@ Regex = '{SQLSafeCodec.Encode(item.Regex)}'";
             Phoenix.LocalDB.ExecuteNonQuery(sql);
         }
 
-        public static PageItem<List<AdvancedDictionaryItem>> QueryByPage(int From, int To, int PageNo)
+        public static P_SQL_Page<List<AdvancedDictionaryItem>> QueryByPage(int From, int To, int PageNo)
         {
             string Where = $"WHERE [From] = {From} And [To] = {To}";
 
-            int MaxPage = PageHelper.GetPageCount("AdvancedDictionary", Where);
+            int MaxPage = P_SQL_Pagination.GetPageCount("AdvancedDictionary", Where);
 
-            List<Dictionary<string, object>> NTable = PageHelper.GetTablePageData("AdvancedDictionary", PageNo, Phoenix.Config.DefPageSize, Where);
+            List<Dictionary<string, object>> NTable = P_SQL_Pagination.GetTablePageData("AdvancedDictionary", PageNo, Phoenix.Config.DefPageSize, Where);
 
             List<AdvancedDictionaryItem> Items = new List<AdvancedDictionaryItem>();
             for (int i = 0; i < NTable.Count; i++)
@@ -455,16 +455,16 @@ Regex = '{SQLSafeCodec.Encode(item.Regex)}'";
                 ));
             }
 
-            return new PageItem<List<AdvancedDictionaryItem>>(Items, PageNo, MaxPage);
+            return new P_SQL_Page<List<AdvancedDictionaryItem>>(Items, PageNo, MaxPage);
         }
 
-        public static PageItem<List<AdvancedDictionaryItem>> QueryByPage(string SourceText,int From,int To, int PageNo)
+        public static P_SQL_Page<List<AdvancedDictionaryItem>> QueryByPage(string SourceText,int From,int To, int PageNo)
         {
             string Where = $"WHERE Source = '{SQLSafeCodec.Encode(SourceText)}' And [From] = {From} And [To] = {To}";
 
-            int MaxPage = PageHelper.GetPageCount("AdvancedDictionary", Where);
+            int MaxPage = P_SQL_Pagination.GetPageCount("AdvancedDictionary", Where);
 
-            List<Dictionary<string, object>> NTable = PageHelper.GetTablePageData("AdvancedDictionary", PageNo, Phoenix.Config.DefPageSize, Where);
+            List<Dictionary<string, object>> NTable = P_SQL_Pagination.GetTablePageData("AdvancedDictionary", PageNo, Phoenix.Config.DefPageSize, Where);
 
             List<AdvancedDictionaryItem> Items = new List<AdvancedDictionaryItem>();
             for (int i = 0; i < NTable.Count; i++)
@@ -484,7 +484,7 @@ Regex = '{SQLSafeCodec.Encode(item.Regex)}'";
                 ));
             }
 
-            return new PageItem<List<AdvancedDictionaryItem>>(Items, PageNo, MaxPage);
+            return new P_SQL_Page<List<AdvancedDictionaryItem>>(Items, PageNo, MaxPage);
         }
 
         public static bool DeleteByRowid(int Rowid)

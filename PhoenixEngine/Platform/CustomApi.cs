@@ -84,16 +84,16 @@ namespace PhoenixEngine.Platform
                 WebProxy = ProxyRef
             };
 
-            string GetResult = new HttpHelper().GetHtml(Http).Html;
+            string Result = new HttpHelper().GetHtml(Http).Html;
 
-            Recv = GetResult;
+            Recv = Result;
 
-            if (GetResult.Trim().Length > 0)
+            if (Result.Trim().Length > 0)
             {
                 string TransStr = "";
                 if (Core.QueryRule.ByJson)
                 {
-                    var GetTags = CustomPlatformHelper.GetJsonValues(GetResult);
+                    var GetTags = CustomPlatformHelper.GetJsonValues(Result);
 
                     for (int i = 0; i < GetTags.Count; i++)
                     {
@@ -107,12 +107,12 @@ namespace PhoenixEngine.Platform
                 else
                 if (Core.QueryRule.SplitStr.Trim().Length > 0)
                 {
-                    TransStr = GetResult.Substring(GetResult.LastIndexOf(Core.QueryRule.SplitStr) + Core.QueryRule.SplitStr.Length);
+                    TransStr = Result.Substring(Result.LastIndexOf(Core.QueryRule.SplitStr) + Core.QueryRule.SplitStr.Length);
                 }
                 else
                 if (Core.QueryRule.LeftStr.Trim().Length > 0)
                 {
-                    TransStr = GetResult.StringDivision(Core.QueryRule.LeftStr, Core.QueryRule.RightStr);
+                    TransStr = Result.StringDivision(Core.QueryRule.LeftStr, Core.QueryRule.RightStr);
                 }
                 else
                 {
