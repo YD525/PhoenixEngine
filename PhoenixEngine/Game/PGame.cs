@@ -2,7 +2,7 @@
 using PhoenixEngine.Unit;
 using System.Collections.Generic;
 
-namespace PhoenixEngine.GameManagement
+namespace PhoenixEngine.Game
 {
     public enum P_Game
     { 

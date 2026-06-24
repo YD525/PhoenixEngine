@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using PhoenixEngine.GameManagement;
+using PhoenixEngine.Game;
 using PhoenixEngine.Language;
 using PhoenixEngine.Sequence;
 using PhoenixEngine.Translate;
 using PhoenixEngine.Unit;
 
-namespace PhoenixEngine.EngineManagement.Engine
+namespace PhoenixEngine.Engine
 {
     public class ProcContent
     {

@@ -16,7 +16,7 @@ namespace PhoenixEngine
     public class Phoenix : ConfigExtend
     {
         public static AITranslationMemory AIMemory = new AITranslationMemory();
-        public static string Version = "3.1.6.5";
+        public static string Version = "3.1.6.6";
 
         public static object QueryPlatformDataLock = new object();
 
