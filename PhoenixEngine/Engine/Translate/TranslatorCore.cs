@@ -178,10 +178,11 @@ namespace PhoenixEngine.Translate
 
                                 Token.ThrowIfCancellationRequested();
 
+                                if (UnitRef == null) return;
                                 UnitRef = TranslatorRef.Translate(new TransParam(UnitRef, false, true),Token);
 
                                 //Token.ThrowIfCancellationRequested();
-
+                                if(UnitRef!=null)
                                 AddTranslated(UnitRef);
                             }), null)))
                         {
@@ -220,10 +221,11 @@ namespace PhoenixEngine.Translate
 
                                  Token.ThrowIfCancellationRequested();
 
+                                 if (BookRef == null) return;
                                  BookRef = TranslatorRef.Translate(new TransParam(BookRef, false, true),Token);
 
                                  //Token.ThrowIfCancellationRequested();
-
+                                 if (BookRef != null)
                                  AddTranslated(BookRef);
                              }), null)))
                         {

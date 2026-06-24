@@ -205,6 +205,8 @@ namespace PhoenixEngine.Engine
 
             while (CurrentEngine == null)
             {
+                CancelToken.ThrowIfCancellationRequested();
+
                 lock (SwitchLocker)
                 {
                     try
