@@ -154,7 +154,7 @@ namespace PhoenixEngine.Engine
         public static object SwitchLocker = new object();
 
 
-        public static void CheckCanSkip(Dictionary<string, UnitSequence> Sequences,ref UnitGroup Item)
+        public static void CheckCanSkip(string TranslatorID, Dictionary<string, UnitSequence> Sequences,ref UnitGroup Item)
         {
             foreach (var GetSeq in new Dictionary<string,UnitSequence>(Sequences))
             {
@@ -164,7 +164,7 @@ namespace PhoenixEngine.Engine
                     {
                         if (GetBaseUnit.Key.Equals(GetSeq.Key))
                         {
-                            if (GetBaseUnit.ApplyStateChange(UnitTranslationState.Skipped).ControlSignal.Sign > 0)
+                            if (GetBaseUnit.ApplyStateChange(TranslatorID,UnitTranslationState.Skipped).ControlSignal.Sign > 0)
                             {
                                 Sequences[GetSeq.Key].CanSkip = false;
                                 continue;
@@ -188,18 +188,18 @@ namespace PhoenixEngine.Engine
         public UnitGroup CallOnce(CancellationToken CancelToken,Translator TranslatorRef, TranslationPreprocessor Preprocessor, UnitGroup Item,
         Languages From, Languages To, string AIParam, bool CanSleep, bool UseAIMemory, bool CanUpdate)
         {
-            if (!Item.ApplyStateChange(UnitTranslationState.Preparing).CanDo(-1))
+            if (!Item.ApplyStateChange(TranslatorRef.ID, UnitTranslationState.Preparing).CanDo(-1))
             {
                 return Item;
             }
 
             Item.StartPreProcess(Preprocessor, From, To, out Dictionary<string, UnitSequence>  Sequences);
 
-            CheckCanSkip(Sequences, ref Item);
+            CheckCanSkip(TranslatorRef.ID,Sequences, ref Item);
 
             Item.CenterPreProcess(TranslatorRef, From, To, ref Sequences);
 
-            CheckCanSkip(Sequences, ref Item);
+            CheckCanSkip(TranslatorRef.ID,Sequences, ref Item);
 
             EngineNode CurrentEngine = null;
 
@@ -248,14 +248,14 @@ namespace PhoenixEngine.Engine
 
                     string GetTrans = "";
 
-                    if (!Item.ApplyStateChange(UnitTranslationState.Translating).CanDo(-1))
+                    if (!Item.ApplyStateChange(TranslatorRef.ID, UnitTranslationState.Translating).CanDo(-1))
                     {
                         return Item;
                     }
 
                     string SetType = "";
 
-                    GetTrans = CurrentEngine.Call(CancelToken, TranslatorRef, ref Item, ref Sequences, From, To,
+                    GetTrans = CurrentEngine.Call(TranslatorRef.ID,CancelToken, TranslatorRef, ref Item, ref Sequences, From, To,
                     true, Phoenix.Config.ContextLimit,
                     AIParam, ref SetType);
 
@@ -339,7 +339,7 @@ namespace PhoenixEngine.Engine
                         Item.UpdateCloudData(TranslatorRef, Sequences);
                     }
 
-                    if (!Item.ApplyStateChange(UnitTranslationState.Completed).CanDo(-1))
+                    if (!Item.ApplyStateChange(TranslatorRef.ID, UnitTranslationState.Completed).CanDo(-1))
                     {
                         return Item;
                     }
@@ -400,12 +400,12 @@ namespace PhoenixEngine.Engine
                 if (LockTaken) Monitor.Exit(Obj);
                 return !LockTaken;
             }
-            public string Call(CancellationToken CancelToken,Translator TranslatorRef, ref UnitGroup Source,ref Dictionary<string, UnitSequence> Sequences,
+            public string Call(string TranslatorID, CancellationToken CancelToken,Translator TranslatorRef, ref UnitGroup Source,ref Dictionary<string, UnitSequence> Sequences,
                Languages From,Languages To,bool UseAIMemory,int AIMemoryQueryLimit,string AIParam,ref string SetType)
             {
                 Source.StartGeneratePlaceholder(TranslatorRef, From, To, ref Sequences);
               
-                CheckCanSkip(Sequences, ref Source);
+                CheckCanSkip(TranslatorID,Sequences, ref Source);
 
                 bool CanTrans = false;
                 string GetSource = Source.GenContent(ref CanTrans);

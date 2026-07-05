@@ -164,7 +164,7 @@ namespace PhoenixEngine.Translate
 
                         UnitGroup GetUnit = this.Content.Units[I];
 
-                        if (!GetUnit.ApplyStateChange(UnitTranslationState.Created).CanDo(-1))
+                        if (!GetUnit.ApplyStateChange(TranslatorRef.ID,UnitTranslationState.Created).CanDo(-1))
                             continue;
 
                         while (!TrdPool.Put(GetUnit, new Do_Thread<UnitGroup>(
@@ -183,7 +183,7 @@ namespace PhoenixEngine.Translate
 
                                 //Token.ThrowIfCancellationRequested();
                                 if(UnitRef!=null)
-                                AddTranslated(UnitRef);
+                                AddTranslated(TranslatorRef.ID,UnitRef);
                             }), null)))
                         {
                             MainTrdToken.ThrowIfCancellationRequested();
@@ -207,7 +207,7 @@ namespace PhoenixEngine.Translate
 
                         UnitGroup GetBook = this.Content.Books[I];
 
-                        if (!GetBook.ApplyStateChange(UnitTranslationState.Created).CanDo(-1))
+                        if (!GetBook.ApplyStateChange(TranslatorRef.ID,UnitTranslationState.Created).CanDo(-1))
                             continue;
 
                         while (!TrdPool.Put(GetBook, new Do_Thread<UnitGroup>(
@@ -226,7 +226,7 @@ namespace PhoenixEngine.Translate
 
                                  //Token.ThrowIfCancellationRequested();
                                  if (BookRef != null)
-                                 AddTranslated(BookRef);
+                                 AddTranslated(TranslatorRef.ID, BookRef);
                              }), null)))
                         {
                             MainTrdToken.ThrowIfCancellationRequested();
@@ -340,9 +340,9 @@ namespace PhoenixEngine.Translate
             TrdPool.SuspendAll(true);
         }
 
-        private void AddTranslated(UnitGroup Item)
+        private void AddTranslated(string TranslatorID,UnitGroup Item)
         {
-            if (!Item.ApplyStateChange(UnitTranslationState.Queued).CanDo(-1))
+            if (!Item.ApplyStateChange(TranslatorID,UnitTranslationState.Queued).CanDo(-1))
                 return;
 
             for (int I = 0; I < Item.Units.Count; I++)

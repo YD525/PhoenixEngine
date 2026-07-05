@@ -276,14 +276,14 @@ namespace PhoenixEngine.Unit
             return Intersection;
         }
 
-        public GroupContext ApplyStateChange(UnitTranslationState State)
+        public GroupContext ApplyStateChange(string TranslatorID, UnitTranslationState State)
         {
             GroupContext GenContent = new GroupContext();
 
             if (EngineEvents.SetBaseUnitStateChangedCallback != null)
                 for (int i = 0; i < this.Units.Count; i++)
                 {
-                    UnitContext<BaseUnit> Data = this.Units[i].ApplyStateChange(State);
+                    UnitContext<BaseUnit> Data = this.Units[i].ApplyStateChange(TranslatorID,State);
                     if (Data != null)
                     {
                         GenContent.AddSign(Data.Key, Data.ControlSignal);

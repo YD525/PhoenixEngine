@@ -19,6 +19,8 @@ namespace PhoenixEngine.Translate
 
     public class Translator
     {
+        public string ID = "";
+
         public Languages From = Languages.Null;
         public Languages To = Languages.Null;
 
@@ -36,8 +38,10 @@ namespace PhoenixEngine.Translate
             return this.DataLink;
         }
 
-        public Translator(Languages SetFrom, Languages SetTo, bool ClearCache)
+        public Translator(string ID,Languages SetFrom, Languages SetTo, bool ClearCache)
         {
+            this.ID = ID;
+
             if (BatchCore == null)
             {
                 BatchCore = new TranslatorCore(this, ClearCache);

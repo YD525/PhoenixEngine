@@ -15,8 +15,9 @@ namespace PhoenixEngine
 {
     public class Phoenix : ConfigExtend
     {
+        //The engine allows the creation of multiple instances of the Translator, each capable of translating its own content, but sharing a single AIMemory. This improves context utilization.
         public static AITranslationMemory AIMemory = new AITranslationMemory();
-        public static string Version = "3.1.6.8";
+        public static string Version = "3.1.6.9";
 
         public static object QueryPlatformDataLock = new object();
 

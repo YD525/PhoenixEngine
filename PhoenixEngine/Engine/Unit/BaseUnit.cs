@@ -54,11 +54,11 @@ namespace PhoenixEngine.Unit
             return string.Copy(this.RealOriginal);
         }
 
-        public UnitContext<BaseUnit> ApplyStateChange(UnitTranslationState State)
+        public UnitContext<BaseUnit> ApplyStateChange(string TranslatorID, UnitTranslationState State)
         {
             if (EngineEvents.SetBaseUnitStateChangedCallback != null)
             {
-                var Mutation = EngineEvents.SetBaseUnitStateChangedCallback(Clone(this),State);
+                var Mutation = EngineEvents.SetBaseUnitStateChangedCallback(TranslatorID,Clone(this),State);
 
                 if (Mutation != null)
                 {
