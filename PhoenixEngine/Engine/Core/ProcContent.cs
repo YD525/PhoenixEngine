@@ -8,6 +8,33 @@ using PhoenixEngine.Unit;
 
 namespace PhoenixEngine.Engine
 {
+
+    //I have been considering the issue of bucketing. Based on user feedback, it is undoubtedly very logical to bucket files according to the interdependencies of the ESP files themselves, and I have implemented this association functionality in EspReader.
+    //The main issue is that I want PhoenixEngine to serve not just as a file translator for Skyrim, but as a universal translation core.
+    //Grouping by similarity supports all file types—including JSON, ESP, and PEX—and effectively ensures translation consistency. In contrast, grouping by association is limited to ESP files—and specifically to certain types of ESP files—resulting in limited applicability.
+
+    //I need to come up with a good way to make both of them compatible.
+    internal class P_BucketContainer
+    {
+        public int BucketLengthLimit = 3000;
+
+        public List<P_Bucket> Buckets = new List<P_Bucket>();
+
+
+    }
+    internal class P_Bucket
+    {
+        public int ID = 0;
+        public List<BaseUnit> BaseUnits = new List<BaseUnit>();
+        public int Next = 0;
+    }
+
+    internal class AggregatedTranslation
+    {
+        public List<P_Bucket> Buckets = new List<P_Bucket>();
+        public List<BaseUnit> Books = new List<BaseUnit>();
+    }
+    
     public class ProcContent
     {
         public static int TokenLengthLimit = 2000;
