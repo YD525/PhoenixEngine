@@ -3,12 +3,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading;
-using PhoenixEngine.ADO;
 using PhoenixEngine.Engine;
 using PhoenixEngine.Events;
 using PhoenixEngine.PThread;
-using PhoenixEngine.Sequence;
 using PhoenixEngine.Unit;
+using static PhoenixEngine.Engine.P_BucketContainer;
 
 namespace PhoenixEngine.Translate
 {
@@ -67,13 +66,14 @@ namespace PhoenixEngine.Translate
             return Container.GetCount();
         }
 
-        public bool Init(List<BaseUnit> BaseUnits,int Addition)
+        public bool Init(List<BaseUnit> BaseUnits,int Addition, CheckLinks CheckLinksEvent = null)
         {
             if (ProcStage == 0)
             {
                 this.Close();
                 this.TranslatorRef.SyncTranslatedCount(Addition);
                 Container = new P_BucketContainer(this.TranslatorRef,BaseUnits);
+                Container.CheckLinksEvent = CheckLinksEvent;
                 ProcStage = 1;
                 Container.Build();
 
