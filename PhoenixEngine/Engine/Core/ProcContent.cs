@@ -31,12 +31,45 @@ namespace PhoenixEngine.Engine
         //From a developer's perspective, grouping by similarity makes sense. It is a universal and stable approach; it remains unaffected by changes in file types, so any resulting side effects are negligible.
 
         //So, I plan to implement a function pointer that the calling program uses during the bucketing process to determine whether the current `BaseUnit` has any associations. If there are no associations, it returns `null`, and the system proceeds with its standard similarity-based grouping; if there are associations, it performs bucketing based on the returned array. This offers the best of both worlds.
-        public delegate List<BaseUnit> CalculateSimilarity(BaseUnit Unit);
-        public CalculateSimilarity CalculateSimilarityEvent = null;
+        public delegate List<BaseUnit> CheckLinks(BaseUnit Unit);
+        public CheckLinks CheckLinksEvent = null;
+
+
+        //
+        public void ChooseLinks()
+        {
+            List<BaseUnit> WaitDeletes = new List<BaseUnit>();
+
+            foreach (var GetItem in Units)
+            {
+                var GetLinks = CheckLinksEvent.Invoke(GetItem);
+
+                if (GetLinks != null)
+                {
+                    int TotalSize = 0;
+
+                    foreach (var Link in GetLinks)
+                    {
+                        TotalSize += CalcTokenLength(Link.Original, P_Language.DetectLanguageByLine(Link.Original));
+                    }
+
+                    this.Buckets.Add(new P_Bucket(this.AddedKeys, null, this.BucketLengthLimit));
+
+                    WaitDeletes.AddRange(GetLinks);
+                }
+            }
+
+            foreach (var GetItem in WaitDeletes)
+            {
+                Units.Remove(GetItem);
+            }
+        }
 
         public P_BucketContainer(List<BaseUnit> BaseUnits)
         {
-            this.Units = BaseUnits;
+            this.Units.AddRange(BaseUnits);
+
+            ChooseLinks(); //The relevance must be confirmed first before determining the Heads.
             ChooseHeads();
         }
 
@@ -227,33 +260,16 @@ namespace PhoenixEngine.Engine
         {
             if (!CheckKey(Item.Key))
             {
-                var LinkItems = CalculateSimilarityEvent?.Invoke(Item);
-
-                //There is another issue here: we need to convert the "buckets" into actual requests to the AI, but the target platform imposes token limits. This means we must account for scenarios where the text volume exceeds these limits, which would result in the buckets being truncated.
-                //If I recall correctly, it is 4,096 bytes; to be conservative, I am using a bucket size of 3,000 bytes. I also need to account for the fact that English characters take up one byte, whereas Japanese and Chinese characters actually occupy multiple bytes, even though the old byte-calculation method is still being used.
+                bool IsAdded = false;
 
                 int TotalSize = 0;
-                if (LinkItems != null)
-                {
-                    foreach (var GetItem in LinkItems)
-                    {
-                        TotalSize += CalcTokenLength(GetItem.Original, P_Language.DetectLanguageByLine(GetItem.Original));
-                    }
-                }
-                else
-                {
-                    //Since we group items based on similarity, calculating similarity relative to the previous item would lead to significant "drift" in the bucket's contents—because D is linked to C, and C is linked to B. This results in poor overall similarity within the bucket. We originally adopted the "Leader" mechanism, and we continue to use this approach today.
-                    //I plan to redo the similarity component; originally, I had AI write part of it out of laziness, which meant I failed to check many sections. A user also pointed out that content was being skipped during translation—leaving a third of the material untranslated. While I initially considered simply running another scan, that would only address the symptoms rather than the root cause. So now, I am implementing it entirely on my own.
-               
-                    //
-                }
 
-                bool IsAdded = false;
+                var LinkItems = new List<BaseUnit>() { Item };
 
                 //Check for any buckets that are not fully filled.
                 for (int i = 0; i < this.Buckets.Count; i++)
                 {
-                    if (this.Buckets[i].RemainingSize >= TotalSize)
+                    if (this.Buckets[i].Head!=null && this.Buckets[i].RemainingSize >= TotalSize)
                     {
                         this.Buckets[i].Add(LinkItems,TotalSize);
                         IsAdded = true;
@@ -280,7 +296,7 @@ namespace PhoenixEngine.Engine
     {
         public int RemainingSize = 0;
         public int ID = 0;
-        private BaseUnit Head = null;//"Leader" doesn't sound great; "Head" would be better.
+        public BaseUnit Head = null;//"Leader" doesn't sound great; "Head" would be better.
         private List<BaseUnit> BaseUnits = new List<BaseUnit>();
         public int Next = 0;
         public HashSet<string> KeysRef;
