@@ -23,7 +23,7 @@ namespace PhoenixEngine.Engine
         public List<UnitGroup> Units = new List<UnitGroup>();
         public List<UnitGroup> Books = new List<UnitGroup>();
 
-        public delegate List<BaseUnit> CheckLinks(BaseUnit Unit);
+        public delegate List<BaseUnit> CheckLinks(List<BaseUnit> TempUnits,BaseUnit Unit);
         public CheckLinks CheckLinksEvent = null;
 
         public void Clear()
@@ -72,7 +72,7 @@ namespace PhoenixEngine.Engine
                 if (HandledInThisStage.Contains(GetItem.Key))
                     continue;
 
-                var GetLinks = CheckLinksEvent.Invoke(GetItem);
+                var GetLinks = CheckLinksEvent.Invoke(TempUnits,GetItem);
 
                 if (GetItem.Type.ToUpper() == "BOOK")
                 {
