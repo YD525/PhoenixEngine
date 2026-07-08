@@ -18,11 +18,13 @@ namespace PhoenixEngine.Engine
     internal class P_BucketContainer
     {
         public HashSet<string> AddedKeys = new HashSet<string>();
+        public HashSet<string> Heads = new HashSet<string>();
 
         public int BucketLengthLimit = 3000;
 
         public UnionArray Data = null;
 
+        public List<BaseUnit> Units = new List<BaseUnit>();
         public List<P_Bucket> Buckets = new List<P_Bucket>();
 
         //From a purely user-centric perspective, I believe that grouping by relevance is the right approach. When considering the inherent connections within the game itself, there is no doubt that bucketing items in the standard sequence yields higher-quality translations.
@@ -32,9 +34,10 @@ namespace PhoenixEngine.Engine
         public delegate List<BaseUnit> CalculateSimilarity(BaseUnit Unit);
         public CalculateSimilarity CalculateSimilarityEvent = null;
 
-        public P_BucketContainer(UnionArray Union)
-        { 
-           this.Data = Union;
+        public P_BucketContainer(List<BaseUnit> BaseUnits)
+        {
+            this.Units = BaseUnits;
+            ChooseHeads();
         }
 
         //public void MarkLeadersAndSort(List<BaseUnit> SetBaseUnits, Languages Lang, ref double MarkLeadersPercent)
@@ -213,6 +216,13 @@ namespace PhoenixEngine.Engine
             }
         }
 
+        public void ChooseHeads()
+        {
+            //The key point here is that "Head" is a standalone node; after N-gram tokenization, it serves as a marker that can be placed into a bucket.
+            //However, when relevance logic is incorporated, if a "Head" happens to have an association, it can no longer serve as the "Head" and must be removed; otherwise, irrelevant content would be included.
+            //Two logic components—one handling similarity and the other handling association—need to be compatible; the key lies in their execution order.
+        }
+
         public void Add(BaseUnit Item)
         {
             if (!CheckKey(Item.Key))
@@ -234,6 +244,8 @@ namespace PhoenixEngine.Engine
                 {
                     //Since we group items based on similarity, calculating similarity relative to the previous item would lead to significant "drift" in the bucket's contents—because D is linked to C, and C is linked to B. This results in poor overall similarity within the bucket. We originally adopted the "Leader" mechanism, and we continue to use this approach today.
                     //I plan to redo the similarity component; originally, I had AI write part of it out of laziness, which meant I failed to check many sections. A user also pointed out that content was being skipped during translation—leaving a third of the material untranslated. While I initially considered simply running another scan, that would only address the symptoms rather than the root cause. So now, I am implementing it entirely on my own.
+               
+                    //
                 }
 
                 bool IsAdded = false;
@@ -253,7 +265,7 @@ namespace PhoenixEngine.Engine
                 //If there is no bucket that can accommodate it, create a new one.
                 if (!IsAdded)
                 {
-                    this.Buckets.Add(new P_Bucket(null,this.BucketLengthLimit));
+                    this.Buckets.Add(new P_Bucket(this.AddedKeys, null,this.BucketLengthLimit));
                     this.Buckets[this.Buckets.Count - 1].Add(LinkItems,TotalSize);//Insert into a new bucket
                 }
 
