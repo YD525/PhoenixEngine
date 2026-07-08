@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using PhoenixEngine.Game;
 using PhoenixEngine.Language;
@@ -19,6 +20,13 @@ namespace PhoenixEngine.Engine
         public int BucketLengthLimit = 3000;
 
         public List<P_Bucket> Buckets = new List<P_Bucket>();
+
+        //From a purely user-centric perspective, I believe that grouping by relevance is the right approach. When considering the inherent connections within the game itself, there is no doubt that bucketing items in the standard sequence yields higher-quality translations.
+        //From a developer's perspective, grouping by similarity makes sense. It is a universal and stable approach; it remains unaffected by changes in file types, so any resulting side effects are negligible.
+
+        //So, I plan to implement a function pointer that the calling program uses during the bucketing process to determine whether the current `BaseUnit` has any associations. If there are no associations, it returns `null`, and the system proceeds with its standard similarity-based grouping; if there are associations, it performs bucketing based on the returned array. This offers the best of both worlds.
+        public delegate List<BaseUnit> CalculateSimilarity(BaseUnit Unit);
+        public CalculateSimilarity CalculateSimilarityEvent = null;
 
 
     }
