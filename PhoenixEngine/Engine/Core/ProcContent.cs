@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.Contracts;
+﻿using System.Collections.Generic;
 using System.Linq;
+using System.Web.UI.WebControls;
 using PhoenixEngine.Game;
 using PhoenixEngine.Language;
 using PhoenixEngine.Sequence;
@@ -22,6 +21,8 @@ namespace PhoenixEngine.Engine
 
         public int BucketLengthLimit = 3000;
 
+        public UnionArray Data = null;
+
         public List<P_Bucket> Buckets = new List<P_Bucket>();
 
         //From a purely user-centric perspective, I believe that grouping by relevance is the right approach. When considering the inherent connections within the game itself, there is no doubt that bucketing items in the standard sequence yields higher-quality translations.
@@ -31,6 +32,145 @@ namespace PhoenixEngine.Engine
         public delegate List<BaseUnit> CalculateSimilarity(BaseUnit Unit);
         public CalculateSimilarity CalculateSimilarityEvent = null;
 
+        public P_BucketContainer(UnionArray Union)
+        { 
+           this.Data = Union;
+        }
+
+        //public void MarkLeadersAndSort(List<BaseUnit> SetBaseUnits, Languages Lang, ref double MarkLeadersPercent)
+        //{
+        //    MarkLeadersPercent = 0;
+
+        //    int N = SetBaseUnits.Count;
+        //    if (N == 0)
+        //        return;
+
+        //    Leaders.Clear();
+        //    Units.Clear();
+
+        //    int MaxCharsForLeaderSelection = Phoenix.Config.ContextLimit;
+
+        //    var FilteredItems = new List<int>();
+
+        //    for (int i = 0; i < N; i++)
+        //    {
+        //        var Item = SetBaseUnits[i];
+        //        Item.TempSim = 0;
+
+        //        if (!string.IsNullOrEmpty(Item.Original) &&
+        //            Item.Original.Length > MaxCharsForLeaderSelection)
+        //        {
+        //            Units.Add(Item);
+        //        }
+        //        else
+        //        {
+        //            FilteredItems.Add(i);
+        //        }
+        //    }
+
+        //    if (FilteredItems.Count == 0)
+        //    {
+        //        MarkLeadersPercent = 100;
+        //        return;
+        //    }
+
+        //    var TokensCache = new Dictionary<int, HashSet<string>>(FilteredItems.Count);
+
+        //    foreach (var Item in FilteredItems)
+        //    {
+        //        var Token = TextTokenizer.BuildTokenSignature(Lang, SetBaseUnits[Item].Original);
+        //        TokensCache[Item] = Token.Take(10).ToHashSet();
+        //    }
+
+        //    var PrefixBuckets = new Dictionary<string, List<int>>();
+
+        //    foreach (var Item in FilteredItems)
+        //    {
+        //        var Prefix = ContextProc.BuildPrefixKey(SetBaseUnits[Item].Original, 3);
+
+        //        if (!PrefixBuckets.TryGetValue(Prefix, out var List))
+        //        {
+        //            List = new List<int>();
+        //            PrefixBuckets[Prefix] = List;
+        //        }
+
+        //        List.Add(Item);
+        //    }
+
+        //    int ProcessedCount = Units.Count;
+        //    int TotalToProcess = N;
+        //    int UpdateInterval = Math.Max(1, TotalToProcess / 100);
+
+        //    foreach (var Bucket in PrefixBuckets.Values)
+        //    {
+        //        if (Bucket.Count == 0)
+        //            continue;
+
+        //        if (Bucket.Count == 1)
+        //        {
+        //            Units.Add(SetBaseUnits[Bucket[0]]);
+        //            ProcessedCount++;
+        //            continue;
+        //        }
+
+        //        int LeaderIndex = ContextProc.PickContextLeader(Bucket, SetBaseUnits, TokensCache);
+        //        var LeaderItem = SetBaseUnits[LeaderIndex];
+
+        //        LeaderItem.TempSim = Bucket.Count - 1;
+
+        //        if (!string.IsNullOrEmpty(LeaderItem.Key))
+        //        {
+        //            LeaderItem.Leader = true;
+        //            Leaders[LeaderItem.Key] = LeaderItem;
+        //        }
+        //        else
+        //        {
+        //            Units.Add(LeaderItem);
+        //        }
+
+        //        ProcessedCount++;
+
+        //        foreach (var Item in Bucket)
+        //        {
+        //            if (Item == LeaderIndex)
+        //                continue;
+
+        //            Units.Add(SetBaseUnits[Item]);
+        //            ProcessedCount++;
+        //        }
+
+        //        if (ProcessedCount % UpdateInterval == 0)
+        //        {
+        //            MarkLeadersPercent = Math.Round(Math.Min(ProcessedCount, TotalToProcess) * 100.0 / TotalToProcess, 2);
+        //        }
+        //    }
+
+        //    var SecondStageMap = new Dictionary<string, int>();
+        //    var RemoveLeaders = new List<string>();
+
+        //    foreach (var KV in Leaders)
+        //    {
+        //        var Item = KV.Value;
+        //        var Key2 = ContextProc.BuildPrefixKey(Item.Original, 2);
+
+        //        if (SecondStageMap.ContainsKey(Key2))
+        //        {
+        //            Units.Add(Item);
+        //            RemoveLeaders.Add(KV.Key);
+        //        }
+        //        else
+        //        {
+        //            SecondStageMap[Key2] = 1;
+        //        }
+        //    }
+
+        //    foreach (var K in RemoveLeaders)
+        //    {
+        //        Leaders.Remove(K);
+        //    }
+
+        //    MarkLeadersPercent = 100;
+        //}
 
         //foreach(var GetBaseUnit in BaseUnits)
         //Don't forget that we converted all the `Record` objects into a `List<BaseUnit>`, so we need to iterate through them.
@@ -113,7 +253,7 @@ namespace PhoenixEngine.Engine
                 //If there is no bucket that can accommodate it, create a new one.
                 if (!IsAdded)
                 {
-                    this.Buckets.Add(new P_Bucket(this.BucketLengthLimit));
+                    this.Buckets.Add(new P_Bucket(null,this.BucketLengthLimit));
                     this.Buckets[this.Buckets.Count - 1].Add(LinkItems,TotalSize);//Insert into a new bucket
                 }
 
@@ -128,30 +268,57 @@ namespace PhoenixEngine.Engine
     {
         public int RemainingSize = 0;
         public int ID = 0;
-        private BaseUnit Leader = null;
+        private BaseUnit Head = null;//"Leader" doesn't sound great; "Head" would be better.
         private List<BaseUnit> BaseUnits = new List<BaseUnit>();
         public int Next = 0;
-
-        public P_Bucket(int RemainingSize)
+        public HashSet<string> KeysRef;
+        public P_Bucket(HashSet<string>KeysRef,BaseUnit Head, int RemainingSize)
         { 
+           this.Head = Head;
            this.RemainingSize = RemainingSize;
+           this.BaseUnits.Add(this.Head);
+
+           this.KeysRef = KeysRef;
+
+           if (!this.KeysRef.Contains(Head.Key))
+           {
+               this.KeysRef.Add(Head.Key);
+           }
         }
 
         public void Add(List<BaseUnit> Units, int Size)
         {
             this.RemainingSize -= Size;
+
+            foreach (var GetUnit in Units)
+            {
+                if (!this.KeysRef.Contains(GetUnit.Key))
+                {
+                    this.KeysRef.Add(GetUnit.Key);
+                }
+                else
+                {
+                    throw new System.Exception();
+                }
+            }
+
             this.BaseUnits.AddRange(Units);
         }
 
         public void Add(BaseUnit Unit, int Size)
         {
             this.RemainingSize -= Size;
-            this.BaseUnits.Add(Unit);
-        }
 
-        public void ChooseLeader()
-        { 
-        
+            if (!this.KeysRef.Contains(Unit.Key))
+            {
+                this.KeysRef.Add(Unit.Key);
+            }
+            else
+            {
+                throw new System.Exception();
+            }
+
+            this.BaseUnits.Add(Unit);
         }
     }
 
