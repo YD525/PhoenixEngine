@@ -41,14 +41,91 @@ namespace PhoenixEngine.Engine
             {
                 return true;
             }
+
             return false;
+        }
+
+        public static int CalcTokenLength(string Text, Languages From)
+        {
+            if (string.IsNullOrEmpty(Text))
+                return 0;
+
+            int RawLength = Text.Length;
+
+            switch (From)
+            {
+                case Languages.SimplifiedChinese:
+                case Languages.TraditionalChinese:
+                case Languages.Japanese:
+                case Languages.Korean:
+                    return (int)(RawLength * 2.5);
+
+                case Languages.Thai:
+                case Languages.Hindi:
+                case Languages.Urdu:
+                case Languages.Persian:
+                case Languages.Russian:
+                case Languages.Ukrainian:
+                    return (int)(RawLength * 1.5);
+
+                default:
+                    return RawLength;
+            }
+        }
+
+        public void Add(BaseUnit Item)
+        {
+            if (!CheckKey(Item.Key))
+            {
+                var LinkItems = CalculateSimilarityEvent?.Invoke(Item);
+
+                //There is another issue here: we need to convert the "buckets" into actual requests to the AI, but the target platform imposes token limits. This means we must account for scenarios where the text volume exceeds these limits, which would result in the buckets being truncated.
+                //If I recall correctly, it is 4,096 bytes; to be conservative, I am using a bucket size of 3,000 bytes. I also need to account for the fact that English characters take up one byte, whereas Japanese and Chinese characters actually occupy multiple bytes, even though the old byte-calculation method is still being used.
+
+                int TotalSize = 0;
+                if (LinkItems != null)
+                {
+                    foreach (var GetItem in LinkItems)
+                    {
+                        TotalSize += CalcTokenLength(GetItem.Original,P_Language.DetectLanguageByLine(GetItem.Original));
+                    }
+                }
+
+                bool IsAdded = false;
+
+                //Check for available empty containers.
+                for (int i = 0; i < this.Buckets.Count; i++)
+                {
+                    if (this.Buckets[i].RemainingSize >= TotalSize)
+                    {
+                        this.Buckets[i].BaseUnits.AddRange(LinkItems);
+                        IsAdded = true;
+                        break;
+                    }
+                }
+                //Try to fill all the buckets as much as possible to reduce the number of requests.
+                //If there is no bucket that can accommodate it, create a new one.
+                if (!IsAdded)
+                {
+                    this.Buckets.Add(new P_Bucket(this.BucketLengthLimit));
+                    this.Buckets[this.Buckets.Count - 1].BaseUnits.AddRange(LinkItems);//Insert into a new bucket
+                }
+                
+                AddedKeys.Add(Item.Key);
+            }
         }
     }
     internal class P_Bucket
     {
+        public int RemainingSize = 0;
         public int ID = 0;
         public List<BaseUnit> BaseUnits = new List<BaseUnit>();
         public int Next = 0;
+
+        public P_Bucket(int RemainingSize)
+        { 
+           this.RemainingSize = RemainingSize;
+        }
     }
 
     internal class AggregatedTranslation
