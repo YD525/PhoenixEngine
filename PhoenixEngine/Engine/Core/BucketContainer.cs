@@ -78,18 +78,25 @@ namespace PhoenixEngine.Engine
 
                     if (GetLinks != null)
                     {
+                        var DistinctLinks = GetLinks.GroupBy(Link => Link.Key).Select(L => L.First()).ToList();
+                        var FilteredLinks = DistinctLinks.Where(Link => !HandledInThisStage.Contains(Link.Key)).ToList();
+                        if (FilteredLinks.Count == 0)
+                        {
+                            continue;
+                        }
+
                         int TotalSize = 0;
-                        foreach (var Link in GetLinks)
+                        foreach (var Link in FilteredLinks)
                         {
                             TotalSize += CalcTokenLength(Link.Original, P_Language.DetectLanguageByLine(Link.Original));
                             HandledInThisStage.Add(Link.Key);
                         }
 
                         var Bucket = new P_Bucket(this.AddedKeys, null, 9999, 0);
-                        Bucket.Add(GetLinks, 0);
+                        Bucket.Add(FilteredLinks, 0);
                         this.BookBuckets.Add(Bucket);
 
-                        WaitDeletes.AddRange(GetLinks);
+                        WaitDeletes.AddRange(FilteredLinks);
                     }
                     else
                     {
@@ -107,18 +114,25 @@ namespace PhoenixEngine.Engine
 
                     if (GetLinks != null)
                     {
+                        var DistinctLinks = GetLinks.GroupBy(Link => Link.Key).Select(L => L.First()).ToList();
+                        var FilteredLinks = DistinctLinks.Where(Link => !HandledInThisStage.Contains(Link.Key)).ToList();
+                        if (FilteredLinks.Count == 0)
+                        {
+                            continue;
+                        }
+
                         int TotalSize = 0;
-                        foreach (var Link in GetLinks)
+                        foreach (var Link in FilteredLinks)
                         {
                             TotalSize += CalcTokenLength(Link.Original, P_Language.DetectLanguageByLine(Link.Original));
                             HandledInThisStage.Add(Link.Key);
                         }
 
                         var Bucket = new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0);
-                        Bucket.Add(GetLinks, TotalSize);
+                        Bucket.Add(FilteredLinks, TotalSize);
                         this.UnitBuckets.Add(Bucket);
 
-                        WaitDeletes.AddRange(GetLinks);
+                        WaitDeletes.AddRange(FilteredLinks);
                     }
                 }
             }
@@ -224,7 +238,7 @@ namespace PhoenixEngine.Engine
             if (FilteredItems.Count == 0)
             {
                 TempUnits = LeftoverUnits;
-                MarkHeadsPercent = 100;
+                MarkHeadsPercent = 20;
                 return;
             }
 
@@ -286,7 +300,7 @@ namespace PhoenixEngine.Engine
 
                 if (ProcessedCount % UpdateInterval == 0)
                 {
-                    MarkHeadsPercent = Math.Round(Math.Min(ProcessedCount, TotalToProcess) * 100.0 / TotalToProcess, 2);
+                    MarkHeadsPercent = Math.Round(Math.Min(ProcessedCount, TotalToProcess) * 20.0 / TotalToProcess, 2);
                 }
             }
 
@@ -315,10 +329,21 @@ namespace PhoenixEngine.Engine
             }
 
             TempUnits = LeftoverUnits;
-            MarkHeadsPercent = 100;
+            MarkHeadsPercent = 20;
         }
         public void BuildBuckets()
         {
+            int TotalToProcess = Heads.Count + TempUnits.Count;
+
+            if (TotalToProcess == 0)
+            {
+                MarkHeadsPercent = 100;
+                return;
+            }
+
+            int ProcessedCount = 0;
+            int UpdateInterval = Math.Max(1, TotalToProcess / 100);
+
             foreach (var GetHead in Heads.Values)
             {
                 int HeadSize = CalcTokenLength(GetHead.Original, P_Language.DetectLanguageByLine(GetHead.Original));
@@ -328,10 +353,19 @@ namespace PhoenixEngine.Engine
                 Bucket.HeadTokens = TextTokenizer.BuildTokenSignature(TranslatorRef.From, GetHead.Original);
 
                 this.UnitBuckets.Add(Bucket);
+
+                ProcessedCount++;
+                if (ProcessedCount % UpdateInterval == 0)
+                {
+                    MarkHeadsPercent = 20 + Math.Round(Math.Min(ProcessedCount, TotalToProcess) * 80.0 / TotalToProcess, 2);
+                }
             }
 
             if (TempUnits.Count == 0)
+            {
+                MarkHeadsPercent = 100;
                 return;
+            }
 
             double SimilarityThreshold = 0.25;
 
@@ -347,6 +381,12 @@ namespace PhoenixEngine.Engine
                     var NewIndependentBucket = new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0);
                     NewIndependentBucket.Add(Unit, UnitSize);
                     this.UnitBuckets.Add(NewIndependentBucket);
+
+                    ProcessedCount++;
+                    if (ProcessedCount % UpdateInterval == 0)
+                    {
+                        MarkHeadsPercent = 20 + Math.Round(Math.Min(ProcessedCount, TotalToProcess) * 80.0 / TotalToProcess, 2);
+                    }
                     continue;
                 }
 
@@ -392,7 +432,15 @@ namespace PhoenixEngine.Engine
 
                     this.UnitBuckets.Add(NewIndependentBucket);
                 }
+
+                ProcessedCount++;
+                if (ProcessedCount % UpdateInterval == 0)
+                {
+                    MarkHeadsPercent = 20 + Math.Round(Math.Min(ProcessedCount, TotalToProcess) * 80.0 / TotalToProcess, 2);
+                }
             }
+
+            MarkHeadsPercent = 100;
         }
 
         public static UnitGroup ConvertToUnitGroup(P_Bucket Bucket, int Index)

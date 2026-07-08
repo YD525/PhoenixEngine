@@ -19,8 +19,6 @@ namespace PhoenixEngine.Translate
 
         public volatile int AutoThreadLimit = 0;
 
-        public double MarkLeadersPercent = 0;
-
         public volatile bool SkipWordAnalysis = false;
 
         public Translator TranslatorRef = null;
@@ -341,8 +339,6 @@ namespace PhoenixEngine.Translate
             _CancelSource?.Cancel();
 
             while (TranslatedQueue.TryDequeue(out _)) { }
-
-            MarkLeadersPercent = 0;
 
             this.Container?.Clear();
 
