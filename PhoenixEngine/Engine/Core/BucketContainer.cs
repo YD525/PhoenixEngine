@@ -23,7 +23,7 @@ namespace PhoenixEngine.Engine
         public List<UnitGroup> Units = new List<UnitGroup>();
         public List<UnitGroup> Books = new List<UnitGroup>();
 
-        public delegate List<BaseUnit> CheckLinks(List<BaseUnit> TempUnits,BaseUnit Unit);
+        public delegate List<BaseUnit> CheckLinks(List<BaseUnit> TempUnits, BaseUnit Unit);
         public CheckLinks CheckLinksEvent = null;
 
         public void Clear()
@@ -62,15 +62,33 @@ namespace PhoenixEngine.Engine
 
         public void ChooseLinks()
         {
-            if (CheckLinksEvent == null) return;
+            if (CheckLinksEvent == null)
+            {
+                MarkHeadsPercent = 40;
+                return;
+            }
+
+            MarkHeadsPercent = 0;
 
             List<BaseUnit> WaitDeletes = new List<BaseUnit>();
             HashSet<string> HandledInThisStage = new HashSet<string>();
 
+            int TotalToProcess = TempUnits.Count;
+            int ProcessedCount = 0;
+            int UpdateInterval = Math.Max(1, TotalToProcess / 100);
+
             foreach (var GetItem in TempUnits)
             {
+                ProcessedCount++;
+
                 if (HandledInThisStage.Contains(GetItem.Key))
+                {
+                    if (ProcessedCount % UpdateInterval == 0)
+                    {
+                        MarkHeadsPercent = Math.Round(Math.Min(ProcessedCount, TotalToProcess) * 40.0 / TotalToProcess, 2);
+                    }
                     continue;
+                }
 
                 if (GetItem.Type.ToUpper() == "BOOK")
                 {
@@ -82,6 +100,10 @@ namespace PhoenixEngine.Engine
                         var FilteredLinks = DistinctLinks.Where(Link => !HandledInThisStage.Contains(Link.Key)).ToList();
                         if (FilteredLinks.Count == 0)
                         {
+                            if (ProcessedCount % UpdateInterval == 0)
+                            {
+                                MarkHeadsPercent = Math.Round(Math.Min(ProcessedCount, TotalToProcess) * 40.0 / TotalToProcess, 2);
+                            }
                             continue;
                         }
 
@@ -118,6 +140,10 @@ namespace PhoenixEngine.Engine
                         var FilteredLinks = DistinctLinks.Where(Link => !HandledInThisStage.Contains(Link.Key)).ToList();
                         if (FilteredLinks.Count == 0)
                         {
+                            if (ProcessedCount % UpdateInterval == 0)
+                            {
+                                MarkHeadsPercent = Math.Round(Math.Min(ProcessedCount, TotalToProcess) * 40.0 / TotalToProcess, 2);
+                            }
                             continue;
                         }
 
@@ -135,12 +161,19 @@ namespace PhoenixEngine.Engine
                         WaitDeletes.AddRange(FilteredLinks);
                     }
                 }
+
+                if (ProcessedCount % UpdateInterval == 0)
+                {
+                    MarkHeadsPercent = Math.Round(Math.Min(ProcessedCount, TotalToProcess) * 40.0 / TotalToProcess, 2);
+                }
             }
 
             foreach (var GetItem in WaitDeletes)
             {
                 TempUnits.Remove(GetItem);
             }
+
+            MarkHeadsPercent = 40;
         }
 
         public Translator TranslatorRef;
@@ -209,11 +242,10 @@ namespace PhoenixEngine.Engine
             int N = TempUnits.Count;
             if (N == 0)
             {
-                MarkHeadsPercent = 100;
+                MarkHeadsPercent = 70;
                 return;
             }
 
-            MarkHeadsPercent = 0;
             Heads.Clear();
 
             List<BaseUnit> LeftoverUnits = new List<BaseUnit>();
@@ -238,7 +270,7 @@ namespace PhoenixEngine.Engine
             if (FilteredItems.Count == 0)
             {
                 TempUnits = LeftoverUnits;
-                MarkHeadsPercent = 20;
+                MarkHeadsPercent = 70;
                 return;
             }
 
@@ -300,7 +332,7 @@ namespace PhoenixEngine.Engine
 
                 if (ProcessedCount % UpdateInterval == 0)
                 {
-                    MarkHeadsPercent = Math.Round(Math.Min(ProcessedCount, TotalToProcess) * 20.0 / TotalToProcess, 2);
+                    MarkHeadsPercent = 40 + Math.Round(Math.Min(ProcessedCount, TotalToProcess) * 30.0 / TotalToProcess, 2);
                 }
             }
 
@@ -329,7 +361,7 @@ namespace PhoenixEngine.Engine
             }
 
             TempUnits = LeftoverUnits;
-            MarkHeadsPercent = 20;
+            MarkHeadsPercent = 70;
         }
         public void BuildBuckets()
         {
@@ -357,7 +389,7 @@ namespace PhoenixEngine.Engine
                 ProcessedCount++;
                 if (ProcessedCount % UpdateInterval == 0)
                 {
-                    MarkHeadsPercent = 20 + Math.Round(Math.Min(ProcessedCount, TotalToProcess) * 80.0 / TotalToProcess, 2);
+                    MarkHeadsPercent = 70 + Math.Round(Math.Min(ProcessedCount, TotalToProcess) * 30.0 / TotalToProcess, 2);
                 }
             }
 
@@ -385,7 +417,7 @@ namespace PhoenixEngine.Engine
                     ProcessedCount++;
                     if (ProcessedCount % UpdateInterval == 0)
                     {
-                        MarkHeadsPercent = 20 + Math.Round(Math.Min(ProcessedCount, TotalToProcess) * 80.0 / TotalToProcess, 2);
+                        MarkHeadsPercent = 70 + Math.Round(Math.Min(ProcessedCount, TotalToProcess) * 30.0 / TotalToProcess, 2);
                     }
                     continue;
                 }
@@ -436,7 +468,7 @@ namespace PhoenixEngine.Engine
                 ProcessedCount++;
                 if (ProcessedCount % UpdateInterval == 0)
                 {
-                    MarkHeadsPercent = 20 + Math.Round(Math.Min(ProcessedCount, TotalToProcess) * 80.0 / TotalToProcess, 2);
+                    MarkHeadsPercent = 70 + Math.Round(Math.Min(ProcessedCount, TotalToProcess) * 30.0 / TotalToProcess, 2);
                 }
             }
 
@@ -450,7 +482,7 @@ namespace PhoenixEngine.Engine
             if (Bucket.Head != null)
             {
                 Group.Mode = AggregationMode.Aggregation;
-                Group.Key = Index.ToString();          
+                Group.Key = Index.ToString();
             }
             else
             {
@@ -458,7 +490,7 @@ namespace PhoenixEngine.Engine
                 Group.Key = Units.Count > 0 ? Units[0].Key : string.Empty;
             }
 
-            Group.Units = new List<BaseUnit>(Units);   
+            Group.Units = new List<BaseUnit>(Units);
             return Group;
         }
     }
