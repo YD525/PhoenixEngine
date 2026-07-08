@@ -98,7 +98,7 @@ namespace PhoenixEngine.Engine
                 {
                     if (this.Buckets[i].RemainingSize >= TotalSize)
                     {
-                        this.Buckets[i].BaseUnits.AddRange(LinkItems);
+                        this.Buckets[i].Add(LinkItems,TotalSize);
                         IsAdded = true;
                         break;
                     }
@@ -108,7 +108,7 @@ namespace PhoenixEngine.Engine
                 if (!IsAdded)
                 {
                     this.Buckets.Add(new P_Bucket(this.BucketLengthLimit));
-                    this.Buckets[this.Buckets.Count - 1].BaseUnits.AddRange(LinkItems);//Insert into a new bucket
+                    this.Buckets[this.Buckets.Count - 1].Add(LinkItems,TotalSize);//Insert into a new bucket
                 }
                 
                 AddedKeys.Add(Item.Key);
@@ -119,12 +119,24 @@ namespace PhoenixEngine.Engine
     {
         public int RemainingSize = 0;
         public int ID = 0;
-        public List<BaseUnit> BaseUnits = new List<BaseUnit>();
+        private List<BaseUnit> BaseUnits = new List<BaseUnit>();
         public int Next = 0;
 
         public P_Bucket(int RemainingSize)
         { 
            this.RemainingSize = RemainingSize;
+        }
+
+        public void Add(List<BaseUnit> Units, int Size)
+        {
+            this.RemainingSize -= Size;
+            this.BaseUnits.AddRange(Units);
+        }
+
+        public void Add(BaseUnit Unit, int Size)
+        {
+            this.RemainingSize -= Size;
+            this.BaseUnits.Add(Unit);
         }
     }
 
