@@ -116,7 +116,10 @@ namespace PhoenixEngine.Engine
                     this.Buckets.Add(new P_Bucket(this.BucketLengthLimit));
                     this.Buckets[this.Buckets.Count - 1].Add(LinkItems,TotalSize);//Insert into a new bucket
                 }
-                
+
+                //Actually, there is still an issue with this approach: even if we group items based on relevance, unrelated content might still end up in the same bucket during the bucketing process.
+                //Therefore, the leader for the group based on association must be null.
+                //We need to pack unrelated texts into these buckets; although this increases the number of requests—potentially resulting in many partially filled buckets—it improves quality.
                 AddedKeys.Add(Item.Key);
             }
         }
@@ -125,6 +128,7 @@ namespace PhoenixEngine.Engine
     {
         public int RemainingSize = 0;
         public int ID = 0;
+        private BaseUnit Leader = null;
         private List<BaseUnit> BaseUnits = new List<BaseUnit>();
         public int Next = 0;
 
@@ -143,6 +147,11 @@ namespace PhoenixEngine.Engine
         {
             this.RemainingSize -= Size;
             this.BaseUnits.Add(Unit);
+        }
+
+        public void ChooseLeader()
+        { 
+        
         }
     }
 
