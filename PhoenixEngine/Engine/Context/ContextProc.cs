@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Text;
-using PhoenixEngine.Language;
 using PhoenixEngine.Unit;
 
 namespace PhoenixEngine.Engine
@@ -33,7 +30,7 @@ namespace PhoenixEngine.Engine
             return count;
         }
 
-        public static int PickContextLeader(
+        public static int PickContextHead(
             List<int> bucket,
             List<BaseUnit> items,
             Dictionary<int, HashSet<string>> tokensCache)

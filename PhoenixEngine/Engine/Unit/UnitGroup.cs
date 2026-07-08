@@ -90,14 +90,9 @@ namespace PhoenixEngine.Unit
     public class UnitGroup
     {
         public string Key = "";
-        public int TotalLength;
-        public int TokenLength;
-
         public List<BaseUnit> Units = new List<BaseUnit>();
         public AggregationMode Mode = AggregationMode.Null;
 
-        public HashSet<string> AnchorTokens = new HashSet<string>();
-        public HashSet<string> AllTokens = new HashSet<string>();
         public UnitGroup LinkTo = null;
 
         public bool IsUnrelated = false;
@@ -159,47 +154,19 @@ namespace PhoenixEngine.Unit
             if (SetMode == AggregationMode.Aggregation)
             {
                 this.Key = Key.ToString();
-
-                AnchorTokens = First.ExtractTokens(TranslatorRef);
-                AllTokens = new HashSet<string>(AnchorTokens);
-
                 Units.Add(First);
-
-                TotalLength += First.Original.Length;
             }
             else
             if (SetMode == AggregationMode.Single)
             {
                 this.Key = First.Key;
-
                 Units.Add(First);
             }
-        }
-
-        public bool IsSimilarTo(HashSet<string> UnitTokens, int MatchCount)
-        {
-            return TokenCoverageRatio(this.AnchorTokens, UnitTokens) >= MatchCount;
         }
 
         public void AddUnit(BaseUnit Unit)
         {
             Units.Add(Unit);
-            TotalLength += Unit.Original.Length;
-        }
-
-        public void AddUnit(BaseUnit Unit, int TokenLen)
-        {
-            Units.Add(Unit);
-            TotalLength += Unit.Original.Length;
-            TokenLength += TokenLen;
-        }
-
-        public void AddUnit(BaseUnit Unit, HashSet<string> UnitTokens, int TokenLen)
-        {
-            Units.Add(Unit);
-            TotalLength += Unit.Original.Length;
-            TokenLength += TokenLen;
-            AllTokens.UnionWith(UnitTokens);
         }
 
         public string GenContent(ref bool CanTrans)
@@ -255,25 +222,6 @@ namespace PhoenixEngine.Unit
             }
 
             return WaitConfirm;
-        }
-
-        private static int TokenCoverageRatio(HashSet<string> A, HashSet<string> B)
-        {
-            if (A == null || B == null || A.Count == 0 || B.Count == 0)
-            {
-                return 0;
-            }
-
-            int Intersection = 0;
-            foreach (var T in A)
-            {
-                if (B.Contains(T))
-                {
-                    Intersection++;
-                }
-            }
-
-            return Intersection;
         }
 
         public GroupContext ApplyStateChange(string TranslatorID, UnitTranslationState State)

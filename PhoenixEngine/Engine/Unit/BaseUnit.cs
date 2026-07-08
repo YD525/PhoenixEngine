@@ -14,7 +14,7 @@ namespace PhoenixEngine.Unit
         private string RealOriginal = "";
         public string Original = "";
         public string Translated = "";
-        public bool Leader = false;
+        public bool Head = false;
         public double TempSim = 0;
 
         public BaseUnit() { }
@@ -44,7 +44,7 @@ namespace PhoenixEngine.Unit
                 Type = this.Type,
                 Original = this.Original,
                 Translated = this.Translated,
-                Leader = this.Leader,
+                Head = this.Head,
                 TempSim = this.TempSim
             };
         }

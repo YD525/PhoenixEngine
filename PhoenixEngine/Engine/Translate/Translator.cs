@@ -65,15 +65,15 @@ namespace PhoenixEngine.Translate
             return new UnitGroup(this,Unit);
         }
 
-        public void Init(List<BaseUnit> BaseUnits, AggregationMode Mode,int Addition)
+        public void Init(List<BaseUnit> BaseUnits,int Addition)
         {
             if (this.BatchCore != null)
             {
                 this.BatchCore.Close();
 
-                if (this.BatchCore.Content != null)
+                if (this.BatchCore.Container != null)
                 {
-                    this.BatchCore.Content.Clear();
+                    this.BatchCore.Container.Clear();
                 }
 
                 this.BatchCore.ProcStage = 0;
@@ -81,7 +81,7 @@ namespace PhoenixEngine.Translate
 
             if (BatchCore != null)
             {
-                if (!BatchCore.Init(BaseUnits, Mode, Addition))
+                if (!BatchCore.Init(BaseUnits,Addition))
                 {
                     throw (new Exception("Translator->Attempting to initialize at the wrong stage."));
                 }
@@ -191,9 +191,9 @@ namespace PhoenixEngine.Translate
 
                 for (int i = 0; i < Units.Count; i++)
                 {
-                    int UnitTokenLen = ProcContent.CalcTokenLength(Units[i].Original, this.From);
+                    int UnitTokenLen = P_BucketContainer.CalcTokenLength(Units[i].Original, this.From);
 
-                    if (SetLength + UnitTokenLen < ProcContent.TokenLengthLimit)
+                    if (SetLength + UnitTokenLen < P_BucketContainer.BucketLengthLimit)
                     {
                         SetLength += UnitTokenLen;
                         NewUnitGroup.Units.Add(Units[i]);
