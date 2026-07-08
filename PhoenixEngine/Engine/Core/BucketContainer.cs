@@ -72,10 +72,10 @@ namespace PhoenixEngine.Engine
                 if (HandledInThisStage.Contains(GetItem.Key))
                     continue;
 
-                var GetLinks = CheckLinksEvent.Invoke(TempUnits,GetItem);
-
                 if (GetItem.Type.ToUpper() == "BOOK")
                 {
+                    var GetLinks = CheckLinksEvent.Invoke(TempUnits, GetItem);
+
                     if (GetLinks != null)
                     {
                         int TotalSize = 0;
@@ -103,6 +103,8 @@ namespace PhoenixEngine.Engine
                 }
                 else
                 {
+                    var GetLinks = CheckLinksEvent.Invoke(TempUnits, GetItem);
+
                     if (GetLinks != null)
                     {
                         int TotalSize = 0;
