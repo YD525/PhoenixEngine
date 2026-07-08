@@ -87,13 +87,18 @@ namespace PhoenixEngine.Engine
                 {
                     foreach (var GetItem in LinkItems)
                     {
-                        TotalSize += CalcTokenLength(GetItem.Original,P_Language.DetectLanguageByLine(GetItem.Original));
+                        TotalSize += CalcTokenLength(GetItem.Original, P_Language.DetectLanguageByLine(GetItem.Original));
                     }
+                }
+                else
+                {
+                    //Since we group items based on similarity, calculating similarity relative to the previous item would lead to significant "drift" in the bucket's contents—because D is linked to C, and C is linked to B. This results in poor overall similarity within the bucket. We originally adopted the "Leader" mechanism, and we continue to use this approach today.
+                    //I plan to redo the similarity component; originally, I had AI write part of it out of laziness, which meant I failed to check many sections. A user also pointed out that content was being skipped during translation—leaving a third of the material untranslated. While I initially considered simply running another scan, that would only address the symptoms rather than the root cause. So now, I am implementing it entirely on my own.
                 }
 
                 bool IsAdded = false;
 
-                //Check for available empty containers.
+                //Check for any buckets that are not fully filled.
                 for (int i = 0; i < this.Buckets.Count; i++)
                 {
                     if (this.Buckets[i].RemainingSize >= TotalSize)
@@ -103,6 +108,7 @@ namespace PhoenixEngine.Engine
                         break;
                     }
                 }
+
                 //Try to fill all the buckets as much as possible to reduce the number of requests.
                 //If there is no bucket that can accommodate it, create a new one.
                 if (!IsAdded)
