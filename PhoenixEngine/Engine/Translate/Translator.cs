@@ -9,6 +9,7 @@ using PhoenixEngine.Language;
 using PhoenixEngine.Memory;
 using PhoenixEngine.Sequence;
 using PhoenixEngine.Unit;
+using static PhoenixEngine.Engine.P_BucketContainer;
 
 namespace PhoenixEngine.Translate
 {
@@ -65,7 +66,7 @@ namespace PhoenixEngine.Translate
             return new UnitGroup(this,Unit);
         }
 
-        public void Init(List<BaseUnit> BaseUnits,int Addition)
+        public void Init(List<BaseUnit> BaseUnits,int Addition,CheckLinks CheckLinksEvent)
         {
             if (this.BatchCore != null)
             {
@@ -81,7 +82,7 @@ namespace PhoenixEngine.Translate
 
             if (BatchCore != null)
             {
-                if (!BatchCore.Init(BaseUnits,Addition))
+                if (!BatchCore.Init(BaseUnits,Addition, CheckLinksEvent))
                 {
                     throw (new Exception("Translator->Attempting to initialize at the wrong stage."));
                 }

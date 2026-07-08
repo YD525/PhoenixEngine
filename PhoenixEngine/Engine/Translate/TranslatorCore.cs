@@ -66,7 +66,7 @@ namespace PhoenixEngine.Translate
             return Container.GetCount();
         }
 
-        public bool Init(List<BaseUnit> BaseUnits,int Addition, CheckLinks CheckLinksEvent = null)
+        public bool Init(List<BaseUnit> BaseUnits,int Addition, CheckLinks CheckLinksEvent)
         {
             if (ProcStage == 0)
             {
