@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using PhoenixEngine.Game;
 using PhoenixEngine.Language;
@@ -17,6 +18,8 @@ namespace PhoenixEngine.Engine
     //I need to come up with a good way to make both of them compatible.
     internal class P_BucketContainer
     {
+        public HashSet<string> AddedKeys = new HashSet<string>();
+
         public int BucketLengthLimit = 3000;
 
         public List<P_Bucket> Buckets = new List<P_Bucket>();
@@ -29,6 +32,17 @@ namespace PhoenixEngine.Engine
         public CalculateSimilarity CalculateSimilarityEvent = null;
 
 
+        //foreach(var GetBaseUnit in BaseUnits)
+        //Don't forget that we converted all the `Record` objects into a `List<BaseUnit>`, so we need to iterate through them.
+        //However, if we query for associations during this iteration, we might end up adding the same items repeatedly.Therefore, we should construct a `HashKey` to track the primary keys of items already added, ensuring that each entry is included only once.
+        public bool CheckKey(string Key)
+        {
+            if (AddedKeys.Contains(Key))
+            {
+                return true;
+            }
+            return false;
+        }
     }
     internal class P_Bucket
     {
