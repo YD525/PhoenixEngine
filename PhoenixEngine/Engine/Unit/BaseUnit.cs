@@ -80,9 +80,14 @@ namespace PhoenixEngine.Unit
                             this.Type = Mutation.Data.Type;
                         }
                     }
-                }
 
-                Mutation.Key = this.Key;
+                    Mutation.Key = this.Key;
+                }
+                else
+                {
+                    Mutation = new UnitContext<BaseUnit>();
+                    Mutation.Key = this.Key;
+                }
 
                 return Mutation;
             }
