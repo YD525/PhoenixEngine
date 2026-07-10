@@ -188,8 +188,6 @@ namespace PhoenixEngine.Engine
         public UnitGroup CallOnce(CancellationToken CancelToken,Translator TranslatorRef, TranslationPreprocessor Preprocessor, UnitGroup Item,
         Languages From, Languages To, string AIParam, bool CanSleep, bool UseAIMemory, bool CanUpdate)
         {
-            Item.SetConfirmPasser();
-
             if (!Item.ApplyStateChange(TranslatorRef.ID, UnitTranslationState.Preparing).CanDo(-1))
             {
                 return Item;

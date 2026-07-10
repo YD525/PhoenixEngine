@@ -142,7 +142,7 @@ namespace PhoenixEngine.Unit
         }
         public ConfirmPasser AnalysisContent(string Content)
         {
-            ConfirmPasser WaitConfirm = new ConfirmPasser(this.Units);
+            ConfirmPasser WaitConfirm = this;
 
             if (Content == "<empty>")
             {
@@ -241,13 +241,14 @@ namespace PhoenixEngine.Unit
             Units.Add(Unit);
         }
 
-        public void SetConfirmPasser()
+        private void SetConfirmPasser()
         {
             this.ConfirmPasser = new ConfirmPasser(this.Units);
         }
 
         public string GenContent(ref bool CanTrans)
         {
+            SetConfirmPasser();
             return ConfirmPasser.GenContent(ref CanTrans);
         }
 
