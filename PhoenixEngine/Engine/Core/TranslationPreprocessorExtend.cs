@@ -254,7 +254,7 @@ namespace PhoenixEngine.Engine
 
 
         private static readonly Regex SplitRegex = new Regex("(<[^<>]+>|\\[[^\\[\\]]+\\])", RegexOptions.Compiled);
-        public static string ToFullWidthSymbols(string Value)
+        public static string ToFullWidthSymbols(string Value,bool Ja = false)
         {
             if (string.IsNullOrEmpty(Value))
                 return Value;
@@ -272,7 +272,14 @@ namespace PhoenixEngine.Engine
                 }
                 else
                 {
-                    NStringBuilder.Append(ReplaceWithFullWidthSymbols(Part));
+                    if (!Ja)
+                    {
+                        NStringBuilder.Append(ReplaceWithFullWidthSymbols(Part));
+                    }
+                    else
+                    {
+                        NStringBuilder.Append(ReplaceWithFullWidthSymbolsJA(Part));
+                    }
                 }
             }
 
@@ -288,6 +295,18 @@ namespace PhoenixEngine.Engine
                 .Replace(";", "；")
                 .Replace("!", "！")
                 .Replace("?", "？");
+        }
+
+        private static string ReplaceWithFullWidthSymbolsJA(string Text)
+        {
+            return Text
+                .Replace(",", "、")  
+                .Replace(".", "。")  
+                .Replace(":", "：")  
+                .Replace(";", "；")
+                // Note: In formal Japanese writing, exclamation marks and question marks remain half-width
+                .Replace("!", "!")  
+                .Replace("?", "?");
         }
     }
 }
