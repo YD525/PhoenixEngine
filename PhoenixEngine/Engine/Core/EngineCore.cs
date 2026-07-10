@@ -188,6 +188,8 @@ namespace PhoenixEngine.Engine
         public UnitGroup CallOnce(CancellationToken CancelToken,Translator TranslatorRef, TranslationPreprocessor Preprocessor, UnitGroup Item,
         Languages From, Languages To, string AIParam, bool CanSleep, bool UseAIMemory, bool CanUpdate)
         {
+            Item.SetConfirmPasser();
+
             if (!Item.ApplyStateChange(TranslatorRef.ID, UnitTranslationState.Preparing).CanDo(-1))
             {
                 return Item;
@@ -300,14 +302,6 @@ namespace PhoenixEngine.Engine
 
                     bool Passed = Passer.TryPass(ref NotPassUnits, ref PassUnits, IsDeepL);
 
-                    for (int i = 0; i < PassUnits.Count; i++)
-                    {
-                        var PassUnit = PassUnits[i];
-                        Sequences[PassUnit.Key].CanSkip = true;
-                        Sequences[PassUnit.Key].Step = 6;
-                        Sequences[PassUnit.Key].Data = PassUnit.Translated;
-                    }
-
                     if (!Passed)
                     {
                         Thread.Sleep(Phoenix.Config.ThrottleDelayMs);
@@ -323,6 +317,16 @@ namespace PhoenixEngine.Engine
 
                             goto NextCall;
                         }
+                    }
+
+                    Passer.Apply(PassUnits);
+
+                    for (int i = 0; i < PassUnits.Count; i++)
+                    {
+                        var PassUnit = PassUnits[i];
+                        Sequences[PassUnit.Key].CanSkip = true;
+                        Sequences[PassUnit.Key].Step = 6;
+                        Sequences[PassUnit.Key].Data = PassUnit.Translated;
                     }
 
                     Item.EndPreProcess(From, To, ref Sequences);

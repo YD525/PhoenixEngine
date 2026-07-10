@@ -26,35 +26,86 @@ namespace PhoenixEngine.Unit
 
         public bool Empty = false;
 
+        private Dictionary<int, List<int>> TagIndexToUnitIndices = new Dictionary<int, List<int>>();
+
         public ConfirmPasser(List<BaseUnit> Units)
         {
             ParentRef = Units;
             this.Units.AddRange(Units);
         }
-        public bool TryPass(ref List<BaseUnit> NotPassUnits, ref List<BaseUnit> PassUnits,bool IsDeepL)
+
+        public string GenContent(ref bool CanTrans)
         {
-            if (this.Empty == true)
+            CanTrans = false;
+            string Html = "";
+            TagIndexToUnitIndices.Clear();
+
+            var Seen = new Dictionary<string, int>();
+            int TagIndex = 100;
+
+            for (int i = 0; i < Units.Count; i++)
+            {
+                var Unit = Units[i];
+
+                if (Unit.Original.Length == 0)
+                    continue;
+
+                if (Unit.Translated.Length > 0)
+                    continue;
+
+                string Key = Unit.Original;
+
+                if (!Seen.ContainsKey(Key))
+                {
+                    Seen[Key] = TagIndex;
+                    TagIndexToUnitIndices[TagIndex] = new List<int> { i };
+
+                    Html += string.Format("<li data-unit-id='{0}'>{1}</li>\n", TagIndex, Unit.Original);
+                    CanTrans = true;
+                    TagIndex++;
+                }
+                else
+                {
+                    int ExistingTagIndex = Seen[Key];
+                    TagIndexToUnitIndices[ExistingTagIndex].Add(i);
+                }
+            }
+
+            return Html;
+        }
+
+        public bool TryPass(ref List<BaseUnit> NotPassUnits, ref List<BaseUnit> PassUnits, bool IsDeepL)
+        {
+            if (this.Empty)
             {
                 return true;
             }
 
-            for (int i = 0; i < Units.Count; i++)
+            foreach (var NeedConfirm in NeedConfirms)
             {
-                for (int ir = 0; ir < NeedConfirms.Count; ir++)
-                {
-                    if (i == NeedConfirms[ir].Index)
-                    {
-                        this.Units[i].Translated = NeedConfirms[ir].Result;
+                int TagIndex = NeedConfirm.Index;
 
-                        if (IsDeepL)
+                if (TagIndexToUnitIndices.TryGetValue(TagIndex, out var UnitIndices))
+                {
+                    string Translated = NeedConfirm.Result;
+
+                    if (IsDeepL)
+                    {
+                        Translated = Translated.TrimEnd('\r', '\n');
+                    }
+
+                    foreach (int UnitIndex in UnitIndices)
+                    {
+                        if (UnitIndex >= 0 && UnitIndex < Units.Count)
                         {
-                            this.Units[i].Translated = this.Units[i].Translated.TrimEnd('\r', '\n');
+                            Units[UnitIndex].Translated = Translated;
                         }
                     }
                 }
             }
 
             NotPassUnits = new List<BaseUnit>();
+            PassUnits = new List<BaseUnit>();
 
             for (int i = 0; i < Units.Count; i++)
             {
@@ -83,8 +134,38 @@ namespace PhoenixEngine.Unit
         {
             for (int i = 0; i < ParentRef.Count; i++)
             {
-                ParentRef[i].Translated = PassUnits[i].Translated;
+                if (i < PassUnits.Count)
+                {
+                    ParentRef[i].Translated = PassUnits[i].Translated;
+                }
             }
+        }
+        public ConfirmPasser AnalysisContent(string Content)
+        {
+            ConfirmPasser WaitConfirm = new ConfirmPasser(this.Units);
+
+            if (Content == "<empty>")
+            {
+                WaitConfirm.Empty = true;
+                return WaitConfirm;
+            }
+
+            string Pattern = @"<li[^>]*data-unit-id\s*=\s*'(\d+)'[^>]*>\s*([\s\S]*?)(?=\s*</li>|\s*<li|\z)";
+            var Matches = Regex.Matches(Content, Pattern, RegexOptions.IgnoreCase);
+
+            foreach (Match match in Matches)
+            {
+                int ID = P_Convert.ObjToInt(match.Groups[1].Value);
+                string Result = match.Groups[2].Value.Trim();
+                if (ID >= 100)
+                {
+                    WaitConfirm.NeedConfirms.Add(
+                        new NeedConfirm(ID, Result)
+                    );
+                }
+            }
+
+            return WaitConfirm;
         }
     }
 
@@ -98,6 +179,8 @@ namespace PhoenixEngine.Unit
 
         public bool IsUnrelated = false;
         public volatile bool IsMemoryCreated = false;
+
+        public ConfirmPasser ConfirmPasser = null;
 
         public void BatchProc(int State)
         {
@@ -158,59 +241,19 @@ namespace PhoenixEngine.Unit
             Units.Add(Unit);
         }
 
-        public string GenContent(ref bool CanTrans)
+        public void SetConfirmPasser()
         {
-            return UnitGroup.GenContent(this.Units,ref CanTrans);
+            this.ConfirmPasser = new ConfirmPasser(this.Units);
         }
 
-        public static string GenContent(List<BaseUnit> Array,ref bool CanTrans)
+        public string GenContent(ref bool CanTrans)
         {
-            CanTrans = false;
-            string Html = "";
-            for (int i = 0; i < Array.Count; i++)
-            {
-                if (Array[i].Translated.Length == 0)
-                {
-                    Html += string.Format("<li data-unit-id='{0}'>{1}</li>\n", i + 100, Array[i].Original);
-                    CanTrans = true;
-                }
-            }
-            return Html;
+            return ConfirmPasser.GenContent(ref CanTrans);
         }
 
         public ConfirmPasser AnalysisContent(string Content)
         {
-            ConfirmPasser WaitConfirm = new ConfirmPasser(this.Units);
-
-            if (Content == "<empty>")
-            {
-                WaitConfirm.Empty = true;
-            }     
-
-            string Pattern = @"<li[^>]*data-unit-id\s*=\s*'(\d+)'[^>]*>\s*([\s\S]*?)(?=\s*</li>|\s*<li|\z)";
-            var Matches = Regex.Matches(
-                Content,
-                Pattern,
-                RegexOptions.IgnoreCase  
-            );
-
-            foreach (Match match in Matches)
-            {
-                int ID = P_Convert.ObjToInt(match.Groups[1].Value);
-                string Result = match.Groups[2].Value.Trim();
-                if (ID >= 100)
-                {
-                    int NormalID = ID - 100;
-                    if (NormalID >= 0)
-                    {
-                        WaitConfirm.NeedConfirms.Add(
-                            new NeedConfirm(NormalID, Result)
-                        );
-                    }
-                }
-            }
-
-            return WaitConfirm;
+           return ConfirmPasser.AnalysisContent(Content);
         }
 
         public GroupContext ApplyStateChange(string TranslatorID, UnitTranslationState State)

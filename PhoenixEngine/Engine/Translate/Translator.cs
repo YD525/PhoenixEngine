@@ -193,7 +193,7 @@ namespace PhoenixEngine.Translate
 
                 for (int i = 0; i < Units.Count; i++)
                 {
-                    int UnitTokenLen = P_BucketContainer.CalcTokenLength(Units[i].Original, this.From);
+                    int UnitTokenLen = P_BucketContainer.CalcTokenLength(Units[i].Original, this.From,true,false);
 
                     if (SetLength + UnitTokenLen < P_BucketContainer.BucketLengthLimit)
                     {

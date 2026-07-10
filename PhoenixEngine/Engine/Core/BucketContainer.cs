@@ -12,7 +12,7 @@ namespace PhoenixEngine.Engine
     {
         public HashSet<string> AddedKeys = new HashSet<string>();
 
-        public static int BucketLengthLimit = 2600;
+        public static int BucketLengthLimit = 3900;
 
         public Dictionary<string, BaseUnit> Heads = new Dictionary<string, BaseUnit>();
 
@@ -108,9 +108,11 @@ namespace PhoenixEngine.Engine
                         }
 
                         int TotalSize = 0;
+                        var SeenInThisBatch = new HashSet<string>();
                         foreach (var Link in FilteredLinks)
                         {
-                            TotalSize += CalcTokenLength(Link.Original, P_Language.DetectLanguageByLine(Link.Original));
+                            bool IsDuplicate = !SeenInThisBatch.Add(Link.Original);
+                            TotalSize += CalcTokenLength(Link.Original, P_Language.DetectLanguageByLine(Link.Original), false, IsDuplicate);
                             HandledInThisStage.Add(Link.Key);
                         }
 
@@ -151,9 +153,12 @@ namespace PhoenixEngine.Engine
                         List<P_Bucket> Buckets = new List<P_Bucket>();
                         Buckets.Add(new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0));
 
+                        var SeenInCurrentBucket = new HashSet<string>();
+
                         foreach (var Link in FilteredLinks)
                         {
-                            var TokenSize = CalcTokenLength(Link.Original, P_Language.DetectLanguageByLine(Link.Original));
+                            bool IsDuplicate = !SeenInCurrentBucket.Add(Link.Original);
+                            var TokenSize = CalcTokenLength(Link.Original, P_Language.DetectLanguageByLine(Link.Original), true, IsDuplicate);
 
                             if (Buckets[BucketIndex].RemainingSize >= TokenSize)
                             {
@@ -170,9 +175,11 @@ namespace PhoenixEngine.Engine
 
                                 BucketIndex++;
 
+                                SeenInCurrentBucket = new HashSet<string>();
+                                SeenInCurrentBucket.Add(Link.Original);
                                 Buckets[BucketIndex].Add(Link, TokenSize);
                             }
-                            
+
                             HandledInThisStage.Add(Link.Key);
                         }
 
@@ -230,20 +237,25 @@ namespace PhoenixEngine.Engine
             return false;
         }
 
-        public static int CalcTokenLength(string Text, Languages From)
+        public static int CalcTokenLength(string Text, Languages From, bool IncludeTag, bool IsDuplicate)
         {
             if (string.IsNullOrEmpty(Text))
                 return 0;
 
+            if (IsDuplicate)
+                return 0;
+
             int RawLength = Text.Length;
 
+            int TextLength;
             switch (From)
             {
                 case Languages.SimplifiedChinese:
                 case Languages.TraditionalChinese:
                 case Languages.Japanese:
                 case Languages.Korean:
-                    return (int)(RawLength * 2.5);
+                    TextLength = (int)(RawLength * 2.5);
+                    break;
 
                 case Languages.Thai:
                 case Languages.Hindi:
@@ -251,11 +263,21 @@ namespace PhoenixEngine.Engine
                 case Languages.Persian:
                 case Languages.Russian:
                 case Languages.Ukrainian:
-                    return (int)(RawLength * 1.5);
+                    TextLength = (int)(RawLength * 1.5);
+                    break;
 
                 default:
-                    return RawLength;
+                    TextLength = RawLength;
+                    break;
             }
+
+            if (IncludeTag)
+            {
+                const int TagLength = 30;
+                return TextLength + TagLength;
+            }
+
+            return TextLength;
         }
 
         public double MarkHeadsPercent = 0;
@@ -402,7 +424,7 @@ namespace PhoenixEngine.Engine
 
             foreach (var GetHead in Heads.Values)
             {
-                int HeadSize = CalcTokenLength(GetHead.Original, TranslatorRef.From);
+                int HeadSize = CalcTokenLength(GetHead.Original, TranslatorRef.From,true, false);
                 var Bucket = new P_Bucket(this.AddedKeys, GetHead, P_BucketContainer.BucketLengthLimit, HeadSize);
                 Bucket.HeadTokens = TextTokenizer.BuildTokenSignature(TranslatorRef.From, GetHead.Original);
                 Bucket.Next = null;
@@ -426,7 +448,7 @@ namespace PhoenixEngine.Engine
 
             foreach (var Unit in TempUnits)
             {
-                int UnitSize = CalcTokenLength(Unit.Original, TranslatorRef.From);
+                int UnitSize = CalcTokenLength(Unit.Original, TranslatorRef.From,true, false);
                 var TokensB = TextTokenizer.BuildTokenSignature(TranslatorRef.From, Unit.Original);
 
                 if (TokensB.Count == 0)
@@ -470,9 +492,22 @@ namespace PhoenixEngine.Engine
 
                     while (Current != null)
                     {
-                        if (Current.RemainingSize >= UnitSize)
+                        bool IsDuplicate = false;
+                        var ExistingUnits = Current.GetUnits();
+                        foreach (var ExistingUnit in ExistingUnits)
                         {
-                            Current.Add(Unit, UnitSize);
+                            if (ExistingUnit.Original == Unit.Original)
+                            {
+                                IsDuplicate = true;
+                                break;
+                            }
+                        }
+
+                        int ActualUnitSize = CalcTokenLength(Unit.Original, TranslatorRef.From,true, IsDuplicate);
+
+                        if (Current.RemainingSize >= ActualUnitSize)
+                        {
+                            Current.Add(Unit, ActualUnitSize);
                             Placed = true;
                             break;
                         }
@@ -548,7 +583,7 @@ namespace PhoenixEngine.Engine
     {
         public int RemainingSize = 0;
         public int ID = 0;
-        public BaseUnit Head = null;//"Leader" doesn't sound great; "Head" would be better.
+        public BaseUnit Head = null;
         private List<BaseUnit> BaseUnits = new List<BaseUnit>();
         public P_Bucket Next = null;
 
