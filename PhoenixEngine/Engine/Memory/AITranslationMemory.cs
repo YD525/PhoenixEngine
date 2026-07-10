@@ -360,7 +360,7 @@ namespace PhoenixEngine.Memory
 
             UnitGroup HeadSource = UnitRef;
 
-            if (HeadSource.Bucket.Head == null)
+            if (HeadSource.Bucket.Type == 1)//In non similarity mode, do not return unrelated content, as the ESP reading class can already fully extract the conversation associations
             {
                 return new List<string>();
             }

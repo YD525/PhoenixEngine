@@ -1,10 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using PhoenixEngine.ADO;
 using PhoenixEngine.Language;
-using PhoenixEngine.P_Delegate;
-using PhoenixEngine.Translate;
 
 namespace PhoenixEngine.Engine
 {
@@ -155,6 +154,8 @@ namespace PhoenixEngine.Engine
                 }
             }
 
+            string OriginalSourceStr = SourceStr;
+
             var Tags = AdvancedDictionary.Query(FileName, Type, From, To, SourceStr, UseWordBoundary);
 
             if (ForceReplace)
@@ -185,6 +186,8 @@ namespace PhoenixEngine.Engine
             }
             else
             {
+                var FoundSources = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
                 for (int i = 0; i < Tags.Count; i++)
                 {
                     var Word = Tags[i];
@@ -208,13 +211,45 @@ namespace PhoenixEngine.Engine
 
                     if (Found)
                     {
+                        FoundSources.Add(Source);
+
                         ReplaceTags.Add(new ReplaceTag(Tags[i].Rowid, Word.Source, Word.Result)
                         {
                             IsHint = true
                         });
                     }
                 }
+
+                string CheckText = SourceStr;
+                foreach (var Tag in ReplaceTags)
+                {
+                    if (!Tag.IsHint && Tag.Key.Contains("[_") && Tag.Key.Contains("]"))
+                    {
+                        CheckText = CheckText.Replace(Tag.Key, "");
+                    }
+                }
+
+                foreach (var FoundSource in FoundSources)
+                {
+                    if (UseWordBoundary)
+                    {
+                        string Pattern = Regex.Escape(FoundSource);
+                        CheckText = Regex.Replace(CheckText, Pattern, "", RegexOptions.IgnoreCase);
+                    }
+                    else
+                    {
+                        CheckText = CheckText.Replace(FoundSource, "");
+                    }
+                }
+
+                CheckText = Regex.Replace(CheckText, @"[\s\u3000]", "");
+                NeedFurtherTranslate = !string.IsNullOrWhiteSpace(CheckText.Trim());
+
+                this.SourceStr = SourceStr;
+                HasPlaceholder = ReplaceTags.Count > 0;
+                return SourceStr;
             }
+
 
             string Residual = SourceStr;
             foreach (var Tag in ReplaceTags)
@@ -231,10 +266,12 @@ namespace PhoenixEngine.Engine
             return SourceStr;
         }
 
-        public string RestoreFromPlaceholder(string Str, Languages Lang)
+        public string RestoreFromPlaceholder(string Str, Languages Lang, bool RestoreHints = false)
         {
             if (string.IsNullOrEmpty(Str) || ReplaceTags.Count == 0)
                 return Str;
+
+            string Result = Str;
 
             Dictionary<string, string> IDToValueMap = new Dictionary<string, string>();
 
@@ -253,7 +290,7 @@ namespace PhoenixEngine.Engine
 
             string Pattern = @"[\[【\(（]\s*_\s*([Pp]?\d+)\s*[\]】\)）]";
 
-            string Result = Regex.Replace(Str, Pattern, Match =>
+            Result = Regex.Replace(Result, Pattern, Match =>
             {
                 string ID = Match.Groups[1].Value.Trim().ToUpper();
 
@@ -264,6 +301,17 @@ namespace PhoenixEngine.Engine
 
                 return Match.Value;
             }, RegexOptions.IgnoreCase);
+
+            if (RestoreHints)
+            {
+                foreach (var Tag in ReplaceTags)
+                {
+                    if (Tag.IsHint && !string.IsNullOrEmpty(Tag.Key) && !string.IsNullOrEmpty(Tag.Value))
+                    {
+                        Result = Result.Replace(Tag.Key, Tag.Value);
+                    }
+                }
+            }
 
             return Result;
         }

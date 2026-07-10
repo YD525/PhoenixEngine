@@ -116,7 +116,7 @@ namespace PhoenixEngine.Engine
                             HandledInThisStage.Add(Link.Key);
                         }
 
-                        var Bucket = new P_Bucket(this.AddedKeys, null, 9999, 0);
+                        var Bucket = new P_Bucket(this.AddedKeys, null, 9999, 0 , 1);
                         Bucket.Add(FilteredLinks, 0);
                         this.BookBuckets.Add(Bucket);
 
@@ -124,7 +124,7 @@ namespace PhoenixEngine.Engine
                     }
                     else
                     {
-                        var Bucket = new P_Bucket(this.AddedKeys, null, 9999, 0);
+                        var Bucket = new P_Bucket(this.AddedKeys, null, 9999, 0, 0);
                         Bucket.Add(GetItem, 0);
                         this.BookBuckets.Add(Bucket);
 
@@ -151,7 +151,7 @@ namespace PhoenixEngine.Engine
 
                         var BucketIndex = 0;
                         List<P_Bucket> Buckets = new List<P_Bucket>();
-                        Buckets.Add(new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0));
+                        Buckets.Add(new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0 ,1));
 
                         var SeenInCurrentBucket = new HashSet<string>();
 
@@ -166,7 +166,7 @@ namespace PhoenixEngine.Engine
                             }
                             else
                             {
-                                var NewBucket = new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0);
+                                var NewBucket = new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0, 1);
                                 NewBucket.Next = null;
 
                                 Buckets[BucketIndex].Next = NewBucket;
@@ -425,7 +425,7 @@ namespace PhoenixEngine.Engine
             foreach (var GetHead in Heads.Values)
             {
                 int HeadSize = CalcTokenLength(GetHead.Original, TranslatorRef.From,true, false);
-                var Bucket = new P_Bucket(this.AddedKeys, GetHead, P_BucketContainer.BucketLengthLimit, HeadSize);
+                var Bucket = new P_Bucket(this.AddedKeys, GetHead, P_BucketContainer.BucketLengthLimit, HeadSize, 0);
                 Bucket.HeadTokens = TextTokenizer.BuildTokenSignature(TranslatorRef.From, GetHead.Original);
                 Bucket.Next = null;
                 this.UnitBuckets.Add(Bucket);
@@ -453,7 +453,7 @@ namespace PhoenixEngine.Engine
 
                 if (TokensB.Count == 0)
                 {
-                    var NewIndependentBucket = new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0);
+                    var NewIndependentBucket = new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0, 0);
                     NewIndependentBucket.Add(Unit, UnitSize);
                     this.UnitBuckets.Add(NewIndependentBucket);
 
@@ -517,7 +517,7 @@ namespace PhoenixEngine.Engine
 
                     if (!Placed)
                     {
-                        var NewBucket = new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0);
+                        var NewBucket = new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0, 0);
                         NewBucket.Add(Unit, UnitSize);
                         NewBucket.HeadTokens = new HashSet<string>();
                         NewBucket.Next = null;
@@ -530,7 +530,7 @@ namespace PhoenixEngine.Engine
                 }
                 else
                 {
-                    var NewIndependentBucket = new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0);
+                    var NewIndependentBucket = new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0, 0);
                     NewIndependentBucket.Add(Unit, UnitSize);
                     this.UnitBuckets.Add(NewIndependentBucket);
                 }
@@ -587,8 +587,10 @@ namespace PhoenixEngine.Engine
         private List<BaseUnit> BaseUnits = new List<BaseUnit>();
         public P_Bucket Next = null;
 
+        public int Type = 0;
+
         public HashSet<string> HeadTokens = new HashSet<string>();
-        public P_Bucket(HashSet<string> KeysRef, BaseUnit Head, int RemainingSize, int HeadLength)
+        public P_Bucket(HashSet<string> KeysRef, BaseUnit Head, int RemainingSize, int HeadLength,int Type)
         {
             this.Head = Head;
 
@@ -602,6 +604,8 @@ namespace PhoenixEngine.Engine
             {
                 this.BaseUnits.Add(this.Head);
             }
+
+            this.Type = Type;//1 is the original order bucket mode, and 0 is the traditional similarity bucket mode
         }
 
         public void Add(List<BaseUnit> Units, int Size)

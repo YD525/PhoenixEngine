@@ -186,8 +186,8 @@ namespace PhoenixEngine.Sequence
         }
 
         public static void StartGeneratePlaceholder(this UnitGroup Item,
-            Translator TranslatorRef,Languages From, Languages To,
-            ref Dictionary<string, UnitSequence> Sequences,bool ForceReplace)
+      Translator TranslatorRef, Languages From, Languages To,
+      ref Dictionary<string, UnitSequence> Sequences, bool ForceReplace)
         {
             for (int i = 0; i < Item.Units.Count; i++)
             {
@@ -232,7 +232,7 @@ namespace PhoenixEngine.Sequence
                     if (!CanTrans)
                     {
                         GetUnit.Original = GetUnit.GetRealOriginal();
-                        Sequences[GetUnit.Key].Data = Preprocessor.RestoreFromPlaceholder(Source, To);
+                        Sequences[GetUnit.Key].Data = Preprocessor.RestoreFromPlaceholder(Source, To, true);
                         Sequences[GetUnit.Key].HasPlaceholder = false;
                         Sequences[GetUnit.Key].CanUpdateDB = false;
 
@@ -241,6 +241,10 @@ namespace PhoenixEngine.Sequence
 
                         TranslatorRef.AddAIMemory(GetUnit.GetRealOriginal(), Sequences[GetUnit.Key].Data);
                     }
+                    else
+                    {
+                        Sequences[GetUnit.Key].CanSkip = false;
+                    }
                 }
                 else
                 {
@@ -248,8 +252,44 @@ namespace PhoenixEngine.Sequence
                     CanTrans = true;
                 }
             }
-        }
 
+            // In sequential dialogue mode (Type == 1), we must preserve the conversation order.
+            // If a later dialogue cannot be skipped (i.e., it requires AI translation),
+            // all preceding dialogues that were marked as skippable must be reverted and sent to AI as well.
+            // Skipping earlier dialogues while keeping later ones would break the conversation flow and context continuity.
+            // Therefore, once we encounter the first non-skippable unit, all previous units are forced to be processed by AI.
+            if (Item.Bucket != null && Item.Bucket.Type == 1)
+            {
+                for (int i = 0; i < Item.Units.Count; i++)
+                {
+                    var GetUnit = Item.Units[i];
+                    var CurrentSequence = Sequences[GetUnit.Key];
+
+                    if (!CurrentSequence.CanSkip)
+                    {
+                        for (int j = 0; j < i; j++)
+                        {
+                            var PrevUnit = Item.Units[j];
+                            var PrevSequence = Sequences[PrevUnit.Key];
+
+                            if (PrevSequence.CanSkip)
+                            {
+                                PrevSequence.CanSkip = false;
+                                PrevSequence.HasPlaceholder = true;
+                                PrevSequence.CanUpdateDB = false;
+
+                                PrevUnit.Original = PrevUnit.GetRealOriginal();
+                                PrevUnit.Translated = "";
+
+                                PrevSequence.Data = PrevUnit.GetRealOriginal();
+                            }
+                        }
+
+                        break;
+                    }
+                }
+            }
+        }
 
         public static void EndGeneratePlaceholder(this UnitGroup Item,
             Languages From, Languages To,
