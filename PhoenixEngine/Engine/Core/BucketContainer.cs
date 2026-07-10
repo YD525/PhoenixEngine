@@ -116,7 +116,7 @@ namespace PhoenixEngine.Engine
                             HandledInThisStage.Add(Link.Key);
                         }
 
-                        var Bucket = new P_Bucket(this.AddedKeys, null, 9999, 0 , 1);
+                        var Bucket = new P_Bucket(this.AddedKeys, null, 9999, 0, 1);
                         Bucket.Add(FilteredLinks, 0);
                         this.BookBuckets.Add(Bucket);
 
@@ -523,7 +523,7 @@ namespace PhoenixEngine.Engine
                     {
                         var NewBucket = new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0, 0);
                         NewBucket.Add(Unit, UnitSize);
-                        
+
                         NewBucket.HeadTokens = BestHeadBucket.HeadTokens;
                         NewBucket.Next = null;
                         if (Last != null)
@@ -732,7 +732,7 @@ namespace PhoenixEngine.Engine
         public int Type = 0;
 
         public HashSet<string> HeadTokens = new HashSet<string>();
-        public P_Bucket(HashSet<string> KeysRef, BaseUnit Head, int RemainingSize, int HeadLength,int Type)
+        public P_Bucket(HashSet<string> KeysRef, BaseUnit Head, int RemainingSize, int HeadLength, int Type)
         {
             this.Head = Head;
 
@@ -765,8 +765,8 @@ namespace PhoenixEngine.Engine
         }
 
         public List<BaseUnit> GetUnits()
-        { 
-           return this.BaseUnits;
+        {
+            return this.BaseUnits;
         }
     }
 }
