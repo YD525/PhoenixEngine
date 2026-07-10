@@ -187,7 +187,7 @@ namespace PhoenixEngine.Sequence
 
         public static void StartGeneratePlaceholder(this UnitGroup Item,
             Translator TranslatorRef,Languages From, Languages To,
-            ref Dictionary<string, UnitSequence> Sequences)
+            ref Dictionary<string, UnitSequence> Sequences,bool ForceReplace)
         {
             for (int i = 0; i < Item.Units.Count; i++)
             {
@@ -209,7 +209,7 @@ namespace PhoenixEngine.Sequence
 
                     NPreTranslateCall.SendString = Source;
 
-                    Source = Preprocessor.GeneratePlaceholderText(TranslatorRef.LastLoadFileName, From, To, Source, GetUnit.Type, out CanTrans);
+                    Source = Preprocessor.GeneratePlaceholderText(TranslatorRef.LastLoadFileName, From, To, Source, GetUnit.Type, out CanTrans, ForceReplace);
 
                     CustomWords.Clear();
                     foreach (var GetWord in Preprocessor.ReplaceTags)

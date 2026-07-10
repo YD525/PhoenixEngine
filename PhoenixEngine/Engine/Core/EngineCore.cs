@@ -405,7 +405,14 @@ namespace PhoenixEngine.Engine
             public string Call(string TranslatorID, CancellationToken CancelToken,Translator TranslatorRef, ref UnitGroup Source,ref Dictionary<string, UnitSequence> Sequences,
                Languages From,Languages To,bool UseAIMemory,int AIMemoryQueryLimit,string AIParam,ref string SetType)
             {
-                Source.StartGeneratePlaceholder(TranslatorRef, From, To, ref Sequences);
+                bool ForceReplace = true;
+
+                if (this.ApiRef is ChatGptApi || this.ApiRef is GeminiApi || this.ApiRef is DeepSeekApi || this.ApiRef is LMStudio || this.ApiRef is CustomAIApi || this.ApiRef is CustomLocalAIApi || this.ApiRef is HumanTranslationApi)
+                {
+                    ForceReplace = false;
+                }
+
+                Source.StartGeneratePlaceholder(TranslatorRef, From, To, ref Sequences, ForceReplace);
               
                 CheckCanSkip(TranslatorID,Sequences, ref Source);
 

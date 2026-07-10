@@ -13,6 +13,8 @@ namespace PhoenixEngine.Engine
         public int Rowid = 0;
         public string Key { get; set; } = "";
         public string Value { get; set; } = "";
+        public bool IsHint { get; set; } = false;  
+        public bool IsProtected { get; set; } = false; 
         public ReplaceTag(string Key, string Value)
         {
             this.Key = Key;
@@ -119,11 +121,12 @@ namespace PhoenixEngine.Engine
             return Tags;
         }
 
-        public string GeneratePlaceholderText(string FileName, Languages From, Languages To, string SourceStr, string Type, out bool NeedFurtherTranslate)
+        public string GeneratePlaceholderText(string FileName, Languages From, Languages To, string SourceStr, string Type, out bool NeedFurtherTranslate, bool ForceReplace)
         {
             ReplaceTags.Clear();
             HasPlaceholder = false;
             bool UseWordBoundary = LanguageExtensions.IsSpaceDelimitedLanguage(From);
+
             var ProtectedTags = GenerateProtectedTags(SourceStr, false);
             for (int i = 0; i < ProtectedTags.Count; i++)
             {
@@ -151,34 +154,75 @@ namespace PhoenixEngine.Engine
                     }
                 }
             }
+
             var Tags = AdvancedDictionary.Query(FileName, Type, From, To, SourceStr, UseWordBoundary);
-            for (int i = 0; i < Tags.Count; i++)
+
+            if (ForceReplace)
             {
-                var Word = Tags[i];
-                string Placeholder = $"[_{i}]";
-                string Source = Word.Source;
-                if (UseWordBoundary)
+                for (int i = 0; i < Tags.Count; i++)
                 {
-                    string Pattern = Regex.Escape(Source);
-                    if (Regex.IsMatch(SourceStr, Pattern, RegexOptions.IgnoreCase))
+                    var Word = Tags[i];
+                    string Placeholder = $"[_{i}]";
+                    string Source = Word.Source;
+                    if (UseWordBoundary)
                     {
-                        SourceStr = Regex.Replace(SourceStr, Pattern, Placeholder, RegexOptions.IgnoreCase);
-                        ReplaceTags.Add(new ReplaceTag(Tags[i].Rowid, Placeholder, Word.Result));
+                        string Pattern = Regex.Escape(Source);
+                        if (Regex.IsMatch(SourceStr, Pattern, RegexOptions.IgnoreCase))
+                        {
+                            SourceStr = Regex.Replace(SourceStr, Pattern, Placeholder, RegexOptions.IgnoreCase);
+                            ReplaceTags.Add(new ReplaceTag(Tags[i].Rowid, Placeholder, Word.Result));
+                        }
                     }
-                }
-                else
-                {
-                    if (SourceStr.Contains(Source))
+                    else
                     {
-                        SourceStr = SourceStr.Replace(Source, Placeholder);
-                        ReplaceTags.Add(new ReplaceTag(Tags[i].Rowid, Placeholder, Word.Result));
+                        if (SourceStr.Contains(Source))
+                        {
+                            SourceStr = SourceStr.Replace(Source, Placeholder);
+                            ReplaceTags.Add(new ReplaceTag(Tags[i].Rowid, Placeholder, Word.Result));
+                        }
                     }
                 }
             }
-            string Residual = SourceStr;
-            foreach (var tag in ReplaceTags)
+            else
             {
-                Residual = Residual.Replace(tag.Key, "");
+                for (int i = 0; i < Tags.Count; i++)
+                {
+                    var Word = Tags[i];
+                    string Source = Word.Source;
+                    bool Found = false;
+                    if (UseWordBoundary)
+                    {
+                        string Pattern = Regex.Escape(Source);
+                        if (Regex.IsMatch(SourceStr, Pattern, RegexOptions.IgnoreCase))
+                        {
+                            Found = true;
+                        }
+                    }
+                    else
+                    {
+                        if (SourceStr.Contains(Source))
+                        {
+                            Found = true;
+                        }
+                    }
+
+                    if (Found)
+                    {
+                        ReplaceTags.Add(new ReplaceTag(Tags[i].Rowid, Word.Source, Word.Result)
+                        {
+                            IsHint = true
+                        });
+                    }
+                }
+            }
+
+            string Residual = SourceStr;
+            foreach (var Tag in ReplaceTags)
+            {
+                if (!Tag.IsHint && Tag.Key.Contains("[_") && Tag.Key.Contains("]"))
+                {
+                    Residual = Residual.Replace(Tag.Key, "");
+                }
             }
             Residual = Regex.Replace(Residual, @"[\s\u3000]", "");
             NeedFurtherTranslate = !string.IsNullOrWhiteSpace(Residual.Trim());
@@ -196,6 +240,9 @@ namespace PhoenixEngine.Engine
 
             foreach (var Tag in ReplaceTags)
             {
+                if (Tag.IsHint)
+                    continue;
+
                 var Match = Regex.Match(Tag.Key, @"\[_([Pp]?\d+)\]");
                 if (Match.Success)
                 {
