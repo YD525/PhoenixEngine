@@ -14,11 +14,12 @@ namespace PhoenixEngine.Unit
         private string RealOriginal = "";
         public string Original = "";
         public string Translated = "";
+        public string Emotion = "";
         public bool Head = false;
         public double TempSim = 0;
 
         public BaseUnit() { }
-        public BaseUnit(int FileUniqueKey, string Key, string Type, string Original, string Translated, double Score)
+        public BaseUnit(int FileUniqueKey, string Key, string Type, string Original, string Translated,string Emotion,double Score)
         {
             this.FileUniqueKey = FileUniqueKey;
             this.Key = Key;
@@ -31,6 +32,7 @@ namespace PhoenixEngine.Unit
            
             this.Original = Original;
             this.Translated = Translated;
+            this.Emotion = Emotion;
             this.Score = Score;
         }
 
@@ -44,6 +46,7 @@ namespace PhoenixEngine.Unit
                 Type = this.Type,
                 Original = this.Original,
                 Translated = this.Translated,
+                Emotion = this.Emotion,
                 Head = this.Head,
                 TempSim = this.TempSim
             };

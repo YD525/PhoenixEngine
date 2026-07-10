@@ -124,6 +124,7 @@ namespace PhoenixEngine.Translate
                        Unit.Type,
                        Chunk.Data,
                        string.Empty,
+                       Unit.Emotion,
                        Unit.Score
                    ));
                 }
@@ -260,7 +261,7 @@ namespace PhoenixEngine.Translate
                     }
                 }
                 UnitGroup ReturnItem = new UnitGroup();
-                BaseUnit SingleUnit = new BaseUnit(GetFrist.FileUniqueKey, GetFrist.Key, GetFrist.Type, GetFrist.Original, MergeLine, 100);
+                BaseUnit SingleUnit = new BaseUnit(GetFrist.FileUniqueKey, GetFrist.Key, GetFrist.Type, GetFrist.Original, MergeLine,GetFrist.Emotion, 100);
 
                 ReturnItem.Units.Add(SingleUnit);
 
