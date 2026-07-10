@@ -424,7 +424,7 @@ namespace PhoenixEngine.Engine
 
             foreach (var GetHead in Heads.Values)
             {
-                int HeadSize = CalcTokenLength(GetHead.Original, TranslatorRef.From,true, false);
+                int HeadSize = CalcTokenLength(GetHead.Original, TranslatorRef.From, true, false);
                 var Bucket = new P_Bucket(this.AddedKeys, GetHead, P_BucketContainer.BucketLengthLimit, HeadSize, 0);
                 Bucket.HeadTokens = TextTokenizer.BuildTokenSignature(TranslatorRef.From, GetHead.Original);
                 Bucket.Next = null;
@@ -441,6 +441,7 @@ namespace PhoenixEngine.Engine
             {
                 MarkHeadsPercent = 100;
                 RemoveEmptyBuckets();
+                MergeBuckets();
                 return;
             }
 
@@ -448,7 +449,7 @@ namespace PhoenixEngine.Engine
 
             foreach (var Unit in TempUnits)
             {
-                int UnitSize = CalcTokenLength(Unit.Original, TranslatorRef.From,true, false);
+                int UnitSize = CalcTokenLength(Unit.Original, TranslatorRef.From, true, false);
                 var TokensB = TextTokenizer.BuildTokenSignature(TranslatorRef.From, Unit.Original);
 
                 if (TokensB.Count == 0)
@@ -503,7 +504,7 @@ namespace PhoenixEngine.Engine
                             }
                         }
 
-                        int ActualUnitSize = CalcTokenLength(Unit.Original, TranslatorRef.From,true, IsDuplicate);
+                        int ActualUnitSize = CalcTokenLength(Unit.Original, TranslatorRef.From, true, IsDuplicate);
 
                         if (Current.RemainingSize >= ActualUnitSize)
                         {
@@ -519,7 +520,8 @@ namespace PhoenixEngine.Engine
                     {
                         var NewBucket = new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0, 0);
                         NewBucket.Add(Unit, UnitSize);
-                        NewBucket.HeadTokens = new HashSet<string>();
+                        
+                        NewBucket.HeadTokens = BestHeadBucket.HeadTokens;
                         NewBucket.Next = null;
                         if (Last != null)
                             Last.Next = NewBucket;
@@ -543,7 +545,141 @@ namespace PhoenixEngine.Engine
             }
 
             RemoveEmptyBuckets();
+            MergeBuckets();
             MarkHeadsPercent = 100;
+        }
+
+        private void MergeBuckets()
+        {
+            var MergeableBuckets = new List<P_Bucket>();
+
+            foreach (var Bucket in UnitBuckets)
+            {
+                if (Bucket.Type == 0 && Bucket.Head == null)
+                {
+                    MergeableBuckets.Add(Bucket);
+                }
+
+                var Current = Bucket.Next;
+                while (Current != null)
+                {
+                    if (Current.Type == 0 && Current.Head == null)
+                    {
+                        MergeableBuckets.Add(Current);
+                    }
+                    Current = Current.Next;
+                }
+            }
+
+            if (MergeableBuckets.Count <= 1)
+                return;
+
+            var KeptBuckets = new List<P_Bucket>();
+            var MergedBuckets = new List<P_Bucket>();
+
+            foreach (var Bucket in MergeableBuckets)
+            {
+                var Units = Bucket.GetUnits();
+                if (Units.Count == 0)
+                {
+                    MergedBuckets.Add(Bucket);
+                    continue;
+                }
+
+                bool Merged = false;
+
+                HashSet<string> BucketHeadTokens = Bucket.HeadTokens;
+
+                foreach (var TargetBucket in KeptBuckets)
+                {
+                    if (BucketHeadTokens != null && TargetBucket.HeadTokens != null)
+                    {
+                        if (!BucketHeadTokens.SetEquals(TargetBucket.HeadTokens))
+                        {
+                            continue;
+                        }
+                    }
+                    else if (BucketHeadTokens != null || TargetBucket.HeadTokens != null)
+                    {
+                        continue;
+                    }
+
+                    var ExistingOriginals = new HashSet<string>();
+                    foreach (var ExistingUnit in TargetBucket.GetUnits())
+                    {
+                        ExistingOriginals.Add(ExistingUnit.Original);
+                    }
+
+                    int TotalSize = 0;
+                    bool CanFit = true;
+
+                    foreach (var Unit in Units)
+                    {
+                        bool IsDuplicate = ExistingOriginals.Contains(Unit.Original);
+
+                        int UnitSize = CalcTokenLength(Unit.Original, TranslatorRef.From, true, IsDuplicate);
+                        TotalSize += UnitSize;
+                    }
+
+                    if (TargetBucket.RemainingSize < TotalSize)
+                    {
+                        CanFit = false;
+                    }
+
+                    if (CanFit)
+                    {
+                        foreach (var Unit in Units)
+                        {
+                            bool IsDuplicate = ExistingOriginals.Contains(Unit.Original);
+
+                            int UnitSize = CalcTokenLength(Unit.Original, TranslatorRef.From, true, IsDuplicate);
+                            TargetBucket.Add(Unit, UnitSize);
+
+                            if (!IsDuplicate)
+                            {
+                                ExistingOriginals.Add(Unit.Original);
+                            }
+                        }
+
+                        MergedBuckets.Add(Bucket);
+                        Merged = true;
+                        break;
+                    }
+                }
+
+                if (!Merged)
+                {
+                    KeptBuckets.Add(Bucket);
+                }
+            }
+
+            foreach (var Bucket in MergedBuckets)
+            {
+                RemoveBucketFromList(Bucket);
+            }
+        }
+
+        private void RemoveBucketFromList(P_Bucket TargetBucket)
+        {
+            if (UnitBuckets.Contains(TargetBucket))
+            {
+                UnitBuckets.Remove(TargetBucket);
+                return;
+            }
+
+            foreach (var Bucket in UnitBuckets)
+            {
+                var Current = Bucket;
+                while (Current != null && Current.Next != null)
+                {
+                    if (Current.Next == TargetBucket)
+                    {
+                        Current.Next = Current.Next.Next;
+                        return;
+                    }
+                    Current = Current.Next;
+                }
+            }
         }
 
         private void RemoveEmptyBuckets()
