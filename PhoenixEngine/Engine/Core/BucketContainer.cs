@@ -549,7 +549,9 @@ namespace PhoenixEngine.Engine
 
             RemoveEmptyBuckets();
             MergeBuckets();
+
             MarkHeadsPercent = 100;
+            GC.Collect();
         }
 
         private void MergeBuckets()
@@ -583,6 +585,7 @@ namespace PhoenixEngine.Engine
             foreach (var Bucket in MergeableBuckets)
             {
                 var Units = Bucket.GetUnits().ToList();
+
                 if (Units.Count == 0)
                 {
                     MergedBuckets.Add(Bucket);
