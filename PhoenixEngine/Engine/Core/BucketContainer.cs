@@ -413,8 +413,6 @@ namespace PhoenixEngine.Engine
         }
         public void BuildBuckets()
         {
-            this.UnitBuckets.Clear();
-
             int TotalToProcess = Heads.Count + TempUnits.Count;
             if (TotalToProcess == 0)
             {
@@ -704,14 +702,15 @@ namespace PhoenixEngine.Engine
         {
             var Group = new UnitGroup();
             var Units = Bucket.GetUnits();
+
+            Group.Mode = AggregationMode.Aggregation;
+
             if (Bucket.Head != null)
             {
-                Group.Mode = AggregationMode.Aggregation;
                 Group.Key = Index.ToString();
             }
             else
             {
-                Group.Mode = AggregationMode.Single;
                 Group.Key = Units.Count > 0 ? Units[0].Key : string.Empty;
             }
 
