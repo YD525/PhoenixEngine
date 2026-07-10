@@ -60,7 +60,15 @@ namespace PhoenixEngine.Unit
                     Seen[Key] = TagIndex;
                     TagIndexToUnitIndices[TagIndex] = new List<int> { i };
 
-                    Html += string.Format("<li data-unit-id='{0}'>{1}</li>\n", TagIndex, Unit.Original);
+                    if (!string.IsNullOrEmpty(Unit.Emotion))
+                    {
+                        Html += string.Format("<li data-unit-id='{0}' data-emotion='{1}'>{2}</li>\n", TagIndex, Unit.Emotion, Unit.Original);
+                    }
+                    else
+                    {
+                        Html += string.Format("<li data-unit-id='{0}'>{1}</li>\n", TagIndex, Unit.Original);
+                    }
+
                     CanTrans = true;
                     TagIndex++;
                 }
