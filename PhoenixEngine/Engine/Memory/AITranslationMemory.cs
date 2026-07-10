@@ -358,26 +358,26 @@ namespace PhoenixEngine.Memory
             List<string> MemoryList = new List<string>();
             int UsedLength = 0;
 
-            UnitGroup LeaderSource = UnitRef;
-            while (LeaderSource.LinkTo != null)
-                LeaderSource = LeaderSource.LinkTo;
+            UnitGroup HeadSource = UnitRef;
 
-            BaseUnit Leader = (LeaderSource.Units.Count > 0) ? LeaderSource.Units[0] : null;
-
-            if (Leader != null)
+            if (HeadSource.Bucket.Head == null)
             {
-                var LeaderCandidates = Phoenix.AIMemory.FindRelevantTranslationsPublic(
-                    From, To, Leader.Original, ContextLength
-                );
-                if (LeaderCandidates.Count > 0)
+                return new List<string>();
+            }
+
+            BaseUnit Head = (HeadSource.Units.Count > 0) ? HeadSource.Units[0] : null;
+
+            var LeaderCandidates = Phoenix.AIMemory.FindRelevantTranslationsPublic(
+                   From, To, Head.Original, ContextLength
+               );
+            if (LeaderCandidates.Count > 0)
+            {
+                string LeaderEntry = LeaderCandidates[0];
+                if (UsedLength + LeaderEntry.Length <= ContextLength)
                 {
-                    string LeaderEntry = LeaderCandidates[0];
-                    if (UsedLength + LeaderEntry.Length <= ContextLength)
-                    {
-                        MemorySet.Add(LeaderEntry);
-                        MemoryList.Add(LeaderEntry);
-                        UsedLength += LeaderEntry.Length;
-                    }
+                    MemorySet.Add(LeaderEntry);
+                    MemoryList.Add(LeaderEntry);
+                    UsedLength += LeaderEntry.Length;
                 }
             }
 

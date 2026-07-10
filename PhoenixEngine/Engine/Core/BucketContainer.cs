@@ -161,7 +161,12 @@ namespace PhoenixEngine.Engine
                             }
                             else
                             {
-                                Buckets.Add(new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0));
+                                var NewBucket = new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0);
+                                NewBucket.Next = null;
+
+                                Buckets[BucketIndex].Next = NewBucket;
+
+                                Buckets.Add(NewBucket);
 
                                 BucketIndex++;
 
@@ -383,8 +388,9 @@ namespace PhoenixEngine.Engine
         }
         public void BuildBuckets()
         {
-            int TotalToProcess = Heads.Count + TempUnits.Count;
+            this.UnitBuckets.Clear();
 
+            int TotalToProcess = Heads.Count + TempUnits.Count;
             if (TotalToProcess == 0)
             {
                 MarkHeadsPercent = 100;
@@ -396,12 +402,10 @@ namespace PhoenixEngine.Engine
 
             foreach (var GetHead in Heads.Values)
             {
-                int HeadSize = CalcTokenLength(GetHead.Original, P_Language.DetectLanguageByLine(GetHead.Original));
-
+                int HeadSize = CalcTokenLength(GetHead.Original, TranslatorRef.From);
                 var Bucket = new P_Bucket(this.AddedKeys, GetHead, P_BucketContainer.BucketLengthLimit, HeadSize);
-
                 Bucket.HeadTokens = TextTokenizer.BuildTokenSignature(TranslatorRef.From, GetHead.Original);
-
+                Bucket.Next = null;
                 this.UnitBuckets.Add(Bucket);
 
                 ProcessedCount++;
@@ -414,6 +418,7 @@ namespace PhoenixEngine.Engine
             if (TempUnits.Count == 0)
             {
                 MarkHeadsPercent = 100;
+                RemoveEmptyBuckets();
                 return;
             }
 
@@ -421,11 +426,9 @@ namespace PhoenixEngine.Engine
 
             foreach (var Unit in TempUnits)
             {
-                P_Bucket BestBucket = null;
-                double MaxSimilarity = -1;
                 int UnitSize = CalcTokenLength(Unit.Original, TranslatorRef.From);
-
                 var TokensB = TextTokenizer.BuildTokenSignature(TranslatorRef.From, Unit.Original);
+
                 if (TokensB.Count == 0)
                 {
                     var NewIndependentBucket = new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0);
@@ -434,52 +437,66 @@ namespace PhoenixEngine.Engine
 
                     ProcessedCount++;
                     if (ProcessedCount % UpdateInterval == 0)
-                    {
                         MarkHeadsPercent = 70 + Math.Round(Math.Min(ProcessedCount, TotalToProcess) * 30.0 / TotalToProcess, 2);
-                    }
                     continue;
                 }
 
+                P_Bucket BestHeadBucket = null;
+                double MaxSimilarity = -1;
+
                 foreach (var Bucket in this.UnitBuckets)
                 {
-                    if (Bucket.Head == null)
-                        continue;
-
-                    if (Bucket.RemainingSize < UnitSize)
-                        continue;
+                    if (Bucket.Head == null) continue;
 
                     var TokensA = Bucket.HeadTokens;
-                    if (TokensA == null || TokensA.Count == 0)
-                        continue;
+                    if (TokensA == null || TokensA.Count == 0) continue;
 
-                    int IntersectCount = 0;
-                    foreach (var token in TokensA)
-                    {
-                        if (TokensB.Contains(token))
-                            IntersectCount++;
-                    }
-
+                    int IntersectCount = TokensA.Count(token => TokensB.Contains(token));
                     int UnionCount = TokensA.Count + TokensB.Count - IntersectCount;
                     double Similarity = (double)IntersectCount / UnionCount;
 
                     if (Similarity > MaxSimilarity)
                     {
                         MaxSimilarity = Similarity;
-                        BestBucket = Bucket;
+                        BestHeadBucket = Bucket;
                     }
                 }
 
-                if (BestBucket != null && MaxSimilarity >= SimilarityThreshold)
+                if (BestHeadBucket != null && MaxSimilarity >= SimilarityThreshold)
                 {
-                    BestBucket.Add(Unit, UnitSize);
+                    P_Bucket Current = BestHeadBucket;
+                    P_Bucket Last = null;
+                    bool Placed = false;
+
+                    while (Current != null)
+                    {
+                        if (Current.RemainingSize >= UnitSize)
+                        {
+                            Current.Add(Unit, UnitSize);
+                            Placed = true;
+                            break;
+                        }
+                        Last = Current;
+                        Current = Current.Next;
+                    }
+
+                    if (!Placed)
+                    {
+                        var NewBucket = new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0);
+                        NewBucket.Add(Unit, UnitSize);
+                        NewBucket.HeadTokens = new HashSet<string>();
+                        NewBucket.Next = null;
+                        if (Last != null)
+                            Last.Next = NewBucket;
+                        else
+                            BestHeadBucket.Next = NewBucket;
+                        this.UnitBuckets.Add(NewBucket);
+                    }
                 }
                 else
                 {
                     var NewIndependentBucket = new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0);
                     NewIndependentBucket.Add(Unit, UnitSize);
-
-                    NewIndependentBucket.HeadTokens = new HashSet<string>();
-
                     this.UnitBuckets.Add(NewIndependentBucket);
                 }
 
@@ -490,7 +507,20 @@ namespace PhoenixEngine.Engine
                 }
             }
 
+            RemoveEmptyBuckets();
             MarkHeadsPercent = 100;
+        }
+
+        private void RemoveEmptyBuckets()
+        {
+            for (int i = UnitBuckets.Count - 1; i >= 0; i--)
+            {
+                var Bucket = UnitBuckets[i];
+                if (Bucket.Head == null && Bucket.GetUnits().Count == 0)
+                {
+                    UnitBuckets.RemoveAt(i);
+                }
+            }
         }
 
         public static UnitGroup ConvertToUnitGroup(P_Bucket Bucket, int Index)
@@ -509,6 +539,8 @@ namespace PhoenixEngine.Engine
             }
 
             Group.Units = new List<BaseUnit>(Units);
+            Group.Bucket = Bucket;
+
             return Group;
         }
     }
@@ -518,7 +550,7 @@ namespace PhoenixEngine.Engine
         public int ID = 0;
         public BaseUnit Head = null;//"Leader" doesn't sound great; "Head" would be better.
         private List<BaseUnit> BaseUnits = new List<BaseUnit>();
-        public int Next = 0;
+        public P_Bucket Next = null;
 
         public HashSet<string> HeadTokens = new HashSet<string>();
         public P_Bucket(HashSet<string> KeysRef, BaseUnit Head, int RemainingSize, int HeadLength)

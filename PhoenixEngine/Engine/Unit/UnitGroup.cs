@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using PhoenixEngine.Events;
 using PhoenixEngine.Translate;
 using PhoenixEngine.Common;
+using PhoenixEngine.Engine;
 
 namespace PhoenixEngine.Unit
 {
@@ -93,22 +94,10 @@ namespace PhoenixEngine.Unit
         public List<BaseUnit> Units = new List<BaseUnit>();
         public AggregationMode Mode = AggregationMode.Null;
 
-        public UnitGroup LinkTo = null;
+        public P_Bucket Bucket = null;
 
         public bool IsUnrelated = false;
         public volatile bool IsMemoryCreated = false;
-
-        public bool IsLeaderMemoryReady()
-        {
-            UnitGroup Current = this;
-            while (Current.LinkTo != null)
-            {
-                if (!Current.LinkTo.IsMemoryCreated)
-                    return false;
-                Current = Current.LinkTo;
-            }
-            return true;
-        }
 
         public void BatchProc(int State)
         {
