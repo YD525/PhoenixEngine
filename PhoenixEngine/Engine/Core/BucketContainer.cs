@@ -138,57 +138,60 @@ namespace PhoenixEngine.Engine
 
                     if (GetLinks != null)
                     {
-                        var DistinctLinks = GetLinks.GroupBy(Link => Link.Key).Select(L => L.First()).ToList();
-                        var FilteredLinks = DistinctLinks.Where(Link => !HandledInThisStage.Contains(Link.Key)).ToList();
-                        if (FilteredLinks.Count == 0)
+                        if (GetLinks.Count > 1)//Only projects with more than one item can establish a sequence
                         {
-                            if (ProcessedCount % UpdateInterval == 0)
+                            var DistinctLinks = GetLinks.GroupBy(Link => Link.Key).Select(L => L.First()).ToList();
+                            var FilteredLinks = DistinctLinks.Where(Link => !HandledInThisStage.Contains(Link.Key)).ToList();
+                            if (FilteredLinks.Count == 0)
                             {
-                                MarkHeadsPercent = Math.Round(Math.Min(ProcessedCount, TotalToProcess) * 40.0 / TotalToProcess, 2);
-                            }
-                            continue;
-                        }
-
-                        var BucketIndex = 0;
-                        List<P_Bucket> Buckets = new List<P_Bucket>();
-                        Buckets.Add(new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0 ,1));
-
-                        var SeenInCurrentBucket = new HashSet<string>();
-
-                        foreach (var Link in FilteredLinks)
-                        {
-                            bool IsDuplicate = !SeenInCurrentBucket.Add(Link.Original);
-                            var TokenSize = CalcTokenLength(Link.Original, P_Language.DetectLanguageByLine(Link.Original), true, IsDuplicate);
-
-                            if (Buckets[BucketIndex].RemainingSize >= TokenSize)
-                            {
-                                Buckets[BucketIndex].Add(Link, TokenSize);
-                            }
-                            else
-                            {
-                                var NewBucket = new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0, 1);
-                                NewBucket.Next = null;
-
-                                Buckets[BucketIndex].Next = NewBucket;
-
-                                Buckets.Add(NewBucket);
-
-                                BucketIndex++;
-
-                                SeenInCurrentBucket = new HashSet<string>();
-                                SeenInCurrentBucket.Add(Link.Original);
-                                Buckets[BucketIndex].Add(Link, TokenSize);
+                                if (ProcessedCount % UpdateInterval == 0)
+                                {
+                                    MarkHeadsPercent = Math.Round(Math.Min(ProcessedCount, TotalToProcess) * 40.0 / TotalToProcess, 2);
+                                }
+                                continue;
                             }
 
-                            HandledInThisStage.Add(Link.Key);
-                        }
+                            var BucketIndex = 0;
+                            List<P_Bucket> Buckets = new List<P_Bucket>();
+                            Buckets.Add(new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0, 1));
 
-                        foreach (var GetBucket in Buckets)
-                        {
-                            this.UnitBuckets.Add(GetBucket);
-                        }
+                            var SeenInCurrentBucket = new HashSet<string>();
 
-                        WaitDeletes.AddRange(FilteredLinks);
+                            foreach (var Link in FilteredLinks)
+                            {
+                                bool IsDuplicate = !SeenInCurrentBucket.Add(Link.Original);
+                                var TokenSize = CalcTokenLength(Link.Original, P_Language.DetectLanguageByLine(Link.Original), true, IsDuplicate);
+
+                                if (Buckets[BucketIndex].RemainingSize >= TokenSize)
+                                {
+                                    Buckets[BucketIndex].Add(Link, TokenSize);
+                                }
+                                else
+                                {
+                                    var NewBucket = new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0, 1);
+                                    NewBucket.Next = null;
+
+                                    Buckets[BucketIndex].Next = NewBucket;
+
+                                    Buckets.Add(NewBucket);
+
+                                    BucketIndex++;
+
+                                    SeenInCurrentBucket = new HashSet<string>();
+                                    SeenInCurrentBucket.Add(Link.Original);
+                                    Buckets[BucketIndex].Add(Link, TokenSize);
+                                }
+
+                                HandledInThisStage.Add(Link.Key);
+                            }
+
+                            foreach (var GetBucket in Buckets)
+                            {
+                                this.UnitBuckets.Add(GetBucket);
+                            }
+
+                            WaitDeletes.AddRange(FilteredLinks);
+                        }
                     }
                 }
 
@@ -579,7 +582,7 @@ namespace PhoenixEngine.Engine
 
             foreach (var Bucket in MergeableBuckets)
             {
-                var Units = Bucket.GetUnits();
+                var Units = Bucket.GetUnits().ToList();
                 if (Units.Count == 0)
                 {
                     MergedBuckets.Add(Bucket);
@@ -653,9 +656,9 @@ namespace PhoenixEngine.Engine
                 }
             }
 
-            foreach (var Bucket in MergedBuckets)
+            for (int i = MergedBuckets.Count - 1; i >= 0; i--)
             {
-                RemoveBucketFromList(Bucket);
+                RemoveBucketFromList(MergedBuckets[i]);
             }
         }
 
