@@ -12,7 +12,7 @@ namespace PhoenixEngine.Engine
     {
         public HashSet<string> AddedKeys = new HashSet<string>();
 
-        public static int BucketLengthLimit = 3000;
+        public static int BucketLengthLimit = 2600;
 
         public Dictionary<string, BaseUnit> Heads = new Dictionary<string, BaseUnit>();
 
@@ -147,16 +147,34 @@ namespace PhoenixEngine.Engine
                             continue;
                         }
 
-                        int TotalSize = 0;
+                        var BucketIndex = 0;
+                        List<P_Bucket> Buckets = new List<P_Bucket>();
+                        Buckets.Add(new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0));
+
                         foreach (var Link in FilteredLinks)
                         {
-                            TotalSize += CalcTokenLength(Link.Original, P_Language.DetectLanguageByLine(Link.Original));
+                            var TokenSize = CalcTokenLength(Link.Original, P_Language.DetectLanguageByLine(Link.Original));
+
+                            if (Buckets[BucketIndex].RemainingSize >= TokenSize)
+                            {
+                                Buckets[BucketIndex].Add(Link, TokenSize);
+                            }
+                            else
+                            {
+                                Buckets.Add(new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0));
+
+                                BucketIndex++;
+
+                                Buckets[BucketIndex].Add(Link, TokenSize);
+                            }
+                            
                             HandledInThisStage.Add(Link.Key);
                         }
 
-                        var Bucket = new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0);
-                        Bucket.Add(FilteredLinks, TotalSize);
-                        this.UnitBuckets.Add(Bucket);
+                        foreach (var GetBucket in Buckets)
+                        {
+                            this.UnitBuckets.Add(GetBucket);
+                        }
 
                         WaitDeletes.AddRange(FilteredLinks);
                     }

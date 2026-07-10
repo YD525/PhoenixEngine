@@ -462,7 +462,7 @@ namespace PhoenixEngine.Engine
                                     CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
 
                                     GetData = SetApi.QuickTrans(CurrentApiKey, Source, From, To, ref Call).Trim();
-                                    Passed = TranslationPreprocessor.Instance.SecondaryQualityInspection(GetData, CustomWords);
+                                    Passed = TranslatorRef.Preprocessor.SecondaryQualityInspection(GetData, CustomWords);
 
                                     if (!Passed && MaxTry > 0)
                                     {
@@ -519,7 +519,7 @@ namespace PhoenixEngine.Engine
                                     CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
 
                                     GetData = SetApi.QuickTrans(CurrentApiKey, Source, From, To, ref Call).Trim();
-                                    Passed = TranslationPreprocessor.Instance.SecondaryQualityInspection(GetData, CustomWords);
+                                    Passed = TranslatorRef.Preprocessor.SecondaryQualityInspection(GetData, CustomWords);
 
                                     if (!Passed && MaxTry > 0)
                                     {
@@ -586,7 +586,7 @@ namespace PhoenixEngine.Engine
                                     CancelToken.ThrowIfCancellationRequested();
 
                                     GetData = SetApi.QuickTrans(CustomWords, Source, From, To, UseAIMemory, AIMemoryQueryLimit, AIParam, ref Call).Trim();
-                                    Passed = TranslationPreprocessor.Instance.SecondaryQualityInspection(GetData, CustomWords);
+                                    Passed = TranslatorRef.Preprocessor.SecondaryQualityInspection(GetData, CustomWords);
 
                                     if (!Passed && MaxTry > 0)
                                     {
@@ -635,7 +635,7 @@ namespace PhoenixEngine.Engine
                                     CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
 
                                     GetData = SetApi.QuickTrans(CurrentApiKey, CustomWords, Source, From, To, UseAIMemory, AIMemoryQueryLimit, AIParam, ref Call).Trim();
-                                    Passed = TranslationPreprocessor.Instance.SecondaryQualityInspection(GetData, CustomWords);
+                                    Passed = TranslatorRef.Preprocessor.SecondaryQualityInspection(GetData, CustomWords);
 
                                     if (!Passed && MaxTry > 0)
                                     {
@@ -691,7 +691,7 @@ namespace PhoenixEngine.Engine
                                     CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
 
                                     GetData = SetApi.QuickTrans(CurrentApiKey, CustomWords, Source, From, To, UseAIMemory, AIMemoryQueryLimit, AIParam, ref Call).Trim();
-                                    Passed = TranslationPreprocessor.Instance.SecondaryQualityInspection(GetData, CustomWords);
+                                    Passed = TranslatorRef.Preprocessor.SecondaryQualityInspection(GetData, CustomWords);
 
                                     if (!Passed && MaxTry > 0)
                                     {
@@ -747,7 +747,7 @@ namespace PhoenixEngine.Engine
                                     CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
 
                                     GetData = SetApi.QuickTrans(CurrentApiKey, CustomWords, Source, From, To, UseAIMemory, AIMemoryQueryLimit, AIParam, ref Call).Trim();
-                                    Passed = TranslationPreprocessor.Instance.SecondaryQualityInspection(GetData, CustomWords);
+                                    Passed = TranslatorRef.Preprocessor.SecondaryQualityInspection(GetData, CustomWords);
 
                                     if (!Passed && MaxTry > 0)
                                     {
@@ -804,7 +804,7 @@ namespace PhoenixEngine.Engine
                                     CurrentApiKey = Phoenix.KeyData.GetData(Type).GetFirstKey();
 
                                     GetData = SetApi.QuickTrans(CurrentApiKey, CustomWords, Source, From, To, UseAIMemory, AIMemoryQueryLimit, AIParam, ref Call).Trim();
-                                    Passed = TranslationPreprocessor.Instance.SecondaryQualityInspection(GetData, CustomWords);
+                                    Passed = TranslatorRef.Preprocessor.SecondaryQualityInspection(GetData, CustomWords);
 
                                     if (!Passed && MaxTry > 0)
                                     {
@@ -858,7 +858,7 @@ namespace PhoenixEngine.Engine
                                     CancelToken.ThrowIfCancellationRequested();
 
                                     GetData = SetApi.QuickTrans(CustomWords, Source, From, To, UseAIMemory, AIMemoryQueryLimit, AIParam, ref Call).Trim();
-                                    Passed = TranslationPreprocessor.Instance.SecondaryQualityInspection(GetData, CustomWords);
+                                    Passed = TranslatorRef.Preprocessor.SecondaryQualityInspection(GetData, CustomWords);
 
                                     if (!Passed && MaxTry > 0)
                                     {
@@ -906,7 +906,7 @@ namespace PhoenixEngine.Engine
                                     CancelToken.ThrowIfCancellationRequested();
 
                                     GetData = SetApi.CallHuman(CustomWords, Source, From, To, UseAIMemory, AIMemoryQueryLimit, AIParam, ref Call).Trim();
-                                    Passed = TranslationPreprocessor.Instance.SecondaryQualityInspection(GetData, CustomWords);
+                                    Passed = TranslatorRef.Preprocessor.SecondaryQualityInspection(GetData, CustomWords);
 
                                     if (!Passed && MaxTry > 0)
                                     {

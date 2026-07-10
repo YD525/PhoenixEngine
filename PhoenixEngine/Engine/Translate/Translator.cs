@@ -28,6 +28,7 @@ namespace PhoenixEngine.Translate
         public string AIParam = null;
         public EngineCore Core = new EngineCore();
         private TranslatorCore BatchCore = null;
+        public TranslationPreprocessor Preprocessor = new TranslationPreprocessor();
 
         public readonly object TransDataLocker = new object();
 
@@ -155,7 +156,7 @@ namespace PhoenixEngine.Translate
 
             if (Params.Preprocessor == null)
             {
-                Params.Preprocessor = TranslationPreprocessor.Instance;
+                Params.Preprocessor = this.Preprocessor;
             }
 
             if (Params.IsBook)
