@@ -41,6 +41,16 @@ public class AIPrompt
         "Output ONLY the translated HTML.\n"
         );
 
+        bool HasEmotion = TextToTranslate.Contains("data-emotion");
+
+        if (HasEmotion)
+        {
+            Prompt.AppendLine(
+            "[Emotion Context]\n" +
+            "The 'data-emotion' attribute represents the NPC's emotional state when speaking. Use this as a tone reference for translation.\n"
+            );
+        }
+
         var ForcedTags = CustomWords?.Where(t => !t.IsHint).ToList() ?? new List<ReplaceTag>();
         var HintTags = CustomWords?.Where(t => t.IsHint).ToList() ?? new List<ReplaceTag>();
 
@@ -139,6 +149,16 @@ public class AIPrompt
         Prompt.AppendLine(
         "Output ONLY the translated plain text. Do not add any explanation, notes, or formatting.\n"
         );
+
+        bool HasEmotion = TextToTranslate.Contains("data-emotion");
+
+        if (HasEmotion)
+        {
+            Prompt.AppendLine(
+            "[Emotion Context]\n" +
+            "The 'data-emotion' attribute represents the NPC's emotional state when speaking. Use this as a tone reference for translation.\n"
+            );
+        }
 
         var ForcedTags = CustomWords?.Where(t => !t.IsHint).ToList() ?? new List<ReplaceTag>();
         var HintTags = CustomWords?.Where(t => t.IsHint).ToList() ?? new List<ReplaceTag>();
