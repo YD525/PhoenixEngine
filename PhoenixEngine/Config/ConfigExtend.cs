@@ -143,7 +143,7 @@ namespace PhoenixEngine
         /// <summary>
         /// Allows retrieval of the entire database using only the source text.
         /// </summary>
-        public bool EnableGlobalSearch { get; set; } = true;
+        public bool EnableGlobalSearch { get; set; } = false;
 
 
         /// <summary>
