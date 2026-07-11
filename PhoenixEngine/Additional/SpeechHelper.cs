@@ -28,12 +28,25 @@ namespace PhoenixEngine.Additional
         { Languages.Indonesian, new[] { "Indonesian", "Id-id" } }
     };
 
-        public static void TryPlaySound(string Text,bool CanCreatTrd = false)
+        public static void TryPlaySound(Languages To,string Text,bool CanCreatTrd = false)
         {
             Action PlaySoundAction = new Action(() => {
                 try
                 {
-                    Languages Lang = P_Language.DetectLanguageByLine(Text);
+                    Languages DetectLang = P_Language.DetectLanguageByLine(Text);
+
+                    if (DetectLang == Languages.Japanese ||
+                        DetectLang == Languages.SimplifiedChinese ||
+                        DetectLang == Languages.TraditionalChinese)
+                    {
+                        if (To == Languages.Japanese ||
+                            To == Languages.SimplifiedChinese ||
+                            To == Languages.TraditionalChinese)
+                        {
+                            DetectLang = To;
+                        }
+                    }
+
                     lock (VoiceLock)
                     {
                         if (VoiceInstance == null)
@@ -47,7 +60,7 @@ namespace PhoenixEngine.Additional
                         dynamic Voices = VoiceInstance.GetVoices();
                         dynamic BestMatch = null;
 
-                        if (VoiceHints.TryGetValue(Lang, out var Hints))
+                        if (VoiceHints.TryGetValue(DetectLang, out var Hints))
                         {
                             foreach (dynamic Token in Voices)
                             {
