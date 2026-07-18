@@ -116,6 +116,12 @@ public class AIPrompt
             Prompt.AppendLine();
         }
 
+        if (AdditionalInstructions.Length > 0)
+        {
+            Prompt.AppendLine("[Additional Instructions]");
+            Prompt.AppendLine(AdditionalInstructions);
+        }
+
         Prompt.AppendLine("[Html to Translate]");
         Prompt.AppendLine(TextToTranslate);
 
