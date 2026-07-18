@@ -8,6 +8,11 @@ public class AIPrompt
 {
     public static string GenerateTranslationPrompt(Languages From, Languages To, string TextToTranslate, List<string> TerminologyReferences, List<ReplaceTag> CustomWords, string AdditionalInstructions)
     {
+        if (CustomWords == null)
+        { 
+            CustomWords = new List<ReplaceTag>();
+        }
+
         var Prompt = new System.Text.StringBuilder();
 
         bool HasEmotion = TextToTranslate.Contains("data-emotion");
@@ -52,14 +57,14 @@ public class AIPrompt
         "Output ONLY the translated HTML.\n"
         );
 
-        var ForcedTags = CustomWords?.Where(t => !t.IsHint).ToList() ?? new List<ReplaceTag>();
-        var HintTags = CustomWords?.Where(t => t.IsHint).ToList() ?? new List<ReplaceTag>();
+        var ForcedTags = CustomWords?.Where(CustomWord => !CustomWord.IsHint).ToList() ?? new List<ReplaceTag>();
+        var HintTags = CustomWords?.Where(CustomWord => CustomWord.IsHint).ToList() ?? new List<ReplaceTag>();
 
         if (HintTags.Count > 0)
         {
             var Seen = new HashSet<string>();
             HintTags = HintTags
-                .Where(t => Seen.Add($"{t.Key}|{t.Value}"))
+                .Where(HintTag => Seen.Add($"{HintTag.Key}|{HintTag.Value}"))
                 .ToList();
         }
 
@@ -99,27 +104,34 @@ public class AIPrompt
             Prompt.AppendLine();
         }
 
-        if (TerminologyReferences != null && TerminologyReferences.Count > 0)
+        if (TerminologyReferences != null)
         {
-            var Seen = new HashSet<string>();
-            TerminologyReferences = TerminologyReferences
-                .Where(refs => Seen.Add(refs))
-                .ToList();
-
-            Prompt.AppendLine("[Possible References]");
-            Prompt.AppendLine("These are system-retrieved terms that may or may not be related to the current text. Review and decide for yourself - use them only if they actually fit the context, ignore if they seem irrelevant.");
-
-            foreach (var Reference in TerminologyReferences)
+            if (TerminologyReferences.Count > 0)
             {
-                Prompt.AppendLine($"- {Reference}");
+                var Seen = new HashSet<string>();
+                TerminologyReferences = TerminologyReferences
+                    .Where(Ref => Seen.Add(Ref))
+                    .ToList();
+
+                Prompt.AppendLine("[Possible References]");
+                Prompt.AppendLine("These are system-retrieved terms that may or may not be related to the current text. Review and decide for yourself - use them only if they actually fit the context, ignore if they seem irrelevant.");
+
+                foreach (var Reference in TerminologyReferences)
+                {
+                    Prompt.AppendLine($"- {Reference}");
+                }
+
+                Prompt.AppendLine();
             }
-            Prompt.AppendLine();
         }
 
-        if (AdditionalInstructions.Length > 0)
+        if (AdditionalInstructions != null)
         {
-            Prompt.AppendLine("[Additional Instructions]");
-            Prompt.AppendLine(AdditionalInstructions);
+            if (AdditionalInstructions.Length > 0)
+            {
+                Prompt.AppendLine("[Additional Instructions]");
+                Prompt.AppendLine(AdditionalInstructions);
+            }
         }
 
         Prompt.AppendLine("[Html to Translate]");
