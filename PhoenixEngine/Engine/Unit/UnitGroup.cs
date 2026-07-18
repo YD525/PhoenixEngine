@@ -42,6 +42,7 @@ namespace PhoenixEngine.Unit
 
             var Seen = new Dictionary<string, int>();
             int TagIndex = 100;
+            bool FillerMarkerInserted = false;
 
             for (int i = 0; i < Units.Count; i++)
             {
@@ -59,6 +60,12 @@ namespace PhoenixEngine.Unit
                 {
                     Seen[Key] = TagIndex;
                     TagIndexToUnitIndices[TagIndex] = new List<int> { i };
+
+                    if (!FillerMarkerInserted && Unit.IsFilled)
+                    {
+                        Html += "<!-- next content section -->\n";
+                        FillerMarkerInserted = true;
+                    }
 
                     if (!string.IsNullOrEmpty(Unit.Emotion))
                     {
@@ -227,7 +234,7 @@ namespace PhoenixEngine.Unit
             return null;
         }
 
-        public void Init(Translator TranslatorRef, int Key,BaseUnit First, AggregationMode SetMode)
+        public void Init(Translator TranslatorRef, int Key, BaseUnit First, AggregationMode SetMode)
         {
             this.Mode = SetMode;
 
@@ -262,7 +269,7 @@ namespace PhoenixEngine.Unit
 
         public ConfirmPasser AnalysisContent(string Content)
         {
-           return ConfirmPasser.AnalysisContent(Content);
+            return ConfirmPasser.AnalysisContent(Content);
         }
 
         public GroupContext ApplyStateChange(string TranslatorID, UnitTranslationState State)
@@ -272,7 +279,7 @@ namespace PhoenixEngine.Unit
             if (EngineEvents.SetBaseUnitStateChangedCallback != null)
                 for (int i = 0; i < this.Units.Count; i++)
                 {
-                    UnitContext<BaseUnit> Data = this.Units[i].ApplyStateChange(TranslatorID,State);
+                    UnitContext<BaseUnit> Data = this.Units[i].ApplyStateChange(TranslatorID, State);
                     if (Data != null)
                     {
                         GenContent.AddSign(Data.Key, Data.ControlSignal);

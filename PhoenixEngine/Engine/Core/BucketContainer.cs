@@ -12,7 +12,7 @@ namespace PhoenixEngine.Engine
     {
         public HashSet<string> AddedKeys = new HashSet<string>();
 
-        public static int BucketLengthLimit = 3900;
+        public static int BucketLengthLimit = 3500;
 
         public Dictionary<string, BaseUnit> Heads = new Dictionary<string, BaseUnit>();
 
@@ -552,115 +552,170 @@ namespace PhoenixEngine.Engine
             GC.Collect();
         }
 
+        private static bool SameHeadTokens(P_Bucket A, P_Bucket B)
+        {
+            if (A.HeadTokens == null && B.HeadTokens == null)
+                return true;
+
+            if (A.HeadTokens == null || B.HeadTokens == null)
+                return false;
+
+            return A.HeadTokens.SetEquals(B.HeadTokens);
+        }
+
+        private int TotalRawSize(P_Bucket Bucket)
+        {
+            int Total = 0;
+            var Seen = new HashSet<string>();
+            foreach (var Unit in Bucket.GetUnits())
+            {
+                bool IsDuplicate = !Seen.Add(Unit.Original);
+                Total += CalcTokenLength(Unit.Original, TranslatorRef.From, true, IsDuplicate);
+            }
+            return Total;
+        }
+
         private void MergeBuckets()
         {
-            var MergeableBuckets = new List<P_Bucket>();
-
-            foreach (var Bucket in UnitBuckets)
+            HashSet<P_Bucket> AnchorSet = new HashSet<P_Bucket>();
+            List<P_Bucket> AllAnchorBuckets = new List<P_Bucket>();
+            foreach (var Root in UnitBuckets)
             {
-                if (Bucket.Type == 0 && Bucket.Head == null)
+                if (Root.Head != null || Root.Type == 1)
                 {
-                    MergeableBuckets.Add(Bucket);
-                }
-
-                var Current = Bucket.Next;
-                while (Current != null)
-                {
-                    if (Current.Type == 0 && Current.Head == null)
+                    var Current = Root;
+                    while (Current != null)
                     {
-                        MergeableBuckets.Add(Current);
+                        if (AnchorSet.Add(Current))
+                            AllAnchorBuckets.Add(Current);
+                        Current = Current.Next;
                     }
-                    Current = Current.Next;
                 }
             }
 
-            if (MergeableBuckets.Count <= 1)
-                return;
-
-            var KeptBuckets = new List<P_Bucket>();
-            var MergedBuckets = new List<P_Bucket>();
-
-            foreach (var Bucket in MergeableBuckets)
+            List<P_Bucket> OrphanBuckets = new List<P_Bucket>();
+            foreach (var Bucket in UnitBuckets)
             {
-                var Units = Bucket.GetUnits().ToList();
-
-                if (Units.Count == 0)
+                if (Bucket.Head == null && Bucket.Type == 0 && !AnchorSet.Contains(Bucket))
                 {
-                    MergedBuckets.Add(Bucket);
-                    continue;
+                    OrphanBuckets.Add(Bucket);
+                }
+            }
+
+            List<BaseUnit> UnplacedUnits = new List<BaseUnit>();
+            if (OrphanBuckets.Count > 0)
+            {
+                List<BaseUnit> OrphanUnits = new List<BaseUnit>();
+                foreach (var Bucket in OrphanBuckets)
+                {
+                    OrphanUnits.AddRange(Bucket.GetUnits());
+                    Bucket.GetUnits().Clear();
                 }
 
-                bool Merged = false;
-
-                HashSet<string> BucketHeadTokens = Bucket.HeadTokens;
-
-                foreach (var TargetBucket in KeptBuckets)
+                foreach (var Unit in OrphanUnits)
                 {
-                    if (BucketHeadTokens != null && TargetBucket.HeadTokens != null)
+                    bool Placed = false;
+                    AllAnchorBuckets.Sort((A, B) => B.RemainingSize.CompareTo(A.RemainingSize));
+
+                    foreach (var Bucket in AllAnchorBuckets)
                     {
-                        if (!BucketHeadTokens.SetEquals(TargetBucket.HeadTokens))
+                        int UnitSize = CalcTokenLength(Unit.Original, TranslatorRef.From, true, false);
+                        if (Bucket.RemainingSize >= UnitSize)
                         {
-                            continue;
+                            Bucket.Add(Unit, UnitSize);
+                            Unit.IsFilled = true;
+                            Placed = true;
+                            break;
                         }
                     }
-                    else if (BucketHeadTokens != null || TargetBucket.HeadTokens != null)
+
+                    if (!Placed)
+                        UnplacedUnits.Add(Unit);
+                }
+
+                foreach (var Bucket in OrphanBuckets)
+                    UnitBuckets.Remove(Bucket);
+            }
+
+            AllAnchorBuckets.Clear();
+            AnchorSet.Clear();
+            foreach (var Root in UnitBuckets)
+            {
+                if (Root.Head != null || Root.Type == 1)
+                {
+                    var Current = Root;
+                    while (Current != null)
                     {
+                        if (AnchorSet.Add(Current))
+                            AllAnchorBuckets.Add(Current);
+                        Current = Current.Next;
+                    }
+                }
+            }
+
+            if (AllAnchorBuckets.Count > 1)
+            {
+                AllAnchorBuckets.Sort((A, B) => B.RemainingSize.CompareTo(A.RemainingSize));
+
+                for (int i = AllAnchorBuckets.Count - 1; i >= 1; i--)
+                {
+                    var Source = AllAnchorBuckets[i];
+                    var SourceUnits = Source.GetUnits();
+                    if (SourceUnits.Count == 0)
+                    {
+                        UnitBuckets.Remove(Source);
+                        AllAnchorBuckets.RemoveAt(i);
                         continue;
                     }
 
-                    var ExistingOriginals = new HashSet<string>();
-                    foreach (var ExistingUnit in TargetBucket.GetUnits())
+                    bool Merged = false;
+                    for (int j = 0; j < i; j++)
                     {
-                        ExistingOriginals.Add(ExistingUnit.Original);
-                    }
-
-                    int TotalSize = 0;
-                    bool CanFit = true;
-
-                    foreach (var Unit in Units)
-                    {
-                        bool IsDuplicate = ExistingOriginals.Contains(Unit.Original);
-
-                        int UnitSize = CalcTokenLength(Unit.Original, TranslatorRef.From, true, IsDuplicate);
-                        TotalSize += UnitSize;
-                    }
-
-                    if (TargetBucket.RemainingSize < TotalSize)
-                    {
-                        CanFit = false;
-                    }
-
-                    if (CanFit)
-                    {
-                        foreach (var Unit in Units)
+                        var Target = AllAnchorBuckets[j];
+                        int RequiredSize = 0;
+                        foreach (var Unit in SourceUnits)
                         {
-                            bool IsDuplicate = ExistingOriginals.Contains(Unit.Original);
-
-                            int UnitSize = CalcTokenLength(Unit.Original, TranslatorRef.From, true, IsDuplicate);
-                            TargetBucket.Add(Unit, UnitSize);
-
-                            if (!IsDuplicate)
-                            {
-                                ExistingOriginals.Add(Unit.Original);
-                            }
+                            RequiredSize += CalcTokenLength(Unit.Original, TranslatorRef.From, true, false);
                         }
 
-                        MergedBuckets.Add(Bucket);
-                        Merged = true;
-                        break;
+                        if (Target.RemainingSize >= RequiredSize)
+                        {
+                            foreach (var Unit in SourceUnits)
+                            {
+                                int UnitSize = CalcTokenLength(Unit.Original, TranslatorRef.From, true, false);
+                                Target.Add(Unit, UnitSize);
+                                Unit.IsFilled = true;
+                            }
+                            UnitBuckets.Remove(Source);
+                            AllAnchorBuckets.RemoveAt(i);
+                            Merged = true;
+                            break;
+                        }
                     }
                 }
-
-                if (!Merged)
-                {
-                    KeptBuckets.Add(Bucket);
-                }
             }
 
-            for (int i = MergedBuckets.Count - 1; i >= 0; i--)
+            if (UnplacedUnits.Count > 0)
             {
-                RemoveBucketFromList(MergedBuckets[i]);
+                var NewBucket = new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0, 0);
+                foreach (var Unit in UnplacedUnits)
+                {
+                    int UnitSize = CalcTokenLength(Unit.Original, TranslatorRef.From, true, false);
+                    if (NewBucket.RemainingSize >= UnitSize)
+                        NewBucket.Add(Unit, UnitSize);
+                    else
+                    {
+                        var OverflowBucket = new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0, 0);
+                        OverflowBucket.Add(Unit, UnitSize);
+                        UnitBuckets.Add(OverflowBucket);
+                    }
+                }
+                if (NewBucket.GetUnits().Count > 0)
+                    UnitBuckets.Add(NewBucket);
             }
+
+            RemoveEmptyBuckets();
+            GC.Collect();
         }
 
         private void RemoveBucketFromList(P_Bucket TargetBucket)

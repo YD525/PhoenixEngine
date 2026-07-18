@@ -17,6 +17,7 @@ namespace PhoenixEngine.Unit
         public string Emotion = "";
         public bool Head = false;
         public double TempSim = 0;
+        public bool IsFilled = false;
 
         public BaseUnit() { }
         public BaseUnit(int FileUniqueKey, string Key, string Type, string Original, string Translated,string Emotion,double Score)
