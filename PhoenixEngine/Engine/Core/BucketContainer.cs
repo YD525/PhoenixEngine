@@ -657,11 +657,17 @@ namespace PhoenixEngine.Engine
 
                         if (Target.RemainingSize >= RequiredSize)
                         {
+                            bool IsLinkToLink = (Source.Type == 1 && Target.Type == 1);
+
                             foreach (var Unit in SourceUnits)
                             {
                                 int UnitSize = CalcTokenLength(Unit.Original, TranslatorRef.From, true, false);
                                 Target.Add(Unit, UnitSize);
-                                Unit.IsFilled = true;
+                                
+                                if (!IsLinkToLink)
+                                {
+                                    Unit.IsFilled = true;
+                                }  
                             }
                             UnitBuckets.Remove(Source);
                             AllAnchorBuckets.RemoveAt(i);
@@ -693,29 +699,6 @@ namespace PhoenixEngine.Engine
 
             RemoveEmptyBuckets();
             GC.Collect();
-        }
-
-        private void RemoveBucketFromList(P_Bucket TargetBucket)
-        {
-            if (UnitBuckets.Contains(TargetBucket))
-            {
-                UnitBuckets.Remove(TargetBucket);
-                return;
-            }
-
-            foreach (var Bucket in UnitBuckets)
-            {
-                var Current = Bucket;
-                while (Current != null && Current.Next != null)
-                {
-                    if (Current.Next == TargetBucket)
-                    {
-                        Current.Next = Current.Next.Next;
-                        return;
-                    }
-                    Current = Current.Next;
-                }
-            }
         }
 
         private void RemoveEmptyBuckets()
