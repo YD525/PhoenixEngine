@@ -15,7 +15,6 @@ namespace PhoenixEngine.Platform
     public class ChatGptItem
     {
         public string model { get; set; }
-        public bool store { get; set; }
         public List<ChatGptMessage> messages { get; set; }
     }
 
@@ -54,7 +53,6 @@ namespace PhoenixEngine.Platform
             int GetCount = Msg.Length; 
             ChatGptItem NChatGptItem = new ChatGptItem();
             NChatGptItem.model = Model;
-            NChatGptItem.store = true;
             NChatGptItem.messages = new List<ChatGptMessage>();
             NChatGptItem.messages.Add(new ChatGptMessage("user", Msg));
             var GetResult = CallAI(ApiKey, NChatGptItem,ref Recv);
