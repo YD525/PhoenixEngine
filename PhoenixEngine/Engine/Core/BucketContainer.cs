@@ -552,29 +552,6 @@ namespace PhoenixEngine.Engine
             GC.Collect();
         }
 
-        private static bool SameHeadTokens(P_Bucket A, P_Bucket B)
-        {
-            if (A.HeadTokens == null && B.HeadTokens == null)
-                return true;
-
-            if (A.HeadTokens == null || B.HeadTokens == null)
-                return false;
-
-            return A.HeadTokens.SetEquals(B.HeadTokens);
-        }
-
-        private int TotalRawSize(P_Bucket Bucket)
-        {
-            int Total = 0;
-            var Seen = new HashSet<string>();
-            foreach (var Unit in Bucket.GetUnits())
-            {
-                bool IsDuplicate = !Seen.Add(Unit.Original);
-                Total += CalcTokenLength(Unit.Original, TranslatorRef.From, true, IsDuplicate);
-            }
-            return Total;
-        }
-
         private void MergeBuckets()
         {
             HashSet<P_Bucket> AnchorSet = new HashSet<P_Bucket>();

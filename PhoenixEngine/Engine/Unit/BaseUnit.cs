@@ -49,7 +49,8 @@ namespace PhoenixEngine.Unit
                 Translated = this.Translated,
                 Emotion = this.Emotion,
                 Head = this.Head,
-                TempSim = this.TempSim
+                TempSim = this.TempSim,
+                IsFilled = this.IsFilled,
             };
         }
 
