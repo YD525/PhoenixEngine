@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+﻿using System.Text.RegularExpressions;
 
 namespace PhoenixEngine.Language
 {
@@ -18,9 +13,10 @@ namespace PhoenixEngine.Language
         // Matches common Czech function words (articles don't exist in Czech, so focus on
         // pronouns, prepositions, conjunctions, common verbs, and particles)
         private static readonly Regex CzechKeywordRegex = new Regex(
-       @"\b(já|ty|on|ona|ono|my|vy|oni|ony|je|jsem|jsi|jsou|byl|byla|bylo|byli|být|mám|máš|má|máme|máte|mají|mít|co|kdo|jak|kde|kdy|proč|ten|ta|to|ti|ty|toto|tento|tato|jeden|jedna|jedno|ale|nebo|že|když|protože|pokud|jako|také|jen|už|ještě|více|méně|než|tak|zde|tam|tady|pak|dnes|teď|již|velmi|se|si|ho|mu|jej|ji|nás|vás|nich|ve|na|do|z|ze|od|pro|při|po|před|za|nad|pod|mezi|bez|přes|ke|ku|o|u)\b",
-       RegexOptions.Compiled | RegexOptions.IgnoreCase
-   );
+        @"\b(já|ty|on|ona|ono|vy|oni|ony|jsem|jsi|jsou|byl|byla|bylo|byli|být|mám|máš|má|máme|máte|mají|mít|co|kdo|jak|kde|kdy|proč|toto|tento|tato|jeden|jedna|jedno|ale|nebo|že|když|protože|pokud|jako|také|jen|už|ještě|více|méně|než|tak|zde|tam|tady|pak|dnes|teď|již|velmi|se|si|ho|mu|jej|ji|nás|vás|nich|ve|na|z|ze|od|pro|při|po|před|za|nad|pod|mezi|bez|přes|ke|ku)\b",
+        RegexOptions.Compiled | RegexOptions.IgnoreCase
+        );
+
 
         /// <summary>
         /// Determines whether a given text is likely to be Czech
