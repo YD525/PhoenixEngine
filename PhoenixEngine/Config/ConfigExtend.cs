@@ -251,7 +251,7 @@ namespace PhoenixEngine
                 }
                 if (Config.PlatformConfigs[(int)PlatformType.DeepSeek].Model == "")
                 {
-                    Config.PlatformConfigs[(int)PlatformType.DeepSeek].Model = "deepseek-chat";
+                    Config.PlatformConfigs[(int)PlatformType.DeepSeek].Model = "deepseek-v4-pro";
                 }
 
                 Config.PlatformConfigs[(int)PlatformType.DeepL].IsFree = true;
