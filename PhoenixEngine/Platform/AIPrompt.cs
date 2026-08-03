@@ -9,13 +9,14 @@ public class AIPrompt
     public static string GenerateTranslationPrompt(Languages From, Languages To, string TextToTranslate, List<string> TerminologyReferences, List<ReplaceTag> CustomWords, string AdditionalInstructions)
     {
         if (CustomWords == null)
-        { 
+        {
             CustomWords = new List<ReplaceTag>();
         }
 
         var Prompt = new System.Text.StringBuilder();
 
         bool HasEmotion = TextToTranslate.Contains("data-emotion");
+        bool HasTranslatedReference = TextToTranslate.Contains("data-status='translated'");
 
         Prompt.AppendLine($"<!-- Request ID: {DateTime.UtcNow.Ticks.GetHashCode().ToString().Replace("-", "_")} -->");
 
@@ -28,12 +29,22 @@ public class AIPrompt
                    "\n" +
                    "The 'data-unit-id' is used to associate and update data. Do not modify or delete the primary key, as this will cause the update to fail or result in incorrect content.";
 
-                    if (HasEmotion)
-                    {
-                        RoleRules += " The 'data-emotion' attribute represents the NPC's emotional state when speaking. Use this as a tone reference for translation.";
-                    }
+        if (HasEmotion)
+        {
+            RoleRules += " The 'data-emotion' attribute represents the NPC's emotional state when speaking. Use this as a tone reference for translation.";
+        }
 
-                    RoleRules += "\n" + $"The {Tag} tags must correspond exactly to the original text; translate as many tags as there are in the original text." + "\n";
+        if (HasTranslatedReference)
+        {
+            RoleRules += "\n\n" +
+            "Entries with data-status='translated' are existing translated records retrieved from the database, kept only to provide context and maintain translation consistency. " +
+            "They are not new translation tasks. Do not output these entries unless the existing translation is incorrect or requires contextual refinement. " +
+            "If the existing translation is already appropriate, omit this entry from the output. " +
+            "If you modify a translated entry, output it as a normal translated <li> element and preserve the data-unit-id attribute. " +
+            "Remove data-status and data-original attributes.";
+        }
+
+        RoleRules += "\n" + $"The {Tag} tags must correspond exactly to the original text; translate as many tags as there are in the original text." + "\n";
 
         Prompt.AppendLine(RoleRules);
 

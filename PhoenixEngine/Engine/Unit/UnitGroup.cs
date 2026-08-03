@@ -5,6 +5,7 @@ using PhoenixEngine.Events;
 using PhoenixEngine.Translate;
 using PhoenixEngine.Common;
 using PhoenixEngine.Engine;
+using System.Web;
 
 namespace PhoenixEngine.Unit
 {
@@ -52,7 +53,23 @@ namespace PhoenixEngine.Unit
                     continue;
 
                 if (Unit.Translated.Length > 0)
+                {
+                    TagIndexToUnitIndices[TagIndex] = new List<int> { i };
+                    //The translated sentences need to be retained for the AI; otherwise, the relevance will be incomplete.
+                    if (!string.IsNullOrEmpty(Unit.Emotion))
+                    {
+                        Html += string.Format("<li data-unit-id='{0}' data-emotion='{1}' data-status='translated' data-original='{2}'>{3}</li>\n", TagIndex, Unit.Emotion, HttpUtility.HtmlAttributeEncode(Unit.Original), Unit.Translated);
+                    }
+                    else
+                    {
+                        Html += string.Format("<li data-unit-id='{0}' data-status='translated' data-original='{1}'>{2}</li>\n", TagIndex, HttpUtility.HtmlAttributeEncode(Unit.Original), Unit.Translated);
+                    }
+
+                    TagIndex++;
+
                     continue;
+
+                }
 
                 string Key = Unit.Original;
 
