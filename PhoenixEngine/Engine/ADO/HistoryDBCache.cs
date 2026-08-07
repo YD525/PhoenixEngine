@@ -108,7 +108,7 @@ CREATE TABLE [RecordsHistory](
         }
 
         //Ctrl+Z
-        public List<string> GetPreviousKey(int FileUniqueKey, string CurrentKey)
+        public static List<string> GetPreviousKey(int FileUniqueKey, string CurrentKey)
         {
             List<string> Keys = new List<string>();
 
@@ -163,7 +163,7 @@ AND [RangeID] = '{RangeID}';
         }
 
         //Ctrl+Y
-        public List<string> GetNextKey(int FileUniqueKey, string CurrentKey)
+        public static List<string> GetNextKey(int FileUniqueKey, string CurrentKey)
         {
             List<string> Keys = new List<string>();
 
@@ -218,7 +218,7 @@ AND [RangeID] = '{RangeID}';
         }
 
         //Click
-        public void SelectKey(int FileUniqueKey, string CurrentKey)
+        public static void SelectKey(int FileUniqueKey, string CurrentKey)
         {
             // Clear Current flag
             string SqlOrder = $@"
@@ -269,7 +269,7 @@ AND [Key] = '{CurrentKey}';
         }
 
         //Get Current Keys
-        public List<string> GetSelectKeys(int FileUniqueKey)
+        public static List<string> GetSelectKeys(int FileUniqueKey)
         {
             List<string> Keys = new List<string>();
 
@@ -291,7 +291,7 @@ AND [IsCurrent] = 1;
         }
 
         //Add
-        public bool AddHistory(HistoryItem Item)
+        public static bool AddHistory(HistoryItem Item)
         {
             string SqlOrder = "Insert Into RecordsHistory(FileUniqueKey,Key,To,PreviousText,CurrentText,Time,RangeID)Values({0},'{1}',{2},'{3}','{4}',{5},'{6}')";
             int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,
@@ -311,7 +311,7 @@ AND [IsCurrent] = 1;
         }
 
         //Delete
-        public bool DeleteHistory(int FileUniqueKey, string Key)
+        public static bool DeleteHistory(int FileUniqueKey, string Key)
         {
             string SqlOrder = "Delete From RecordsHistory Where FileUniqueKey = {0} And Key = '{1}'";
 
@@ -326,7 +326,7 @@ AND [IsCurrent] = 1;
         }
 
         //Get Full InFo By CurrentKey
-        public HistoryItem KeyToHistoryItem(int FileUniqueKey, string Key)
+        public static HistoryItem KeyToHistoryItem(int FileUniqueKey, string Key)
         {
             string SqlOrder = "Select * From RecordsHistory Where FileUniqueKey = {0} And Key = '{1}' Limit 1";
 
@@ -352,7 +352,7 @@ AND [IsCurrent] = 1;
         }
 
         //Get HistoryItems
-        public List<HistoryItem> GetHistoryItems(int FileUniqueKey)
+        public static List<HistoryItem> GetHistoryItems(int FileUniqueKey)
         {
             List<HistoryItem> HistoryItems = new List<HistoryItem>();
 
@@ -382,7 +382,7 @@ AND [IsCurrent] = 1;
             return HistoryItems;
         }
 
-        public bool ClearHistory(int FileUniqueKey)
+        public static bool ClearHistory(int FileUniqueKey)
         {
             string SqlOrder = "Delete From RecordsHistory Where FileUniqueKey = {0}";
 
@@ -398,7 +398,7 @@ AND [IsCurrent] = 1;
         // Compact history records.
         // Removes old history entries when the record count exceeds the limit.
         // RangeID records are treated as a single operation and will not be split.
-        public bool CompactHistory(int FileUniqueKey, int MaxCount = 10000)
+        public static bool CompactHistory(int FileUniqueKey, int MaxCount = 10000)
         {
             string CountSql = $@"
 SELECT COUNT(*) 
@@ -474,8 +474,5 @@ AND [Key] = '{Key}';
 
             return true;
         }
-    }
-
-    
-     
+    }   
 }
