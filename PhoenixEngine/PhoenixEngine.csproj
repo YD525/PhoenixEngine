@@ -73,6 +73,7 @@
   <ItemGroup>
     <Compile Include="Common\PConvert.cs" />
     <Compile Include="Common\PString.cs" />
+    <Compile Include="Engine\ADO\HistoryDBCache.cs" />
     <Compile Include="Engine\ADO\WordAutoComplete.cs" />
     <Compile Include="Engine\ADO\Pagination.cs" />
     <Compile Include="Engine\ADO\PSQLite.cs" />
