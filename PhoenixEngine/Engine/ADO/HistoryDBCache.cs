@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using PhoenixEngine.Common;
 
 namespace PhoenixEngine.Engine.ADO
 {
@@ -12,7 +13,7 @@ namespace PhoenixEngine.Engine.ADO
 
             string CreateSql = @"
 CREATE TABLE [RecordsHistory](
-    [FileUniqueKey] TEXT,
+    [FileUniqueKey] INT,
     [Keys] TEXT,
     [To] INT,
     [PreviousText] TEXT,
@@ -62,6 +63,58 @@ CREATE TABLE [RecordsHistory](
                 // Create if not exists
                 Phoenix.LocalDB.ExecuteNonQuery(CreateSql);
             }
+        }
+
+        //Ctrl+Z
+
+        public string GetPreviousKey(int FileUniqueKey, string CurrentKeys)
+        {
+            string Sql = $@"
+SELECT [Keys]
+FROM [RecordsHistory]
+WHERE [FileUniqueKey] = {FileUniqueKey}
+AND [Time] < 
+(
+    SELECT [Time]
+    FROM [RecordsHistory]
+    WHERE [FileUniqueKey] = {FileUniqueKey}
+    AND [Keys] = '{CurrentKeys}'
+    ORDER BY [Time] DESC
+    LIMIT 1
+)
+ORDER BY [Time] DESC
+LIMIT 1;
+";
+
+            return P_Convert.ObjToStr(
+                Phoenix.LocalDB.ExecuteScalar(Sql)
+            );
+        }
+
+        //Ctrl+Y
+
+        public string GetNextKey(int FileUniqueKey, string CurrentKeys)
+        {
+            string Sql = $@"
+SELECT [Keys]
+FROM [RecordsHistory]
+WHERE [FileUniqueKey] = {FileUniqueKey}
+AND [Time] >
+(
+    SELECT [Time]
+    FROM [RecordsHistory]
+    WHERE [FileUniqueKey] = {FileUniqueKey}
+    AND [Keys] = '{CurrentKeys}'
+    ORDER BY [Time] DESC
+    LIMIT 1
+)
+ORDER BY [Time] ASC
+LIMIT 1;
+";
+
+            return P_Convert.ObjToStr(
+                Phoenix.LocalDB.ExecuteScalar(Sql)
+            );
         }
     }
 }
