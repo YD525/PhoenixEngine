@@ -328,7 +328,7 @@ AND [IsCurrent] = 1;
 
             string SqlOrder = "Select rowid AS Rowid, * From RecordsHistory Where FileUniqueKey = {0} And [To] = {1}";
 
-            var NTable = Phoenix.LocalDB.ExecuteQuery(string.Format(SqlOrder, FileUniqueKey));
+            var NTable = Phoenix.LocalDB.ExecuteQuery(string.Format(SqlOrder, FileUniqueKey,To));
 
             if (NTable.Count > 0)
             {
