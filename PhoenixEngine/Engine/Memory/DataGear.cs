@@ -59,7 +59,7 @@ namespace PhoenixEngine.Memory
         private int DeadCount = 0;
 
         // Reserved callback for future use. Triggered when a value changes to record history operations.
-        public Action<TKey, TValue, TValue> OnValueChanged;
+        public Action<TKey, P_String, P_String> OnValueChanged;
 
         public int CompactThreshold = 1000;
 
@@ -112,7 +112,7 @@ namespace PhoenixEngine.Memory
 
                         if (value is P_String && OldValue is P_String)
                         {
-                            OnValueChanged?.Invoke(Key, OldValue, value);
+                            OnValueChanged?.Invoke(Key, OldValue as P_String, value as P_String);
                         }
 
                         if (CacheRefCount[OldIndex] == 1 && !CacheDict.ContainsKey(value))
@@ -130,7 +130,7 @@ namespace PhoenixEngine.Memory
                     {
                         if (value is P_String)
                         {
-                            OnValueChanged?.Invoke(Key, default(TValue), value);
+                            OnValueChanged?.Invoke(Key, null, value as P_String);
                         }
                     }
 

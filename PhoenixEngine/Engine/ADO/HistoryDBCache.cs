@@ -13,13 +13,12 @@ namespace PhoenixEngine.Engine.ADO
         public int Rowid = 0;
         public string Key = "";
         public int To = 0;
-        public string PreviousText = "";
         public string CurrentText = "";
         public int IsCurrent = 0;
         public DateTime Time;
         public string RangeID = "";
 
-        public HistoryItem(object FileUniqueKey, object Rowid, object Key, object To, object PreviousText, object CurrentText, object IsCurrent, object Time, object RangeID)
+        public HistoryItem(object FileUniqueKey, object Rowid, object Key, object To,object CurrentText, object IsCurrent, object Time, object RangeID)
         {
             this.FileUniqueKey = P_Convert.ObjToInt(FileUniqueKey);
 
@@ -28,7 +27,6 @@ namespace PhoenixEngine.Engine.ADO
 
             this.To = P_Convert.ObjToInt(To);
 
-            this.PreviousText = P_Convert.ObjToStr(PreviousText);
             this.CurrentText = P_Convert.ObjToStr(CurrentText);
 
             this.IsCurrent = P_Convert.ObjToInt(IsCurrent);
@@ -38,7 +36,7 @@ namespace PhoenixEngine.Engine.ADO
             this.RangeID = P_Convert.ObjToStr(RangeID);
         }
 
-        public HistoryItem(int FileUniqueKey, string Key, int To, string PreviousText, string CurrentText, int IsCurrent, DateTime Time, string RangeID)
+        public HistoryItem(int FileUniqueKey, string Key, int To, string CurrentText, int IsCurrent, DateTime Time, string RangeID)
         {
             this.FileUniqueKey = FileUniqueKey;
 
@@ -46,7 +44,6 @@ namespace PhoenixEngine.Engine.ADO
 
             this.To = To;
 
-            this.PreviousText = PreviousText;
             this.CurrentText = CurrentText;
 
             this.IsCurrent = IsCurrent;
@@ -67,7 +64,6 @@ CREATE TABLE [RecordsHistory](
     [FileUniqueKey] INT,
     [Key] TEXT,
     [To] INT,
-    [PreviousText] TEXT,
     [CurrentText] TEXT,
     [IsCurrent] INT,
     [Time] INT64,
@@ -94,7 +90,6 @@ CREATE TABLE [RecordsHistory](
                 "FileUniqueKey",
                 "Key",
                 "To",
-                "PreviousText",
                 "CurrentText",
                 "IsCurrent",
                 "Time",
@@ -158,8 +153,8 @@ LIMIT 1;
 SELECT rowid AS Rowid
 FROM [RecordsHistory]
 WHERE [FileUniqueKey] = {FileUniqueKey}
-AND [RangeID] = '{RangeID}';
-";
+AND [RangeID] = '{RangeID}'
+ORDER BY rowid ASC;";
                 var RangeTable = Phoenix.LocalDB.ExecuteQuery(RangeSql);
                 foreach (var Row in RangeTable)
                 {
@@ -201,8 +196,8 @@ LIMIT 1;
 SELECT rowid AS Rowid
 FROM [RecordsHistory]
 WHERE [FileUniqueKey] = {FileUniqueKey}
-AND [RangeID] = '{RangeID}';
-";
+AND [RangeID] = '{RangeID}'
+ORDER BY rowid ASC;";
                 var RangeTable = Phoenix.LocalDB.ExecuteQuery(RangeSql);
                 foreach (var Row in RangeTable)
                 {
@@ -278,12 +273,11 @@ AND [IsCurrent] = 1;
         //Add
         public static bool AddHistory(HistoryItem Item)
         {
-            string SqlOrder = "Insert Into RecordsHistory(FileUniqueKey,[Key],[To],PreviousText,CurrentText,[Time],RangeID)Values({0},'{1}',{2},'{3}','{4}',{5},'{6}')";
+            string SqlOrder = "Insert Into RecordsHistory(FileUniqueKey,[Key],[To],PreviousText,CurrentText,[Time],RangeID)Values({0},'{1}',{2},'{3}',{4},'{5}')";
             int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,
                 Item.FileUniqueKey,
                 Item.Key,
                 Item.To,
-                SQLSafeCodec.Encode(Item.PreviousText),
                 SQLSafeCodec.Encode(Item.CurrentText),
                 TimeHelper.DateTimeToTimestamp(Item.Time),
                 Item.RangeID
@@ -318,7 +312,6 @@ AND [IsCurrent] = 1;
                     Row["Rowid"],
                     Row["Key"],
                     Row["To"],
-                    SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["PreviousText"])),
                     SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["CurrentText"])),
                     Row["IsCurrent"],
                     Row["Time"],
@@ -348,7 +341,6 @@ AND [IsCurrent] = 1;
                         Row["Rowid"],
                         Row["Key"],
                         Row["To"],
-                        SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["PreviousText"])),
                         SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["CurrentText"])),
                         Row["IsCurrent"],
                         Row["Time"],
