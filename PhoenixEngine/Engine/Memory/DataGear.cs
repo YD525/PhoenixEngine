@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Text;
 
 namespace PhoenixEngine.Memory
 {
@@ -174,18 +172,36 @@ namespace PhoenixEngine.Memory
             return Result;
         }
     }
-
-    public class P_String
+    public class P_String : IEquatable<P_String>
     {
         public string String;
         public uint Type = 0;
+
         public P_String(string String, uint Type)
         {
             this.String = String;
             this.Type = Type;
         }
-    }
 
+        public bool Equals(P_String Other)
+        {
+            if (Other is null) return false;
+            return Type == Other.Type && string.Equals(String, Other.String, StringComparison.Ordinal);
+        }
+
+        public override bool Equals(object obj) => Equals(obj as P_String);
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int Hash = 17;
+                Hash = Hash * 31 + (String != null ? StringComparer.Ordinal.GetHashCode(String) : 0);
+                Hash = Hash * 31 + Type.GetHashCode();
+                return Hash;
+            }
+        }
+    } 
     public class P_Dict<TKey, TValue>
     {
         private object GlobalLock = new object();
@@ -193,9 +209,12 @@ namespace PhoenixEngine.Memory
         private Dictionary<TValue, int> CacheDict = new Dictionary<TValue, int>();
         private List<TValue> CacheList = new List<TValue>();
         private List<int> CacheRefCount = new List<int>();
+        private int DeadCount = 0;
 
         // Reserved callback for future use. Triggered when a value changes to record history operations.
         public Action<TKey, TValue, TValue> OnValueChanged;
+
+        public int CompactThreshold = 1000;
 
         public int Count
         {
@@ -257,6 +276,8 @@ namespace PhoenixEngine.Memory
                             return;
                         }
                         CacheRefCount[OldIndex]--;
+                        if (CacheRefCount[OldIndex] <= 0)
+                            RegisterDead();
                     }
                     int NewIndex = AddData(value);
                     DictData[Key] = NewIndex;
@@ -303,6 +324,7 @@ namespace PhoenixEngine.Memory
                 CacheDict.Clear();
                 CacheList.Clear();
                 CacheRefCount.Clear();
+                DeadCount = 0;
             }
         }
 
@@ -313,7 +335,54 @@ namespace PhoenixEngine.Memory
                 if (!DictData.TryGetValue(Key, out var Index)) return;
                 DictData.Remove(Key);
                 CacheRefCount[Index]--;
+                if (CacheRefCount[Index] <= 0)
+                    RegisterDead();
             }
+        }
+
+        private void RegisterDead()
+        {
+            DeadCount++;
+            if (CompactThreshold > 0 && DeadCount >= CompactThreshold)
+            {
+                DeadCount = 0;
+                CompactInternal();
+            }
+        }
+
+        public void Compact()
+        {
+            lock (GlobalLock)
+            {
+                CompactInternal();
+            }
+        }
+        private void CompactInternal()
+        {
+            var NewCacheList = new List<TValue>();
+            var NewCacheDict = new Dictionary<TValue, int>();
+            var NewCacheRefCount = new List<int>();
+            var IndexRemap = new Dictionary<int, int>();
+
+            for (int I = 0; I < CacheList.Count; I++)
+            {
+                if (CacheRefCount[I] <= 0) continue;
+
+                int NewIndex = NewCacheList.Count;
+                NewCacheList.Add(CacheList[I]);
+                NewCacheDict[CacheList[I]] = NewIndex;
+                NewCacheRefCount.Add(CacheRefCount[I]);
+                IndexRemap[I] = NewIndex;
+            }
+
+            var Keys = new List<TKey>(DictData.Keys);
+            foreach (var Key in Keys)
+                DictData[Key] = IndexRemap[DictData[Key]];
+
+            CacheList = NewCacheList;
+            CacheDict = NewCacheDict;
+            CacheRefCount = NewCacheRefCount;
+            DeadCount = 0;
         }
     }
 }
