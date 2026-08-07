@@ -271,22 +271,18 @@ AND [IsCurrent] = 1;
         }
 
         //Add
-        public static bool AddHistory(HistoryItem Item)
+        public static int AddHistory(HistoryItem Item)
         {
-            string SqlOrder = "Insert Into RecordsHistory(FileUniqueKey,[Key],[To],CurrentText,[Time],RangeID)Values({0},'{1}',{2},'{3}',{4},'{5}')";
-            int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,
+            string SqlOrder = "Insert Into RecordsHistory(FileUniqueKey,[Key],[To],CurrentText,[Time],RangeID)Values({0},'{1}',{2},'{3}',{4},'{5}') RETURNING rowid";
+            int Rowid = P_Convert.ObjToInt(Phoenix.LocalDB.ExecuteScalar(string.Format(SqlOrder,
                 Item.FileUniqueKey,
                 Item.Key,
                 Item.To,
                 SQLSafeCodec.Encode(Item.CurrentText),
                 TimeHelper.DateTimeToTimestamp(Item.Time),
                 Item.RangeID
-                ));
-            if (State != 0)
-            {
-                return true;
-            }
-            return false;
+                )));
+            return Rowid;
         }
 
 
@@ -298,23 +294,41 @@ AND [IsCurrent] = 1;
             return State != 0;
         }
 
-        public static bool CheckPreviousHistoryItem(int CurrentID, int FileUniqueKey, int To, string Key, string CurrentText)
+        public static bool CheckPreviousHistoryItem(
+     int FileUniqueKey,
+     int To,
+     string Key,
+     string CurrentText)
         {
-            int GetRowid = P_Convert.ObjToInt(
+            int PreviousRowid = P_Convert.ObjToInt(
                 Phoenix.LocalDB.ExecuteScalar($@"
-            SELECT Rowid 
-            FROM RecordsHistory 
-            WHERE Rowid < {CurrentID}
-              AND FileUniqueKey = {FileUniqueKey}
-              AND [To] = {To}
-              AND [Key] = '{Key}'
-              AND CurrentText = '{SQLSafeCodec.Encode(CurrentText)}'
-            ORDER BY Rowid DESC
-            LIMIT 1
-            ")
+SELECT Rowid
+FROM RecordsHistory
+WHERE Rowid < {GetLastID(FileUniqueKey)}
+ORDER BY Rowid DESC
+LIMIT 1;
+")
             );
 
-            return GetRowid > 0;
+
+            if (PreviousRowid <= 0)
+                return false;
+
+
+            int Count = P_Convert.ObjToInt(
+                Phoenix.LocalDB.ExecuteScalar($@"
+SELECT COUNT(*)
+FROM RecordsHistory
+WHERE Rowid = {PreviousRowid}
+AND FileUniqueKey = {FileUniqueKey}
+AND [To] = {To}
+AND [Key] = '{Key}'
+AND CurrentText = '{SQLSafeCodec.Encode(CurrentText)}';
+")
+            );
+
+
+            return Count > 0;
         }
 
         //Get Full InFo By CurrentKey
