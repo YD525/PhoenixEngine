@@ -474,5 +474,25 @@ AND [Key] = '{Key}';
 
             return true;
         }
+
+        public static string GetLastKey(int FileUniqueKey)
+        {
+            string SqlOrder = $@"
+SELECT [Key]
+FROM [RecordsHistory]
+WHERE [FileUniqueKey] = {FileUniqueKey}
+ORDER BY rowid DESC
+LIMIT 1;
+";
+
+            var Table = Phoenix.LocalDB.ExecuteQuery(SqlOrder);
+
+            if (Table.Count > 0)
+            {
+                return P_Convert.ObjToStr(Table[0]["Key"]);
+            }
+
+            return null;
+        }
     }   
 }
