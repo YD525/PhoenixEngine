@@ -381,5 +381,101 @@ AND [IsCurrent] = 1;
 
             return HistoryItems;
         }
+
+        public bool ClearHistory(int FileUniqueKey)
+        {
+            string SqlOrder = "Delete From RecordsHistory Where FileUniqueKey = {0}";
+
+            int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,FileUniqueKey));
+
+            if (State!=0)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        // Compact history records.
+        // Removes old history entries when the record count exceeds the limit.
+        // RangeID records are treated as a single operation and will not be split.
+        public bool CompactHistory(int FileUniqueKey, int MaxCount = 10000)
+        {
+            string CountSql = $@"
+SELECT COUNT(*) 
+FROM RecordsHistory
+WHERE FileUniqueKey = {FileUniqueKey};
+";
+
+            int Count = P_Convert.ObjToInt(
+                Phoenix.LocalDB.ExecuteScalar(CountSql)
+            );
+
+
+            if (Count <= MaxCount)
+                return false;
+
+
+            int NeedDelete = Count - MaxCount;
+
+
+            while (NeedDelete > 0)
+            {
+                string FindSql = $@"
+SELECT rowid,[Key],[RangeID]
+FROM RecordsHistory
+WHERE FileUniqueKey = {FileUniqueKey}
+ORDER BY rowid ASC
+LIMIT 1;
+";
+
+
+                var Table = Phoenix.LocalDB.ExecuteQuery(FindSql);
+
+                if (Table.Count == 0)
+                    break;
+
+
+                string Key = P_Convert.ObjToStr(Table[0]["Key"]);
+                string RangeID = P_Convert.ObjToStr(Table[0]["RangeID"]);
+
+
+                int DeleteCount = 0;
+
+
+                if (!string.IsNullOrEmpty(RangeID))
+                {
+                    string DeleteRangeSql = $@"
+DELETE FROM RecordsHistory
+WHERE FileUniqueKey = {FileUniqueKey}
+AND RangeID = '{RangeID}';
+";
+
+                    DeleteCount = Phoenix.LocalDB.ExecuteNonQuery(DeleteRangeSql);
+                }
+                else
+                {
+                    string DeleteSql = $@"
+DELETE FROM RecordsHistory
+WHERE FileUniqueKey = {FileUniqueKey}
+AND [Key] = '{Key}';
+";
+
+                    DeleteCount = Phoenix.LocalDB.ExecuteNonQuery(DeleteSql);
+                }
+
+
+                if (DeleteCount <= 0)
+                    break;
+
+
+                NeedDelete -= DeleteCount;
+            }
+
+
+            return true;
+        }
     }
+
+    
+     
 }
