@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using PhoenixEngine.ADO;
 using PhoenixEngine.Common;
 using PhoenixEngine.Platform.Request;
 
@@ -40,6 +41,24 @@ namespace PhoenixEngine.Engine.ADO
             this.IsCurrent = P_Convert.ObjToInt(IsCurrent);
 
             this.Time = TimeHelper.TimestampToDateTime(P_Convert.ObjToLong(Time));
+        }
+
+        public string GetKeysStr()
+        {
+            string MergeKey = "";
+            foreach (var Key in this.Keys)
+            {
+                string TrimKey = Key.Trim();
+                if (TrimKey.Length > 0)
+                {
+                    MergeKey += TrimKey + ",";
+                }
+            }
+            if (MergeKey.EndsWith(","))
+            {
+                MergeKey = MergeKey.Substring(0, MergeKey.Length - ",".Length);
+            }
+            return MergeKey;
         }
     }
     public class HistoryDBCache
@@ -176,6 +195,39 @@ LIMIT 1;
             var Result = P_Convert.ObjToStr(Phoenix.LocalDB.ExecuteScalar(SqlOrder));
 
             return Result;
+        }
+
+        //Add
+        public bool AddHistory(HistoryItem Item)
+        {
+            string SqlOrder = "Insert Into RecordsHistory(FileUniqueKey,Keys,To,PreviousText,CurrentText,Time)Values({0},'{1}',{2},'{3}','{4}',{5})";
+            int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,
+                Item.FileUniqueKey,
+                Item.GetKeysStr(),
+                Item.To,
+                SQLSafeCodec.Encode(Item.PreviousText),
+                SQLSafeCodec.Encode(Item.CurrentText),
+                TimeHelper.DateTimeToTimestamp(Item.Time)));
+            if (State != 0)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        //Delete
+        public bool DeleteHistory(int FileUniqueKey, string CurrentKeys)
+        {
+            string SqlOrder = "Delete From RecordsHistory Where FileUniqueKey = {0} And Keys = '{1}'";
+
+            int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,FileUniqueKey,CurrentKeys));
+
+            if (State != 0)
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }
