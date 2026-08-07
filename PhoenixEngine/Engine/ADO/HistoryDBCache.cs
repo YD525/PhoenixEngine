@@ -16,8 +16,9 @@ namespace PhoenixEngine.Engine.ADO
         public string CurrentText = "";
         public int IsCurrent = 0;
         public DateTime Time;
+        public string RangeID = "";
 
-        public HistoryItem(object FileUniqueKey, object Key, object To, object PreviousText, object CurrentText, object IsCurrent, object Time)
+        public HistoryItem(object FileUniqueKey, object Key, object To, object PreviousText, object CurrentText, object IsCurrent, object Time,object RangeID)
         {
             this.FileUniqueKey = P_Convert.ObjToInt(FileUniqueKey);
 
@@ -31,6 +32,8 @@ namespace PhoenixEngine.Engine.ADO
             this.IsCurrent = P_Convert.ObjToInt(IsCurrent);
 
             this.Time = TimeHelper.TimestampToDateTime(P_Convert.ObjToLong(Time));
+
+            this.RangeID = P_Convert.ObjToStr(RangeID);
         }
     }
     public class HistoryDBCache
@@ -47,7 +50,8 @@ CREATE TABLE [RecordsHistory](
     [PreviousText] TEXT,
     [CurrentText] TEXT,
     [IsCurrent] INT,
-    [Time] INT64
+    [Time] INT64,
+    [RangeID] TEXT
 );";
 
             // Check if table exists
@@ -73,7 +77,8 @@ CREATE TABLE [RecordsHistory](
                 "PreviousText",
                 "CurrentText",
                 "IsCurrent",
-                "Time"
+                "Time",
+                "RangeID"
                 };
 
                 bool StructureChanged =
@@ -93,93 +98,211 @@ CREATE TABLE [RecordsHistory](
             }
         }
 
-        //Ctrl+Z
-
-        public string GetPreviousKey(int FileUniqueKey, string CurrentKey)
+        public object LockGenRangeID = new object();
+        public string GenRangeID()
         {
+            lock (LockGenRangeID)
+            {
+                return DateTime.UtcNow.Ticks + "_" + new Random(Guid.NewGuid().GetHashCode()).Next(1000, 9999);
+            }
+        }
+
+        //Ctrl+Z
+        public List<string> GetPreviousKey(int FileUniqueKey, string CurrentKey)
+        {
+            List<string> Keys = new List<string>();
+
             string SqlOrder = $@"
-SELECT [Key]
+SELECT rowid, [RangeID], [Key]
 FROM [RecordsHistory]
 WHERE [FileUniqueKey] = {FileUniqueKey}
-AND [Time] < 
+AND rowid <
 (
-    SELECT [Time]
+    SELECT rowid
     FROM [RecordsHistory]
     WHERE [FileUniqueKey] = {FileUniqueKey}
     AND [Key] = '{CurrentKey}'
-    ORDER BY [Time] DESC
+    ORDER BY rowid DESC
     LIMIT 1
 )
-ORDER BY [Time] DESC
+ORDER BY rowid DESC
 LIMIT 1;
 ";
 
-            return P_Convert.ObjToStr(
-                Phoenix.LocalDB.ExecuteScalar(SqlOrder)
-            );
+            var Table = Phoenix.LocalDB.ExecuteQuery(SqlOrder);
+
+            if (Table.Count == 0)
+                return Keys;
+
+
+            string RangeID = P_Convert.ObjToStr(Table[0]["RangeID"]);
+
+
+            if (string.IsNullOrEmpty(RangeID))
+            {
+                Keys.Add(P_Convert.ObjToStr(Table[0]["Key"]));
+            }
+            else
+            {
+                string RangeSql = $@"
+SELECT [Key]
+FROM [RecordsHistory]
+WHERE [FileUniqueKey] = {FileUniqueKey}
+AND [RangeID] = '{RangeID}';
+";
+
+                var RangeTable = Phoenix.LocalDB.ExecuteQuery(RangeSql);
+
+                foreach (var Row in RangeTable)
+                {
+                    Keys.Add(P_Convert.ObjToStr(Row["Key"]));
+                }
+            }
+
+            return Keys;
         }
 
         //Ctrl+Y
-
-        public string GetNextKey(int FileUniqueKey, string CurrentKey)
+        public List<string> GetNextKey(int FileUniqueKey, string CurrentKey)
         {
+            List<string> Keys = new List<string>();
+
             string SqlOrder = $@"
-SELECT [Key]
+SELECT rowid, [RangeID], [Key]
 FROM [RecordsHistory]
 WHERE [FileUniqueKey] = {FileUniqueKey}
-AND [Time] >
+AND rowid >
 (
-    SELECT [Time]
+    SELECT rowid
     FROM [RecordsHistory]
     WHERE [FileUniqueKey] = {FileUniqueKey}
     AND [Key] = '{CurrentKey}'
-    ORDER BY [Time] DESC
+    ORDER BY rowid DESC
     LIMIT 1
 )
-ORDER BY [Time] ASC
+ORDER BY rowid ASC
 LIMIT 1;
 ";
 
-            return P_Convert.ObjToStr(
-                Phoenix.LocalDB.ExecuteScalar(SqlOrder)
-            );
+            var Table = Phoenix.LocalDB.ExecuteQuery(SqlOrder);
+
+            if (Table.Count == 0)
+                return Keys;
+
+
+            string RangeID = P_Convert.ObjToStr(Table[0]["RangeID"]);
+
+
+            if (string.IsNullOrEmpty(RangeID))
+            {
+                Keys.Add(P_Convert.ObjToStr(Table[0]["Key"]));
+            }
+            else
+            {
+                string RangeSql = $@"
+SELECT [Key]
+FROM [RecordsHistory]
+WHERE [FileUniqueKey] = {FileUniqueKey}
+AND [RangeID] = '{RangeID}';
+";
+
+                var RangeTable = Phoenix.LocalDB.ExecuteQuery(RangeSql);
+
+                foreach (var Row in RangeTable)
+                {
+                    Keys.Add(P_Convert.ObjToStr(Row["Key"]));
+                }
+            }
+
+            return Keys;
         }
 
         //Click
         public void SelectKey(int FileUniqueKey, string CurrentKey)
         {
             // Clear Current flag
-            string SqlOrder = $@"UPDATE [RecordsHistory] SET [IsCurrent] = 0 WHERE [FileUniqueKey] = {FileUniqueKey};";
+            string SqlOrder = $@"
+UPDATE [RecordsHistory]
+SET [IsCurrent] = 0
+WHERE [FileUniqueKey] = {FileUniqueKey};
+";
 
             Phoenix.LocalDB.ExecuteNonQuery(SqlOrder);
 
-            // Set Selected history as current
-            SqlOrder = $@"UPDATE [RecordsHistory] SET [IsCurrent] = 1 WHERE [FileUniqueKey] = {FileUniqueKey} AND [Key] = '{CurrentKey}';";
+
+            // Get RangeID
+            SqlOrder = $@"
+SELECT [RangeID]
+FROM [RecordsHistory]
+WHERE [FileUniqueKey] = {FileUniqueKey}
+AND [Key] = '{CurrentKey}'
+LIMIT 1;
+";
+
+            string RangeID = P_Convert.ObjToStr(
+                Phoenix.LocalDB.ExecuteScalar(SqlOrder)
+            );
+
+
+            // Range operation
+            if (!string.IsNullOrEmpty(RangeID))
+            {
+                SqlOrder = $@"
+UPDATE [RecordsHistory]
+SET [IsCurrent] = 1
+WHERE [FileUniqueKey] = {FileUniqueKey}
+AND [RangeID] = '{RangeID}';
+";
+            }
+            else
+            {
+                // Single operation
+                SqlOrder = $@"
+UPDATE [RecordsHistory]
+SET [IsCurrent] = 1
+WHERE [FileUniqueKey] = {FileUniqueKey}
+AND [Key] = '{CurrentKey}';
+";
+            }
 
             Phoenix.LocalDB.ExecuteNonQuery(SqlOrder);
         }
 
-        //Get Current Key
-        public string GetSelectKey(int FileUniqueKey)
+        //Get Current Keys
+        public List<string> GetSelectKeys(int FileUniqueKey)
         {
-            string SqlOrder = string.Format("Select [Key] From [RecordsHistory] Where [FileUniqueKey] = {0} And [IsCurrent] = 1", FileUniqueKey);
+            List<string> Keys = new List<string>();
 
-            var Result = P_Convert.ObjToStr(Phoenix.LocalDB.ExecuteScalar(SqlOrder));
+            string SqlOrder = $@"
+SELECT [Key]
+FROM [RecordsHistory]
+WHERE [FileUniqueKey] = {FileUniqueKey}
+AND [IsCurrent] = 1;
+";
 
-            return Result;
+            var Table = Phoenix.LocalDB.ExecuteQuery(SqlOrder);
+
+            foreach (var Row in Table)
+            {
+                Keys.Add(P_Convert.ObjToStr(Row["Key"]));
+            }
+
+            return Keys;
         }
 
         //Add
         public bool AddHistory(HistoryItem Item)
         {
-            string SqlOrder = "Insert Into RecordsHistory(FileUniqueKey,Key,To,PreviousText,CurrentText,Time)Values({0},'{1}',{2},'{3}','{4}',{5})";
+            string SqlOrder = "Insert Into RecordsHistory(FileUniqueKey,Key,To,PreviousText,CurrentText,Time,RangeID)Values({0},'{1}',{2},'{3}','{4}',{5},'{6}')";
             int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,
                 Item.FileUniqueKey,
                 Item.Key,
                 Item.To,
                 SQLSafeCodec.Encode(Item.PreviousText),
                 SQLSafeCodec.Encode(Item.CurrentText),
-                TimeHelper.DateTimeToTimestamp(Item.Time)));
+                TimeHelper.DateTimeToTimestamp(Item.Time),
+                Item.RangeID
+                ));
             if (State != 0)
             {
                 return true;
@@ -205,7 +328,7 @@ LIMIT 1;
         //Get Full InFo By CurrentKey
         public HistoryItem KeyToHistoryItem(int FileUniqueKey, string Key)
         {
-            string SqlOrder = "Select * From RecordsHistory Where FileUniqueKey = {0} And Key = '{1}' Limit = 1";
+            string SqlOrder = "Select * From RecordsHistory Where FileUniqueKey = {0} And Key = '{1}' Limit 1";
 
             var NTable = Phoenix.LocalDB.ExecuteQuery(string.Format(SqlOrder, FileUniqueKey, Key));
 
@@ -220,7 +343,8 @@ LIMIT 1;
                     SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["PreviousText"])),
                     SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["CurrentText"])),
                     Row["IsCurrent"],
-                    Row["Time"]
+                    Row["Time"],
+                    Row["RangeID"]
                 );
             }
 
@@ -249,7 +373,8 @@ LIMIT 1;
                         SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["PreviousText"])),
                         SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["CurrentText"])),
                         Row["IsCurrent"],
-                        Row["Time"]
+                        Row["Time"],
+                        Row["RangeID"]
                     ));
                 }
             }
