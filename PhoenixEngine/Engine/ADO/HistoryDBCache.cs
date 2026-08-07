@@ -18,7 +18,7 @@ namespace PhoenixEngine.Engine.ADO
         public DateTime Time;
 
         public HistoryItem(object FileUniqueKey, object Keys, object To, object PreviousText, object CurrentText, object IsCurrent, object Time)
-        { 
+        {
             this.FileUniqueKey = P_Convert.ObjToInt(FileUniqueKey);
 
             string GetKeysArray = P_Convert.ObjToStr(Keys);
@@ -190,7 +190,7 @@ LIMIT 1;
         //Get Current Key
         public string GetSelectKey(int FileUniqueKey)
         {
-            string SqlOrder = string.Format("Select [Keys] From [RecordsHistory] Where [FileUniqueKey] = {0} And [IsCurrent] = 1",FileUniqueKey);
+            string SqlOrder = string.Format("Select [Keys] From [RecordsHistory] Where [FileUniqueKey] = {0} And [IsCurrent] = 1", FileUniqueKey);
 
             var Result = P_Convert.ObjToStr(Phoenix.LocalDB.ExecuteScalar(SqlOrder));
 
@@ -216,11 +216,11 @@ LIMIT 1;
         }
 
         //Delete
-        public bool DeleteHistory(int FileUniqueKey, string CurrentKeys)
+        public bool DeleteHistory(int FileUniqueKey, string Keys)
         {
             string SqlOrder = "Delete From RecordsHistory Where FileUniqueKey = {0} And Keys = '{1}'";
 
-            int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,FileUniqueKey,CurrentKeys));
+            int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, Keys));
 
             if (State != 0)
             {
@@ -228,6 +228,61 @@ LIMIT 1;
             }
 
             return false;
+        }
+
+        //Get Full InFo By CurrentKeys
+        public HistoryItem KeysToHistoryItem(int FileUniqueKey, string Keys)
+        {
+            string SqlOrder = "Select * From RecordsHistory Where FileUniqueKey = {0} And Keys = '{1}' Limit = 1";
+
+            var NTable = Phoenix.LocalDB.ExecuteQuery(string.Format(SqlOrder, FileUniqueKey, Keys));
+
+            if (NTable.Count > 0)
+            {
+                var Row = NTable[0];
+
+                return new HistoryItem(
+                    Row["FileUniqueKey"],
+                    Row["Keys"],
+                    Row["To"],
+                    SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["PreviousText"])),
+                    SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["CurrentText"])),
+                    Row["IsCurrent"],
+                    Row["Time"]
+                );
+            }
+
+            return null;
+        }
+
+        //Get HistoryItems
+        public List<HistoryItem> GetHistoryItems(int FileUniqueKey)
+        {
+            List<HistoryItem> HistoryItems = new List<HistoryItem>();
+
+            string SqlOrder = "Select * From RecordsHistory Where FileUniqueKey = {0}";
+
+            var NTable = Phoenix.LocalDB.ExecuteQuery(string.Format(SqlOrder, FileUniqueKey));
+
+            if (NTable.Count > 0)
+            {
+                for (int i = 0; i < NTable.Count; i++)
+                {
+                    var Row = NTable[i];
+
+                    HistoryItems.Add(new HistoryItem(
+                        Row["FileUniqueKey"],
+                        Row["Keys"],
+                        Row["To"],
+                        SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["PreviousText"])),
+                        SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["CurrentText"])),
+                        Row["IsCurrent"],
+                        Row["Time"]
+                    ));
+                }
+            }
+
+            return HistoryItems;
         }
     }
 }
