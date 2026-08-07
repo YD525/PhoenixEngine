@@ -298,6 +298,17 @@ AND [IsCurrent] = 1;
             return State != 0;
         }
 
+        public static bool CheckHistoryItem(int FileUniqueKey, int To,string Key,string CurrentText)
+        {
+            int GetRowid = P_Convert.ObjToInt(Phoenix.LocalDB.ExecuteScalar($"Select Rowid From RecordsHistory Where FileUniqueKey = {FileUniqueKey} And [To] = {To} And [Key] = '{Key}' And CurrentText = '{SQLSafeCodec.Encode(CurrentText)}'"));
+
+            if (GetRowid > 0)
+            {
+                return true;
+            }
+            return false;
+        }
+
         //Get Full InFo By CurrentKey
         public static HistoryItem IDToHistoryItem(int FileUniqueKey, int ID)
         {
