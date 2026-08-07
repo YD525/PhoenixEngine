@@ -7,32 +7,48 @@ namespace PhoenixEngine.Memory
     {
         public readonly string String;
         public readonly uint Type = 0;
+        public readonly string RangeID = "";
 
-        public P_String(string String, uint Type)
+        public P_String(string String, uint Type, string RangeID = "")
         {
             this.String = String;
             this.Type = Type;
+            this.RangeID = RangeID;
         }
 
         public bool Equals(P_String Other)
         {
-            if (Other is null) return false;
-            return Type == Other.Type && string.Equals(String, Other.String, StringComparison.Ordinal);
+            if (Other is null)
+                return false;
+
+            return Type == Other.Type
+                && string.Equals(String, Other.String, StringComparison.Ordinal)
+                && string.Equals(RangeID, Other.RangeID, StringComparison.Ordinal);
         }
 
-        public override bool Equals(object obj) => Equals(obj as P_String);
+        public override bool Equals(object obj)
+            => Equals(obj as P_String);
 
         public override int GetHashCode()
         {
             unchecked
             {
                 int Hash = 17;
-                Hash = Hash * 31 + (String != null ? StringComparer.Ordinal.GetHashCode(String) : 0);
+
+                Hash = Hash * 31 + (String != null
+                    ? StringComparer.Ordinal.GetHashCode(String)
+                    : 0);
+
                 Hash = Hash * 31 + Type.GetHashCode();
+
+                Hash = Hash * 31 + (RangeID != null
+                    ? StringComparer.Ordinal.GetHashCode(RangeID)
+                    : 0);
+
                 return Hash;
             }
         }
-    } 
+    }
     public class P_Dict<TKey, TValue>
     {
         private object GlobalLock = new object();
