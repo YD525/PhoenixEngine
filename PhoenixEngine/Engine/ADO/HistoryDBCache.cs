@@ -153,5 +153,29 @@ LIMIT 1;
                 Phoenix.LocalDB.ExecuteScalar(SqlOrder)
             );
         }
+
+        //Click
+        public void SelectKey(int FileUniqueKey, string CurrentKeys)
+        {
+            // Clear Current flag
+            string SqlOrder = $@"UPDATE [RecordsHistory] SET [IsCurrent] = 0 WHERE [FileUniqueKey] = {FileUniqueKey};";
+
+            Phoenix.LocalDB.ExecuteNonQuery(SqlOrder);
+
+            // Set Selected history as current
+            SqlOrder = $@"UPDATE [RecordsHistory] SET [IsCurrent] = 1 WHERE [FileUniqueKey] = {FileUniqueKey} AND [Keys] = '{CurrentKeys}';";
+
+            Phoenix.LocalDB.ExecuteNonQuery(SqlOrder);
+        }
+
+        //Get Current Key
+        public string GetSelectKey(int FileUniqueKey)
+        {
+            string SqlOrder = string.Format("Select [Keys] From [RecordsHistory] Where [FileUniqueKey] = {0} And [IsCurrent] = 1",FileUniqueKey);
+
+            var Result = P_Convert.ObjToStr(Phoenix.LocalDB.ExecuteScalar(SqlOrder));
+
+            return Result;
+        }
     }
 }
