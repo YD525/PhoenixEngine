@@ -421,7 +421,7 @@ WHERE rowid = {Rowid};
             return true;
         }
 
-        public static string GetLastRowid(int FileUniqueKey)
+        public static int GetLastRowid(int FileUniqueKey)
         {
             string SqlOrder = $@"
 SELECT [Rowid]
@@ -435,10 +435,10 @@ LIMIT 1;
 
             if (Table.Count > 0)
             {
-                return P_Convert.ObjToStr(Table[0]["Rowid"]);
+                return P_Convert.ObjToInt(Table[0]["Rowid"]);
             }
 
-            return null;
+            return 0;
         }
     }   
 }
