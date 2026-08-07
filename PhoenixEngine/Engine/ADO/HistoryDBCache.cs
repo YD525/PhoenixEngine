@@ -98,8 +98,8 @@ CREATE TABLE [RecordsHistory](
             }
         }
 
-        public object LockGenRangeID = new object();
-        public string GenRangeID()
+        private static object LockGenRangeID = new object();
+        public static string GenRangeID()
         {
             lock (LockGenRangeID)
             {
