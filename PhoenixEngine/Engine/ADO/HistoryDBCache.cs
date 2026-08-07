@@ -273,7 +273,7 @@ AND [IsCurrent] = 1;
         //Add
         public static bool AddHistory(HistoryItem Item)
         {
-            string SqlOrder = "Insert Into RecordsHistory(FileUniqueKey,[Key],[To],PreviousText,CurrentText,[Time],RangeID)Values({0},'{1}',{2},'{3}',{4},'{5}')";
+            string SqlOrder = "Insert Into RecordsHistory(FileUniqueKey,[Key],[To],CurrentText,[Time],RangeID)Values({0},'{1}',{2},'{3}',{4},'{5}')";
             int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,
                 Item.FileUniqueKey,
                 Item.Key,
