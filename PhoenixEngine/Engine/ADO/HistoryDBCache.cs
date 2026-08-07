@@ -300,7 +300,7 @@ AND [IsCurrent] = 1;
 
         public static bool CheckHistoryItem(int FileUniqueKey, int To,string Key,string CurrentText)
         {
-            int GetRowid = P_Convert.ObjToInt(Phoenix.LocalDB.ExecuteScalar($"Select Rowid From RecordsHistory Where FileUniqueKey = {FileUniqueKey} And [To] = {To} And [Key] = '{Key}' And CurrentText = '{SQLSafeCodec.Encode(CurrentText)}'"));
+            int GetRowid = P_Convert.ObjToInt(Phoenix.LocalDB.ExecuteScalar($"Select Rowid From RecordsHistory Where FileUniqueKey = {FileUniqueKey} And [To] = {To} And [Key] = '{Key}' And CurrentText = '{SQLSafeCodec.Encode(CurrentText)}' Limit 1"));
 
             if (GetRowid > 0)
             {
