@@ -421,10 +421,10 @@ WHERE rowid = {Rowid};
             return true;
         }
 
-        public static string GetLastKey(int FileUniqueKey)
+        public static string GetLastRowid(int FileUniqueKey)
         {
             string SqlOrder = $@"
-SELECT [Key]
+SELECT [Rowid]
 FROM [RecordsHistory]
 WHERE [FileUniqueKey] = {FileUniqueKey}
 ORDER BY rowid DESC
@@ -435,7 +435,7 @@ LIMIT 1;
 
             if (Table.Count > 0)
             {
-                return P_Convert.ObjToStr(Table[0]["Key"]);
+                return P_Convert.ObjToStr(Table[0]["Rowid"]);
             }
 
             return null;
