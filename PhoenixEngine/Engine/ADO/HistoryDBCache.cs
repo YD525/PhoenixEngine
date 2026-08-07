@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.Linq;
 using PhoenixEngine.ADO;
 using PhoenixEngine.Common;
@@ -295,16 +296,18 @@ AND [IsCurrent] = 1;
         }
 
         public static bool CheckPreviousHistoryItem(
+     int CurrentID,
      int FileUniqueKey,
      int To,
      string Key,
-     string CurrentText)
+     string CurrentText,
+     out int TargetID)
         {
             int PreviousRowid = P_Convert.ObjToInt(
                 Phoenix.LocalDB.ExecuteScalar($@"
 SELECT Rowid
 FROM RecordsHistory
-WHERE Rowid < {GetLastID(FileUniqueKey)}
+WHERE Rowid < {CurrentID}
 ORDER BY Rowid DESC
 LIMIT 1;
 ")
@@ -312,8 +315,10 @@ LIMIT 1;
 
 
             if (PreviousRowid <= 0)
+            {
+                TargetID = 0;
                 return false;
-
+            }
 
             int Count = P_Convert.ObjToInt(
                 Phoenix.LocalDB.ExecuteScalar($@"
@@ -327,8 +332,17 @@ AND CurrentText = '{SQLSafeCodec.Encode(CurrentText)}';
 ")
             );
 
+            if (Count > 0)
+            {
+                TargetID = PreviousRowid;
 
-            return Count > 0;
+                return true;
+            }
+            else
+            {
+                TargetID = 0;
+                return false;
+            }
         }
 
         //Get Full InFo By CurrentKey
