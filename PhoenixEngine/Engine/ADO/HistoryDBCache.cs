@@ -298,15 +298,23 @@ AND [IsCurrent] = 1;
             return State != 0;
         }
 
-        public static bool CheckHistoryItem(int FileUniqueKey, int To,string Key,string CurrentText)
+        public static bool CheckPreviousHistoryItem(int CurrentID, int FileUniqueKey, int To, string Key, string CurrentText)
         {
-            int GetRowid = P_Convert.ObjToInt(Phoenix.LocalDB.ExecuteScalar($"Select Rowid From RecordsHistory Where FileUniqueKey = {FileUniqueKey} And [To] = {To} And [Key] = '{Key}' And CurrentText = '{SQLSafeCodec.Encode(CurrentText)}' Limit 1"));
+            int GetRowid = P_Convert.ObjToInt(
+                Phoenix.LocalDB.ExecuteScalar($@"
+            SELECT Rowid 
+            FROM RecordsHistory 
+            WHERE Rowid < {CurrentID}
+              AND FileUniqueKey = {FileUniqueKey}
+              AND [To] = {To}
+              AND [Key] = '{Key}'
+              AND CurrentText = '{SQLSafeCodec.Encode(CurrentText)}'
+            ORDER BY Rowid DESC
+            LIMIT 1
+            ")
+            );
 
-            if (GetRowid > 0)
-            {
-                return true;
-            }
-            return false;
+            return GetRowid > 0;
         }
 
         //Get Full InFo By CurrentKey
