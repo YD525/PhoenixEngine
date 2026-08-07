@@ -322,11 +322,11 @@ AND [IsCurrent] = 1;
         }
 
         //Get HistoryItems
-        public static List<HistoryItem> GetHistoryItems(int FileUniqueKey)
+        public static List<HistoryItem> GetHistoryItems(int FileUniqueKey,int To)
         {
             List<HistoryItem> HistoryItems = new List<HistoryItem>();
 
-            string SqlOrder = "Select rowid AS Rowid, * From RecordsHistory Where FileUniqueKey = {0}";
+            string SqlOrder = "Select rowid AS Rowid, * From RecordsHistory Where FileUniqueKey = {0} And [To] = {1}";
 
             var NTable = Phoenix.LocalDB.ExecuteQuery(string.Format(SqlOrder, FileUniqueKey));
 
