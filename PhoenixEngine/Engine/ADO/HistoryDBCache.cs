@@ -2,9 +2,46 @@
 using System.Collections.Generic;
 using System.Linq;
 using PhoenixEngine.Common;
+using PhoenixEngine.Platform.Request;
 
 namespace PhoenixEngine.Engine.ADO
 {
+    public class HistoryItem
+    {
+        public int FileUniqueKey = 0;
+        public List<string> Keys = new List<string>();
+        public int To = 0;
+        public string PreviousText = "";
+        public string CurrentText = "";
+        public int IsCurrent = 0;
+        public DateTime Time;
+
+        public HistoryItem(object FileUniqueKey, object Keys, object To, object PreviousText, object CurrentText, object IsCurrent, object Time)
+        { 
+            this.FileUniqueKey = P_Convert.ObjToInt(FileUniqueKey);
+
+            string GetKeysArray = P_Convert.ObjToStr(Keys);
+
+            foreach (var Key in GetKeysArray.Split(','))
+            {
+                string TrimKey = Key.Trim();
+
+                if (TrimKey.Length > 0)
+                {
+                    this.Keys.Add(TrimKey);
+                }
+            }
+
+            this.To = P_Convert.ObjToInt(To);
+
+            this.PreviousText = P_Convert.ObjToStr(PreviousText);
+            this.CurrentText = P_Convert.ObjToStr(CurrentText);
+
+            this.IsCurrent = P_Convert.ObjToInt(IsCurrent);
+
+            this.Time = TimeHelper.TimestampToDateTime(P_Convert.ObjToLong(Time));
+        }
+    }
     public class HistoryDBCache
     {
         public static void Init()
@@ -69,7 +106,7 @@ CREATE TABLE [RecordsHistory](
 
         public string GetPreviousKey(int FileUniqueKey, string CurrentKeys)
         {
-            string Sql = $@"
+            string SqlOrder = $@"
 SELECT [Keys]
 FROM [RecordsHistory]
 WHERE [FileUniqueKey] = {FileUniqueKey}
@@ -87,7 +124,7 @@ LIMIT 1;
 ";
 
             return P_Convert.ObjToStr(
-                Phoenix.LocalDB.ExecuteScalar(Sql)
+                Phoenix.LocalDB.ExecuteScalar(SqlOrder)
             );
         }
 
@@ -95,7 +132,7 @@ LIMIT 1;
 
         public string GetNextKey(int FileUniqueKey, string CurrentKeys)
         {
-            string Sql = $@"
+            string SqlOrder = $@"
 SELECT [Keys]
 FROM [RecordsHistory]
 WHERE [FileUniqueKey] = {FileUniqueKey}
@@ -113,7 +150,7 @@ LIMIT 1;
 ";
 
             return P_Convert.ObjToStr(
-                Phoenix.LocalDB.ExecuteScalar(Sql)
+                Phoenix.LocalDB.ExecuteScalar(SqlOrder)
             );
         }
     }
