@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Text;
 
 namespace PhoenixEngine.Memory
 {
@@ -172,6 +174,18 @@ namespace PhoenixEngine.Memory
             return Result;
         }
     }
+
+    public class P_String
+    {
+        public string String;
+        public uint Type = 0;
+        public P_String(string String, uint Type)
+        {
+            this.String = String;
+            this.Type = Type;
+        }
+    }
+
     public class P_Dict<TKey, TValue>
     {
         private object GlobalLock = new object();
@@ -230,7 +244,10 @@ namespace PhoenixEngine.Memory
                         if (EqualityComparer<TValue>.Default.Equals(OldValue, value))
                             return;
 
-                        OnValueChanged?.Invoke(Key, OldValue, value);
+                        if (value is P_String && OldValue is P_String)
+                        {
+                            OnValueChanged?.Invoke(Key, OldValue, value);
+                        }
 
                         if (CacheRefCount[OldIndex] == 1 && !CacheDict.ContainsKey(value))
                         {

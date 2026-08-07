@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
+using PhoenixEngine.Memory;
 using PhoenixEngine.Sequence;
 using PhoenixEngine.Translate;
 
@@ -21,7 +22,7 @@ namespace PhoenixEngine.Unit
 
                     var Link = TranslatorRef.GetLink();
 
-                    Link[GetUnit.Key] = GetUnit.Translated;
+                    Link[GetUnit.Key] = new P_String(GetUnit.Translated,0);
                 }
             }
         }

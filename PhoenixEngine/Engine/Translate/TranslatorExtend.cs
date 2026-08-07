@@ -1,4 +1,5 @@
 ﻿using PhoenixEngine.ADO;
+using PhoenixEngine.Memory;
 
 namespace PhoenixEngine.Translate
 {
@@ -12,7 +13,7 @@ namespace PhoenixEngine.Translate
             public bool FromDictionary = false;
             public int State = 0;
         }
-        public static void SetLink(this Translator Translator, string Key, string Value)
+        public static void SetLink(this Translator Translator, string Key, P_String Value)
         {
             lock (Translator.TransDataLocker)
             {
@@ -31,7 +32,7 @@ namespace PhoenixEngine.Translate
 
                 if (Result != null)
                 {
-                    return Result;
+                    return Result.String;
                 }
                 else
                 {
@@ -47,11 +48,11 @@ namespace PhoenixEngine.Translate
                 var GetResult = Link[Key];
                 if (GetResult != null)
                 {
-                    return GetResult;
+                    return GetResult.String;
                 }
                 else
                 {
-                    Link.Add(Key, string.Empty);
+                    Link.Add(Key,new P_String(string.Empty,0));
                 }
                 return string.Empty;
             }
@@ -135,13 +136,13 @@ namespace PhoenixEngine.Translate
             NQueryTransItem.TransText = TransText;
             return NQueryTransItem;
         }
-        public static bool AutoSetLink(this Translator Translator, string Key, string SourceText, string TransText)
+        public static bool AutoSetLink(this Translator Translator, string Key, string SourceText, P_String TransText)
         {
             int FileUniqueKey = Translator.GetFileUniqueKey();
 
             var Link = Translator.GetLink();
 
-            if (TransText.Trim().Length > 0)
+            if (TransText.String.Trim().Length > 0)
             {
                 Link[Key] = TransText;
             }
@@ -155,7 +156,7 @@ namespace PhoenixEngine.Translate
                 return true;
             }
 
-            var GetState = LocalDBCache.UpdateLocalTransItem(FileUniqueKey, Key, (int)Translator.To, SourceText, TransText, 0);
+            var GetState = LocalDBCache.UpdateLocalTransItem(FileUniqueKey, Key, (int)Translator.To, SourceText, TransText.String, 0);
 
             return GetState;
         }

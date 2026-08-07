@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.Text.RegularExpressions;
+using PhoenixEngine.Memory;
 using PhoenixEngine.Translate;
 
 namespace PhoenixEngine.Engine
@@ -17,11 +18,11 @@ namespace PhoenixEngine.Engine
 
             if (Regex.Replace(NewStr, @"\s+", "").Length > 0)
             {
-                Link[GetKey] = NewStr;
+                Link[GetKey] = new P_String(NewStr,0);
             }
             else
             {
-                Link[GetKey] = string.Empty;
+                Link[GetKey] = new P_String(string.Empty,0);
             }
         }
 

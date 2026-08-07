@@ -32,10 +32,10 @@ namespace PhoenixEngine.Translate
 
         public readonly object TransDataLocker = new object();
 
-        private P_Dict<string, string> DataLink = new P_Dict<string, string>();
+        private P_Dict<string, P_String> DataLink = new P_Dict<string,P_String>();
         public int MaxTry = 10;
 
-        public P_Dict<string, string> GetLink()
+        public P_Dict<string, P_String> GetLink()
         {
             return this.DataLink;
         }
@@ -280,9 +280,9 @@ namespace PhoenixEngine.Translate
         {
             try
             {
-                DataLink.CheckLinks(new Action<string, string,bool>((Key, Value,Unique) =>
+                DataLink.CheckLinks(new Action<string,P_String,bool>((Key,Value,Unique) =>
                 {
-                    var SetValue = Value.Trim();
+                    var SetValue = Value.String.Trim();
                     try
                     {
                         if (SetValue.Length > 0)
