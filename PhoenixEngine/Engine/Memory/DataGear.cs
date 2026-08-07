@@ -180,6 +180,9 @@ namespace PhoenixEngine.Memory
         private List<TValue> CacheList = new List<TValue>();
         private List<int> CacheRefCount = new List<int>();
 
+        // Reserved callback for future use. Triggered when a value changes to record history operations.
+        public Action<TKey, TValue, TValue> OnValueChanged;
+
         public int Count
         {
             get { lock (GlobalLock) return DictData.Count; }
@@ -226,6 +229,9 @@ namespace PhoenixEngine.Memory
                         TValue OldValue = CacheList[OldIndex];
                         if (EqualityComparer<TValue>.Default.Equals(OldValue, value))
                             return;
+
+                        OnValueChanged?.Invoke(Key, OldValue, value);
+
                         if (CacheRefCount[OldIndex] == 1 && !CacheDict.ContainsKey(value))
                         {
                             CacheDict.Remove(OldValue);
