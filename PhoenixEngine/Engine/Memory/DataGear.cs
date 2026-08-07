@@ -126,6 +126,14 @@ namespace PhoenixEngine.Memory
                         if (CacheRefCount[OldIndex] <= 0)
                             RegisterDead();
                     }
+                    else
+                    {
+                        if (value is P_String)
+                        {
+                            OnValueChanged?.Invoke(Key, default(TValue), value);
+                        }
+                    }
+
                     int NewIndex = AddData(value);
                     DictData[Key] = NewIndex;
                     CacheRefCount[NewIndex]++;
