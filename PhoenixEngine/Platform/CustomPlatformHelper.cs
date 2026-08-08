@@ -395,39 +395,39 @@ namespace PhoenixEngine.Platform
         public string GetTagValue(ReqReplaceTag Tag)
         {
             string Value = Tag.GetValue();
-            if (Value.Equals(ApiKeyAuto))
+            if (Value.Contains(ApiKeyAuto))
             {
-                return ApiKey;
+                return Value.Replace(ApiKeyAuto, ApiKey);
             }
             else
-            if (Value.Equals(PromptAuto))
+            if (Value.Contains(PromptAuto))
             {
-                return Prompt;
+                return Value.Replace(PromptAuto, Prompt);
             }
             else
-            if (Value.Equals(SourceAuto))
+            if (Value.Contains(SourceAuto))
             {
-                return Source;
+                return Value.Replace(SourceAuto, Source);
             }
             else
-            if (Value.Equals(ModelAuto))
+            if (Value.Contains(ModelAuto))
             {
-                return Model;
+                return Value.Replace(ModelAuto, Model);
             }
             else
-            if (Value.Equals(FromAuto))
+            if (Value.Contains(FromAuto))
             {
-                return From;
+                return Value.Replace(FromAuto, From);
             }
             else
-            if (Value.Equals(ToAuto))
+            if (Value.Contains(ToAuto))
             {
-                return To;
+                return Value.Replace(ToAuto, To);
             }
             else
-            if (Value.Equals(SignAuto))
+            if (Value.Contains(SignAuto))
             {
-                return CreateSign();
+                return Value.Replace(SignAuto, CreateSign());
             }
             else
             {

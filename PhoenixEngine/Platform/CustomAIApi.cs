@@ -101,13 +101,11 @@ namespace PhoenixEngine.Platform
                         TransStr = Result;
                     }
 
-                    string GetStr = "";
-
                     if (TransStr.Trim().Length > 0)
                     {
                         Call.Success = true;
 
-                        return GetStr;
+                        return TransStr;
                     }
                     else
                     {
