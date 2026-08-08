@@ -31,6 +31,8 @@ namespace PhoenixEngine.Platform
             this.ConfigRef = Config;
 
             this.ProxyRef = Proxy;
+
+            this.Model = Phoenix.Config.GetPlatformData(this.CustomID).Model;
         }
 
         public string QuickTrans(string ApiKey,List<ReplaceTag> CustomWords, UnitGroup Source, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam, ref AICall Call)
