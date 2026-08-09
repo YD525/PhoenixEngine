@@ -171,6 +171,11 @@ namespace PhoenixEngine
         public bool StrictLinkBucketPurity { get; set; } = false;
 
         /// <summary>
+        /// The system decides to completely disconnect a node after it fails a few times, and then restore the connection when the next batch translation begins.
+        /// </summary>
+        public int FailThreshold { get; set; } = 10;
+
+        /// <summary>
         /// Allows retrieval of the entire database using only the source text.
         /// </summary>
         public bool EnableGlobalSearch { get; set; } = false;

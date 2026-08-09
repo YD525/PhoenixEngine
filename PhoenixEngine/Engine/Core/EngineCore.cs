@@ -20,8 +20,6 @@ public class EngineCore
 
     private readonly object _Lock = new object();
 
-    private const int FailThreshold = 10;
-
     private readonly Dictionary<string, int> _FailureCounts = new Dictionary<string, int>();
     private readonly Dictionary<string, bool> _DisabledPlatforms = new Dictionary<string, bool>();
 
@@ -69,7 +67,7 @@ public class EngineCore
             Count++;
             _FailureCounts[Node.Key] = Count;
 
-            if (Count >= FailThreshold)
+            if (Count >= Phoenix.Config.FailThreshold)
             {
                 _DisabledPlatforms[Node.Key] = true;
                 Node.Disabled = true;
