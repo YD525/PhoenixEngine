@@ -4,6 +4,10 @@ namespace PhoenixEngine.Language
 {
     internal static class EnglishHelper
     {
+        private static readonly Regex EnglishRegex = new Regex(
+            @"^[a-zA-Z0-9\s\p{P}]+$",
+            RegexOptions.Compiled);
+
         /// <summary>
         /// Determines whether the input string is likely to be English text,
         /// containing only English letters, digits, whitespace, and punctuation.
@@ -16,7 +20,7 @@ namespace PhoenixEngine.Language
             if (string.IsNullOrWhiteSpace(Input))
                 return false;
 
-            return !Regex.IsMatch(Input, @"\p{M}") && Regex.IsMatch(Input, @"^[\p{L}\p{N}\s\p{P}]+$");
+            return EnglishRegex.IsMatch(Input);
         }
     }
 }
