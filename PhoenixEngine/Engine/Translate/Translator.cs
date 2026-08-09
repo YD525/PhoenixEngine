@@ -8,7 +8,6 @@ using PhoenixEngine.Engine.Core;
 using PhoenixEngine.Game;
 using PhoenixEngine.Language;
 using PhoenixEngine.Memory;
-using PhoenixEngine.Sequence;
 using PhoenixEngine.Unit;
 using static PhoenixEngine.Engine.P_BucketContainer;
 
@@ -135,6 +134,10 @@ namespace PhoenixEngine.Translate
         }
         public UnitGroup Translate(BaseUnit Unit, CancellationToken CancelToken, bool CanSleep = true)
         {
+            if (!BatchCore.IsWorking)
+            {
+                this.Core.ResetEngineHealth();
+            }
             P_Game SetGameType = new P_Game();
             bool IsBook = false;
 

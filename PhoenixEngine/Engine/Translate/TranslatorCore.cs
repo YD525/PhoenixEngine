@@ -143,6 +143,8 @@ namespace PhoenixEngine.Translate
             {
                 try
                 {
+                    this.TranslatorRef.Core.ResetEngineHealth();
+
                     MainTrdToken.ThrowIfCancellationRequested();
 
                     this.IsWorking = true;
