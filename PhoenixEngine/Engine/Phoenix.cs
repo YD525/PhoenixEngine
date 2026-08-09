@@ -44,19 +44,27 @@ namespace PhoenixEngine
         {
             int AutoThread = 0;
 
+            bool LocalAIEnable = false;
+
             for (int i = 0; i < Phoenix.Config.PlatformConfigs.Count; i++)
             { 
                 int GetKey = Phoenix.Config.PlatformConfigs.ElementAt(i).Key;
                 var GetConfig = Phoenix.Config.PlatformConfigs[GetKey];
-                if (GetConfig.ApiKeys.Count > 0 && GetConfig.Enable)
+
+                if (GetConfig.ApiKeys.Count > 0 && GetConfig.Enable && GetConfig.Platform != PlatformType.LMLocalAI)
                 {
                     AutoThread++;
                 }
-                else
-                if (GetConfig.Platform == PlatformType.LMLocalAI)
+                
+                if (GetConfig.Platform == PlatformType.LMLocalAI && GetConfig.Enable)
                 {
-                    AutoThread++;
+                    LocalAIEnable = true;
                 }
+            }
+
+            if (AutoThread <= 1 && LocalAIEnable)
+            {
+                AutoThread++;
             }
 
             return AutoThread;
