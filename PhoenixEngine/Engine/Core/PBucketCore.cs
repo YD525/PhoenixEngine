@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using PhoenixEngine.Sequence;
 using PhoenixEngine.Unit;
 
@@ -43,9 +42,15 @@ namespace PhoenixEngine.Engine.Core
             if (HtmlItem == null || string.IsNullOrEmpty(HtmlItem.Html))
                 return 0;
 
+
+            return CalcTextTokenEstimate(HtmlItem.Html);
+        }
+
+        public static int CalcTextTokenEstimate(string Text)
+        {
             double Length = 0;
 
-            foreach (char C in HtmlItem.Html)
+            foreach (char C in Text)
             {
                 if (C <= 0x7F)
                 {
@@ -80,7 +85,5 @@ namespace PhoenixEngine.Engine.Core
 
             return (int)Math.Ceiling(Length * 1.10);
         }
-
-
     }
 }

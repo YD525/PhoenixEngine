@@ -149,7 +149,26 @@ namespace PhoenixEngine
         /// <summary>
         /// Enable duplicate removal in confirmed dialogue relationships. Similarity-based groups are always deduplicated, while this option also removes duplicates from fully related dialogue contexts. This can reduce AI token usage but may affect dialogue context completeness.
         /// </summary>
-        public bool ForceContextDeduplication = false;
+        public bool ForceContextDeduplication { get; set; } = false;
+
+        /// <summary>
+        /// Whether to enforce absolute purity of "Link Buckets" (Type == 1 — buckets holding
+        /// units that have a real, established link relationship in the ESP file).
+        ///
+        /// Enabled (true): once built, Link Buckets can never have additional content appended
+        /// or merged into them (orphan-unit backfill, similarity-bucket merging, etc. all skip
+        /// Link Buckets). Every unit inside a Link Bucket is guaranteed to come from the same
+        /// genuine ESP link chain — nothing unrelated gets mixed in. This matters because these
+        /// buckets are sent together as shared context; letting unrelated content leak in can
+        /// confuse the AI about which entries are actually related, leading to wrong context
+        /// inference or inconsistent translations.
+        ///
+        /// Disabled (false, default): Link Buckets may still receive extra content appended to
+        /// them whenever there's remaining capacity, which improves packing efficiency and
+        /// reduces the total bucket count, at the cost of allowing unrelated entries into an
+        /// otherwise link-only bucket.
+        /// </summary>
+        public bool StrictLinkBucketPurity { get; set; } = false;
 
         /// <summary>
         /// Allows retrieval of the entire database using only the source text.

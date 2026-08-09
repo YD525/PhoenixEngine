@@ -4,6 +4,7 @@ using System.Threading;
 using PhoenixEngine.ADO;
 using PhoenixEngine.Common;
 using PhoenixEngine.Engine;
+using PhoenixEngine.Engine.Core;
 using PhoenixEngine.Game;
 using PhoenixEngine.Language;
 using PhoenixEngine.Memory;
@@ -194,7 +195,7 @@ namespace PhoenixEngine.Translate
 
                 for (int i = 0; i < Units.Count; i++)
                 {
-                    int UnitTokenLen = P_BucketContainer.CalcTokenLength(Units[i].Original, this.From,true,false);
+                    int UnitTokenLen = P_Bucket_Core.CalcTextTokenEstimate(Units[i].Original);
 
                     if (SetLength + UnitTokenLen < P_BucketContainer.BucketLengthLimit)
                     {
