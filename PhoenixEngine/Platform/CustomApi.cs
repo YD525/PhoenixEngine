@@ -31,7 +31,7 @@ namespace PhoenixEngine.Platform
             var InFo = Phoenix.Config.GetPlatformData(CustomID).CustomInFo;
 
             bool CanTrans = false;
-            string TransSource = Source.GenContent(ref CanTrans);
+            string TransSource = Source.GenContent(ref CanTrans,Source.IsLink);
             if (!CanTrans)
             {
                 return "<empty>";

@@ -6,6 +6,7 @@ using PhoenixEngine.Translate;
 using PhoenixEngine.Common;
 using PhoenixEngine.Engine;
 using System.Web;
+using System.Text;
 
 namespace PhoenixEngine.Unit
 {
@@ -17,6 +18,98 @@ namespace PhoenixEngine.Unit
         {
             this.Index = Index;
             this.Result = Result;
+        }
+    }
+
+    public class HTMLGenerator
+    {
+        public class GenerationResult
+        {
+            public string Html { get; set; }
+            public Dictionary<int, List<int>> TagIndexToUnitIndices { get; set; }
+            public bool CanTrans { get; set; }
+        }
+
+        public GenerationResult Generate(List<BaseUnit> Units, bool IsLink = false)
+        {
+            Dictionary<int, List<int>> TagIndexToUnitIndices = new Dictionary<int, List<int>>();
+            StringBuilder HtmlBuilder = new StringBuilder();
+            Dictionary<string, int> Seen = new Dictionary<string, int>();
+            int TagIndex = 100;
+            bool FillerMarkerInserted = false;
+            bool CanTrans = false;
+
+            for (int i = 0; i < Units.Count; i++)
+            {
+                var Unit = Units[i];
+
+                if (Unit.Original.Length == 0)
+                    continue;
+
+                if (Unit.Translated.Length > 0)
+                {
+                    TagIndexToUnitIndices[TagIndex] = new List<int> { i };
+
+                    if (!string.IsNullOrEmpty(Unit.Emotion))
+                    {
+                        HtmlBuilder.AppendFormat("<li data-unit-id='{0}' data-emotion='{1}' data-status='translated' data-original='{2}'>{3}</li>\n",
+                            TagIndex, Unit.Emotion, HttpUtility.HtmlAttributeEncode(Unit.Original), Unit.Translated);
+                    }
+                    else
+                    {
+                        HtmlBuilder.AppendFormat("<li data-unit-id='{0}' data-status='translated' data-original='{1}'>{2}</li>\n",
+                            TagIndex, HttpUtility.HtmlAttributeEncode(Unit.Original), Unit.Translated);
+                    }
+
+                    TagIndex++;
+                    continue;
+                }
+
+                string Key = Unit.Original;
+
+                bool IsDuplicate = !IsLink && Seen.ContainsKey(Key);
+
+                if (!IsDuplicate)
+                {
+                    if (!IsLink)
+                    {
+                        Seen[Key] = TagIndex;
+                    }
+                    TagIndexToUnitIndices[TagIndex] = new List<int> { i };
+
+                    if (!FillerMarkerInserted && Unit.IsFilled)
+                    {
+                        HtmlBuilder.Append("<!-- next content section -->\n");
+                        FillerMarkerInserted = true;
+                    }
+
+                    if (!string.IsNullOrEmpty(Unit.Emotion))
+                    {
+                        HtmlBuilder.AppendFormat("<li data-unit-id='{0}' data-emotion='{1}'>{2}</li>\n",
+                            TagIndex, Unit.Emotion, Unit.Original);
+                    }
+                    else
+                    {
+                        HtmlBuilder.AppendFormat("<li data-unit-id='{0}'>{1}</li>\n",
+                            TagIndex, Unit.Original);
+                    }
+
+                    CanTrans = true;
+                    TagIndex++;
+                }
+                else
+                {
+                    int ExistingTagIndex = Seen[Key];
+                    TagIndexToUnitIndices[ExistingTagIndex].Add(i);
+                }
+            }
+
+            return new GenerationResult
+            {
+                Html = HtmlBuilder.ToString(),
+                TagIndexToUnitIndices = TagIndexToUnitIndices,
+                CanTrans = CanTrans
+            };
         }
     }
     public class ConfirmPasser
@@ -35,75 +128,15 @@ namespace PhoenixEngine.Unit
             this.Units.AddRange(Units);
         }
 
-        public string GenContent(ref bool CanTrans)
+        public string GenContent(ref bool CanTrans,bool IsLink)
         {
-            CanTrans = false;
-            string Html = "";
-            TagIndexToUnitIndices.Clear();
+            HTMLGenerator Generator = new HTMLGenerator();
+            var Result = Generator.Generate(Units, IsLink); 
 
-            var Seen = new Dictionary<string, int>();
-            int TagIndex = 100;
-            bool FillerMarkerInserted = false;
+            this.TagIndexToUnitIndices = Result.TagIndexToUnitIndices;
+            CanTrans = Result.CanTrans;
 
-            for (int i = 0; i < Units.Count; i++)
-            {
-                var Unit = Units[i];
-
-                if (Unit.Original.Length == 0)
-                    continue;
-
-                if (Unit.Translated.Length > 0)
-                {
-                    TagIndexToUnitIndices[TagIndex] = new List<int> { i };
-                    //The translated sentences need to be retained for the AI; otherwise, the relevance will be incomplete.
-                    if (!string.IsNullOrEmpty(Unit.Emotion))
-                    {
-                        Html += string.Format("<li data-unit-id='{0}' data-emotion='{1}' data-status='translated' data-original='{2}'>{3}</li>\n", TagIndex, Unit.Emotion, HttpUtility.HtmlAttributeEncode(Unit.Original), Unit.Translated);
-                    }
-                    else
-                    {
-                        Html += string.Format("<li data-unit-id='{0}' data-status='translated' data-original='{1}'>{2}</li>\n", TagIndex, HttpUtility.HtmlAttributeEncode(Unit.Original), Unit.Translated);
-                    }
-
-                    TagIndex++;
-
-                    continue;
-
-                }
-
-                string Key = Unit.Original;
-
-                if (!Seen.ContainsKey(Key))
-                {
-                    Seen[Key] = TagIndex;
-                    TagIndexToUnitIndices[TagIndex] = new List<int> { i };
-
-                    if (!FillerMarkerInserted && Unit.IsFilled)
-                    {
-                        Html += "<!-- next content section -->\n";
-                        FillerMarkerInserted = true;
-                    }
-
-                    if (!string.IsNullOrEmpty(Unit.Emotion))
-                    {
-                        Html += string.Format("<li data-unit-id='{0}' data-emotion='{1}'>{2}</li>\n", TagIndex, Unit.Emotion, Unit.Original);
-                    }
-                    else
-                    {
-                        Html += string.Format("<li data-unit-id='{0}'>{1}</li>\n", TagIndex, Unit.Original);
-                    }
-
-                    CanTrans = true;
-                    TagIndex++;
-                }
-                else
-                {
-                    int ExistingTagIndex = Seen[Key];
-                    TagIndexToUnitIndices[ExistingTagIndex].Add(i);
-                }
-            }
-
-            return Html;
+            return Result.Html;
         }
 
         public bool TryPass(ref List<BaseUnit> NotPassUnits, ref List<BaseUnit> PassUnits, bool IsDeepL)
@@ -172,6 +205,7 @@ namespace PhoenixEngine.Unit
                 }
             }
         }
+
         public ConfirmPasser AnalysisContent(string Content)
         {
             ConfirmPasser WaitConfirm = this;
@@ -185,10 +219,10 @@ namespace PhoenixEngine.Unit
             string Pattern = @"<li[^>]*data-unit-id\s*=\s*'(\d+)'[^>]*>\s*([\s\S]*?)(?=\s*</li>|\s*<li|\z)";
             var Matches = Regex.Matches(Content, Pattern, RegexOptions.IgnoreCase);
 
-            foreach (Match match in Matches)
+            foreach (Match Match in Matches)
             {
-                int ID = P_Convert.ObjToInt(match.Groups[1].Value);
-                string Result = match.Groups[2].Value.Trim();
+                int ID = P_Convert.ObjToInt(Match.Groups[1].Value);
+                string Result = Match.Groups[2].Value.Trim();
                 if (ID >= 100)
                 {
                     WaitConfirm.NeedConfirms.Add(
@@ -206,6 +240,7 @@ namespace PhoenixEngine.Unit
         public string Key = "";
         public List<BaseUnit> Units = new List<BaseUnit>();
         public AggregationMode Mode = AggregationMode.Null;
+        public bool IsLink = false;
 
         public P_Bucket Bucket = null;
 
@@ -278,10 +313,10 @@ namespace PhoenixEngine.Unit
             this.ConfirmPasser = new ConfirmPasser(this.Units);
         }
 
-        public string GenContent(ref bool CanTrans)
+        public string GenContent(ref bool CanTrans,bool IsLink)
         {
             SetConfirmPasser();
-            return ConfirmPasser.GenContent(ref CanTrans);
+            return ConfirmPasser.GenContent(ref CanTrans,IsLink);
         }
 
         public ConfirmPasser AnalysisContent(string Content)

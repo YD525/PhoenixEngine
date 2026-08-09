@@ -417,7 +417,7 @@ namespace PhoenixEngine.Engine
                 CheckCanSkip(TranslatorID,Sequences, ref Source);
 
                 bool CanTrans = false;
-                string GetSource = Source.GenContent(ref CanTrans);
+                string GetSource = Source.GenContent(ref CanTrans,Source.IsLink);
                 if (!CanTrans)
                 {
                     return "<empty>";

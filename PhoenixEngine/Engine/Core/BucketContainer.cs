@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using PhoenixEngine.Engine.Core;
 using PhoenixEngine.Language;
-using PhoenixEngine.Sequence;
 using PhoenixEngine.Translate;
 using PhoenixEngine.Unit;
 
@@ -222,8 +222,8 @@ namespace PhoenixEngine.Engine
             ChooseHeads();
             BuildBuckets();
 
-            Units = UnitBuckets.Select((Bucket, Index) => ConvertToUnitGroup(Bucket, Index)).ToList();
-            Books = BookBuckets.Select((Bucket, Index) => ConvertToUnitGroup(Bucket, Index)).ToList();
+            Units = UnitBuckets.Select((Bucket, Index) => P_Bucket_Core.ConvertToUnitGroup(Bucket, Index,Bucket.Type == 1)).ToList();
+            Books = BookBuckets.Select((Bucket, Index) => P_Bucket_Core.ConvertToUnitGroup(Bucket, Index,false)).ToList();
 
             UnitBuckets.Clear();
             BookBuckets.Clear();
@@ -711,28 +711,6 @@ namespace PhoenixEngine.Engine
                     UnitBuckets.RemoveAt(i);
                 }
             }
-        }
-
-        public static UnitGroup ConvertToUnitGroup(P_Bucket Bucket, int Index)
-        {
-            var Group = new UnitGroup();
-            var Units = Bucket.GetUnits();
-
-            Group.Mode = AggregationMode.Aggregation;
-
-            if (Bucket.Head != null)
-            {
-                Group.Key = Index.ToString();
-            }
-            else
-            {
-                Group.Key = Units.Count > 0 ? Units[0].Key : string.Empty;
-            }
-
-            Group.Units = new List<BaseUnit>(Units);
-            Group.Bucket = Bucket;
-
-            return Group;
         }
     }
     public class P_Bucket

@@ -37,11 +37,9 @@ public class AIPrompt
         if (HasTranslatedReference)
         {
             RoleRules += "\n\n" +
-            "Entries with data-status='translated' are existing translated records retrieved from the database, kept only to provide context and maintain translation consistency. " +
-            "They are not new translation tasks. Do not output these entries unless the existing translation is incorrect or requires contextual refinement. " +
-            "If the existing translation is already appropriate, omit this entry from the output. " +
-            "If you modify a translated entry, output it as a normal translated <li> element and preserve the data-unit-id attribute. " +
-            "Remove data-status and data-original attributes.";
+            "The items with `data-status='translated'` are existing translation records retrieved from the database. " +
+            "They are provided only as reference context to help maintain translation consistency and terminology accuracy.\n\n" +
+            "Your primary task is to translate untranslated content only. Items already marked with `data-status='translated'` are reference context, not translation tasks.";
         }
 
         RoleRules += "\n" + $"The {Tag} tags must correspond exactly to the original text; translate as many tags as there are in the original text." + "\n";
