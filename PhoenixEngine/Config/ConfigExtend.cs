@@ -141,6 +141,11 @@ namespace PhoenixEngine
         public int ContextLimit { get; set; } = 200;
 
         /// <summary>
+        /// Determine the size of each bucket.
+        /// </summary>
+        public int BucketLengthLimit { get; set; } = 3900;
+
+        /// <summary>
         /// Always send the complete conversation context to the AI, including already translated lines, to ensure translation consistency and preserve the original dialogue flow.
         /// </summary>
         public bool PreserveConversationContext { get; set; } = false;

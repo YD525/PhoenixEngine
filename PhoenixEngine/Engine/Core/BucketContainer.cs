@@ -11,7 +11,6 @@ namespace PhoenixEngine.Engine
     {
         public HashSet<string> AddedKeys = new HashSet<string>();
 
-        public static int BucketLengthLimit = 3500;
 
         public Dictionary<string, BaseUnit> Heads = new Dictionary<string, BaseUnit>();
 
@@ -148,13 +147,13 @@ namespace PhoenixEngine.Engine
 
                             var BucketIndex = 0;
                             List<P_Bucket> Buckets = new List<P_Bucket>();
-                            Buckets.Add(new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0, 1));
+                            Buckets.Add(new P_Bucket(this.AddedKeys, null, Phoenix.Config.BucketLengthLimit, 0, 1));
 
                             foreach (var Link in FilteredLinks)
                             {
                                 if (!Buckets[BucketIndex].TryAdd(Link))
                                 {
-                                    var NewBucket = new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0, 1);
+                                    var NewBucket = new P_Bucket(this.AddedKeys, null, Phoenix.Config.BucketLengthLimit, 0, 1);
                                     NewBucket.Next = null;
 
                                     Buckets[BucketIndex].Next = NewBucket;
@@ -366,7 +365,7 @@ namespace PhoenixEngine.Engine
 
             foreach (var GetHead in Heads.Values)
             {
-                var Bucket = new P_Bucket(this.AddedKeys, GetHead, P_BucketContainer.BucketLengthLimit, 0, 0);
+                var Bucket = new P_Bucket(this.AddedKeys, GetHead, Phoenix.Config.BucketLengthLimit, 0, 0);
                 Bucket.HeadTokens = TextTokenizer.BuildTokenSignature(TranslatorRef.From, GetHead.Original);
                 Bucket.Next = null;
                 this.UnitBuckets.Add(Bucket);
@@ -394,7 +393,7 @@ namespace PhoenixEngine.Engine
 
                 if (TokensB.Count == 0)
                 {
-                    var NewIndependentBucket = new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0, 0);
+                    var NewIndependentBucket = new P_Bucket(this.AddedKeys, null, Phoenix.Config.BucketLengthLimit, 0, 0);
                     NewIndependentBucket.Add(Unit, 0);
                     this.UnitBuckets.Add(NewIndependentBucket);
 
@@ -444,7 +443,7 @@ namespace PhoenixEngine.Engine
 
                     if (!Placed)
                     {
-                        var NewBucket = new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0, 0);
+                        var NewBucket = new P_Bucket(this.AddedKeys, null, Phoenix.Config.BucketLengthLimit, 0, 0);
                         NewBucket.Add(Unit, 0);
 
                         NewBucket.HeadTokens = BestHeadBucket.HeadTokens;
@@ -458,7 +457,7 @@ namespace PhoenixEngine.Engine
                 }
                 else
                 {
-                    var NewIndependentBucket = new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0, 0);
+                    var NewIndependentBucket = new P_Bucket(this.AddedKeys, null, Phoenix.Config.BucketLengthLimit, 0, 0);
                     NewIndependentBucket.Add(Unit, 0);
                     this.UnitBuckets.Add(NewIndependentBucket);
                 }
@@ -598,12 +597,12 @@ namespace PhoenixEngine.Engine
 
             if (UnplacedUnits.Count > 0)
             {
-                var NewBucket = new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0, 0);
+                var NewBucket = new P_Bucket(this.AddedKeys, null, Phoenix.Config.BucketLengthLimit, 0, 0);
                 foreach (var Unit in UnplacedUnits)
                 {
                     if (!NewBucket.TryAdd(Unit))
                     {
-                        var OverflowBucket = new P_Bucket(this.AddedKeys, null, P_BucketContainer.BucketLengthLimit, 0, 0);
+                        var OverflowBucket = new P_Bucket(this.AddedKeys, null, Phoenix.Config.BucketLengthLimit, 0, 0);
                         OverflowBucket.Add(Unit, 0);
                         UnitBuckets.Add(OverflowBucket);
                     }

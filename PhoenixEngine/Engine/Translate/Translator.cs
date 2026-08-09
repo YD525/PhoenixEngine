@@ -200,7 +200,7 @@ namespace PhoenixEngine.Translate
                 {
                     int UnitTokenLen = P_Bucket_Core.CalcTextTokenEstimate(Units[i].Original);
 
-                    if (SetLength + UnitTokenLen < P_BucketContainer.BucketLengthLimit)
+                    if (SetLength + UnitTokenLen < Phoenix.Config.BucketLengthLimit)
                     {
                         SetLength += UnitTokenLen;
                         NewUnitGroup.Units.Add(Units[i]);
