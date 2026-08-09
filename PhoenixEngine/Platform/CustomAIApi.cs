@@ -55,7 +55,7 @@ namespace PhoenixEngine.Platform
             }
 
             bool CanTrans = false;
-            string GetSource = Source.GenContent(ref CanTrans,Source.IsLink);
+            string GetSource = Source.GenContent(ref CanTrans);
             if (!CanTrans)
             {
                 return "<empty>";

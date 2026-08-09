@@ -53,7 +53,7 @@ namespace PhoenixEngine.Platform
                 NDeepLItem.target_lang = P_Language.ToLanguageCode(ToLang).ToUpper();
 
                 bool CanTrans = false;
-                string TransSource = Source.GenContent(ref CanTrans,Source.IsLink);
+                string TransSource = Source.GenContent(ref CanTrans);
                 if (!CanTrans)
                 {
                     return "<empty>";

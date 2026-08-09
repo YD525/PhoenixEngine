@@ -47,7 +47,7 @@ namespace PhoenixEngine.Platform.LocalAI
             }
 
             bool CanTrans = false;
-            string TransSource = Source.GenContent(ref CanTrans,Source.IsLink);
+            string TransSource = Source.GenContent(ref CanTrans);
             if (!CanTrans)
             {
                 return "<empty>";

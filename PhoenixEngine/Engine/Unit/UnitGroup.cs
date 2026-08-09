@@ -30,7 +30,7 @@ namespace PhoenixEngine.Unit
             public bool CanTrans { get; set; }
         }
 
-        public GenerationResult Generate(List<BaseUnit> Units, bool IsLink = false)
+        public GenerationResult Generate(List<BaseUnit> Units, bool IsLink,bool ShowTranslated)
         {
             Dictionary<int, List<int>> TagIndexToUnitIndices = new Dictionary<int, List<int>>();
             StringBuilder HtmlBuilder = new StringBuilder();
@@ -48,6 +48,11 @@ namespace PhoenixEngine.Unit
 
                 if (Unit.Translated.Length > 0)
                 {
+                    if (!ShowTranslated || !IsLink)
+                    {
+                        continue;  
+                    }
+
                     TagIndexToUnitIndices[TagIndex] = new List<int> { i };
 
                     if (!string.IsNullOrEmpty(Unit.Emotion))
@@ -128,10 +133,10 @@ namespace PhoenixEngine.Unit
             this.Units.AddRange(Units);
         }
 
-        public string GenContent(ref bool CanTrans,bool IsLink)
+        public string GenContent(ref bool CanTrans,bool IsLink,bool ShowTranslated)
         {
             HTMLGenerator Generator = new HTMLGenerator();
-            var Result = Generator.Generate(Units, IsLink); 
+            var Result = Generator.Generate(Units, IsLink, ShowTranslated); 
 
             this.TagIndexToUnitIndices = Result.TagIndexToUnitIndices;
             CanTrans = Result.CanTrans;
@@ -313,10 +318,10 @@ namespace PhoenixEngine.Unit
             this.ConfirmPasser = new ConfirmPasser(this.Units);
         }
 
-        public string GenContent(ref bool CanTrans,bool IsLink)
+        public string GenContent(ref bool CanTrans)
         {
             SetConfirmPasser();
-            return ConfirmPasser.GenContent(ref CanTrans,IsLink);
+            return ConfirmPasser.GenContent(ref CanTrans,this.IsLink,true);
         }
 
         public ConfirmPasser AnalysisContent(string Content)
