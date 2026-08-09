@@ -10,7 +10,9 @@ namespace PhoenixEngine.Language
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         // Matches Brazilian Portuguese-specific accented characters: á, é, í, ó, ú, â, ê, ô, ã, õ, ç, and their uppercase variants
-        private static readonly Regex BrazilianAccentCharRegex = new Regex("[áéíóúâêôãõçÁÉÍÓÚÂÊÔÃÕÇ]", RegexOptions.Compiled);
+        private static readonly Regex BrazilianAccentCharRegex = new Regex(
+        @"[áàâãäéèêëíìîïóòôõöúùûüçÁÀÂÃÄÉÈÊËÍÌÎÏÓÒÔÕÖÚÙÛÜÇ]",
+        RegexOptions.Compiled);
 
         /// <summary>
         /// Determines whether a given text is likely to be Brazilian Portuguese

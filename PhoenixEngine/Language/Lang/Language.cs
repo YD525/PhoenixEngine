@@ -125,152 +125,28 @@ namespace PhoenixEngine.Language
                 }
             }
         }
-        public static string ToLanguageCode(Languages lang)
+        public static string ToLanguageCode(Languages Lang)
         {
-            return LanguageCodeMap.TryGetValue(lang, out var code) ? code : "";
+            return LanguageCodeMap.TryGetValue(Lang, out var Code) ? Code : "";
         }
-        public static Languages FromLanguageCode(string code)
+        public static Languages FromLanguageCode(string Code)
         {
-            if (string.IsNullOrWhiteSpace(code))
+            if (string.IsNullOrWhiteSpace(Code))
                 return Languages.Null;
 
-            return CodeToLanguageMap.TryGetValue(code, out var lang) ? lang : Languages.Null;
+            return CodeToLanguageMap.TryGetValue(Code, out var Lang) ? Lang : Languages.Null;
         }
+
+
         public static void DetectLanguage(ref LanguageDetector OneDetect, string Str)
         {
             if (string.IsNullOrWhiteSpace(Str))
                 return;
 
-            if (EnglishHelper.IsProbablyEnglish(Str)) //100%
-            {
-                OneDetect.Add(Languages.English, 0.01);
-            }
+            double Score = 0;
+            var Lang = DetectLanguageByContent(Str,ref Score);
 
-            if (RussianHelper.ContainsRussian(Str)) //100%
-            {
-                OneDetect.Add(Languages.Russian, 0.02);
-            }
-
-            if (UkrainianHelper.IsProbablyUkrainian(Str))
-            {
-                OneDetect.Add(Languages.Ukrainian, UkrainianHelper.GetUkrainianScore(Str));
-            }
-
-            if (JapaneseHelper.IsProbablyJapanese(Str)) //90%
-            {
-                OneDetect.Add(Languages.Japanese, JapaneseHelper.GetJapaneseScore(Str));
-            }
-            else
-            {
-                var GetResult = ChineseVariantMap.CheckLangType(Str);
-
-                if (GetResult == ZHType.Traditional)
-                {
-                    OneDetect.Add(Languages.TraditionalChinese, 0.02);
-                }
-                else
-                if (GetResult == ZHType.Simplified)
-                {
-                    OneDetect.Add(Languages.SimplifiedChinese, 0.02);
-                }
-            }
-
-            if (KoreanHelper.IsProbablyKorean(Str)) //100%
-            {
-                OneDetect.Add(Languages.Korean, KoreanHelper.GetKoreanScore(Str));
-            }
-
-            if (FrenchHelper.IsProbablyFrench(Str)) //85%
-            {
-                if (CanadianFrenchHelper.IsProbablyCanadianFrench(Str))
-                {
-                    OneDetect.Add(Languages.CanadianFrench);
-                }
-                else
-                {
-                    OneDetect.Add(Languages.French, FrenchHelper.GetFrenchScore(Str));
-                }
-            }
-
-            if (PortugueseHelper.IsProbablyPortuguese(Str)) //85%
-            {
-                OneDetect.Add(Languages.Portuguese, PortugueseHelper.GetPortugueseScore(Str));
-
-                if (BrazilianPortugueseHelper.IsProbablyBrazilianPortuguese(Str))
-                {
-                    OneDetect.Add(Languages.Brazilian, BrazilianPortugueseHelper.GetBrazilianPortugueseScore(Str));
-                }
-            }
-
-            if (GermanHelper.IsProbablyGerman(Str)) //85%
-            {
-                OneDetect.Add(Languages.German, GermanHelper.GetGermanScore(Str));
-            }
-
-            if (ItalianHelper.IsProbablyItalian(Str))
-            {
-                OneDetect.Add(Languages.Italian, ItalianHelper.GetItalianScore(Str));
-            }
-
-            if (SpanishHelper.IsProbablySpanish(Str))
-            {
-                OneDetect.Add(Languages.Spanish, SpanishHelper.GetSpanishScore(Str));
-            }
-
-            if (PolishHelper.IsProbablyPolish(Str))
-            {
-                OneDetect.Add(Languages.Polish, PolishHelper.GetPolishScore(Str));
-            }
-            else
-            if (CzechHelper.IsProbablyCzech(Str))
-            {
-                OneDetect.Add(Languages.Czech, CzechHelper.GetCzechScore(Str));
-            }
-
-            if (TurkishHelper.IsProbablyTurkish(Str))
-            {
-                OneDetect.Add(Languages.Turkish, TurkishHelper.GetTurkishScore(Str));
-            }
-
-            if (HindiHelper.IsProbablyHindi(Str))
-            {
-                OneDetect.Add(Languages.Hindi, HindiHelper.GetHindiScore(Str));
-            }
-            else
-            if (UrduHelper.IsProbablyUrdu(Str))
-            {
-                OneDetect.Add(Languages.Urdu, UrduHelper.GetUrduScore(Str));
-            }
-
-            if (IndonesianHelper.IsProbablyIndonesian(Str))
-            {
-                OneDetect.Add(Languages.Indonesian, IndonesianHelper.GetIndonesianScore(Str));
-            }
-
-            if (VietnameseHelper.IsProbablyVietnamese(Str))
-            {
-                OneDetect.Add(Languages.Vietnamese, VietnameseHelper.GetVietnameseScore(Str));
-            }
-
-            if (ThaiHelper.IsProbablyThai(Str))
-            {
-                OneDetect.Add(Languages.Thai, ThaiHelper.GetThaiScore(Str));
-            }
-
-            if (ArabicHelper.IsProbablyArabic(Str))
-            {
-                OneDetect.Add(Languages.Arabic, ArabicHelper.GetArabicScore(Str));
-            }
-            else
-            if (PersianHelper.IsProbablyPersian(Str))
-            {
-                OneDetect.Add(Languages.Persian, PersianHelper.GetPersianScore(Str));
-            }
-
-            if (OneDetect.Array.Count == 0)
-            {
-                OneDetect.Add(Languages.English);
-            }
+            OneDetect.Add(Lang,Score);
         }
         public static Languages DetectLanguageByLine(string String)
         {
@@ -279,19 +155,131 @@ namespace PhoenixEngine.Language
             DetectLanguage(ref OneDetect, String);
             return OneDetect.GetMaxLang();
         }
-        public static Languages DetectLanguageByContent(string Text)
-        {
-            LanguageDetector OneDetect = new LanguageDetector();
 
-            foreach (var GetLine in Text.Split(new char[2] { '\r', '\n' }))
+
+
+
+        private static Languages DetectLanguageByContent(string Text,ref double Score)
+        {
+            if (string.IsNullOrWhiteSpace(Text)) return Languages.English;
+
+            var Scores = new Dictionary<Languages, double>();
+            var Lines = Text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var Line in Lines)
             {
-                if (GetLine.Trim().Length > 0)
+                if (string.IsNullOrWhiteSpace(Line)) continue;
+                var LineScores = DetectLineScores(Line);
+                foreach (var Kv in LineScores)
                 {
-                    DetectLanguage(ref OneDetect, GetLine);
+                    if (!Scores.ContainsKey(Kv.Key))
+                        Scores[Kv.Key] = 0;
+                    Scores[Kv.Key] += Kv.Value;
                 }
             }
 
-            return OneDetect.GetMaxLang();
+            if (Lines.Length > 0)
+            {
+                foreach (var Key in Scores.Keys.ToList())
+                    Scores[Key] /= Lines.Length;
+            }
+
+            if (Scores.TryGetValue(Languages.English, out double EngScore) && EngScore > 0.5)
+                return Languages.English;
+
+            if (Scores.Count == 0) return Languages.English;
+
+            var Best = Scores.OrderByDescending(Kv => Kv.Value).First();
+            if (Best.Value < 0.01) return Languages.English;
+
+            Score = Best.Value;
+
+            return Best.Key;
+        }
+
+        private static Dictionary<Languages, double> DetectLineScores(string Line)
+        {
+            var Scores = new Dictionary<Languages, double>();
+            void AddScore(Languages Lang, double Score)
+            {
+                if (Score > 0) Scores[Lang] = Score;
+            }
+
+            if (EnglishHelper.IsProbablyEnglish(Line))
+                AddScore(Languages.English, 1.0);
+
+            if (RussianHelper.ContainsRussian(Line))
+                AddScore(Languages.Russian, RussianHelper.GetRussianRatio(Line));
+
+            if (UkrainianHelper.IsProbablyUkrainian(Line))
+                AddScore(Languages.Ukrainian, UkrainianHelper.GetUkrainianScore(Line));
+
+            if (JapaneseHelper.IsProbablyJapanese(Line))
+                AddScore(Languages.Japanese, JapaneseHelper.GetJapaneseScore(Line));
+            else
+            {
+                var ZhType = ChineseVariantMap.CheckLangType(Line);
+                if (ZhType == ZHType.Traditional)
+                    AddScore(Languages.TraditionalChinese, 0.02);
+                else if (ZhType == ZHType.Simplified)
+                    AddScore(Languages.SimplifiedChinese, 0.02);
+            }
+
+            if (KoreanHelper.IsProbablyKorean(Line))
+                AddScore(Languages.Korean, KoreanHelper.GetKoreanScore(Line));
+
+            if (FrenchHelper.IsProbablyFrench(Line))
+            {
+                var Score = FrenchHelper.GetFrenchScore(Line);
+                AddScore(Languages.French, Score);
+                if (CanadianFrenchHelper.IsProbablyCanadianFrench(Line))
+                    AddScore(Languages.CanadianFrench, Score * 1.2);
+            }
+
+            if (PortugueseHelper.IsProbablyPortuguese(Line))
+            {
+                var Score = PortugueseHelper.GetPortugueseScore(Line);
+                AddScore(Languages.Portuguese, Score);
+                if (BrazilianPortugueseHelper.IsProbablyBrazilianPortuguese(Line))
+                    AddScore(Languages.Brazilian, Score * 1.1);
+            }
+
+            if (GermanHelper.IsProbablyGerman(Line))
+                AddScore(Languages.German, GermanHelper.GetGermanScore(Line));
+
+            if (ItalianHelper.IsProbablyItalian(Line))
+                AddScore(Languages.Italian, ItalianHelper.GetItalianScore(Line));
+
+            if (SpanishHelper.IsProbablySpanish(Line))
+                AddScore(Languages.Spanish, SpanishHelper.GetSpanishScore(Line));
+
+            if (PolishHelper.IsProbablyPolish(Line))
+                AddScore(Languages.Polish, PolishHelper.GetPolishScore(Line));
+            else if (CzechHelper.IsProbablyCzech(Line))
+                AddScore(Languages.Czech, CzechHelper.GetCzechScore(Line));
+
+            if (TurkishHelper.IsProbablyTurkish(Line))
+                AddScore(Languages.Turkish, TurkishHelper.GetTurkishScore(Line));
+
+            if (HindiHelper.IsProbablyHindi(Line))
+                AddScore(Languages.Hindi, HindiHelper.GetHindiScore(Line));
+            else if (UrduHelper.IsProbablyUrdu(Line))
+                AddScore(Languages.Urdu, UrduHelper.GetUrduScore(Line));
+
+            if (IndonesianHelper.IsProbablyIndonesian(Line))
+                AddScore(Languages.Indonesian, IndonesianHelper.GetIndonesianScore(Line));
+
+            if (VietnameseHelper.IsProbablyVietnamese(Line))
+                AddScore(Languages.Vietnamese, VietnameseHelper.GetVietnameseScore(Line));
+
+            if (ThaiHelper.IsProbablyThai(Line))
+                AddScore(Languages.Thai, ThaiHelper.GetThaiScore(Line));
+
+            if (ArabicHelper.IsProbablyArabic(Line))
+                AddScore(Languages.Arabic, ArabicHelper.GetArabicScore(Line));
+            else if (PersianHelper.IsProbablyPersian(Line))
+                AddScore(Languages.Persian, PersianHelper.GetPersianScore(Line));
+
+            return Scores;
         }
     }
 }
