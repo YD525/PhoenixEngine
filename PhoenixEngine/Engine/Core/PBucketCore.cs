@@ -31,11 +31,12 @@ namespace PhoenixEngine.Engine.Core
             return Group;
         }
 
-        //public static int CalcBucketSize(P_Bucket Bucket)
-        //{ 
-        //    UnitGroup Item = ConvertToUnitGroup(Bucket,0);
+        public static int CalcBucketSize(P_Bucket Bucket)
+        {
+            UnitGroup Item = ConvertToUnitGroup(Bucket, 0,Bucket.Type == 1);
+            var HtmlItem = new HTMLGenerator().Generate(Item.Units,Item.IsLink,true);
 
-        //    Item.GenContent()；
-        //}
+            return HtmlItem.Html.Length;
+        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Remoting.Contexts;
 using System.Text;
 using Newtonsoft.Json;
 using PhoenixEngine.Platform;
@@ -139,6 +140,17 @@ namespace PhoenixEngine
         /// For example, if set to 200, the total character count of all context lines will not exceed 200.
         /// </summary>
         public int ContextLimit { get; set; } = 200;
+
+        /// <summary>
+        /// Always send the complete conversation context to the AI, including already translated lines, to ensure translation consistency and preserve the original dialogue flow.
+        /// </summary>
+        public bool PreserveConversationContext { get; set; } = false;
+
+
+        /// <summary>
+        /// Enable duplicate removal in confirmed dialogue relationships. Similarity-based groups are always deduplicated, while this option also removes duplicates from fully related dialogue contexts. This can reduce AI token usage but may affect dialogue context completeness.
+        /// </summary>
+        public bool ForceContextDeduplication = false;
 
         /// <summary>
         /// Allows retrieval of the entire database using only the source text.

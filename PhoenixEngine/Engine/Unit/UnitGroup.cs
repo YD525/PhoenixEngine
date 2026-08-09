@@ -72,11 +72,15 @@ namespace PhoenixEngine.Unit
 
                 string Key = Unit.Original;
 
-                bool IsDuplicate = !IsLink && Seen.ContainsKey(Key);
+                // Similarity buckets always use deduplication.
+                // Relationship buckets require ForceContextDeduplication.
+                bool EnableDeduplication = !IsLink || Phoenix.Config.ForceContextDeduplication;
+
+                bool IsDuplicate = EnableDeduplication && Seen.ContainsKey(Key);
 
                 if (!IsDuplicate)
                 {
-                    if (!IsLink)
+                    if (EnableDeduplication)
                     {
                         Seen[Key] = TagIndex;
                     }
