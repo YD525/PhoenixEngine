@@ -325,7 +325,7 @@ namespace PhoenixEngine.Unit
         public string GenContent(ref bool CanTrans)
         {
             SetConfirmPasser();
-            return ConfirmPasser.GenContent(ref CanTrans,this.IsLink,true);
+            return ConfirmPasser.GenContent(ref CanTrans,this.IsLink,Phoenix.Config.PreserveConversationContext);
         }
 
         public ConfirmPasser AnalysisContent(string Content)
