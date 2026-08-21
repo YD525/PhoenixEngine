@@ -1,6 +1,5 @@
 ﻿using System.IO.Compression;
 using System.IO;
-using System.Net.Security;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -33,10 +32,13 @@ namespace PhoenixEngine.Request
         #region Public  
 
         /// <summary>  
-        /// Get the corresponding page data according to the data passed in 
+        /// Sends the configured HTTP request and returns its response data.
         /// </summary>  
-        /// <param name="Item">Parameter class object</param>  
-        /// <returns>Return HttpResult type</returns>  
+        /// <param name="item">The request settings to apply.</param>
+        /// <returns>
+        /// The response data, or a user-safe failure description when the request cannot be completed.
+        /// </returns>
+        /// <remarks>Server certificates are always validated by the platform trust policy.</remarks>
         public HttpResult GetHtml(HttpItem item)
         {  
             HttpResult result = new HttpResult();
@@ -44,9 +46,15 @@ namespace PhoenixEngine.Request
             {
                 SetRequest(item);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return new HttpResult() { Cookie = string.Empty, Header = null, Html = ex.Message, StatusDescription = "Error in configuring parameters：" + ex.Message };
+                return new HttpResult()
+                {
+                    Cookie = string.Empty,
+                    Header = null,
+                    Html = string.Empty,
+                    StatusDescription = "Request configuration failed."
+                };
             }
             try
             {  
@@ -66,15 +74,25 @@ namespace PhoenixEngine.Request
                 }
                 else
                 {
-                    result.Html = ex.Message;
+                    result.Html = string.Empty;
+                    result.StatusDescription = IsTlsValidationFailure(ex)
+                        ? "TLS validation failed."
+                        : "Request failed.";
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                result.Html = ex.Message;
+                result.Html = string.Empty;
+                result.StatusDescription = "Request failed.";
             }
             if (item.IsToLower) result.Html = result.Html.ToLower();
             return result;
+        }
+
+        private static bool IsTlsValidationFailure(WebException exception)
+        {
+            return exception.Status == WebExceptionStatus.TrustFailure ||
+                exception.Status == WebExceptionStatus.SecureChannelFailure;
         }
         #endregion
 
@@ -242,18 +260,12 @@ namespace PhoenixEngine.Request
         /// <param name="Item"></param>  
         private void SetCer(HttpItem Item)
         {
+            Request = (HttpWebRequest)WebRequest.Create(Item.URL);
+            SetCerList(Item);
+
             if (!string.IsNullOrWhiteSpace(Item.CerPath))
             {
-                //This sentence must be written before creating a connection. Use the callback method to verify the certificate.  
-                ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(CheckValidationResult);
-                Request = (HttpWebRequest)WebRequest.Create(Item.URL);
-                SetCerList(Item); 
                 Request.ClientCertificates.Add(new X509Certificate(Item.CerPath));
-            }
-            else
-            {
-                Request = (HttpWebRequest)WebRequest.Create(Item.URL);
-                SetCerList(Item);
             }
         }
         /// <summary>  
@@ -335,16 +347,6 @@ namespace PhoenixEngine.Request
         #endregion
 
         #region Private main  
-        /// <summary>  
-        /// Callback verification certificate problem  
-        /// </summary>  
-        /// <param name="Sender"></param>  
-        /// <param name="Certificate"></param>  
-        /// <param name="Chain"></param>  
-        /// <param name="Errors"></param>  
-        /// <returns>bool</returns>  
-        private bool CheckValidationResult(object Sender, X509Certificate Certificate, X509Chain Chain, SslPolicyErrors Errors) { return true; }
-
         /// <summary>  
         /// By setting this property, you can bind the IP address used by the client to make the connection when making a connection.   
         /// </summary>  
@@ -460,6 +462,10 @@ namespace PhoenixEngine.Request
 
         public string Referer { get; set; }
 
+        /// <summary>
+        /// Gets or sets the optional path of a client certificate to attach to this request.
+        /// </summary>
+        /// <remarks>The certificate does not alter server certificate validation.</remarks>
         public string CerPath { get; set; }
 
         private bool isToLower = false;
@@ -514,6 +520,10 @@ namespace PhoenixEngine.Request
             set { _expect100continue = value; }
         }
 
+        /// <summary>
+        /// Gets or sets the caller-owned client certificates to attach to this request.
+        /// </summary>
+        /// <remarks>The collection and its certificates remain owned by the caller.</remarks>
         public X509CertificateCollection ClentCertificates { get; set; }
 
         public Encoding PostEncoding { get; set; }

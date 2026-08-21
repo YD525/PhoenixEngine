@@ -32,3 +32,7 @@ jobs:
       - name: Build x64 release
         shell: pwsh
         run: msbuild .\PhoenixEngine.sln /m /p:Configuration=Release /p:Platform=x64
+
+      - name: Run TLS regression tests
+        shell: pwsh
+        run: .\PhoenixEngine.Tests\bin\x64\Release\PhoenixEngine.Tests.exe
