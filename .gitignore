@@ -1,4 +1,7 @@
-# ===== Visual Studio Build Artifacts =====
 .vs/
-bin/
-obj/
+[Bb]in/
+[Oo]bj/
+packages/
+*.pdb
+*.suo
+*.user

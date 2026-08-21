@@ -1,0 +1,59 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-2022
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Configure NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Configure MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Restore packages
+        shell: pwsh
+        run: nuget restore .\PhoenixEngine.sln -PackagesDirectory .\packages -NonInteractive
+
+      - name: Build x64 release
+        shell: pwsh
+        run: msbuild .\PhoenixEngine.sln /m /p:Configuration=Release /p:Platform=x64
+
+      - name: Package release
+        shell: pwsh
+        run: |
+          $outputDirectory = ".\PhoenixEngine\bin\x64\Release"
+          $artifactDirectory = ".\artifacts"
+          $artifact = Join-Path $artifactDirectory "PhoenixEngine-win-x64.zip"
+
+          if (-not (Test-Path -LiteralPath (Join-Path $outputDirectory "PhoenixEngine.dll"))) {
+              throw "PhoenixEngine.dll was not produced."
+          }
+
+          New-Item -ItemType Directory -Path $artifactDirectory | Out-Null
+          Compress-Archive -Path "$outputDirectory\*" -DestinationPath $artifact
+
+          $hash = (Get-FileHash -LiteralPath $artifact -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  PhoenixEngine-win-x64.zip" | Set-Content "$artifact.sha256" -Encoding ascii
+
+      - name: Publish GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$env:GITHUB_REF_NAME" `
+            ".\artifacts\PhoenixEngine-win-x64.zip" `
+            ".\artifacts\PhoenixEngine-win-x64.zip.sha256" `
+            --generate-notes `
+            --verify-tag
