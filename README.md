@@ -55,6 +55,22 @@ Instead, it scales with **semantic complexity**, making it especially effective 
 
 In short: **aggregation-based translation improves performance by eliminating redundant AI work, not by forcing the AI to work faster**.
 
+## Building from source
+
+PhoenixEngine requires Visual Studio 2022 and the .NET Framework 4.8.1 Developer Pack.
+
+Restore the packages declared in `PhoenixEngine\packages.config` and build the x64 Release configuration:
+
+```powershell
+nuget restore .\PhoenixEngine.sln -PackagesDirectory .\packages -NonInteractive
+msbuild .\PhoenixEngine.sln /m /p:Configuration=Release /p:Platform=x64
+```
+
+The restored `packages` directory and generated build outputs are not tracked.
+
+Push a version tag matching `v*` to create `PhoenixEngine-win-x64.zip` and its SHA256 checksum as GitHub Release
+assets. The archive contains the complete x64 Release output required by consuming applications.
+
 ---
 
 ## ✅ Summary
