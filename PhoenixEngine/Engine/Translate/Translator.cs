@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using PhoenixEngine.ADO;
 using PhoenixEngine.Common;
 using PhoenixEngine.Engine;
@@ -30,6 +31,15 @@ namespace PhoenixEngine.Translate
         private TranslatorCore BatchCore = null;
         public TranslationPreprocessor Preprocessor = new TranslationPreprocessor();
 
+        /// <summary>Gets or sets the provider used to translate domain requests.</summary>
+        public ITranslationProvider TranslationProvider { get; set; }
+
+        /// <summary>Gets or sets the provider-neutral translation store.</summary>
+        public ITranslationStore TranslationStore { get; set; }
+
+        /// <summary>Gets or sets the execution and cancellation policy.</summary>
+        public ITranslationScheduler TranslationScheduler { get; set; }
+
         public readonly object TransDataLocker = new object();
 
         private P_Dict<string, P_String> DataLink = new P_Dict<string,P_String>();
@@ -48,6 +58,10 @@ namespace PhoenixEngine.Translate
             {
                 BatchCore = new TranslatorCore(this, ClearCache);
             }
+
+            TranslationProvider = new LegacyTranslationProvider(this);
+            TranslationStore = new NullTranslationStore();
+            TranslationScheduler = new SequentialTranslationScheduler();
 
             if (Phoenix.AIMemory.OptimizeToken(this))
             {
@@ -150,7 +164,34 @@ namespace PhoenixEngine.Translate
 
             return Translate(new TransParam(SetGroup, IsBook, CanSleep), CancelToken);
         }
-        public UnitGroup Translate(TransParam Params,CancellationToken CancelToken)
+        /// <summary>
+        /// Translates a parameter set through the configured provider, store, and scheduler.
+        /// </summary>
+        /// <param name="Params">The units and preprocessing options to translate.</param>
+        /// <param name="CancelToken">The token that cancels the translation.</param>
+        /// <returns>The translated unit group.</returns>
+        public UnitGroup Translate(TransParam Params, CancellationToken CancelToken)
+        {
+            return TranslateAsync(Params, CancelToken).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// Translates a parameter set asynchronously through the configured boundaries.
+        /// </summary>
+        /// <param name="parameters">The units and preprocessing options to translate.</param>
+        /// <param name="cancellationToken">The token that cancels the translation.</param>
+        /// <returns>A task containing the translated unit group.</returns>
+        public Task<UnitGroup> TranslateAsync(TransParam parameters, CancellationToken cancellationToken)
+        {
+            var request = new TranslationRequest(parameters, From, To, AIParam);
+            var pipeline = new TranslationPipeline(
+                TranslationProvider,
+                TranslationStore,
+                TranslationScheduler);
+            return pipeline.TranslateAsync(request, cancellationToken);
+        }
+
+        internal UnitGroup TranslateCore(TransParam Params, CancellationToken CancelToken)
         {
             if (this.From == this.To)
             {

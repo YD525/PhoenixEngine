@@ -144,6 +144,8 @@
     <Compile Include="Engine\Core\TranslationPreprocessorExtend.cs" />
     <Compile Include="Engine\Unit\BaseUnit.cs" />
     <Compile Include="Engine\Translate\Translator.cs" />
+    <Compile Include="Engine\Translate\TranslationContracts.cs" />
+    <Compile Include="Engine\Translate\TranslationPipeline.cs" />
     <Compile Include="Engine\Translate\TranslatorExtend.cs" />
     <Compile Include="Engine\ADO\UniqueKeyHelper.cs" />
   </ItemGroup>
