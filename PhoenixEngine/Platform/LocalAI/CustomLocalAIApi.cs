@@ -14,6 +14,8 @@ namespace PhoenixEngine.Platform.LocalAI
 {
     public class CustomLocalAIApi : I_Local_AI_TranslationNode
     {
+        private static readonly HttpHelper HttpTransport = new HttpHelper();
+
         public static PlatformType Type = PlatformType.CustomPlatform;
 
         public CustomPlatformType CustomType = CustomPlatformType.LocalAI;
@@ -160,10 +162,11 @@ namespace PhoenixEngine.Platform.LocalAI
                 Postdata = PayLoad,
                 Cookie = "",
                 ContentType = Core.ContentType,
-                Encoding = Encoding.UTF8
+                Encoding = Encoding.UTF8,
+                MaximumResponseBytes = JsonPayload.MaximumDocumentBytes
             };
 
-            string GetResult = new HttpHelper().GetHtml(Http).Html;
+            string GetResult = HttpTransport.GetHtml(Http).Html;
 
             Recv = GetResult;
 

@@ -57,16 +57,21 @@ In short: **aggregation-based translation improves performance by eliminating re
 
 ## Building from source
 
-PhoenixEngine requires Visual Studio 2022 and the .NET Framework 4.8.1 Developer Pack.
+PhoenixEngine requires Visual Studio 2022 and the .NET Framework 4.8.1 Developer Pack. `PhoenixEngine.sln` is
+the canonical build entry point; it contains the supported `PhoenixEngine\PhoenixEngine.csproj` product project
+and its test project.
 
-Restore the packages declared in `PhoenixEngine\packages.config` and build the x64 Release configuration:
+Restore the locked PackageReference dependencies, run analyzers, and build the x64 Release configuration:
 
 ```powershell
-nuget restore .\PhoenixEngine.sln -PackagesDirectory .\packages -NonInteractive
-msbuild .\PhoenixEngine.sln /m /p:Configuration=Release /p:Platform=x64
+.\scripts\Test-RepositoryLayout.ps1
+.\scripts\Invoke-Build.ps1 -Configuration Release -Platform x64
+.\scripts\Test-PackageAdvisories.ps1
+.\scripts\Run-Tests.ps1 -Configuration Release -Platform x64
 ```
 
-The restored `packages` directory and generated build outputs are not tracked.
+Use `Invoke-Build.ps1 -UpdateLockFiles` only when intentionally changing package versions, then review and commit
+both generated `packages.lock.json` files. Generated build outputs are not tracked.
 
 Push a version tag matching `v*` to create `PhoenixEngine-win-x64.zip` and its SHA256 checksum as GitHub Release
 assets. The archive contains the complete x64 Release output required by consuming applications.

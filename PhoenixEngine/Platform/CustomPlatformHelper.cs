@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Web;
 using Newtonsoft.Json.Linq;
+using PhoenixEngine.Common;
 using PhoenixEngine.Language;
 
 namespace PhoenixEngine.Platform
@@ -67,15 +68,9 @@ namespace PhoenixEngine.Platform
         {
             var Result = new List<ReqCustomKeyValue>();
 
-            try
-            {
-                var Token = JToken.Parse(Json);
-                ParseJsonElement(Token, "", Result);
-            }
-            catch
-            {
-               
-            }
+            JToken token;
+            if (JsonPayload.TryParseToken(Json, out token))
+                ParseJsonElement(token, "", Result);
 
             return Result;
         }
@@ -98,12 +93,12 @@ namespace PhoenixEngine.Platform
             if ((Payload.StartsWith("{") && Payload.EndsWith("}")) ||
                 (Payload.StartsWith("[") && Payload.EndsWith("]")))
             {
-                try
+                JToken token;
+                if (JsonPayload.TryParseToken(Payload, out token))
                 {
-                    var Token = JToken.Parse(Payload);
-                    ParseJsonElement(Token, "", Result);
+                    ParseJsonElement(token, "", Result);
                 }
-                catch
+                else
                 {
                     ParseForm(Payload, Result);
                 }
@@ -245,6 +240,10 @@ namespace PhoenixEngine.Platform
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(
+            "Security",
+            "CA5351:Do not use broken cryptographic algorithms",
+            Justification = "MD5 is an explicitly selected request-signature format, not a security primitive.")]
         public static string ComputeMD5Hash(string Input,bool ToLower = false)
         {
             using (MD5 MD5 = MD5.Create())
@@ -271,6 +270,10 @@ namespace PhoenixEngine.Platform
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(
+            "Security",
+            "CA5351:Do not use broken cryptographic algorithms",
+            Justification = "The 16-bit MD5 representation is required by the explicitly selected signature format.")]
         public static string ComputeMD5_16BitHash(string Input,bool ToLower = false)
         {
             using (MD5 MD5 = MD5.Create())
@@ -620,13 +623,13 @@ namespace PhoenixEngine.Platform
 
             if (IsJson)
             {
-                try
+                JToken token;
+                if (JsonPayload.TryParseToken(PayLoad, out token))
                 {
-                    var Token = JToken.Parse(PayLoad);
-                    ReplaceJsonTokens(Token, Tags);
-                    NewPayLoad.Content = Token.ToString(Newtonsoft.Json.Formatting.None);
+                    ReplaceJsonTokens(token, Tags);
+                    NewPayLoad.Content = token.ToString(Newtonsoft.Json.Formatting.None);
                 }
-                catch
+                else
                 {
                     NewPayLoad.Content = GenFormPayLoad(PayLoad, Tags);
                 }

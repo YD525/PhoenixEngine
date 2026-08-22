@@ -18,6 +18,9 @@ namespace PhoenixEngine.ADO
         /// <summary>Delay between retries in milliseconds</summary>
         public int RetryDelay { get; set; } = 200;
 
+        /// <summary>Controls connection pooling for isolated tests while production keeps pooling enabled.</summary>
+        internal bool PoolingEnabled { get; set; } = true;
+
 
         private string _SQLPath;
         private string _ConnStr;
@@ -41,7 +44,7 @@ namespace PhoenixEngine.ADO
             _SQLPath = DBPath;
 
             // Pooling=true: read connections are short-lived, let the pool reuse them
-            _ConnStr = $"Data Source={_SQLPath};Pooling=true;Journal Mode=WAL;Synchronous=NORMAL;BusyTimeout=30000";
+            _ConnStr = $"Data Source={_SQLPath};Pooling={PoolingEnabled};Journal Mode=WAL;Synchronous=NORMAL;BusyTimeout=30000";
 
             lock (_WriteLock)
             {
@@ -282,10 +285,14 @@ namespace PhoenixEngine.ADO
             }, Fallback: null);
         }
 
-        /// <summary>
-        /// Execute multiple statements in a transaction, commit on all success, rollback on any failure.
-        /// Holds exclusive write lock for the full duration of the transaction.
-        /// </summary>
+        /// <summary>Executes parameterized commands atomically on the dedicated write connection.</summary>
+        /// <param name="Commands">The fixed command texts and their data parameters.</param>
+        /// <returns><c>true</c> after a successful commit; otherwise, <c>false</c> after rollback.</returns>
+        /// <remarks>
+        /// This instance owns and disposes the transaction and every command. The caller owns the enumerable
+        /// and must provide a separate parameter instance for each command. The exclusive write lock is held
+        /// for the complete transaction lifetime.
+        /// </remarks>
         public bool ExecuteTransaction(IEnumerable<(string SQL, SQLiteParameter[] Params)> Commands)
         {
             _RWLock.EnterWriteLock();
@@ -293,31 +300,46 @@ namespace PhoenixEngine.ADO
             {
                 lock (_WriteLock)
                 {
-                    using (var TX = _WriteConn.BeginTransaction())
+                    SQLiteTransaction Transaction = null;
+                    try
                     {
-                        try
+                        Transaction = _WriteConn.BeginTransaction();
+                        foreach (var Command in Commands)
                         {
-                            foreach (var (SQL, Prms) in Commands)
+                            LogSQL(Command.SQL);
+                            using (var CMD = _WriteConn.CreateCommand())
                             {
-                                LogSQL(SQL);
-                                using (var CMD = _WriteConn.CreateCommand())
-                                {
-                                    CMD.Transaction = TX;
-                                    CMD.CommandText = SQL;
-                                    if (Prms?.Length > 0)
-                                        CMD.Parameters.AddRange(Prms);
-                                    CMD.ExecuteNonQuery();
-                                }
+                                CMD.Transaction = Transaction;
+                                CMD.CommandText = Command.SQL;
+                                if (Command.Params?.Length > 0)
+                                    CMD.Parameters.AddRange(Command.Params);
+                                CMD.ExecuteNonQuery();
                             }
-                            TX.Commit();
-                            return true;
                         }
-                        catch (Exception Ex)
+
+                        Transaction.Commit();
+                        return true;
+                    }
+                    catch (Exception Ex)
+                    {
+                        if (Transaction != null)
                         {
-                            TX.Rollback();
-                            ShowErrorDialog("EXECUTETRANSACTION", Ex);
-                            return false;
+                            try
+                            {
+                                Transaction.Rollback();
+                            }
+                            catch (SQLiteException RollbackException)
+                            {
+                                LogSQL("[ROLLBACK FAILED] " + RollbackException.Message);
+                            }
                         }
+
+                        ShowErrorDialog("EXECUTETRANSACTION", Ex);
+                        return false;
+                    }
+                    finally
+                    {
+                        Transaction?.Dispose();
                     }
                 }
             }

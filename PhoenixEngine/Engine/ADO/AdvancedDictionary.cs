@@ -55,8 +55,11 @@ namespace PhoenixEngine.ADO
     {
         public static void Init()
         {
-            string CheckTableSql = "SELECT name FROM sqlite_master WHERE type='table' AND name='AdvancedDictionary';";
-            var Result = Phoenix.LocalDB.ExecuteScalar(CheckTableSql);
+            const string CheckTableSql =
+                "SELECT name FROM sqlite_master WHERE type = 'table' AND name = @tableName;";
+            var Result = Phoenix.LocalDB.ExecuteScalar(
+                CheckTableSql,
+                SqliteSql.Parameter("@tableName", "AdvancedDictionary"));
 
             if (Result == null || Result == DBNull.Value)
             {
@@ -132,8 +135,10 @@ FROM AdvancedDictionary_Old;";
 
         public static string GetSourceByRowid(int Rowid)
         {
-            string SqlOrder = "Select [Source] From AdvancedDictionary Where Rowid = {0}";
-            return SQLSafeCodec.Decode(P_Convert.ObjToStr(Phoenix.LocalDB.ExecuteScalar(string.Format(SqlOrder,Rowid))));
+            const string SqlOrder = "SELECT [Source] FROM AdvancedDictionary WHERE Rowid = @rowid;";
+            return SQLSafeCodec.Decode(P_Convert.ObjToStr(Phoenix.LocalDB.ExecuteScalar(
+                SqlOrder,
+                SqliteSql.Parameter("@rowid", Rowid))));
         }
         public static bool IsRegexMatch(string Input, string SetRegex)
         {
@@ -149,9 +154,20 @@ FROM AdvancedDictionary_Old;";
 
         public static AdvancedDictionaryItem ExactMatch(Languages From,Languages To,string Type,string Source)
         {
-            string SqlOrder = "Select Rowid,* From AdvancedDictionary Where [From] = {0} And [To] = {1} And ([Type] Is NULL OR [Type] = '' OR [Type] = '{2}') And [Source] = '{3}' Limit 1";
+            const string SqlOrder = @"
+SELECT Rowid, * FROM AdvancedDictionary
+WHERE [From] = @from
+AND [To] = @to
+AND ([Type] IS NULL OR [Type] = '' OR [Type] = @type)
+AND [Source] = @source
+LIMIT 1;";
 
-            List<Dictionary<string, object>> NTable = Phoenix.LocalDB.ExecuteQuery(string.Format(SqlOrder,(int)From,(int)To,SQLSafeCodec.Encode(Type),SQLSafeCodec.Encode(Source)));
+            List<Dictionary<string, object>> NTable = Phoenix.LocalDB.ExecuteQuery(
+                SqlOrder,
+                SqliteSql.Parameter("@from", (int)From),
+                SqliteSql.Parameter("@to", (int)To),
+                SqliteSql.Parameter("@type", SQLSafeCodec.Encode(Type)),
+                SqliteSql.Parameter("@source", SQLSafeCodec.Encode(Source)));
             if (NTable.Count > 0)
             {
                 var Row = NTable[0]; // row is Dictionary<string, object>
@@ -222,24 +238,24 @@ WHERE
   (
     TargetFileName IS NULL
     OR TargetFileName = ''
-    OR TargetFileName = '{0}'
+    OR TargetFileName = @fileName
   )
   AND (
     [Type] IS NULL
     OR [Type] = ''
-    OR [Type] = '{1}'
+    OR [Type] = @type
   )
-  AND [From] = {2}
-  AND [To] = {3}
+  AND [From] = @from
+  AND [To] = @to
   AND (
     (ExactMatch = 1 AND (
-      (IgnoreCase = 1 AND LOWER(Source) = LOWER('{4}'))
-      OR (IgnoreCase = 0 AND Source = '{4}')
+      (IgnoreCase = 1 AND LOWER(Source) = LOWER(@sourceText))
+      OR (IgnoreCase = 0 AND Source = @sourceText)
     ))
     OR
     (ExactMatch = 0 AND (
-      (IgnoreCase = 1 AND LOWER('{4}') LIKE '%' || LOWER(Source) || '%')
-      OR (IgnoreCase = 0 AND '{4}' LIKE '%' || Source || '%')
+      (IgnoreCase = 1 AND LOWER(@sourceText) LIKE '%' || LOWER(Source) || '%')
+      OR (IgnoreCase = 0 AND @sourceText LIKE '%' || Source || '%')
     ))
   )
 ";
@@ -252,21 +268,21 @@ WHERE
   (
     TargetFileName IS NULL
     OR TargetFileName = ''
-    OR TargetFileName = '{0}'
+    OR TargetFileName = @fileName
   )
   AND (
     [Type] IS NULL
     OR [Type] = ''
-    OR [Type] = '{1}'
+    OR [Type] = @type
   )
-  AND [From] = {2}
-  AND [To] = {3}
+  AND [From] = @from
+  AND [To] = @to
   AND (
     -- Exact match
     (
       ExactMatch = 1 AND (
-        (IgnoreCase = 1 AND LOWER(Source) = LOWER('{4}'))
-        OR (IgnoreCase = 0 AND Source = '{4}')
+        (IgnoreCase = 1 AND LOWER(Source) = LOWER(@sourceText))
+        OR (IgnoreCase = 0 AND Source = @sourceText)
       )
     )
     OR
@@ -275,22 +291,22 @@ WHERE
       ExactMatch = 0 AND (
         (
           IgnoreCase = 1
-          AND INSTR(LOWER('{4}'), LOWER(Source)) > 0
+          AND INSTR(LOWER(@sourceText), LOWER(Source)) > 0
           AND (
             -- Left boundary: start of string or non-word character
-            INSTR(LOWER('{4}'), LOWER(Source)) = 1
+            INSTR(LOWER(@sourceText), LOWER(Source)) = 1
             OR SUBSTR(
-                 LOWER('{4}'),
-                 INSTR(LOWER('{4}'), LOWER(Source)) - 1,
+                 LOWER(@sourceText),
+                 INSTR(LOWER(@sourceText), LOWER(Source)) - 1,
                  1
                ) NOT GLOB '[a-z0-9_]'
           )
           AND (
             -- Right boundary: end of string or non-word character
-            INSTR(LOWER('{4}'), LOWER(Source)) + LENGTH(Source) - 1 = LENGTH('{4}')
+            INSTR(LOWER(@sourceText), LOWER(Source)) + LENGTH(Source) - 1 = LENGTH(@sourceText)
             OR SUBSTR(
-                 LOWER('{4}'),
-                 INSTR(LOWER('{4}'), LOWER(Source)) + LENGTH(Source),
+                 LOWER(@sourceText),
+                 INSTR(LOWER(@sourceText), LOWER(Source)) + LENGTH(Source),
                  1
                ) NOT GLOB '[a-z0-9_]'
           )
@@ -298,22 +314,22 @@ WHERE
         OR
         (
           IgnoreCase = 0
-          AND INSTR('{4}', Source) > 0
+          AND INSTR(@sourceText, Source) > 0
           AND (
             -- Left boundary: start of string or non-word character
-            INSTR('{4}', Source) = 1
+            INSTR(@sourceText, Source) = 1
             OR SUBSTR(
-                 '{4}',
-                 INSTR('{4}', Source) - 1,
+                 @sourceText,
+                 INSTR(@sourceText, Source) - 1,
                  1
                ) NOT GLOB '[A-Za-z0-9_]'
           )
           AND (
             -- Right boundary: end of string or non-word character
-            INSTR('{4}', Source) + LENGTH(Source) - 1 = LENGTH('{4}')
+            INSTR(@sourceText, Source) + LENGTH(Source) - 1 = LENGTH(@sourceText)
             OR SUBSTR(
-                 '{4}',
-                 INSTR('{4}', Source) + LENGTH(Source),
+                 @sourceText,
+                 INSTR(@sourceText, Source) + LENGTH(Source),
                  1
                ) NOT GLOB '[A-Za-z0-9_]'
           )
@@ -324,14 +340,13 @@ WHERE
 ";
             }
 
-                List<Dictionary<string, object>> NTable = Phoenix.LocalDB.ExecuteQuery(string.Format(
+            List<Dictionary<string, object>> NTable = Phoenix.LocalDB.ExecuteQuery(
                 SqlOrder,
-                SQLSafeCodec.Encode(FileName),
-                SQLSafeCodec.Encode(Type),
-                (int)From,
-                (int)To,
-                SQLSafeCodec.Encode(SourceText)
-            ));
+                SqliteSql.Parameter("@fileName", SQLSafeCodec.Encode(FileName)),
+                SqliteSql.Parameter("@type", SQLSafeCodec.Encode(Type)),
+                SqliteSql.Parameter("@from", (int)From),
+                SqliteSql.Parameter("@to", (int)To),
+                SqliteSql.Parameter("@sourceText", SQLSafeCodec.Encode(SourceText)));
 
             for (int i = 0; i < NTable.Count; i++)
             {
@@ -368,17 +383,24 @@ WHERE
 
         public static bool CheckSame(AdvancedDictionaryItem item)
         {
-            string CheckSql = $@"
+            const string CheckSql = @"
 SELECT COUNT(*) FROM AdvancedDictionary 
 WHERE 
-[TargetFileName] = '{SQLSafeCodec.Encode(item.TargetFileName)}' AND
-[Type] = '{SQLSafeCodec.Encode(item.Type)}' AND
-[Source] = '{SQLSafeCodec.Encode(item.Source)}' AND
-[Result] = '{SQLSafeCodec.Encode(item.Result)}' AND
-[From] = {item.From} AND
-[To] = {item.To}";
+[TargetFileName] = @targetFileName AND
+[Type] = @type AND
+[Source] = @source AND
+[Result] = @result AND
+[From] = @from AND
+[To] = @to;";
 
-            int Count = Convert.ToInt32(Phoenix.LocalDB.ExecuteScalar(CheckSql));
+            int Count = Convert.ToInt32(Phoenix.LocalDB.ExecuteScalar(
+                CheckSql,
+                SqliteSql.Parameter("@targetFileName", SQLSafeCodec.Encode(item.TargetFileName)),
+                SqliteSql.Parameter("@type", SQLSafeCodec.Encode(item.Type)),
+                SqliteSql.Parameter("@source", SQLSafeCodec.Encode(item.Source)),
+                SqliteSql.Parameter("@result", SQLSafeCodec.Encode(item.Result)),
+                SqliteSql.Parameter("@from", item.From),
+                SqliteSql.Parameter("@to", item.To)));
             return Count > 0;
         }
 
@@ -387,20 +409,30 @@ WHERE
         {
             if (!CheckSame(Item))
             {
-                string sql = $@"INSERT INTO AdvancedDictionary 
+                const string sql = @"INSERT INTO AdvancedDictionary
 ([TargetFileName], [Type], [Source], [Result], [From], [To], [ExactMatch], [IgnoreCase], [Regex])
 VALUES (
-'{SQLSafeCodec.Encode(Item.TargetFileName)}',
-'{SQLSafeCodec.Encode(Item.Type)}',
-'{SQLSafeCodec.Encode(Item.Source)}',
-'{SQLSafeCodec.Encode(Item.Result)}',
-{Item.From},
-{Item.To},
-{Item.ExactMatch},
-{Item.IgnoreCase},
-'{SQLSafeCodec.Encode(Item.Regex)}'
-)";
-                int State = Phoenix.LocalDB.ExecuteNonQuery(sql);
+@targetFileName,
+@type,
+@source,
+@result,
+@from,
+@to,
+@exactMatch,
+@ignoreCase,
+@regex
+);";
+                int State = Phoenix.LocalDB.ExecuteNonQuery(
+                    sql,
+                    SqliteSql.Parameter("@targetFileName", SQLSafeCodec.Encode(Item.TargetFileName)),
+                    SqliteSql.Parameter("@type", SQLSafeCodec.Encode(Item.Type)),
+                    SqliteSql.Parameter("@source", SQLSafeCodec.Encode(Item.Source)),
+                    SqliteSql.Parameter("@result", SQLSafeCodec.Encode(Item.Result)),
+                    SqliteSql.Parameter("@from", Item.From),
+                    SqliteSql.Parameter("@to", Item.To),
+                    SqliteSql.Parameter("@exactMatch", Item.ExactMatch),
+                    SqliteSql.Parameter("@ignoreCase", Item.IgnoreCase),
+                    SqliteSql.Parameter("@regex", SQLSafeCodec.Encode(Item.Regex)));
                 if (State != 0)
                 {
                     return true;
@@ -415,26 +447,46 @@ VALUES (
 
         public static void DeleteItem(AdvancedDictionaryItem item)
         {
-            string sql = $@"DELETE FROM AdvancedDictionary WHERE 
-TargetFileName = '{SQLSafeCodec.Encode(item.TargetFileName)}' AND
-Type = '{SQLSafeCodec.Encode(item.Type)}' AND
-Source = '{SQLSafeCodec.Encode(item.Source)}' AND
-Result = '{SQLSafeCodec.Encode(item.Result)}' AND
-[From] = {item.From} AND
-[To] = {item.To} AND
-ExactMatch = {item.ExactMatch} AND
-IgnoreCase = {item.IgnoreCase} AND
-Regex = '{SQLSafeCodec.Encode(item.Regex)}'";
-            Phoenix.LocalDB.ExecuteNonQuery(sql);
+            const string sql = @"DELETE FROM AdvancedDictionary WHERE
+TargetFileName = @targetFileName AND
+Type = @type AND
+Source = @source AND
+Result = @result AND
+[From] = @from AND
+[To] = @to AND
+ExactMatch = @exactMatch AND
+IgnoreCase = @ignoreCase AND
+Regex = @regex;";
+            Phoenix.LocalDB.ExecuteNonQuery(
+                sql,
+                SqliteSql.Parameter("@targetFileName", SQLSafeCodec.Encode(item.TargetFileName)),
+                SqliteSql.Parameter("@type", SQLSafeCodec.Encode(item.Type)),
+                SqliteSql.Parameter("@source", SQLSafeCodec.Encode(item.Source)),
+                SqliteSql.Parameter("@result", SQLSafeCodec.Encode(item.Result)),
+                SqliteSql.Parameter("@from", item.From),
+                SqliteSql.Parameter("@to", item.To),
+                SqliteSql.Parameter("@exactMatch", item.ExactMatch),
+                SqliteSql.Parameter("@ignoreCase", item.IgnoreCase),
+                SqliteSql.Parameter("@regex", SQLSafeCodec.Encode(item.Regex)));
         }
 
         public static P_SQL_Page<List<AdvancedDictionaryItem>> QueryByPage(int From, int To, int PageNo)
         {
-            string Where = $"WHERE [From] = {From} And [To] = {To}";
+            const string Where = SqliteSql.LanguageFilter;
 
-            int MaxPage = P_SQL_Pagination.GetPageCount("AdvancedDictionary", Where);
+            int MaxPage = P_SQL_Pagination.GetPageCount(
+                "AdvancedDictionary",
+                Where,
+                SqliteSql.Parameter("@from", From),
+                SqliteSql.Parameter("@to", To));
 
-            List<Dictionary<string, object>> NTable = P_SQL_Pagination.GetTablePageData("AdvancedDictionary", PageNo, Phoenix.Config.DefPageSize, Where);
+            List<Dictionary<string, object>> NTable = P_SQL_Pagination.GetTablePageData(
+                "AdvancedDictionary",
+                PageNo,
+                Phoenix.Config.DefPageSize,
+                Where,
+                SqliteSql.Parameter("@from", From),
+                SqliteSql.Parameter("@to", To));
 
             List<AdvancedDictionaryItem> Items = new List<AdvancedDictionaryItem>();
             for (int i = 0; i < NTable.Count; i++)
@@ -460,11 +512,23 @@ Regex = '{SQLSafeCodec.Encode(item.Regex)}'";
 
         public static P_SQL_Page<List<AdvancedDictionaryItem>> QueryByPage(string SourceText,int From,int To, int PageNo)
         {
-            string Where = $"WHERE Source = '{SQLSafeCodec.Encode(SourceText)}' And [From] = {From} And [To] = {To}";
+            const string Where = SqliteSql.SourceLanguageFilter;
 
-            int MaxPage = P_SQL_Pagination.GetPageCount("AdvancedDictionary", Where);
+            int MaxPage = P_SQL_Pagination.GetPageCount(
+                "AdvancedDictionary",
+                Where,
+                SqliteSql.Parameter("@source", SQLSafeCodec.Encode(SourceText)),
+                SqliteSql.Parameter("@from", From),
+                SqliteSql.Parameter("@to", To));
 
-            List<Dictionary<string, object>> NTable = P_SQL_Pagination.GetTablePageData("AdvancedDictionary", PageNo, Phoenix.Config.DefPageSize, Where);
+            List<Dictionary<string, object>> NTable = P_SQL_Pagination.GetTablePageData(
+                "AdvancedDictionary",
+                PageNo,
+                Phoenix.Config.DefPageSize,
+                Where,
+                SqliteSql.Parameter("@source", SQLSafeCodec.Encode(SourceText)),
+                SqliteSql.Parameter("@from", From),
+                SqliteSql.Parameter("@to", To));
 
             List<AdvancedDictionaryItem> Items = new List<AdvancedDictionaryItem>();
             for (int i = 0; i < NTable.Count; i++)
@@ -489,8 +553,10 @@ Regex = '{SQLSafeCodec.Encode(item.Regex)}'";
 
         public static bool DeleteByRowid(int Rowid)
         {
-            string SqlOrder = "Delete From AdvancedDictionary Where Rowid = {0}";
-            int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,Rowid));
+            const string SqlOrder = "DELETE FROM AdvancedDictionary WHERE Rowid = @rowid;";
+            int State = Phoenix.LocalDB.ExecuteNonQuery(
+                SqlOrder,
+                SqliteSql.Parameter("@rowid", Rowid));
             if (State != 0)
             {
                 return true;

@@ -2,6 +2,7 @@
 using System.Net;
 using System.Text;
 using Newtonsoft.Json;
+using PhoenixEngine.Common;
 using PhoenixEngine.Engine;
 using PhoenixEngine.Language;
 using PhoenixEngine.Memory;
@@ -74,6 +75,8 @@ namespace PhoenixEngine.Platform
 
     public class DeepSeekApi: I_AI_TranslationNode
     {
+        private static readonly HttpHelper HttpTransport = new HttpHelper();
+
         public static PlatformType Type = PlatformType.DeepSeek;
         public string Model { get; set; } = "";
         public AITranslationMemory AIMemoryRef { get; set; } = null;
@@ -171,6 +174,7 @@ namespace PhoenixEngine.Platform
                 Cookie = "",
                 ContentType = "application/json; charset=utf-8",
                 Encoding = Encoding.UTF8,
+                MaximumResponseBytes = JsonPayload.MaximumDocumentBytes,
                 WebProxy = ProxyRef
             };
             try
@@ -179,17 +183,28 @@ namespace PhoenixEngine.Platform
             }
             catch { }
 
-            string GetResult = new HttpHelper().GetHtml(Http).Html;
+            string GetResult = HttpTransport.GetHtml(Http).Html;
 
             Recv = GetResult;
-            try
-            {  
-                return JsonConvert.DeserializeObject<DeepSeekRootobject>(GetResult);
-            }
-            catch 
-            {
-                return null; 
-            }
+            DeepSeekRootobject result;
+            return TryParseResponse(GetResult, out result) ? result : null;
+        }
+
+        /// <summary>Parses a bounded DeepSeek response and validates the required translation fields.</summary>
+        /// <param name="json">The untrusted provider response.</param>
+        /// <param name="result">Receives the validated response, or <c>null</c> on failure.</param>
+        /// <returns><c>true</c> when the response contains a non-empty first message.</returns>
+        internal static bool TryParseResponse(string json, out DeepSeekRootobject result)
+        {
+            return JsonPayload.TryDeserialize(
+                json,
+                value => value != null &&
+                    value.choices != null &&
+                    value.choices.Length > 0 &&
+                    value.choices[0] != null &&
+                    value.choices[0].message != null &&
+                    !string.IsNullOrWhiteSpace(value.choices[0].message.content),
+                out result);
         }
     }
 }

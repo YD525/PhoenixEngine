@@ -23,6 +23,24 @@ public class EngineCore
     private readonly Dictionary<string, int> _FailureCounts = new Dictionary<string, int>();
     private readonly Dictionary<string, bool> _DisabledPlatforms = new Dictionary<string, bool>();
 
+    /// <summary>
+    /// Waits for a synchronous provider delay while allowing cancellation to interrupt the wait.
+    /// </summary>
+    /// <param name="cancellationToken">The token that interrupts the delay.</param>
+    /// <param name="milliseconds">The delay in milliseconds; non-positive values return immediately.</param>
+    internal static void Delay(CancellationToken cancellationToken, int milliseconds)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (milliseconds <= 0)
+        {
+            return;
+        }
+        if (cancellationToken.WaitHandle.WaitOne(milliseconds))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+    }
+
     public List<EngineNode> EngineNodes = new List<EngineNode>();
 
     public void Init()
@@ -284,6 +302,8 @@ public class EngineCore
                 GetTrans = CurrentEngine.Call(TranslatorRef.ID, CancelToken, TranslatorRef, ref Item, ref Sequences, From, To,
                 true, Phoenix.Config.ContextLimit, AIParam, ref SetType);
 
+                CancelToken.ThrowIfCancellationRequested();
+
                 try
                 {
                     if (Preprocessor.HasUnicodeEscape(GetTrans))
@@ -307,7 +327,7 @@ public class EngineCore
 
                 if (CanSleep && ((Hits == Sequences.Count) == false))
                 {
-                    CurrentEngine.BeginSleep();
+                    CurrentEngine.BeginSleep(CancelToken);
                 }
 
                 ConfirmPasser Passer = Item.AnalysisContent(GetTrans);
@@ -321,11 +341,11 @@ public class EngineCore
 
                 if (!Passed)
                 {
-                    Thread.Sleep(Phoenix.Config.ThrottleDelayMs);
+                    Delay(CancelToken, Phoenix.Config.ThrottleDelayMs);
 
                     if (PassUnits.Count == 0)
                     {
-                        Thread.Sleep(1000);
+                        Delay(CancelToken, 1000);
                     }
 
                     if (MaxTry > 0)
@@ -372,7 +392,7 @@ public class EngineCore
                 return null;
             }
 
-            Thread.Sleep(1);
+            Delay(CancelToken, 1);
             ReloadEngine();
 
             if (EngineNodes.Count == 0)
@@ -409,11 +429,23 @@ public class EngineCore
             this.SleepBySec = SleepBySec;
         }
 
+        /// <summary>
+        /// Applies the provider throttle delay for callers without cancellation support.
+        /// </summary>
         public void BeginSleep()
+        {
+            BeginSleep(CancellationToken.None);
+        }
+
+        /// <summary>
+        /// Applies the provider throttle delay while honoring cooperative cancellation.
+        /// </summary>
+        /// <param name="cancellationToken">The token that cancels the delay.</param>
+        public void BeginSleep(CancellationToken cancellationToken)
         {
             for (int i = 0; i < SleepBySec; i++)
             {
-                Thread.Sleep(1000);
+                Delay(cancellationToken, 1000);
             }
         }
 
@@ -483,8 +515,15 @@ public class EngineCore
                         GetData = SetDeepL.QuickTrans(CurrentApiKey, Source, From, To, ref Call).Trim();
                         Passed = TranslatorRef.Preprocessor.SecondaryQualityInspection(GetData, CustomWords);
 
-                        if (!Passed && MaxTry > 0) { Thread.Sleep(Phoenix.Config.ReTryWaitTime); MaxTry--; }
-                        else break;
+                        if (!Passed && MaxTry > 0)
+                        {
+                            Delay(CancelToken, Phoenix.Config.ReTryWaitTime);
+                            MaxTry--;
+                        }
+                        else
+                        {
+                            break;
+                        }
                     } while (!Passed);
 
                     if (GetData.Length == 0) Phoenix.KeyData.GetData(DeepLApi.Type).ReportError(CurrentApiKey);
@@ -514,8 +553,15 @@ public class EngineCore
                         GetData = SetCustomApi.QuickTrans(CurrentApiKey, Source, From, To, ref Call).Trim();
                         Passed = TranslatorRef.Preprocessor.SecondaryQualityInspection(GetData, CustomWords);
 
-                        if (!Passed && MaxTry > 0) { Thread.Sleep(Phoenix.Config.ReTryWaitTime); MaxTry--; }
-                        else break;
+                        if (!Passed && MaxTry > 0)
+                        {
+                            Delay(CancelToken, Phoenix.Config.ReTryWaitTime);
+                            MaxTry--;
+                        }
+                        else
+                        {
+                            break;
+                        }
                     } while (!Passed);
 
                     if (GetData.Length == 0) Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
@@ -536,7 +582,7 @@ public class EngineCore
                         while (IsLocked(LMStudio.SingleLock))
                         {
                             CancelToken.ThrowIfCancellationRequested();
-                            Thread.Sleep(200);
+                            Delay(CancelToken, 200);
                         }
                     }
 
@@ -551,8 +597,15 @@ public class EngineCore
                         GetData = SetLM.QuickTrans(CustomWords, Source, From, To, UseAIMemory, AIMemoryQueryLimit, AIParam, ref Call).Trim();
                         Passed = TranslatorRef.Preprocessor.SecondaryQualityInspection(GetData, CustomWords);
 
-                        if (!Passed && MaxTry > 0) { Thread.Sleep(Phoenix.Config.ReTryWaitTime); MaxTry--; }
-                        else break;
+                        if (!Passed && MaxTry > 0)
+                        {
+                            Delay(CancelToken, Phoenix.Config.ReTryWaitTime);
+                            MaxTry--;
+                        }
+                        else
+                        {
+                            break;
+                        }
                     } while (!Passed);
 
                     TransText = GetData;
@@ -580,8 +633,15 @@ public class EngineCore
                         GetData = SetChatGpt.QuickTrans(CurrentApiKey, CustomWords, Source, From, To, UseAIMemory, AIMemoryQueryLimit, AIParam, ref Call).Trim();
                         Passed = TranslatorRef.Preprocessor.SecondaryQualityInspection(GetData, CustomWords);
 
-                        if (!Passed && MaxTry > 0) { Thread.Sleep(Phoenix.Config.ReTryWaitTime); MaxTry--; }
-                        else break;
+                        if (!Passed && MaxTry > 0)
+                        {
+                            Delay(CancelToken, Phoenix.Config.ReTryWaitTime);
+                            MaxTry--;
+                        }
+                        else
+                        {
+                            break;
+                        }
                     } while (!Passed);
 
                     if (GetData.Length == 0) Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
@@ -611,8 +671,15 @@ public class EngineCore
                         GetData = SetGemini.QuickTrans(CurrentApiKey, CustomWords, Source, From, To, UseAIMemory, AIMemoryQueryLimit, AIParam, ref Call).Trim();
                         Passed = TranslatorRef.Preprocessor.SecondaryQualityInspection(GetData, CustomWords);
 
-                        if (!Passed && MaxTry > 0) { Thread.Sleep(Phoenix.Config.ReTryWaitTime); MaxTry--; }
-                        else break;
+                        if (!Passed && MaxTry > 0)
+                        {
+                            Delay(CancelToken, Phoenix.Config.ReTryWaitTime);
+                            MaxTry--;
+                        }
+                        else
+                        {
+                            break;
+                        }
                     } while (!Passed);
 
                     if (GetData.Length == 0) Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
@@ -642,8 +709,15 @@ public class EngineCore
                         GetData = SetDeepSeek.QuickTrans(CurrentApiKey, CustomWords, Source, From, To, UseAIMemory, AIMemoryQueryLimit, AIParam, ref Call).Trim();
                         Passed = TranslatorRef.Preprocessor.SecondaryQualityInspection(GetData, CustomWords);
 
-                        if (!Passed && MaxTry > 0) { Thread.Sleep(Phoenix.Config.ReTryWaitTime); MaxTry--; }
-                        else break;
+                        if (!Passed && MaxTry > 0)
+                        {
+                            Delay(CancelToken, Phoenix.Config.ReTryWaitTime);
+                            MaxTry--;
+                        }
+                        else
+                        {
+                            break;
+                        }
                     } while (!Passed);
 
                     if (GetData.Length == 0) Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
@@ -673,8 +747,15 @@ public class EngineCore
                         GetData = SetCustomAI.QuickTrans(CurrentApiKey, CustomWords, Source, From, To, UseAIMemory, AIMemoryQueryLimit, AIParam, ref Call).Trim();
                         Passed = TranslatorRef.Preprocessor.SecondaryQualityInspection(GetData, CustomWords);
 
-                        if (!Passed && MaxTry > 0) { Thread.Sleep(Phoenix.Config.ReTryWaitTime); MaxTry--; }
-                        else break;
+                        if (!Passed && MaxTry > 0)
+                        {
+                            Delay(CancelToken, Phoenix.Config.ReTryWaitTime);
+                            MaxTry--;
+                        }
+                        else
+                        {
+                            break;
+                        }
                     } while (!Passed);
 
                     if (GetData.Length == 0) Phoenix.KeyData.GetData(Type).ReportError(CurrentApiKey);
@@ -702,8 +783,15 @@ public class EngineCore
                         GetData = SetCustomLocal.QuickTrans(CustomWords, Source, From, To, UseAIMemory, AIMemoryQueryLimit, AIParam, ref Call).Trim();
                         Passed = TranslatorRef.Preprocessor.SecondaryQualityInspection(GetData, CustomWords);
 
-                        if (!Passed && MaxTry > 0) { Thread.Sleep(Phoenix.Config.ReTryWaitTime); MaxTry--; }
-                        else break;
+                        if (!Passed && MaxTry > 0)
+                        {
+                            Delay(CancelToken, Phoenix.Config.ReTryWaitTime);
+                            MaxTry--;
+                        }
+                        else
+                        {
+                            break;
+                        }
                     } while (!Passed);
 
                     TransText = GetData;
@@ -729,8 +817,15 @@ public class EngineCore
                         GetData = SetHuman.CallHuman(CustomWords, Source, From, To, UseAIMemory, AIMemoryQueryLimit, AIParam, ref Call).Trim();
                         Passed = TranslatorRef.Preprocessor.SecondaryQualityInspection(GetData, CustomWords);
 
-                        if (!Passed && MaxTry > 0) { Thread.Sleep(Phoenix.Config.ReTryWaitTime); MaxTry--; }
-                        else break;
+                        if (!Passed && MaxTry > 0)
+                        {
+                            Delay(CancelToken, Phoenix.Config.ReTryWaitTime);
+                            MaxTry--;
+                        }
+                        else
+                        {
+                            break;
+                        }
                     } while (!Passed);
 
                     TransText = GetData;

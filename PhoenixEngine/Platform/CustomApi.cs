@@ -12,6 +12,8 @@ namespace PhoenixEngine.Platform
 {
     public class CustomApi : I_TranslationNode
     {
+        private static readonly HttpHelper HttpTransport = new HttpHelper();
+
         public static PlatformType Type = PlatformType.CustomPlatform;
 
         public CustomPlatformType CustomType = CustomPlatformType.Traditional;
@@ -81,10 +83,11 @@ namespace PhoenixEngine.Platform
                 Cookie = "",
                 ContentType = Core.ContentType,
                 Encoding = Encoding.UTF8,
+                MaximumResponseBytes = JsonPayload.MaximumDocumentBytes,
                 WebProxy = ProxyRef
             };
 
-            string Result = new HttpHelper().GetHtml(Http).Html;
+            string Result = HttpTransport.GetHtml(Http).Html;
 
             Recv = Result;
 

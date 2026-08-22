@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
+using PhoenixEngine.Common;
 using PhoenixEngine.Platform;
 using PhoenixEngine.Translate;
 
@@ -382,8 +383,18 @@ namespace PhoenixEngine
             {
                 try
                 {
+                    if (new FileInfo(SetFullPath).Length > JsonPayload.MaximumDocumentBytes)
+                        throw new InvalidDataException("The engine configuration exceeds the JSON size limit.");
                     var DecryptedBytes = XORDecrypt(File.ReadAllBytes(SetFullPath));
-                    Config = JsonConvert.DeserializeObject<EngineConfigJson>(Encoding.UTF8.GetString(DecryptedBytes));
+                    EngineConfigJson loadedConfig;
+                    if (!JsonPayload.TryDeserialize(
+                        Encoding.UTF8.GetString(DecryptedBytes),
+                        value => value != null,
+                        out loadedConfig))
+                    {
+                        throw new InvalidDataException("The engine configuration is invalid.");
+                    }
+                    Config = loadedConfig;
 
                     SetDefaultModel();
                 }

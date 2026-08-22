@@ -2,6 +2,7 @@
 using System.Net;
 using System.Text;
 using Newtonsoft.Json;
+using PhoenixEngine.Common;
 using PhoenixEngine.Language;
 using PhoenixEngine.P_Delegate;
 using PhoenixEngine.Request;
@@ -30,6 +31,8 @@ namespace PhoenixEngine.Platform
 
     public class DeepLApi: I_TranslationNode
     {
+        private static readonly HttpHelper HttpTransport = new HttpHelper();
+
         public static PlatformType Type = PlatformType.DeepL;
         public EngineConfigJson ConfigRef { get; set; } = null;
         public WebProxy ProxyRef { get; set; } = null;
@@ -115,6 +118,7 @@ namespace PhoenixEngine.Platform
                 Cookie = "",
                 ContentType = "application/json; charset=utf-8",
                 Encoding = Encoding.UTF8,
+                MaximumResponseBytes = JsonPayload.MaximumDocumentBytes,
                 WebProxy = ProxyRef
             };
             try
@@ -123,16 +127,26 @@ namespace PhoenixEngine.Platform
             }
             catch { }
 
-            string GetResult = new HttpHelper().GetHtml(Http).Html;
+            string GetResult = HttpTransport.GetHtml(Http).Html;
             Recv = GetResult;
-            try
-            {
-                return JsonConvert.DeserializeObject<DeepLResult>(GetResult);
-            }
-            catch
-            {
-                return null;
-            }
+            DeepLResult result;
+            return TryParseResponse(GetResult, out result) ? result : null;
+        }
+
+        /// <summary>Parses a bounded DeepL response and validates the required translation fields.</summary>
+        /// <param name="json">The untrusted provider response.</param>
+        /// <param name="result">Receives the validated response, or <c>null</c> on failure.</param>
+        /// <returns><c>true</c> when the response contains a non-empty first translation.</returns>
+        internal static bool TryParseResponse(string json, out DeepLResult result)
+        {
+            return JsonPayload.TryDeserialize(
+                json,
+                value => value != null &&
+                    value.translations != null &&
+                    value.translations.Length > 0 &&
+                    value.translations[0] != null &&
+                    !string.IsNullOrWhiteSpace(value.translations[0].text),
+                out result);
         }
     }
 }
