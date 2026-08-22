@@ -35,4 +35,4 @@ jobs:
 
       - name: Run regression tests
         shell: pwsh
-        run: .\PhoenixEngine.Tests\bin\x64\Release\PhoenixEngine.Tests.exe
+        run: .\scripts\Run-Tests.ps1 -Configuration Release -Platform x64 -ResultsDirectory .test-results\ci

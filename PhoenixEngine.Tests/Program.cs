@@ -7,6 +7,7 @@ using PhoenixEngine.Language;
 using PhoenixEngine.Platform;
 using PhoenixEngine.Platform.LocalAI;
 using PhoenixEngine.Request;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -24,89 +25,15 @@ using System.Threading.Tasks;
 
 namespace PhoenixEngine.Tests
 {
-    internal static class Program
+    /// <summary>Verifies engine persistence, provider transport, payload, and TLS contracts.</summary>
+    [TestClass]
+    [DoNotParallelize]
+    public sealed class EngineProviderContractTests
     {
-        private static async Task<int> Main()
-        {
-            KeyValuePair<string, Func<Task>>[] tests =
-            {
-                SyncTest(
-                    nameof(CompletesValidTlsHandshakeAndConfiguresClientCertificates),
-                    CompletesValidTlsHandshakeAndConfiguresClientCertificates),
-                SyncTest(nameof(RejectsExpiredCertificate), RejectsExpiredCertificate),
-                SyncTest(
-                    nameof(RejectsWrongHostCertificateWhenClientCertificatePathIsConfigured),
-                    RejectsWrongHostCertificateWhenClientCertificatePathIsConfigured),
-                SyncTest(
-                    nameof(RejectsUntrustedSelfSignedCertificate),
-                    RejectsUntrustedSelfSignedCertificate),
-                AsyncTest(nameof(ReturnsSuccessfulResponseAsync), ReturnsSuccessfulResponseAsync),
-                AsyncTest(nameof(ReportsTimeoutAsync), ReportsTimeoutAsync),
-                AsyncTest(nameof(ReportsCancellationAsync), ReportsCancellationAsync),
-                AsyncTest(
-                    nameof(RetriesRateLimitAndServerFailuresAsync),
-                    RetriesRateLimitAndServerFailuresAsync),
-                AsyncTest(nameof(DoesNotRetryUnsafePostAsync), DoesNotRetryUnsafePostAsync),
-                AsyncTest(nameof(RejectsOversizedResponseAsync), RejectsOversizedResponseAsync),
-                AsyncTest(nameof(RejectsOversizedStreamAsync), RejectsOversizedStreamAsync),
-                AsyncTest(nameof(RejectsOversizedHeadersAsync), RejectsOversizedHeadersAsync),
-                AsyncTest(nameof(CancelsDuringNetworkRetryDelayAsync), CancelsDuringNetworkRetryDelayAsync),
-                AsyncTest(nameof(PreservesMalformedBodyAsync), PreservesMalformedBodyAsync),
-                SyncTest(nameof(AcceptsProviderPayloadFixtures), AcceptsProviderPayloadFixtures),
-                SyncTest(nameof(RejectsDeeplyNestedJson), RejectsDeeplyNestedJson),
-                SyncTest(nameof(RejectsMalformedJson), RejectsMalformedJson),
-                SyncTest(nameof(RejectsOversizedJson), RejectsOversizedJson),
-                SyncTest(
-                    nameof(RejectsStructurallyInvalidProviderResponses),
-                    RejectsStructurallyInvalidProviderResponses),
-                SyncTest(nameof(StoresHostileSqlValuesAsData), StoresHostileSqlValuesAsData),
-                SyncTest(
-                    nameof(PreservesExistingEncodedDatabaseValues),
-                    PreservesExistingEncodedDatabaseValues),
-                SyncTest(
-                    nameof(RejectsUnapprovedSqlIdentifiersAndFilters),
-                    RejectsUnapprovedSqlIdentifiersAndFilters),
-                SyncTest(
-                    nameof(RollsBackFailedSqlTransactions),
-                    RollsBackFailedSqlTransactions)
-            };
-
-            int failures = 0;
-            foreach (KeyValuePair<string, Func<Task>> test in tests)
-            {
-                try
-                {
-                    await test.Value().ConfigureAwait(false);
-                    Console.WriteLine("Passed {0}", test.Key);
-                }
-                catch (Exception exception)
-                {
-                    failures++;
-                    Console.Error.WriteLine("Failed {0}: {1}", test.Key, exception);
-                }
-            }
-
-            Console.WriteLine("{0} regression tests passed; {1} failed.", tests.Length - failures, failures);
-            return failures == 0 ? 0 : 1;
-        }
-
-        private static KeyValuePair<string, Func<Task>> SyncTest(string name, Action test)
-        {
-            return new KeyValuePair<string, Func<Task>>(
-                name,
-                () =>
-                {
-                    test();
-                    return Task.CompletedTask;
-                });
-        }
-
-        private static KeyValuePair<string, Func<Task>> AsyncTest(string name, Func<Task> test)
-        {
-            return new KeyValuePair<string, Func<Task>>(name, test);
-        }
-
-        private static void CompletesValidTlsHandshakeAndConfiguresClientCertificates()
+        /// <summary>Verifies a valid loopback TLS handshake and both supported client-certificate sources.</summary>
+        [TestMethod]
+        [TestCategory("TLS")]
+        public void CompletesValidTlsHandshakeAndConfiguresClientCertificates()
         {
             DateTimeOffset now = DateTimeOffset.UtcNow;
             using (X509Certificate2 authority = CreateCertificateAuthority(now.AddDays(-2), now.AddDays(30)))
@@ -135,7 +62,10 @@ namespace PhoenixEngine.Tests
             }
         }
 
-        private static void RejectsExpiredCertificate()
+        /// <summary>Verifies that an expired loopback server certificate is rejected safely.</summary>
+        [TestMethod]
+        [TestCategory("TLS")]
+        public void RejectsExpiredCertificate()
         {
             DateTimeOffset now = DateTimeOffset.UtcNow;
             using (X509Certificate2 authority = CreateCertificateAuthority(now.AddDays(-30), now.AddDays(30)))
@@ -149,7 +79,10 @@ namespace PhoenixEngine.Tests
             }
         }
 
-        private static void RejectsWrongHostCertificateWhenClientCertificatePathIsConfigured()
+        /// <summary>Verifies that configuring a client certificate cannot bypass host-name validation.</summary>
+        [TestMethod]
+        [TestCategory("TLS")]
+        public void RejectsWrongHostCertificateWhenClientCertificatePathIsConfigured()
         {
             DateTimeOffset now = DateTimeOffset.UtcNow;
             using (X509Certificate2 authority = CreateCertificateAuthority(now.AddDays(-2), now.AddDays(30)))
@@ -178,7 +111,10 @@ namespace PhoenixEngine.Tests
             }
         }
 
-        private static void RejectsUntrustedSelfSignedCertificate()
+        /// <summary>Verifies that an untrusted self-signed loopback server certificate is rejected.</summary>
+        [TestMethod]
+        [TestCategory("TLS")]
+        public void RejectsUntrustedSelfSignedCertificate()
         {
             DateTimeOffset now = DateTimeOffset.UtcNow;
             using (X509Certificate2 serverCertificate = CreateSelfSignedServerCertificate(
@@ -312,7 +248,9 @@ namespace PhoenixEngine.Tests
             }
         }
 
-        private static async Task ReturnsSuccessfulResponseAsync()
+        /// <summary>Verifies that a successful provider response is returned without retrying.</summary>
+        [TestMethod]
+        public async Task ReturnsSuccessfulResponseAsync()
         {
             using (ScriptedHttpMessageHandler handler = new ScriptedHttpMessageHandler(
                 (request, token) => Task.FromResult(CreateResponse(HttpStatusCode.OK, "success"))))
@@ -328,7 +266,9 @@ namespace PhoenixEngine.Tests
             }
         }
 
-        private static async Task ReportsTimeoutAsync()
+        /// <summary>Verifies that elapsed request timeouts are reported distinctly and promptly.</summary>
+        [TestMethod]
+        public async Task ReportsTimeoutAsync()
         {
             using (ScriptedHttpMessageHandler handler = new ScriptedHttpMessageHandler(WaitForCancellationAsync))
             using (HttpClient client = CreateClient(handler))
@@ -349,7 +289,9 @@ namespace PhoenixEngine.Tests
             }
         }
 
-        private static async Task ReportsCancellationAsync()
+        /// <summary>Verifies that caller cancellation remains distinct from transport timeout.</summary>
+        [TestMethod]
+        public async Task ReportsCancellationAsync()
         {
             using (ScriptedHttpMessageHandler handler = new ScriptedHttpMessageHandler(WaitForCancellationAsync))
             using (HttpClient client = CreateClient(handler))
@@ -371,7 +313,9 @@ namespace PhoenixEngine.Tests
             }
         }
 
-        private static async Task RetriesRateLimitAndServerFailuresAsync()
+        /// <summary>Verifies bounded recovery from provider rate limits and transient server failures.</summary>
+        [TestMethod]
+        public async Task RetriesRateLimitAndServerFailuresAsync()
         {
             using (ScriptedHttpMessageHandler handler = new ScriptedHttpMessageHandler(
                 (request, token) => Task.FromResult(CreateRetryResponse((HttpStatusCode)429)),
@@ -392,7 +336,9 @@ namespace PhoenixEngine.Tests
             }
         }
 
-        private static async Task DoesNotRetryUnsafePostAsync()
+        /// <summary>Verifies that an unsafe provider request is not retried implicitly.</summary>
+        [TestMethod]
+        public async Task DoesNotRetryUnsafePostAsync()
         {
             using (ScriptedHttpMessageHandler handler = new ScriptedHttpMessageHandler(
                 (request, token) => Task.FromResult(CreateResponse(HttpStatusCode.ServiceUnavailable, "busy"))))
@@ -413,7 +359,9 @@ namespace PhoenixEngine.Tests
             }
         }
 
-        private static async Task RejectsOversizedResponseAsync()
+        /// <summary>Verifies that a response exceeding the configured byte limit is rejected.</summary>
+        [TestMethod]
+        public async Task RejectsOversizedResponseAsync()
         {
             using (ScriptedHttpMessageHandler handler = new ScriptedHttpMessageHandler(
                 (request, token) => Task.FromResult(CreateResponse(HttpStatusCode.OK, "12345"))))
@@ -433,7 +381,9 @@ namespace PhoenixEngine.Tests
             }
         }
 
-        private static async Task PreservesMalformedBodyAsync()
+        /// <summary>Verifies that malformed provider content remains available to the payload validator.</summary>
+        [TestMethod]
+        public async Task PreservesMalformedBodyAsync()
         {
             using (ScriptedHttpMessageHandler handler = new ScriptedHttpMessageHandler(
                 (request, token) => Task.FromResult(CreateResponse(HttpStatusCode.OK, "{not-json"))))
@@ -454,7 +404,9 @@ namespace PhoenixEngine.Tests
             }
         }
 
-        private static void AcceptsProviderPayloadFixtures()
+        /// <summary>Verifies compatible payload fixtures for every built-in provider contract.</summary>
+        [TestMethod]
+        public void AcceptsProviderPayloadFixtures()
         {
             ChatGptApi.ChatGptRootobject chatGpt;
             DeepSeekRootobject deepSeek;
@@ -506,7 +458,9 @@ namespace PhoenixEngine.Tests
                 "The Chinese conversion fixture must remain compatible.");
         }
 
-        private static void RejectsDeeplyNestedJson()
+        /// <summary>Verifies that provider JSON exceeding the depth limit is rejected.</summary>
+        [TestMethod]
+        public void RejectsDeeplyNestedJson()
         {
             string json = new string('[', JsonPayload.MaximumDepth + 1) +
                 "0" +
@@ -517,7 +471,9 @@ namespace PhoenixEngine.Tests
                 "JSON deeper than the explicit limit must fail deterministically.");
         }
 
-        private static void RejectsOversizedJson()
+        /// <summary>Verifies that provider JSON exceeding the document limit is rejected.</summary>
+        [TestMethod]
+        public void RejectsOversizedJson()
         {
             string json = "\"" + new string('a', JsonPayload.MaximumDocumentCharacters) + "\"";
             AssertEqual(
@@ -526,7 +482,9 @@ namespace PhoenixEngine.Tests
                 "JSON larger than the document limit must fail before parsing.");
         }
 
-        private static void RejectsMalformedJson()
+        /// <summary>Verifies that malformed provider JSON is rejected before DTO use.</summary>
+        [TestMethod]
+        public void RejectsMalformedJson()
         {
             AssertEqual(
                 false,
@@ -534,7 +492,9 @@ namespace PhoenixEngine.Tests
                 "Malformed JSON must fail without reaching a provider DTO.");
         }
 
-        private static void RejectsStructurallyInvalidProviderResponses()
+        /// <summary>Verifies that provider responses missing required DTO structure are rejected.</summary>
+        [TestMethod]
+        public void RejectsStructurallyInvalidProviderResponses()
         {
             ChatGptApi.ChatGptRootobject chatGpt;
             DeepSeekRootobject deepSeek;
@@ -556,7 +516,9 @@ namespace PhoenixEngine.Tests
                 "Chinese conversion fields are required.");
         }
 
-        private static void StoresHostileSqlValuesAsData()
+        /// <summary>Verifies that cache and dictionary values cannot alter SQLite statements or schema.</summary>
+        [TestMethod]
+        public void StoresHostileSqlValuesAsData()
         {
             WithTemporaryDatabase(database =>
             {
@@ -680,7 +642,9 @@ namespace PhoenixEngine.Tests
             });
         }
 
-        private static void PreservesExistingEncodedDatabaseValues()
+        /// <summary>Verifies that existing encoded cache rows remain readable.</summary>
+        [TestMethod]
+        public void PreservesExistingEncodedDatabaseValues()
         {
             WithTemporaryDatabase(database =>
             {
@@ -708,7 +672,9 @@ VALUES (@fileUniqueKey, @key, @to, @source, @result, @index);",
             });
         }
 
-        private static void RejectsUnapprovedSqlIdentifiersAndFilters()
+        /// <summary>Verifies that dynamic SQLite identifiers and filters require central approval.</summary>
+        [TestMethod]
+        public void RejectsUnapprovedSqlIdentifiersAndFilters()
         {
             AssertEqual("[AdvancedDictionary]", SqliteSql.QuoteIdentifier("AdvancedDictionary"),
                 "A known schema identifier must be quoted centrally.");
@@ -723,7 +689,9 @@ VALUES (@fileUniqueKey, @key, @to, @source, @result, @index);",
                 "A hostile parameter name must be rejected.");
         }
 
-        private static void RollsBackFailedSqlTransactions()
+        /// <summary>Verifies that partial SQLite failures roll back and leave the connection usable.</summary>
+        [TestMethod]
+        public void RollsBackFailedSqlTransactions()
         {
             WithTemporaryDatabase(database =>
             {
@@ -783,42 +751,50 @@ VALUES (@fileUniqueKey, @key, @to, @source, @result, @index);",
         {
             string path = Path.Combine(Path.GetTempPath(), "PhoenixEngine-SQL-" + Guid.NewGuid() + ".db");
             P_SQLite previousDatabase = Phoenix.LocalDB;
-            using (var database = new P_SQLite())
+            try
             {
-                try
+                using (var database = new P_SQLite())
                 {
                     database.PoolingEnabled = false;
                     database.OpenSQL(path);
                     Phoenix.LocalDB = database;
                     test(database);
                 }
-                finally
+            }
+            finally
+            {
+                Phoenix.LocalDB = previousDatabase;
+                System.Data.SQLite.SQLiteConnection.ClearAllPools();
+                DeleteDatabaseFile(path);
+                DeleteDatabaseFile(path + "-wal");
+                DeleteDatabaseFile(path + "-shm");
+            }
+        }
+
+        private static void DeleteDatabaseFile(string path)
+        {
+            for (int attempt = 0; attempt < 5; attempt++)
+            {
+                if (!File.Exists(path))
+                    return;
+
+                try
                 {
-                    Phoenix.LocalDB = previousDatabase;
+                    File.Delete(path);
+                    return;
+                }
+                catch (IOException) when (attempt < 4)
+                {
+                    Thread.Sleep(50);
+                }
+                catch (UnauthorizedAccessException) when (attempt < 4)
+                {
+                    Thread.Sleep(50);
                 }
             }
 
-            System.Data.SQLite.SQLiteConnection.ClearAllPools();
-            TryDeleteDatabaseFile(path);
-            TryDeleteDatabaseFile(path + "-wal");
-            TryDeleteDatabaseFile(path + "-shm");
-        }
-
-        private static void TryDeleteDatabaseFile(string path)
-        {
-            try
-            {
-                if (File.Exists(path))
-                    File.Delete(path);
-            }
-            catch (IOException)
-            {
-                // SQLite pooling may retain a short-lived handle; test data remains isolated in the temp folder.
-            }
-            catch (UnauthorizedAccessException)
-            {
-                // Cleanup failure does not change the isolated database assertions.
-            }
+            throw new InvalidOperationException(
+                "The isolated SQLite fixture could not be removed: " + Path.GetFileName(path));
         }
 
         private static void AssertThrows<TException>(Action action, string message)
@@ -836,7 +812,9 @@ VALUES (@fileUniqueKey, @key, @to, @source, @result, @index);",
             throw new InvalidOperationException(message);
         }
 
-        private static async Task RejectsOversizedStreamAsync()
+        /// <summary>Verifies byte limits for streamed responses without a content length.</summary>
+        [TestMethod]
+        public async Task RejectsOversizedStreamAsync()
         {
             byte[] body = Encoding.UTF8.GetBytes("12345");
             using (ScriptedHttpMessageHandler handler = new ScriptedHttpMessageHandler(
@@ -859,7 +837,9 @@ VALUES (@fileUniqueKey, @key, @to, @source, @result, @index);",
             }
         }
 
-        private static async Task RejectsOversizedHeadersAsync()
+        /// <summary>Verifies that oversized response headers are rejected before body buffering.</summary>
+        [TestMethod]
+        public async Task RejectsOversizedHeadersAsync()
         {
             using (ScriptedHttpMessageHandler handler = new ScriptedHttpMessageHandler(
                 (request, token) =>
@@ -883,17 +863,30 @@ VALUES (@fileUniqueKey, @key, @to, @source, @result, @index);",
             }
         }
 
-        private static async Task CancelsDuringNetworkRetryDelayAsync()
+        /// <summary>Verifies cancellation while waiting to retry a transient network failure.</summary>
+        [TestMethod]
+        [Timeout(5000)]
+        public async Task CancelsDuringNetworkRetryDelayAsync()
         {
             using (ScriptedHttpMessageHandler handler = new ScriptedHttpMessageHandler(
                 (request, token) => throw new HttpRequestException("Transient network failure.")))
             using (HttpClient client = CreateClient(handler))
             using (CancellationTokenSource cancellation = new CancellationTokenSource())
             {
-                cancellation.CancelAfter(50);
-                HttpResult result = await new HttpHelper(client, Task.Delay).GetHtmlAsync(
+                var delayStarted = new TaskCompletionSource<bool>(
+                    TaskCreationOptions.RunContinuationsAsynchronously);
+                var helper = new HttpHelper(client, (delay, token) =>
+                {
+                    delayStarted.TrySetResult(true);
+                    return WaitForCancellationAsync(null, token);
+                });
+                Task<HttpResult> request = helper.GetHtmlAsync(
                     CreateHttpItem(),
-                    cancellation.Token).ConfigureAwait(false);
+                    cancellation.Token);
+
+                await delayStarted.Task.ConfigureAwait(false);
+                cancellation.Cancel();
+                HttpResult result = await request.ConfigureAwait(false);
 
                 AssertEqual(
                     HttpFailureKind.Cancelled,
@@ -1080,6 +1073,8 @@ VALUES (@fileUniqueKey, @key, @to, @source, @result, @index);",
             return new X509Certificate2(
                 exported,
                 string.Empty,
+                // Schannel requires a temporary key container on .NET Framework. PersistKeySet is intentionally
+                // absent, and the certificate is never added to a Windows certificate store.
                 X509KeyStorageFlags.Exportable | X509KeyStorageFlags.UserKeySet);
         }
 
