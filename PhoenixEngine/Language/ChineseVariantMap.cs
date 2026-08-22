@@ -195,6 +195,7 @@ namespace PhoenixEngine.Language
                     ContentType = "application/json",
                     Referer = "https://zhconvert.org/",
                     Encoding = Encoding.UTF8,
+                    MaximumResponseBytes = JsonPayload.MaximumDocumentBytes,
                     WebProxy = Proxy
                 };
 
@@ -206,7 +207,9 @@ namespace PhoenixEngine.Language
 
                 string GetResult = HttpTransport.GetHtml(Http).Html;
 
-                ZHConvertReturnJson GetReturn = JsonConvert.DeserializeObject<ZHConvertReturnJson>(GetResult);
+                ZHConvertReturnJson GetReturn;
+                if (!TryParseResponse(GetResult, out GetReturn))
+                    return string.Empty;
 
                 if (GetReturn.data != null && GetReturn.code == 0)
                 {
@@ -222,6 +225,21 @@ namespace PhoenixEngine.Language
             catch { }
 
             return "";
+        }
+
+        /// <summary>Parses a bounded conversion response and validates its required text field.</summary>
+        /// <param name="json">The untrusted provider response.</param>
+        /// <param name="result">Receives the validated response, or <c>null</c> on failure.</param>
+        /// <returns><c>true</c> when the provider reports success with non-empty converted text.</returns>
+        internal static bool TryParseResponse(string json, out ZHConvertReturnJson result)
+        {
+            return JsonPayload.TryDeserialize(
+                json,
+                value => value != null &&
+                    value.code == 0 &&
+                    value.data != null &&
+                    !string.IsNullOrWhiteSpace(value.data.text),
+                out result);
         }
 
         public string SimplifiedToTraditional(ZHConvertJson Convert)

@@ -162,7 +162,8 @@ namespace PhoenixEngine.Platform.LocalAI
                 Postdata = PayLoad,
                 Cookie = "",
                 ContentType = Core.ContentType,
-                Encoding = Encoding.UTF8
+                Encoding = Encoding.UTF8,
+                MaximumResponseBytes = JsonPayload.MaximumDocumentBytes
             };
 
             string GetResult = HttpTransport.GetHtml(Http).Html;

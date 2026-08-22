@@ -1,3 +1,7 @@
+using PhoenixEngine.Common;
+using PhoenixEngine.Language;
+using PhoenixEngine.Platform;
+using PhoenixEngine.Platform.LocalAI;
 using PhoenixEngine.Request;
 using System;
 using System.Collections.Generic;
@@ -43,7 +47,14 @@ namespace PhoenixEngine.Tests
                 AsyncTest(nameof(RejectsOversizedStreamAsync), RejectsOversizedStreamAsync),
                 AsyncTest(nameof(RejectsOversizedHeadersAsync), RejectsOversizedHeadersAsync),
                 AsyncTest(nameof(CancelsDuringNetworkRetryDelayAsync), CancelsDuringNetworkRetryDelayAsync),
-                AsyncTest(nameof(PreservesMalformedBodyAsync), PreservesMalformedBodyAsync)
+                AsyncTest(nameof(PreservesMalformedBodyAsync), PreservesMalformedBodyAsync),
+                SyncTest(nameof(AcceptsProviderPayloadFixtures), AcceptsProviderPayloadFixtures),
+                SyncTest(nameof(RejectsDeeplyNestedJson), RejectsDeeplyNestedJson),
+                SyncTest(nameof(RejectsMalformedJson), RejectsMalformedJson),
+                SyncTest(nameof(RejectsOversizedJson), RejectsOversizedJson),
+                SyncTest(
+                    nameof(RejectsStructurallyInvalidProviderResponses),
+                    RejectsStructurallyInvalidProviderResponses)
             };
 
             int failures = 0;
@@ -61,7 +72,7 @@ namespace PhoenixEngine.Tests
                 }
             }
 
-            Console.WriteLine("{0} transport tests passed; {1} failed.", tests.Length - failures, failures);
+            Console.WriteLine("{0} regression tests passed; {1} failed.", tests.Length - failures, failures);
             return failures == 0 ? 0 : 1;
         }
 
@@ -427,6 +438,108 @@ namespace PhoenixEngine.Tests
                     result.Html,
                     "Malformed provider data must remain available for DTO validation.");
             }
+        }
+
+        private static void AcceptsProviderPayloadFixtures()
+        {
+            ChatGptApi.ChatGptRootobject chatGpt;
+            DeepSeekRootobject deepSeek;
+            GeminiRootobject gemini;
+            DeepLResult deepL;
+            OpenAIResponse localAi;
+            OpenAIModelListResponse models;
+            ZHConvertReturnJson chineseVariant;
+
+            AssertEqual(
+                true,
+                ChatGptApi.TryParseResponse(
+                    "{\"choices\":[{\"message\":{\"content\":\"translated\"}}]}",
+                    out chatGpt),
+                "The ChatGPT fixture must remain compatible.");
+            AssertEqual(
+                true,
+                DeepSeekApi.TryParseResponse(
+                    "{\"choices\":[{\"message\":{\"content\":\"translated\"}}]}",
+                    out deepSeek),
+                "The DeepSeek fixture must remain compatible.");
+            AssertEqual(
+                true,
+                GeminiApi.TryParseResponse(
+                    "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"translated\"}]}}]}",
+                    out gemini),
+                "The Gemini fixture must remain compatible.");
+            AssertEqual(
+                true,
+                DeepLApi.TryParseResponse(
+                    "{\"translations\":[{\"text\":\"translated\"}]}",
+                    out deepL),
+                "The DeepL fixture must remain compatible.");
+            AssertEqual(
+                true,
+                LMStudio.TryParseResponse(
+                    "{\"choices\":[{\"message\":{\"content\":\"translated\"}}]}",
+                    out localAi),
+                "The local chat fixture must remain compatible.");
+            AssertEqual(
+                true,
+                LMStudio.TryParseModelResponse("{\"data\":[{\"id\":\"model\"}]}", out models),
+                "The local model fixture must remain compatible.");
+            AssertEqual(
+                true,
+                ChineseVariantMap.TryParseResponse(
+                    "{\"code\":0,\"data\":{\"text\":\"translated\"}}",
+                    out chineseVariant),
+                "The Chinese conversion fixture must remain compatible.");
+        }
+
+        private static void RejectsDeeplyNestedJson()
+        {
+            string json = new string('[', JsonPayload.MaximumDepth + 1) +
+                "0" +
+                new string(']', JsonPayload.MaximumDepth + 1);
+            AssertEqual(
+                false,
+                JsonPayload.IsValidDocument(json),
+                "JSON deeper than the explicit limit must fail deterministically.");
+        }
+
+        private static void RejectsOversizedJson()
+        {
+            string json = "\"" + new string('a', JsonPayload.MaximumDocumentCharacters) + "\"";
+            AssertEqual(
+                false,
+                JsonPayload.IsValidDocument(json),
+                "JSON larger than the document limit must fail before parsing.");
+        }
+
+        private static void RejectsMalformedJson()
+        {
+            AssertEqual(
+                false,
+                JsonPayload.IsValidDocument("{not-json"),
+                "Malformed JSON must fail without reaching a provider DTO.");
+        }
+
+        private static void RejectsStructurallyInvalidProviderResponses()
+        {
+            ChatGptApi.ChatGptRootobject chatGpt;
+            DeepSeekRootobject deepSeek;
+            GeminiRootobject gemini;
+            DeepLResult deepL;
+            OpenAIResponse localAi;
+            OpenAIModelListResponse models;
+            ZHConvertReturnJson chineseVariant;
+
+            AssertEqual(false, ChatGptApi.TryParseResponse("{}", out chatGpt), "ChatGPT fields are required.");
+            AssertEqual(false, DeepSeekApi.TryParseResponse("{}", out deepSeek), "DeepSeek fields are required.");
+            AssertEqual(false, GeminiApi.TryParseResponse("{}", out gemini), "Gemini fields are required.");
+            AssertEqual(false, DeepLApi.TryParseResponse("{}", out deepL), "DeepL fields are required.");
+            AssertEqual(false, LMStudio.TryParseResponse("{}", out localAi), "Local chat fields are required.");
+            AssertEqual(false, LMStudio.TryParseModelResponse("{}", out models), "Local model fields are required.");
+            AssertEqual(
+                false,
+                ChineseVariantMap.TryParseResponse("{}", out chineseVariant),
+                "Chinese conversion fields are required.");
         }
 
         private static async Task RejectsOversizedStreamAsync()

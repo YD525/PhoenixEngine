@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Text;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using PhoenixEngine.Common;
 using PhoenixEngine.Engine;
 using PhoenixEngine.Language;
 using PhoenixEngine.Memory;
@@ -77,28 +77,13 @@ namespace PhoenixEngine.Platform.LocalAI
                 Cookie = "",
                 Timeout = 5000,
                 ContentType = "application/json",
+                MaximumResponseBytes = JsonPayload.MaximumDocumentBytes,
                 //ProxyIp = ProxyCenter.GlobalProxyIP // Uncomment if a proxy is needed
             };
 
-            try
-            {
-                string GetResult = HttpTransport.GetHtml(Http).Html;
-                JObject Obj = JObject.Parse(GetResult);
-
-                JArray Models = (JArray)Obj["data"];
-                if (Models != null && Models.Count > 0)
-                {
-                    string ID = (string)Models[0]["id"];
-                    return ID ?? string.Empty;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error getting current model: {ex.Message}");
-                return string.Empty;
-            }
-
-            return string.Empty;
+            string getResult = HttpTransport.GetHtml(Http).Html;
+            OpenAIModelListResponse result;
+            return TryParseModelResponse(getResult, out result) ? result.data[0].id : string.Empty;
         }
 
         public static object SingleLock = new object();
@@ -120,7 +105,8 @@ namespace PhoenixEngine.Platform.LocalAI
                     Postdata = GetJson,
                     Cookie = "",
                     ContentType = "application/json; charset=utf-8",
-                    Encoding = Encoding.UTF8
+                    Encoding = Encoding.UTF8,
+                    MaximumResponseBytes = JsonPayload.MaximumDocumentBytes
                     //ProxyIp = ProxyCenter.GlobalProxyIP
                 };
                 try
@@ -132,15 +118,42 @@ namespace PhoenixEngine.Platform.LocalAI
                 string GetResult = HttpTransport.GetHtml(Http).Html;
                 Recv = GetResult;
 
-                try
-                {
-                    return JsonConvert.DeserializeObject<OpenAIResponse>(GetResult);
-                }
-                catch
-                {
-                    return null;
-                }
+                OpenAIResponse result;
+                return TryParseResponse(GetResult, out result) ? result : null;
             }
+        }
+
+        /// <summary>Parses a bounded local model-list response and validates its first identifier.</summary>
+        /// <param name="json">The untrusted local provider response.</param>
+        /// <param name="result">Receives the validated response, or <c>null</c> on failure.</param>
+        /// <returns><c>true</c> when the response contains a non-empty first model identifier.</returns>
+        internal static bool TryParseModelResponse(string json, out OpenAIModelListResponse result)
+        {
+            return JsonPayload.TryDeserialize(
+                json,
+                value => value != null &&
+                    value.data != null &&
+                    value.data.Length > 0 &&
+                    value.data[0] != null &&
+                    !string.IsNullOrWhiteSpace(value.data[0].id),
+                out result);
+        }
+
+        /// <summary>Parses a bounded local chat response and validates the required translation fields.</summary>
+        /// <param name="json">The untrusted local provider response.</param>
+        /// <param name="result">Receives the validated response, or <c>null</c> on failure.</param>
+        /// <returns><c>true</c> when the response contains a non-empty first message.</returns>
+        internal static bool TryParseResponse(string json, out OpenAIResponse result)
+        {
+            return JsonPayload.TryDeserialize(
+                json,
+                value => value != null &&
+                    value.choices != null &&
+                    value.choices.Length > 0 &&
+                    value.choices[0] != null &&
+                    value.choices[0].message != null &&
+                    !string.IsNullOrWhiteSpace(value.choices[0].message.content),
+                out result);
         }
         //"Important: When translating, strictly keep any text inside angle brackets (< >) or square brackets ([ ]) unchanged. Do not modify, translate, or remove them.\n\n"
         public string QuickTrans(List<ReplaceTag> CustomWords,UnitGroup Source, Languages FromLang, Languages ToLang, bool UseAIMemory, int AIMemoryCountLimit, string AIParam,ref AICall Call)

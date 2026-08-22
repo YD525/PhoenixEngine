@@ -2,6 +2,20 @@
 
 namespace PhoenixEngine.Platform.LocalAI
 {
+    /// <summary>Represents the bounded model list returned by an OpenAI-compatible local provider.</summary>
+    internal sealed class OpenAIModelListResponse
+    {
+        /// <summary>Contains the provider's advertised models.</summary>
+        public OpenAIModel[] data { get; set; }
+    }
+
+    /// <summary>Identifies one model returned by an OpenAI-compatible local provider.</summary>
+    internal sealed class OpenAIModel
+    {
+        /// <summary>Contains the provider-specific model identifier.</summary>
+        public string id { get; set; }
+    }
+
     public class OpenAIItem
     {
         public string model { get; set; }

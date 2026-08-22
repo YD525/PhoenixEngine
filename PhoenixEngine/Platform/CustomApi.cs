@@ -83,6 +83,7 @@ namespace PhoenixEngine.Platform
                 Cookie = "",
                 ContentType = Core.ContentType,
                 Encoding = Encoding.UTF8,
+                MaximumResponseBytes = JsonPayload.MaximumDocumentBytes,
                 WebProxy = ProxyRef
             };
 
