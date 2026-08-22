@@ -3,10 +3,10 @@ name: Build
 on:
   push:
     branches:
-      - master
+      - Remake
   pull_request:
     branches:
-      - master
+      - Remake
 
 permissions:
   contents: read
