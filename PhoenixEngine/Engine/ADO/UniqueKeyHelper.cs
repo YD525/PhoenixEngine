@@ -283,19 +283,15 @@ WHERE [OriginalKey] = @originalKey;";
 
             if (NTable.Count > 0)
             {
-                for (int i = 0; i < NTable.Count; i++)
-                {
-                    var Row = NTable[i];
-
-                    return new UniqueKeyItem(
-                        Row["Rowid"],
-                        SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["OriginalKey"])),
-                        SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["FileName"])),
-                        Row["FileExtension"],
-                        Row["UpdateTime"],
-                        Row["CreatTime"]
-                    );
-                }
+                var Row = NTable[0];
+                return new UniqueKeyItem(
+                    Row["Rowid"],
+                    SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["OriginalKey"])),
+                    SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["FileName"])),
+                    Row["FileExtension"],
+                    Row["UpdateTime"],
+                    Row["CreatTime"]
+                );
             }
 
             return null;

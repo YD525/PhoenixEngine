@@ -240,6 +240,10 @@ namespace PhoenixEngine.Platform
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(
+            "Security",
+            "CA5351:Do not use broken cryptographic algorithms",
+            Justification = "MD5 is an explicitly selected request-signature format, not a security primitive.")]
         public static string ComputeMD5Hash(string Input,bool ToLower = false)
         {
             using (MD5 MD5 = MD5.Create())
@@ -266,6 +270,10 @@ namespace PhoenixEngine.Platform
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(
+            "Security",
+            "CA5351:Do not use broken cryptographic algorithms",
+            Justification = "The 16-bit MD5 representation is required by the explicitly selected signature format.")]
         public static string ComputeMD5_16BitHash(string Input,bool ToLower = false)
         {
             using (MD5 MD5 = MD5.Create())

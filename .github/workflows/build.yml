@@ -17,22 +17,31 @@ jobs:
 
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
-
-      - name: Configure NuGet
-        uses: NuGet/setup-nuget@v2
+        uses: actions/checkout@v7
 
       - name: Configure MSBuild
-        uses: microsoft/setup-msbuild@v2
+        uses: microsoft/setup-msbuild@v3
 
-      - name: Restore packages
+      - name: Validate repository layout
         shell: pwsh
-        run: nuget restore .\PhoenixEngine.sln -PackagesDirectory .\packages -NonInteractive
+        run: .\scripts\Test-RepositoryLayout.ps1
 
-      - name: Build x64 release
+      - name: Restore, analyze, and build x64 release
         shell: pwsh
-        run: msbuild .\PhoenixEngine.sln /m /p:Configuration=Release /p:Platform=x64
+        run: .\scripts\Invoke-Build.ps1 -Configuration Release -Platform x64
+
+      - name: Check package advisories
+        shell: pwsh
+        run: .\scripts\Test-PackageAdvisories.ps1
 
       - name: Run regression tests
         shell: pwsh
         run: .\scripts\Run-Tests.ps1 -Configuration Release -Platform x64 -ResultsDirectory .test-results\ci
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: PhoenixEngine-test-results
+          path: .test-results/ci/PhoenixEngine.Tests.trx
+          if-no-files-found: error

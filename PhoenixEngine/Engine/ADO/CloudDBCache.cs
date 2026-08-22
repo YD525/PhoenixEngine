@@ -216,18 +216,14 @@ LIMIT 1;";
                     SqliteSql.Parameter("@source", SQLSafeCodec.Encode(Source)));
                 if (NTable.Count > 0)
                 {
-                    for (int i = 0; i < NTable.Count; i++)
-                    {
-                        var Row = NTable[i];
-
-                        return new CloudTranslationItem(
-                            Row["FileUniqueKey"],
-                            Row["Key"],
-                            Row["To"],
-                            SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["Source"])),
-                            SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["Result"]))
-                        );
-                    }
+                    var Row = NTable[0];
+                    return new CloudTranslationItem(
+                        Row["FileUniqueKey"],
+                        Row["Key"],
+                        Row["To"],
+                        SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["Source"])),
+                        SQLSafeCodec.Decode(P_Convert.ObjToStr(Row["Result"]))
+                    );
                 }
 
                 return null;

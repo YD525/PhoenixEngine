@@ -178,7 +178,7 @@ namespace PhoenixEngine.Tests
                     stream.AuthenticateAsClient(
                         "localhost",
                         new X509CertificateCollection(),
-                        SslProtocols.Tls12,
+                        SslProtocols.None,
                         false);
                     byte[] request = Encoding.ASCII.GetBytes(
                         "GET / HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n");
@@ -1172,7 +1172,7 @@ VALUES (@fileUniqueKey, @key, @to, @source, @result, @index);",
                         {
                             stream.ReadTimeout = 5000;
                             stream.WriteTimeout = 5000;
-                            stream.AuthenticateAsServer(_certificate, false, SslProtocols.Tls12, false);
+                            stream.AuthenticateAsServer(_certificate, false, SslProtocols.None, false);
                             ReadRequestHeaders(stream);
 
                             byte[] response = Encoding.ASCII.GetBytes(

@@ -71,6 +71,10 @@ namespace PhoenixEngine.Request
         /// <param name="item">The request settings to validate and apply.</param>
         /// <param name="cancellationToken">A token that cancels request, response, and retry-delay work.</param>
         /// <returns>A task containing the response or a structured, user-safe failure.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(
+            "Reliability",
+            "CA2000:Dispose objects before losing scope",
+            Justification = "Each request is disposed by the using statement after configuration validation.")]
         public async Task<HttpResult> GetHtmlAsync(HttpItem item, CancellationToken cancellationToken)
         {
             HttpRequestSettings settings;
@@ -224,6 +228,10 @@ namespace PhoenixEngine.Request
             return lazyClient.Value;
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(
+            "Reliability",
+            "CA2000:Dispose objects before losing scope",
+            Justification = "HttpClient takes ownership of the newly created handler through disposeHandler=true.")]
         private static HttpClient CreateClient(HttpClientConfiguration configuration)
         {
             return new HttpClient(CreateHandler(configuration), true)
@@ -238,6 +246,7 @@ namespace PhoenixEngine.Request
             {
                 AllowAutoRedirect = configuration.AllowAutoRedirect,
                 AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+                CheckCertificateRevocationList = true,
                 ClientCertificateOptions = ClientCertificateOption.Manual,
                 Credentials = configuration.Credentials,
                 MaxConnectionsPerServer = configuration.ConnectionLimit,

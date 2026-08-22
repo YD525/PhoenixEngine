@@ -118,6 +118,10 @@ CREATE TABLE [RecordsHistory](
         }
 
         private static object LockGenRangeID = new object();
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(
+            "Security",
+            "CA5394:Do not use insecure randomness",
+            Justification = "The random suffix separates local history ranges and is not a security token.")]
         public static string GenRangeID()
         {
             lock (LockGenRangeID)
