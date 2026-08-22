@@ -310,19 +310,22 @@ namespace PhoenixEngine.Translate
         public int CalcTranslatedCount(int Addition)
         {
             if (LastLoadFileName.Length == 0) return 0;
-            string SqlOrder = $@"SELECT COUNT(*) AS TotalCount
+            const string SqlOrder = @"SELECT COUNT(*) AS TotalCount
 FROM (
     SELECT Key
     FROM LocalTranslation
-    WHERE FileUniqueKey = '{FileUniqueKey}' And [To] = '{(int)this.To}'
+    WHERE FileUniqueKey = @fileUniqueKey AND [To] = @to
     
     UNION  
     SELECT Key
     FROM CloudTranslation
-    WHERE FileUniqueKey = '{FileUniqueKey}' And [To] = '{(int)this.To}'
+    WHERE FileUniqueKey = @fileUniqueKey AND [To] = @to
 ) AS Combined;";
 
-            int GetCount = P_Convert.ObjToInt(Phoenix.LocalDB.ExecuteScalar(SqlOrder));
+            int GetCount = P_Convert.ObjToInt(Phoenix.LocalDB.ExecuteScalar(
+                SqlOrder,
+                SqliteSql.Parameter("@fileUniqueKey", FileUniqueKey),
+                SqliteSql.Parameter("@to", (int)this.To)));
 
             return GetCount + Addition;
         }

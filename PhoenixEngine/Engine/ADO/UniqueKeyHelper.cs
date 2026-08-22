@@ -41,8 +41,11 @@ namespace PhoenixEngine.Engine
     {
         public static void Init()
         {
-            string CheckTableSql = "SELECT name FROM sqlite_master WHERE type='table' AND name='UniqueKeys';";
-            var Result = Phoenix.LocalDB.ExecuteScalar(CheckTableSql);
+            const string CheckTableSql =
+                "SELECT name FROM sqlite_master WHERE type = 'table' AND name = @tableName;";
+            var Result = Phoenix.LocalDB.ExecuteScalar(
+                CheckTableSql,
+                SqliteSql.Parameter("@tableName", "UniqueKeys"));
 
             if (Result == null || Result == DBNull.Value)
             {
@@ -60,8 +63,10 @@ CREATE TABLE [UniqueKeys](
 
         public static string RowidToOriginalKey(int RowID)
         {
-            string SqlOrder = "Select OriginalKey From UniqueKeys Where Rowid = {0}";
-            string GetOriginalKey = SQLSafeCodec.Decode(P_Convert.ObjToStr(Phoenix.LocalDB.ExecuteScalar(string.Format(SqlOrder,RowID))));
+            const string SqlOrder = "SELECT OriginalKey FROM UniqueKeys WHERE Rowid = @rowid;";
+            string GetOriginalKey = SQLSafeCodec.Decode(P_Convert.ObjToStr(Phoenix.LocalDB.ExecuteScalar(
+                SqlOrder,
+                SqliteSql.Parameter("@rowid", RowID))));
             return GetOriginalKey;
         }
 
@@ -164,22 +169,26 @@ CREATE TABLE [UniqueKeys](
 
                 //This is the new file
 
-                SqlOrder = "Insert Into UniqueKeys(OriginalKey,FileName,FileExtension,UpdateTime,CreatTime)Values('{0}','{1}','{2}','{3}','{4}')";
+                SqlOrder = @"
+INSERT INTO UniqueKeys (OriginalKey, FileName, FileExtension, UpdateTime, CreatTime)
+VALUES (@originalKey, @fileName, @fileExtension, @updateTime, @createTime);";
 
-                int State = P_Convert.ObjToInt(Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,
-                    SQLSafeCodec.Encode(GenUniqueKeyItem.OriginalKey),
-                    SQLSafeCodec.Encode(GenUniqueKeyItem.FileName),
-                    GenUniqueKeyItem.FileExtension,
-                    GenUniqueKeyItem.UpdateTime,
-                    GenUniqueKeyItem.CreatTime
-                    )));
+                int State = P_Convert.ObjToInt(Phoenix.LocalDB.ExecuteNonQuery(
+                    SqlOrder,
+                    SqliteSql.Parameter("@originalKey", SQLSafeCodec.Encode(GenUniqueKeyItem.OriginalKey)),
+                    SqliteSql.Parameter("@fileName", SQLSafeCodec.Encode(GenUniqueKeyItem.FileName)),
+                    SqliteSql.Parameter("@fileExtension", GenUniqueKeyItem.FileExtension),
+                    SqliteSql.Parameter("@updateTime", GenUniqueKeyItem.UpdateTime),
+                    SqliteSql.Parameter("@createTime", GenUniqueKeyItem.CreatTime)));
 
                 if (State != 0)
                 {
                     int NewRowid = P_Convert.ObjToInt(
                     Phoenix.LocalDB.ExecuteScalar(
-                     $"Select Rowid From UniqueKeys Where OriginalKey = '{SQLSafeCodec.Encode(GenUniqueKeyItem.OriginalKey)}';"
-                    ));
+                        "SELECT Rowid FROM UniqueKeys WHERE OriginalKey = @originalKey;",
+                        SqliteSql.Parameter(
+                            "@originalKey",
+                            SQLSafeCodec.Encode(GenUniqueKeyItem.OriginalKey))));
                     return NewRowid;
                 }
             }
@@ -199,8 +208,16 @@ CREATE TABLE [UniqueKeys](
         /// <returns>True if update affected rows, false otherwise</returns>
         public static bool UpdateOldFiles(string OriginalKey, UniqueKeyItem KeyItem)
         {
-            string SqlOrder = "Update UniqueKeys Set FileName = '{1}',FileExtension = '{2}',UpdateTime = '{3}' Where OriginalKey = '{0}';";
-            int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,SQLSafeCodec.Encode(OriginalKey),SQLSafeCodec.Encode(KeyItem.FileName),KeyItem.FileExtension,KeyItem.UpdateTime));
+            const string SqlOrder = @"
+UPDATE UniqueKeys
+SET FileName = @fileName, FileExtension = @fileExtension, UpdateTime = @updateTime
+WHERE OriginalKey = @originalKey;";
+            int State = Phoenix.LocalDB.ExecuteNonQuery(
+                SqlOrder,
+                SqliteSql.Parameter("@fileName", SQLSafeCodec.Encode(KeyItem.FileName)),
+                SqliteSql.Parameter("@fileExtension", KeyItem.FileExtension),
+                SqliteSql.Parameter("@updateTime", KeyItem.UpdateTime),
+                SqliteSql.Parameter("@originalKey", SQLSafeCodec.Encode(OriginalKey)));
             if (State != 0)
             {
                 return true;
@@ -220,24 +237,31 @@ CREATE TABLE [UniqueKeys](
         {
             Rowid = 0;
 
-            string SqlOrder = "Select Rowid From UniqueKeys Where [OriginalKey] = '{0}';";
+            string SqlOrder = "SELECT Rowid FROM UniqueKeys WHERE [OriginalKey] = @originalKey;";
 
-            int GetRowid = P_Convert.ObjToInt(Phoenix.LocalDB.ExecuteScalar(string.Format(SqlOrder, SQLSafeCodec.Encode(GenUniqueKeyItem.OriginalKey))));
+            int GetRowid = P_Convert.ObjToInt(Phoenix.LocalDB.ExecuteScalar(
+                SqlOrder,
+                SqliteSql.Parameter("@originalKey", SQLSafeCodec.Encode(GenUniqueKeyItem.OriginalKey))));
 
             if (GetRowid > 0)
             {
                 Rowid = GetRowid;
 
-                SqlOrder = "Update UniqueKeys Set FileName = '{1}',FileExtension = '{2}',UpdateTime = '{3}',CreatTime = '{4}' Where [OriginalKey] = '{0}';";
+                SqlOrder = @"
+UPDATE UniqueKeys
+SET FileName = @fileName,
+    FileExtension = @fileExtension,
+    UpdateTime = @updateTime,
+    CreatTime = @createTime
+WHERE [OriginalKey] = @originalKey;";
 
                 int State = Phoenix.LocalDB.ExecuteNonQuery(
-                    string.Format(SqlOrder,
-                    SQLSafeCodec.Encode(GenUniqueKeyItem.OriginalKey),
-                    SQLSafeCodec.Encode(GenUniqueKeyItem.FileName),
-                    GenUniqueKeyItem.FileExtension,
-                    GenUniqueKeyItem.UpdateTime,
-                    GenUniqueKeyItem.CreatTime
-                    ));
+                    SqlOrder,
+                    SqliteSql.Parameter("@fileName", SQLSafeCodec.Encode(GenUniqueKeyItem.FileName)),
+                    SqliteSql.Parameter("@fileExtension", GenUniqueKeyItem.FileExtension),
+                    SqliteSql.Parameter("@updateTime", GenUniqueKeyItem.UpdateTime),
+                    SqliteSql.Parameter("@createTime", GenUniqueKeyItem.CreatTime),
+                    SqliteSql.Parameter("@originalKey", SQLSafeCodec.Encode(GenUniqueKeyItem.OriginalKey)));
 
                 return true;
             }
@@ -252,8 +276,10 @@ CREATE TABLE [UniqueKeys](
         /// <returns>The matching UniqueKeyItem if found; otherwise, null.</returns>
         public UniqueKeyItem QueryUniqueKey(int Rowid)
         {
-            string SqlOrder = "Select Rowid,* From UniqueKeys Where Rowid = {0}";
-            List<Dictionary<string, object>> NTable = Phoenix.LocalDB.ExecuteQuery(string.Format(SqlOrder,Rowid));
+            const string SqlOrder = "SELECT Rowid, * FROM UniqueKeys WHERE Rowid = @rowid;";
+            List<Dictionary<string, object>> NTable = Phoenix.LocalDB.ExecuteQuery(
+                SqlOrder,
+                SqliteSql.Parameter("@rowid", Rowid));
 
             if (NTable.Count > 0)
             {
@@ -286,9 +312,12 @@ CREATE TABLE [UniqueKeys](
         {
             List<UniqueKeyItem> UniqueKeyItems = new List<UniqueKeyItem>();
 
-            string SqlOrder = "SELECT Rowid, * FROM UniqueKeys ORDER BY Rowid DESC LIMIT " + Limit.ToString() + ";";
+            const string SqlOrder =
+                "SELECT Rowid, * FROM UniqueKeys ORDER BY Rowid DESC LIMIT @limit;";
 
-            List<Dictionary<string, object>> NTable = Phoenix.LocalDB.ExecuteQuery(SqlOrder);
+            List<Dictionary<string, object>> NTable = Phoenix.LocalDB.ExecuteQuery(
+                SqlOrder,
+                SqliteSql.Parameter("@limit", Limit));
 
             if (NTable.Count > 0)
             {
@@ -348,8 +377,10 @@ CREATE TABLE [UniqueKeys](
         /// <returns>True if a record was deleted; otherwise, false.</returns>
         public bool DeleteUniqueKeyByRowid(int Rowid)
         {
-            string SqlOrder = "Delete From UniqueKeys Where Rowid = {0}";
-            int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder,Rowid));
+            const string SqlOrder = "DELETE FROM UniqueKeys WHERE Rowid = @rowid;";
+            int State = Phoenix.LocalDB.ExecuteNonQuery(
+                SqlOrder,
+                SqliteSql.Parameter("@rowid", Rowid));
             if (State != 0)
             {
                 return true;

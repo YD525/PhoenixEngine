@@ -78,6 +78,7 @@
     <Compile Include="Engine\ADO\WordAutoComplete.cs" />
     <Compile Include="Engine\ADO\Pagination.cs" />
     <Compile Include="Engine\ADO\PSQLite.cs" />
+    <Compile Include="Engine\ADO\SqliteSql.cs" />
     <Compile Include="Engine\ADO\SQLSafeCodec.cs" />
     <Compile Include="Engine\Core\PBucketCore.cs" />
     <Compile Include="Engine\Events\EngineEvents.cs" />

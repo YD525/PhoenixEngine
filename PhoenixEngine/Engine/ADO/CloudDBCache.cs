@@ -41,13 +41,18 @@ CREATE TABLE [CloudTranslation](
 );";
 
             // Check if table exists
-            string CheckTableSql = $"SELECT name FROM sqlite_master WHERE type='table' AND name='{TableName}';";
-            var Result = Phoenix.LocalDB.ExecuteScalar(CheckTableSql);
+            const string CheckTableSql =
+                "SELECT name FROM sqlite_master WHERE type = 'table' AND name = @tableName;";
+            var Result = Phoenix.LocalDB.ExecuteScalar(
+                CheckTableSql,
+                SqliteSql.Parameter("@tableName", TableName));
 
             if (Result != null && Result != DBNull.Value)
             {
                 // Table exists, check structure
-                List<Dictionary<string, object>> Columns = Phoenix.LocalDB.ExecuteQuery($"PRAGMA table_info({TableName});");
+                string QuotedTableName = SqliteSql.QuoteIdentifier(TableName);
+                List<Dictionary<string, object>> Columns =
+                    Phoenix.LocalDB.ExecuteQuery("PRAGMA table_info(" + QuotedTableName + ");");
                 var ExistingCols = new HashSet<string>(
                     Columns.Select(R => R["name"].ToString()),
                     StringComparer.OrdinalIgnoreCase
@@ -60,7 +65,7 @@ CREATE TABLE [CloudTranslation](
 
                 if (StructureChanged)
                 {
-                    Phoenix.LocalDB.ExecuteNonQuery($"DROP TABLE IF EXISTS [{TableName}];");
+                    Phoenix.LocalDB.ExecuteNonQuery("DROP TABLE IF EXISTS " + QuotedTableName + ";");
                     Phoenix.LocalDB.ExecuteNonQuery(CreateSql);
                 }
             }
@@ -75,9 +80,14 @@ CREATE TABLE [CloudTranslation](
         {
             try
             {
-                string SqlOrder = "Delete From CloudTranslation Where [FileUniqueKey] = {0} And [Key] = '{1}' And [To] = {2}";
-
-                int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, Key, (int)TargetLanguage));
+                const string SqlOrder = @"
+DELETE FROM CloudTranslation
+WHERE [FileUniqueKey] = @fileUniqueKey AND [Key] = @key AND [To] = @to;";
+                int State = Phoenix.LocalDB.ExecuteNonQuery(
+                    SqlOrder,
+                    SqliteSql.Parameter("@fileUniqueKey", FileUniqueKey),
+                    SqliteSql.Parameter("@key", Key),
+                    SqliteSql.Parameter("@to", (int)TargetLanguage));
 
                 if (State != 0)
                 {
@@ -92,9 +102,14 @@ CREATE TABLE [CloudTranslation](
         {
             try
             {
-                string SqlOrder = "Select Result From CloudTranslation Where [FileUniqueKey] = '{0}' And [Key] = '{1}' And [To] = {2}";
-
-                string GetResult = P_Convert.ObjToStr(Phoenix.LocalDB.ExecuteScalar(string.Format(SqlOrder, FileUniqueKey, Key, (int)TargetLanguage)));
+                const string SqlOrder = @"
+SELECT Result FROM CloudTranslation
+WHERE [FileUniqueKey] = @fileUniqueKey AND [Key] = @key AND [To] = @to;";
+                string GetResult = P_Convert.ObjToStr(Phoenix.LocalDB.ExecuteScalar(
+                    SqlOrder,
+                    SqliteSql.Parameter("@fileUniqueKey", FileUniqueKey),
+                    SqliteSql.Parameter("@key", Key),
+                    SqliteSql.Parameter("@to", (int)TargetLanguage)));
 
                 if (GetResult.Trim().Length > 0)
                 {
@@ -112,13 +127,25 @@ CREATE TABLE [CloudTranslation](
             {
                 new TranslationPreprocessor().OptimizeStrings(ref Source);
 
-                int GetRowID = P_Convert.ObjToInt(Phoenix.LocalDB.ExecuteScalar(String.Format("Select Rowid From CloudTranslation Where [FileUniqueKey] = {0} And [Key] = '{1}' And [To] = {2}", FileUniqueKey, Key, To)));
+                int GetRowID = P_Convert.ObjToInt(Phoenix.LocalDB.ExecuteScalar(
+                    @"SELECT Rowid FROM CloudTranslation
+WHERE [FileUniqueKey] = @fileUniqueKey AND [Key] = @key AND [To] = @to;",
+                    SqliteSql.Parameter("@fileUniqueKey", FileUniqueKey),
+                    SqliteSql.Parameter("@key", Key),
+                    SqliteSql.Parameter("@to", To)));
 
                 if (GetRowID <= 0)
                 {
-                    string SqlOrder = "Insert Into CloudTranslation([FileUniqueKey],[Key],[To],[Source],[Result])Values({0},'{1}',{2},'{3}','{4}')";
-
-                    int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, Key, To, SQLSafeCodec.Encode(Source), SQLSafeCodec.Encode(Result)));
+                    const string SqlOrder = @"
+INSERT INTO CloudTranslation ([FileUniqueKey], [Key], [To], [Source], [Result])
+VALUES (@fileUniqueKey, @key, @to, @source, @result);";
+                    int State = Phoenix.LocalDB.ExecuteNonQuery(
+                        SqlOrder,
+                        SqliteSql.Parameter("@fileUniqueKey", FileUniqueKey),
+                        SqliteSql.Parameter("@key", Key),
+                        SqliteSql.Parameter("@to", To),
+                        SqliteSql.Parameter("@source", SQLSafeCodec.Encode(Source)),
+                        SqliteSql.Parameter("@result", SQLSafeCodec.Encode(Result)));
 
                     if (State != 0)
                     {
@@ -141,8 +168,15 @@ CREATE TABLE [CloudTranslation](
 
                 List<CloudTranslationItem> CloudTranslationItems = new List<CloudTranslationItem>();
 
-                string SqlOrder = "Select * From CloudTranslation Where [To] = {0} And [Source] = '{1}' Limit 5";
-                List<Dictionary<string, object>> NTable = Phoenix.LocalDB.ExecuteQuery(string.Format(SqlOrder, To, SQLSafeCodec.Encode(Source)));
+                const string SqlOrder = @"
+SELECT * FROM CloudTranslation
+WHERE [To] = @to AND [Source] = @source
+LIMIT @limit;";
+                List<Dictionary<string, object>> NTable = Phoenix.LocalDB.ExecuteQuery(
+                    SqlOrder,
+                    SqliteSql.Parameter("@to", To),
+                    SqliteSql.Parameter("@source", SQLSafeCodec.Encode(Source)),
+                    SqliteSql.Parameter("@limit", 5));
                 if (NTable.Count > 0)
                 {
                     for (int i = 0; i < NTable.Count; i++)
@@ -172,8 +206,14 @@ CREATE TABLE [CloudTranslation](
             {
                 new TranslationPreprocessor().OptimizeStrings(ref Source);
 
-                string SqlOrder = "Select * From CloudTranslation Where [To] = {0} And [Source] = '{1}' Limit 1";
-                List<Dictionary<string, object>> NTable = Phoenix.LocalDB.ExecuteQuery(string.Format(SqlOrder, To, SQLSafeCodec.Encode(Source)));
+                const string SqlOrder = @"
+SELECT * FROM CloudTranslation
+WHERE [To] = @to AND [Source] = @source
+LIMIT 1;";
+                List<Dictionary<string, object>> NTable = Phoenix.LocalDB.ExecuteQuery(
+                    SqlOrder,
+                    SqliteSql.Parameter("@to", To),
+                    SqliteSql.Parameter("@source", SQLSafeCodec.Encode(Source)));
                 if (NTable.Count > 0)
                 {
                     for (int i = 0; i < NTable.Count; i++)
@@ -205,8 +245,16 @@ CREATE TABLE [CloudTranslation](
 
                 List<CloudTranslationItem> CloudTranslationItems = new List<CloudTranslationItem>();
 
-                string SqlOrder = "Select * From CloudTranslation Where [To] = {0} And [Source] = '{1}' And Rowid != {2} Limit 5";
-                List<Dictionary<string, object>> NTable = Phoenix.LocalDB.ExecuteQuery(string.Format(SqlOrder, To, SQLSafeCodec.Encode(Source),Rowid));
+                const string SqlOrder = @"
+SELECT * FROM CloudTranslation
+WHERE [To] = @to AND [Source] = @source AND Rowid != @rowid
+LIMIT @limit;";
+                List<Dictionary<string, object>> NTable = Phoenix.LocalDB.ExecuteQuery(
+                    SqlOrder,
+                    SqliteSql.Parameter("@to", To),
+                    SqliteSql.Parameter("@source", SQLSafeCodec.Encode(Source)),
+                    SqliteSql.Parameter("@rowid", Rowid),
+                    SqliteSql.Parameter("@limit", 5));
                 if (NTable.Count > 0)
                 {
                     for (int i = 0; i < NTable.Count; i++)
@@ -235,9 +283,14 @@ CREATE TABLE [CloudTranslation](
         {
             try
             {
-                string SqlOrder = "Select Rowid,Result From CloudTranslation Where [FileUniqueKey] = {0} And [Key] = '{1}' And [To] = {2}";
-
-                List<Dictionary<string, object>> GetResult = Phoenix.LocalDB.ExecuteQuery(string.Format(SqlOrder, FileUniqueKey, Key, To));
+                const string SqlOrder = @"
+SELECT Rowid, Result FROM CloudTranslation
+WHERE [FileUniqueKey] = @fileUniqueKey AND [Key] = @key AND [To] = @to;";
+                List<Dictionary<string, object>> GetResult = Phoenix.LocalDB.ExecuteQuery(
+                    SqlOrder,
+                    SqliteSql.Parameter("@fileUniqueKey", FileUniqueKey),
+                    SqliteSql.Parameter("@key", Key),
+                    SqliteSql.Parameter("@to", To));
 
                 if (GetResult.Count > 0)
                 {
@@ -256,8 +309,10 @@ CREATE TABLE [CloudTranslation](
         {
             try
             {
-                string SqlOrder = "Delete From CloudTranslation Where Rowid = {0}";
-                int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, Rowid));
+                const string SqlOrder = "DELETE FROM CloudTranslation WHERE Rowid = @rowid;";
+                int State = Phoenix.LocalDB.ExecuteNonQuery(
+                    SqlOrder,
+                    SqliteSql.Parameter("@rowid", Rowid));
                 if (State != 0)
                 {
                     return true;
@@ -269,8 +324,11 @@ CREATE TABLE [CloudTranslation](
 
         public static bool ClearCloudCache(int FileUniqueKey)
         {
-            string SqlOrder = "Delete From CloudTranslation Where [FileUniqueKey] = " + FileUniqueKey + "";
-            int State = Phoenix.LocalDB.ExecuteNonQuery(SqlOrder);
+            const string SqlOrder =
+                "DELETE FROM CloudTranslation WHERE [FileUniqueKey] = @fileUniqueKey;";
+            int State = Phoenix.LocalDB.ExecuteNonQuery(
+                SqlOrder,
+                SqliteSql.Parameter("@fileUniqueKey", FileUniqueKey));
             if (State != 0)
             {
                 return true;

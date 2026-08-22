@@ -15,8 +15,11 @@ namespace PhoenixEngine.Language
 
         public static void Init()
         {
-            string CheckTableSql = "SELECT name FROM sqlite_master WHERE type='table' AND name='ChineseVariantMap';";
-            var Result = Phoenix.LocalDB.ExecuteScalar(CheckTableSql);
+            const string CheckTableSql =
+                "SELECT name FROM sqlite_master WHERE type = 'table' AND name = @tableName;";
+            var Result = Phoenix.LocalDB.ExecuteScalar(
+                CheckTableSql,
+                SqliteSql.Parameter("@tableName", "ChineseVariantMap"));
 
             if (Result == null || Result == DBNull.Value)
             {
@@ -128,9 +131,14 @@ namespace PhoenixEngine.Language
 
                 SetType = ZHType.Simplified;
 
-                string SqlOrder = @"SELECT 1 FROM ChineseVariantMap WHERE MatchType = 0 AND instr('{0}', Traditional) > 0 LIMIT 1;";
+                const string SqlOrder = @"
+SELECT 1 FROM ChineseVariantMap
+WHERE MatchType = 0 AND instr(@line, Traditional) > 0
+LIMIT 1;";
 
-                var Result = Phoenix.LocalDB.ExecuteScalar(string.Format(SqlOrder, Line));
+                var Result = Phoenix.LocalDB.ExecuteScalar(
+                    SqlOrder,
+                    SqliteSql.Parameter("@line", Line));
 
                 if (Result != null)
                 {

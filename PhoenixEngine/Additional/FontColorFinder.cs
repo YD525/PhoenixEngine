@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using PhoenixEngine.ADO;
 using PhoenixEngine.Common;
 
 namespace PhoenixEngine.Additional
@@ -47,13 +48,18 @@ CREATE TABLE [FontColors](
 );";
 
             // Check if table exists
-            string CheckTableSql = $"SELECT name FROM sqlite_master WHERE type='table' AND name='{TableName}';";
-            var Result = Phoenix.LocalDB.ExecuteScalar(CheckTableSql);
+            const string CheckTableSql =
+                "SELECT name FROM sqlite_master WHERE type = 'table' AND name = @tableName;";
+            var Result = Phoenix.LocalDB.ExecuteScalar(
+                CheckTableSql,
+                SqliteSql.Parameter("@tableName", TableName));
 
             if (Result != null && Result != DBNull.Value)
             {
                 // Table exists, check structure
-                List<Dictionary<string, object>> Columns = Phoenix.LocalDB.ExecuteQuery($"PRAGMA table_info({TableName});");
+                string QuotedTableName = SqliteSql.QuoteIdentifier(TableName);
+                List<Dictionary<string, object>> Columns =
+                    Phoenix.LocalDB.ExecuteQuery("PRAGMA table_info(" + QuotedTableName + ");");
                 var ExistingCols = new HashSet<string>(
                       Columns.Select(R => R["name"].ToString()),
                     StringComparer.OrdinalIgnoreCase
@@ -66,7 +72,7 @@ CREATE TABLE [FontColors](
 
                 if (StructureChanged)
                 {
-                    Phoenix.LocalDB.ExecuteNonQuery($"DROP TABLE IF EXISTS [{TableName}];");
+                    Phoenix.LocalDB.ExecuteNonQuery("DROP TABLE IF EXISTS " + QuotedTableName + ";");
                     Phoenix.LocalDB.ExecuteNonQuery(CreateSql);
                 }
             }
@@ -79,8 +85,12 @@ CREATE TABLE [FontColors](
 
         public static FontColor FindColor(int FileUniqueKey, string Key)
         {
-            string SqlOrder = "Select * From FontColors Where FileUniqueKey = {0} And Key = '{1}'";
-            List<Dictionary<string, object>> NTable = Phoenix.LocalDB.ExecuteQuery(string.Format(SqlOrder,FileUniqueKey, Key));
+            const string SqlOrder =
+                "SELECT * FROM FontColors WHERE FileUniqueKey = @fileUniqueKey AND [Key] = @key;";
+            List<Dictionary<string, object>> NTable = Phoenix.LocalDB.ExecuteQuery(
+                SqlOrder,
+                SqliteSql.Parameter("@fileUniqueKey", FileUniqueKey),
+                SqliteSql.Parameter("@key", Key));
             if (NTable.Count > 0)
             {
                 var Row = NTable[0]; // Dictionary<string, object>
@@ -99,8 +109,12 @@ CREATE TABLE [FontColors](
 
         public static bool DeleteColor(int FileUniqueKey, string Key)
         {
-            string SqlOrder = "Delete From FontColors Where FileUniqueKey = {0} And Key = '{1}'";
-            int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, Key));
+            const string SqlOrder =
+                "DELETE FROM FontColors WHERE FileUniqueKey = @fileUniqueKey AND [Key] = @key;";
+            int State = Phoenix.LocalDB.ExecuteNonQuery(
+                SqlOrder,
+                SqliteSql.Parameter("@fileUniqueKey", FileUniqueKey),
+                SqliteSql.Parameter("@key", Key));
             if (State != 0)
             {
                 return true;
@@ -113,12 +127,23 @@ CREATE TABLE [FontColors](
         {
             if ((R == 255 && G == 255 && B == 255) == false)
             {
-                int GetRowID = P_Convert.ObjToInt(Phoenix.LocalDB.ExecuteScalar(String.Format("Select Rowid From FontColors Where [FileUniqueKey] = {0} And [Key] = '{1}'", FileUniqueKey, Key)));
+                int GetRowID = P_Convert.ObjToInt(Phoenix.LocalDB.ExecuteScalar(
+                    "SELECT Rowid FROM FontColors WHERE [FileUniqueKey] = @fileUniqueKey AND [Key] = @key;",
+                    SqliteSql.Parameter("@fileUniqueKey", FileUniqueKey),
+                    SqliteSql.Parameter("@key", Key)));
 
                 if (GetRowID < 0)
                 {
-                    string SqlOrder = "Insert Into FontColors([FileUniqueKey],[Key],[R],[G],[B])Values({0},'{1}',{2},{3},{4})";
-                    int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, FileUniqueKey, Key, R, G, B));
+                    const string SqlOrder = @"
+INSERT INTO FontColors ([FileUniqueKey], [Key], [R], [G], [B])
+VALUES (@fileUniqueKey, @key, @red, @green, @blue);";
+                    int State = Phoenix.LocalDB.ExecuteNonQuery(
+                        SqlOrder,
+                        SqliteSql.Parameter("@fileUniqueKey", FileUniqueKey),
+                        SqliteSql.Parameter("@key", Key),
+                        SqliteSql.Parameter("@red", R),
+                        SqliteSql.Parameter("@green", G),
+                        SqliteSql.Parameter("@blue", B));
                     if (State != 0)
                     {
                         return true;
@@ -126,8 +151,16 @@ CREATE TABLE [FontColors](
                 }
                 else
                 {
-                    string SqlOrder = "Update FontColors Set [R] = {1},[G] = {2},[B] = {3} Where Rowid = {0}";
-                    int State = Phoenix.LocalDB.ExecuteNonQuery(string.Format(SqlOrder, GetRowID, R, G, B));
+                    const string SqlOrder = @"
+UPDATE FontColors
+SET [R] = @red, [G] = @green, [B] = @blue
+WHERE Rowid = @rowid;";
+                    int State = Phoenix.LocalDB.ExecuteNonQuery(
+                        SqlOrder,
+                        SqliteSql.Parameter("@red", R),
+                        SqliteSql.Parameter("@green", G),
+                        SqliteSql.Parameter("@blue", B),
+                        SqliteSql.Parameter("@rowid", GetRowID));
                     if (State != 0)
                     {
                         return true;

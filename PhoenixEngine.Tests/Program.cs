@@ -1,4 +1,8 @@
+using PhoenixEngine.Additional;
+using PhoenixEngine.ADO;
 using PhoenixEngine.Common;
+using PhoenixEngine.Engine;
+using PhoenixEngine.Engine.ADO;
 using PhoenixEngine.Language;
 using PhoenixEngine.Platform;
 using PhoenixEngine.Platform.LocalAI;
@@ -54,7 +58,17 @@ namespace PhoenixEngine.Tests
                 SyncTest(nameof(RejectsOversizedJson), RejectsOversizedJson),
                 SyncTest(
                     nameof(RejectsStructurallyInvalidProviderResponses),
-                    RejectsStructurallyInvalidProviderResponses)
+                    RejectsStructurallyInvalidProviderResponses),
+                SyncTest(nameof(StoresHostileSqlValuesAsData), StoresHostileSqlValuesAsData),
+                SyncTest(
+                    nameof(PreservesExistingEncodedDatabaseValues),
+                    PreservesExistingEncodedDatabaseValues),
+                SyncTest(
+                    nameof(RejectsUnapprovedSqlIdentifiersAndFilters),
+                    RejectsUnapprovedSqlIdentifiersAndFilters),
+                SyncTest(
+                    nameof(RollsBackFailedSqlTransactions),
+                    RollsBackFailedSqlTransactions)
             };
 
             int failures = 0;
@@ -540,6 +554,286 @@ namespace PhoenixEngine.Tests
                 false,
                 ChineseVariantMap.TryParseResponse("{}", out chineseVariant),
                 "Chinese conversion fields are required.");
+        }
+
+        private static void StoresHostileSqlValuesAsData()
+        {
+            WithTemporaryDatabase(database =>
+            {
+                LocalDBCache.Init();
+                CloudDBCache.Init();
+                AdvancedDictionary.Init();
+                HistoryDBCache.Init();
+                UniqueKeyHelper.Init();
+                FontColorFinder.Init();
+
+                const int fileUniqueKey = 17;
+                string hostileKey = "key'; DROP TABLE LocalTranslation; --\r\n\u0001%_雪";
+                string hostileSource = "source ' \" ; --\r\n\u0001%_東京";
+                string hostileResult = "result ' \" ; --\r\n\u0001%_Übersetzung";
+
+                AssertEqual(
+                    true,
+                    LocalDBCache.UpdateLocalTransItem(
+                        fileUniqueKey,
+                        hostileKey,
+                        (int)Languages.German,
+                        hostileSource,
+                        hostileResult,
+                        3),
+                    "The local cache must store hostile values as data.");
+                AssertEqual(
+                    hostileResult,
+                    LocalDBCache.FindCache(fileUniqueKey, hostileKey, Languages.German),
+                    "The local cache value must round-trip without executing the key.");
+                AssertEqual(
+                    hostileResult,
+                    LocalDBCache.MatchLocalItem((int)Languages.German, hostileSource)[0].Result,
+                    "Wildcard and control characters must remain literal in local cache matching.");
+
+                AssertEqual(
+                    true,
+                    CloudDBCache.AddCache(
+                        fileUniqueKey,
+                        hostileKey,
+                        (int)Languages.German,
+                        hostileSource,
+                        hostileResult),
+                    "The cloud cache must store hostile values as data.");
+                AssertEqual(
+                    hostileResult,
+                    CloudDBCache.FindCache(fileUniqueKey, hostileKey, Languages.German),
+                    "The cloud cache value must round-trip without executing the key.");
+                AssertEqual(
+                    hostileResult,
+                    CloudDBCache.Match((int)Languages.German, hostileSource).Result,
+                    "Wildcard and control characters must remain literal in cloud cache matching.");
+
+                AssertEqual(
+                    true,
+                    FontColorFinder.SetColor(fileUniqueKey, hostileKey, 12, 34, 56),
+                    "Font color keys must be bound as data.");
+                FontColorFinder.FontColor color = FontColorFinder.FindColor(fileUniqueKey, hostileKey);
+                AssertEqual(hostileKey, color.Key, "The hostile font color key must round-trip unchanged.");
+
+                var dictionaryItem = new AdvancedDictionaryItem
+                {
+                    TargetFileName = hostileKey,
+                    Type = hostileKey,
+                    Source = hostileSource,
+                    Result = hostileResult,
+                    From = (int)Languages.English,
+                    To = (int)Languages.German,
+                    ExactMatch = 1,
+                    IgnoreCase = 0,
+                    Regex = string.Empty
+                };
+                AssertEqual(true, AdvancedDictionary.AddItem(dictionaryItem),
+                    "The advanced dictionary must store hostile values as data.");
+                AdvancedDictionaryItem dictionaryResult = AdvancedDictionary.ExactMatch(
+                    Languages.English,
+                    Languages.German,
+                    hostileKey,
+                    hostileSource);
+                AssertEqual(hostileResult, dictionaryResult.Result,
+                    "The advanced dictionary result must round-trip unchanged.");
+                P_SQL_Page<List<AdvancedDictionaryItem>> page = AdvancedDictionary.QueryByPage(
+                    hostileSource,
+                    (int)Languages.English,
+                    (int)Languages.German,
+                    1);
+                AssertEqual(1, page.CurrentPage.Count,
+                    "Pagination filters must bind hostile dictionary values.");
+
+                var historyItem = new HistoryItem(
+                    fileUniqueKey,
+                    hostileKey,
+                    (int)Languages.German,
+                    hostileResult,
+                    0,
+                    DateTime.UtcNow,
+                    hostileKey);
+                int historyId = HistoryDBCache.AddHistory(historyItem);
+                HistoryItem historyResult = HistoryDBCache.IDToHistoryItem(fileUniqueKey, historyId);
+                AssertEqual(hostileKey, historyResult.Key, "The history key must round-trip unchanged.");
+                AssertEqual(hostileResult, historyResult.CurrentText,
+                    "The history text must round-trip unchanged.");
+                int secondHistoryId = HistoryDBCache.AddHistory(historyItem);
+                AssertEqual(
+                    2,
+                    HistoryDBCache.GetPreviousIDs(fileUniqueKey, secondHistoryId + 1).Count,
+                    "A hostile range identifier must be queried as data.");
+
+                string hostilePath = Path.Combine(Path.GetTempPath(), "mod's_%_雪;--.esp");
+                UniqueKeyItem keyItem = null;
+                int uniqueKeyId = UniqueKeyHelper.AddItemByReturn(ref keyItem, hostilePath, true);
+                UniqueKeyItem uniqueKeyResult = new UniqueKeyHelper().QueryUniqueKey(uniqueKeyId);
+                AssertEqual(Path.GetFileName(hostilePath), uniqueKeyResult.FileName,
+                    "The hostile file name must round-trip unchanged.");
+
+                AssertEqual(
+                    1,
+                    Convert.ToInt32(database.ExecuteScalar(
+                        "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = @name;",
+                        SqliteSql.Parameter("@name", "LocalTranslation"))),
+                    "Hostile values must not alter the schema.");
+            });
+        }
+
+        private static void PreservesExistingEncodedDatabaseValues()
+        {
+            WithTemporaryDatabase(database =>
+            {
+                LocalDBCache.Init();
+                const int fileUniqueKey = 23;
+                const string key = "legacy-key";
+                const string source = "legacy source's %_ value";
+                const string result = "legacy result's %_ value";
+
+                database.ExecuteNonQuery(
+                    @"INSERT INTO LocalTranslation
+([FileUniqueKey], [Key], [To], [Source], [Result], [Index])
+VALUES (@fileUniqueKey, @key, @to, @source, @result, @index);",
+                    SqliteSql.Parameter("@fileUniqueKey", fileUniqueKey),
+                    SqliteSql.Parameter("@key", key),
+                    SqliteSql.Parameter("@to", (int)Languages.German),
+                    SqliteSql.Parameter("@source", SQLSafeCodec.Encode(source)),
+                    SqliteSql.Parameter("@result", SQLSafeCodec.Encode(result)),
+                    SqliteSql.Parameter("@index", 0));
+
+                AssertEqual(
+                    result,
+                    LocalDBCache.FindCache(fileUniqueKey, key, Languages.German),
+                    "Existing codec-backed rows must remain readable.");
+            });
+        }
+
+        private static void RejectsUnapprovedSqlIdentifiersAndFilters()
+        {
+            AssertEqual("[AdvancedDictionary]", SqliteSql.QuoteIdentifier("AdvancedDictionary"),
+                "A known schema identifier must be quoted centrally.");
+            AssertThrows<ArgumentException>(
+                () => SqliteSql.QuoteIdentifier("AdvancedDictionary; DROP TABLE UniqueKeys;"),
+                "A hostile table identifier must be rejected.");
+            AssertThrows<ArgumentException>(
+                () => SqliteSql.RequirePaginationFilter("WHERE [From] = 1 OR 1 = 1"),
+                "A filter containing embedded values must be rejected.");
+            AssertThrows<ArgumentException>(
+                () => SqliteSql.Parameter("@value; DROP", "data"),
+                "A hostile parameter name must be rejected.");
+        }
+
+        private static void RollsBackFailedSqlTransactions()
+        {
+            WithTemporaryDatabase(database =>
+            {
+                LocalDBCache.Init();
+                var commands = new[]
+                {
+                    (
+                        SQL: @"INSERT INTO LocalTranslation
+([FileUniqueKey], [Key], [To], [Source], [Result], [Index])
+VALUES (@fileUniqueKey, @key, @to, @source, @result, @index);",
+                        Params: new[]
+                        {
+                            SqliteSql.Parameter("@fileUniqueKey", 41),
+                            SqliteSql.Parameter("@key", "transaction-key"),
+                            SqliteSql.Parameter("@to", (int)Languages.German),
+                            SqliteSql.Parameter("@source", "source"),
+                            SqliteSql.Parameter("@result", "result"),
+                            SqliteSql.Parameter("@index", 0)
+                        }),
+                    (
+                        SQL: "INSERT INTO LocalTranslation ([MissingColumn]) VALUES (@value);",
+                        Params: new[] { SqliteSql.Parameter("@value", "must fail") })
+                };
+
+                AssertEqual(false, database.ExecuteTransaction(commands),
+                    "A failing transaction must report failure.");
+                AssertEqual(
+                    0,
+                    Convert.ToInt32(database.ExecuteScalar(
+                        "SELECT COUNT(*) FROM LocalTranslation WHERE [Key] = @key;",
+                        SqliteSql.Parameter("@key", "transaction-key"))),
+                    "A failed transaction must roll back earlier commands.");
+
+                AssertEqual(
+                    true,
+                    database.ExecuteTransaction(new[]
+                    {
+                        (
+                            SQL: @"INSERT INTO LocalTranslation
+([FileUniqueKey], [Key], [To], [Source], [Result], [Index])
+VALUES (@fileUniqueKey, @key, @to, @source, @result, @index);",
+                            Params: new[]
+                            {
+                                SqliteSql.Parameter("@fileUniqueKey", 42),
+                                SqliteSql.Parameter("@key", "committed-key"),
+                                SqliteSql.Parameter("@to", (int)Languages.German),
+                                SqliteSql.Parameter("@source", "source"),
+                                SqliteSql.Parameter("@result", "result"),
+                                SqliteSql.Parameter("@index", 0)
+                            })
+                    }),
+                    "The connection must remain usable after rollback.");
+            });
+        }
+
+        private static void WithTemporaryDatabase(Action<P_SQLite> test)
+        {
+            string path = Path.Combine(Path.GetTempPath(), "PhoenixEngine-SQL-" + Guid.NewGuid() + ".db");
+            P_SQLite previousDatabase = Phoenix.LocalDB;
+            using (var database = new P_SQLite())
+            {
+                try
+                {
+                    database.PoolingEnabled = false;
+                    database.OpenSQL(path);
+                    Phoenix.LocalDB = database;
+                    test(database);
+                }
+                finally
+                {
+                    Phoenix.LocalDB = previousDatabase;
+                }
+            }
+
+            System.Data.SQLite.SQLiteConnection.ClearAllPools();
+            TryDeleteDatabaseFile(path);
+            TryDeleteDatabaseFile(path + "-wal");
+            TryDeleteDatabaseFile(path + "-shm");
+        }
+
+        private static void TryDeleteDatabaseFile(string path)
+        {
+            try
+            {
+                if (File.Exists(path))
+                    File.Delete(path);
+            }
+            catch (IOException)
+            {
+                // SQLite pooling may retain a short-lived handle; test data remains isolated in the temp folder.
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // Cleanup failure does not change the isolated database assertions.
+            }
+        }
+
+        private static void AssertThrows<TException>(Action action, string message)
+            where TException : Exception
+        {
+            try
+            {
+                action();
+            }
+            catch (TException)
+            {
+                return;
+            }
+
+            throw new InvalidOperationException(message);
         }
 
         private static async Task RejectsOversizedStreamAsync()
