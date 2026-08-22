@@ -14,6 +14,8 @@ namespace PhoenixEngine.Platform
 {
     public class CustomAIApi : I_AI_TranslationNode
     {
+        private static readonly HttpHelper HttpTransport = new HttpHelper();
+
         public static PlatformType Type = PlatformType.CustomPlatform;
 
         public CustomPlatformType CustomType = CustomPlatformType.CloudAI;
@@ -166,7 +168,7 @@ namespace PhoenixEngine.Platform
                 WebProxy = ProxyRef
             };
 
-            string GetResult = new HttpHelper().GetHtml(Http).Html;
+            string GetResult = HttpTransport.GetHtml(Http).Html;
 
             Recv = GetResult;
 

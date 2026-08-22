@@ -16,6 +16,8 @@ namespace PhoenixEngine.Platform.LocalAI
 {
     public class LMStudio : I_Local_AI_TranslationNode
     {
+        private static readonly HttpHelper HttpTransport = new HttpHelper();
+
         public AITranslationMemory AIMemoryRef { get; set; } = null;
         public EngineConfigJson ConfigRef { get; set; } = null;
         public int LocalPort { get; set; } = 0;
@@ -80,7 +82,7 @@ namespace PhoenixEngine.Platform.LocalAI
 
             try
             {
-                string GetResult = new HttpHelper().GetHtml(Http).Html;
+                string GetResult = HttpTransport.GetHtml(Http).Html;
                 JObject Obj = JObject.Parse(GetResult);
 
                 JArray Models = (JArray)Obj["data"];
@@ -127,7 +129,7 @@ namespace PhoenixEngine.Platform.LocalAI
                 }
                 catch { }
 
-                string GetResult = new HttpHelper().GetHtml(Http).Html;
+                string GetResult = HttpTransport.GetHtml(Http).Html;
                 Recv = GetResult;
 
                 try

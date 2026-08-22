@@ -1,646 +1,1201 @@
-﻿using System.IO.Compression;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Text.RegularExpressions;
-using System;
-using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace PhoenixEngine.Request
 {
+    /// <summary>
+    /// Sends bounded HTTP requests through reusable clients with normal platform TLS validation.
+    /// </summary>
     public class HttpHelper
     {
-        #region Predefined Variables 
+        private const int AbsoluteMaximumBodyBytes = 64 * 1024 * 1024;
+        private const int AbsoluteMaximumHeaderBytes = 256 * 1024;
+        private const int AbsoluteMaximumRetries = 5;
+        private static readonly TimeSpan MaximumRetryDelay = TimeSpan.FromSeconds(30);
 
-        private Encoding Encoding = Encoding.UTF8;
-        //Damn it, .NET Framework is killing me! It defaults to ANSI encoding.
-        //This is absolutely ridiculous! In .NET 8.0, the default encoding is UTF-8. But when I switched to .NET Framework, it became ANSI. I was wondering what was wrong and it kept displaying garbled characters. I even thought there were invisible characters in the string...
-        //Luckily I took another look; I almost had to redo the entire class...
+        private readonly ConcurrentDictionary<HttpClientConfiguration, Lazy<HttpClient>> _clients;
+        private readonly HttpClient _clientOverride;
+        private readonly Func<TimeSpan, CancellationToken, Task> _delayAsync;
 
-        private Encoding Postencoding = Encoding.UTF8;
+        /// <summary>
+        /// Creates a transport that reuses clients for each distinct proxy, certificate, and redirect configuration.
+        /// </summary>
+        public HttpHelper()
+            : this(null, Task.Delay)
+        {
+        }
 
-        
-        private HttpWebRequest Request = null;
-     
-        private HttpWebResponse Response = null;
-          
-        private IPEndPoint _IPEndPoint = null;
+        /// <summary>
+        /// Creates a transport around deterministic test collaborators without changing production handler policy.
+        /// </summary>
+        /// <param name="client">The caller-owned client used for every request.</param>
+        /// <param name="delayAsync">The cancellable delay used between retries.</param>
+        /// <remarks>The caller retains ownership of <paramref name="client"/>.</remarks>
+        internal HttpHelper(HttpClient client, Func<TimeSpan, CancellationToken, Task> delayAsync)
+        {
+            _clientOverride = client;
+            _delayAsync = delayAsync ?? throw new ArgumentNullException(nameof(delayAsync));
+            _clients = new ConcurrentDictionary<HttpClientConfiguration, Lazy<HttpClient>>();
+        }
 
-        #endregion
-
-        #region Public  
-
-        /// <summary>  
-        /// Sends the configured HTTP request and returns its response data.
-        /// </summary>  
-        /// <param name="item">The request settings to apply.</param>
-        /// <returns>
-        /// The response data, or a user-safe failure description when the request cannot be completed.
-        /// </returns>
-        /// <remarks>Server certificates are always validated by the platform trust policy.</remarks>
+        /// <summary>
+        /// Sends a request synchronously for compatibility with existing translation-node contracts.
+        /// </summary>
+        /// <param name="item">The request settings to validate and apply.</param>
+        /// <returns>The bounded response or a structured, user-safe failure.</returns>
+        /// <remarks>
+        /// UI and newly asynchronous code should use <see cref="GetHtmlAsync(HttpItem, CancellationToken)"/>.
+        /// </remarks>
         public HttpResult GetHtml(HttpItem item)
-        {  
-            HttpResult result = new HttpResult();
+        {
+            return GetHtmlAsync(item, CancellationToken.None)
+                .ConfigureAwait(false)
+                .GetAwaiter()
+                .GetResult();
+        }
+
+        /// <summary>
+        /// Sends a bounded request asynchronously and observes cancellation throughout the operation.
+        /// </summary>
+        /// <param name="item">The request settings to validate and apply.</param>
+        /// <param name="cancellationToken">A token that cancels request, response, and retry-delay work.</param>
+        /// <returns>A task containing the response or a structured, user-safe failure.</returns>
+        public async Task<HttpResult> GetHtmlAsync(HttpItem item, CancellationToken cancellationToken)
+        {
+            HttpRequestSettings settings;
+            HttpClient client;
             try
             {
-                SetRequest(item);
+                settings = HttpRequestSettings.Create(item);
+                client = _clientOverride ?? GetClient(settings.ClientConfiguration);
             }
-            catch (Exception)
+            catch (Exception exception) when (IsConfigurationException(exception))
             {
-                return new HttpResult()
-                {
-                    Cookie = string.Empty,
-                    Header = null,
-                    Html = string.Empty,
-                    StatusDescription = "Request configuration failed."
-                };
+                return HttpResult.Failure(
+                    HttpFailureKind.Configuration,
+                    "Request configuration failed.",
+                    0);
             }
-            try
-            {  
-                using (Response = (HttpWebResponse)Request.GetResponse())
+
+            using (CancellationTokenSource timeoutSource = new CancellationTokenSource(settings.Timeout))
+            using (CancellationTokenSource operationSource = CancellationTokenSource.CreateLinkedTokenSource(
+                cancellationToken,
+                timeoutSource.Token))
+            {
+                CancellationToken operationToken = operationSource.Token;
+                int maximumAttempts = settings.MaximumRetries + 1;
+
+                for (int attempt = 1; attempt <= maximumAttempts; attempt++)
                 {
-                    GetData(item, result);
+                    HttpRequestMessage request;
+                    try
+                    {
+                        request = CreateRequest(settings);
+                    }
+                    catch (Exception exception) when (IsConfigurationException(exception))
+                    {
+                        return HttpResult.Failure(
+                            HttpFailureKind.Configuration,
+                            "Request configuration failed.",
+                            attempt);
+                    }
+
+                    using (request)
+                    try
+                    {
+                        using (HttpResponseMessage response = await client.SendAsync(
+                            request,
+                            HttpCompletionOption.ResponseHeadersRead,
+                            operationToken).ConfigureAwait(false))
+                        {
+                            if (attempt < maximumAttempts && ShouldRetry(settings, response.StatusCode))
+                            {
+                                await _delayAsync(
+                                    GetRetryDelay(response, attempt),
+                                    operationToken).ConfigureAwait(false);
+                                continue;
+                            }
+
+                            return await ReadResponseAsync(
+                                settings,
+                                response,
+                                attempt,
+                                operationToken).ConfigureAwait(false);
+                        }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        return cancellationToken.IsCancellationRequested
+                            ? HttpResult.Failure(HttpFailureKind.Cancelled, "Request cancelled.", attempt)
+                            : HttpResult.Failure(HttpFailureKind.Timeout, "Request timed out.", attempt);
+                    }
+                    catch (HttpRequestException exception)
+                    {
+                        if (IsTlsValidationFailure(exception))
+                        {
+                            return HttpResult.Failure(
+                                HttpFailureKind.TlsValidation,
+                                "TLS validation failed.",
+                                attempt);
+                        }
+                        if (attempt < maximumAttempts && settings.CanRetry)
+                        {
+                            HttpResult cancellationResult = await DelayForRetryAsync(
+                                GetRetryDelay(null, attempt),
+                                attempt,
+                                cancellationToken,
+                                operationToken).ConfigureAwait(false);
+                            if (cancellationResult != null)
+                                return cancellationResult;
+                            continue;
+                        }
+
+                        return HttpResult.Failure(HttpFailureKind.Network, "Request failed.", attempt);
+                    }
+                    catch (ResponseSizeLimitException)
+                    {
+                        return HttpResult.Failure(
+                            HttpFailureKind.ResponseTooLarge,
+                            "Response exceeds the configured size limit.",
+                            attempt);
+                    }
+                    catch (ResponseHeaderLimitException)
+                    {
+                        return HttpResult.Failure(
+                            HttpFailureKind.HeadersTooLarge,
+                            "Response headers exceed the configured size limit.",
+                            attempt);
+                    }
+                    catch (InvalidDataException)
+                    {
+                        return HttpResult.Failure(
+                            HttpFailureKind.MalformedResponse,
+                            "Response data is invalid.",
+                            attempt);
+                    }
+                    catch (IOException)
+                    {
+                        if (attempt < maximumAttempts && settings.CanRetry)
+                        {
+                            HttpResult cancellationResult = await DelayForRetryAsync(
+                                GetRetryDelay(null, attempt),
+                                attempt,
+                                cancellationToken,
+                                operationToken).ConfigureAwait(false);
+                            if (cancellationResult != null)
+                                return cancellationResult;
+                            continue;
+                        }
+
+                        return HttpResult.Failure(HttpFailureKind.Network, "Request failed.", attempt);
+                    }
                 }
             }
-            catch (WebException ex)
+
+            return HttpResult.Failure(HttpFailureKind.Network, "Request failed.", 0);
+        }
+
+        /// <summary>Creates a production-equivalent handler for TLS policy verification.</summary>
+        /// <param name="item">The request settings that define handler-specific configuration.</param>
+        /// <returns>A caller-owned handler that uses normal platform server-certificate validation.</returns>
+        internal static HttpClientHandler CreateHandlerForTesting(HttpItem item)
+        {
+            return CreateHandler(HttpRequestSettings.Create(item).ClientConfiguration);
+        }
+
+        private HttpClient GetClient(HttpClientConfiguration configuration)
+        {
+            Lazy<HttpClient> lazyClient = _clients.GetOrAdd(
+                configuration,
+                key => new Lazy<HttpClient>(
+                    () => CreateClient(key),
+                    LazyThreadSafetyMode.ExecutionAndPublication));
+            return lazyClient.Value;
+        }
+
+        private static HttpClient CreateClient(HttpClientConfiguration configuration)
+        {
+            return new HttpClient(CreateHandler(configuration), true)
             {
-                if (ex.Response != null)
+                Timeout = Timeout.InfiniteTimeSpan
+            };
+        }
+
+        private static HttpClientHandler CreateHandler(HttpClientConfiguration configuration)
+        {
+            HttpClientHandler handler = new HttpClientHandler
+            {
+                AllowAutoRedirect = configuration.AllowAutoRedirect,
+                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+                ClientCertificateOptions = ClientCertificateOption.Manual,
+                Credentials = configuration.Credentials,
+                MaxConnectionsPerServer = configuration.ConnectionLimit,
+                MaxResponseHeadersLength = AbsoluteMaximumHeaderBytes / 1024,
+                Proxy = configuration.Proxy,
+                UseCookies = false,
+                UseProxy = configuration.Proxy != null
+            };
+
+            if (configuration.MaximumAutomaticRedirections > 0)
+                handler.MaxAutomaticRedirections = configuration.MaximumAutomaticRedirections;
+            foreach (X509Certificate certificate in configuration.ClientCertificates)
+                handler.ClientCertificates.Add(certificate);
+            if (!string.IsNullOrEmpty(configuration.ClientCertificatePath))
+                handler.ClientCertificates.Add(new X509Certificate2(configuration.ClientCertificatePath));
+
+            return handler;
+        }
+
+        private static HttpRequestMessage CreateRequest(HttpRequestSettings settings)
+        {
+            HttpRequestMessage request = new HttpRequestMessage(settings.Method, settings.Uri)
+            {
+                Version = settings.ProtocolVersion
+            };
+
+            try
+            {
+                request.Content = CreateContent(settings);
+                CopyHeaders(settings, request);
+                return request;
+            }
+            catch
+            {
+                request.Dispose();
+                throw;
+            }
+        }
+
+        private static HttpContent CreateContent(HttpRequestSettings settings)
+        {
+            if (!settings.HasRequestBody)
+                return null;
+
+            HttpContent content;
+            switch (settings.PostDataType)
+            {
+                case PostDataType.Byte:
+                    content = new ByteArrayContent(settings.PostDataBytes ?? Array.Empty<byte>());
+                    break;
+                case PostDataType.FilePath:
+                    FileStream stream = new FileStream(
+                        settings.PostData,
+                        FileMode.Open,
+                        FileAccess.Read,
+                        FileShare.Read);
+                    content = new StreamContent(stream);
+                    break;
+                default:
+                    content = new ByteArrayContent(
+                        settings.PostEncoding.GetBytes(settings.PostData ?? string.Empty));
+                    break;
+            }
+
+            if (!string.IsNullOrWhiteSpace(settings.ContentType))
+            {
+                MediaTypeHeaderValue contentType;
+                if (!MediaTypeHeaderValue.TryParse(settings.ContentType, out contentType))
                 {
-                    using (Response = (HttpWebResponse)ex.Response)
-                    {
-                        GetData(item, result);
-                    }
+                    content.Dispose();
+                    throw new FormatException("The request content type is invalid.");
+                }
+
+                content.Headers.ContentType = contentType;
+            }
+
+            return content;
+        }
+
+        private static void CopyHeaders(HttpRequestSettings settings, HttpRequestMessage request)
+        {
+            foreach (KeyValuePair<string, string> header in settings.Headers)
+            {
+                if (header.Key.Equals("Content-Length", StringComparison.OrdinalIgnoreCase) ||
+                    header.Key.Equals("Host", StringComparison.OrdinalIgnoreCase) ||
+                    header.Key.Equals("Accept-Encoding", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (header.Key.StartsWith("Content-", StringComparison.OrdinalIgnoreCase) &&
+                    request.Content != null)
+                {
+                    request.Content.Headers.TryAddWithoutValidation(header.Key, header.Value);
                 }
                 else
                 {
-                    result.Html = string.Empty;
-                    result.StatusDescription = IsTlsValidationFailure(ex)
-                        ? "TLS validation failed."
-                        : "Request failed.";
+                    request.Headers.TryAddWithoutValidation(header.Key, header.Value);
                 }
             }
-            catch (Exception)
+
+            if (!string.IsNullOrWhiteSpace(settings.Accept))
+                request.Headers.TryAddWithoutValidation("Accept", settings.Accept);
+            if (!string.IsNullOrWhiteSpace(settings.UserAgent))
+                request.Headers.TryAddWithoutValidation("User-Agent", settings.UserAgent);
+            if (!string.IsNullOrWhiteSpace(settings.Cookie))
+                request.Headers.TryAddWithoutValidation("Cookie", settings.Cookie);
+            if (!string.IsNullOrWhiteSpace(settings.Referer))
+                request.Headers.Referrer = new Uri(settings.Referer, UriKind.Absolute);
+            if (!string.IsNullOrWhiteSpace(settings.Host))
+                request.Headers.Host = settings.Host;
+            if (settings.IfModifiedSince.HasValue)
+                request.Headers.IfModifiedSince = settings.IfModifiedSince.Value;
+
+            request.Headers.ExpectContinue = settings.Expect100Continue;
+            request.Headers.ConnectionClose = !settings.KeepAlive;
+        }
+
+        private static async Task<HttpResult> ReadResponseAsync(
+            HttpRequestSettings settings,
+            HttpResponseMessage response,
+            int attempt,
+            CancellationToken cancellationToken)
+        {
+            ValidateResponseHeaders(response, settings.MaximumHeaderBytes);
+
+            long? contentLength = response.Content == null
+                ? null
+                : response.Content.Headers.ContentLength;
+            if (contentLength.HasValue && contentLength.Value > settings.MaximumResponseBytes)
             {
-                result.Html = string.Empty;
-                result.StatusDescription = "Request failed.";
+                return HttpResult.Failure(
+                    HttpFailureKind.ResponseTooLarge,
+                    "Response exceeds the configured size limit.",
+                    attempt);
             }
-            if (item.IsToLower) result.Html = result.Html.ToLower();
+
+            byte[] responseBytes = response.Content == null
+                ? Array.Empty<byte>()
+                : await ReadBoundedAsync(
+                    response.Content,
+                    settings.MaximumResponseBytes,
+                    cancellationToken).ConfigureAwait(false);
+
+            HttpResult result = new HttpResult
+            {
+                AttemptCount = attempt,
+                FailureKind = HttpFailureKind.None,
+                Header = CopyResponseHeaders(response),
+                ResponseUri = response.RequestMessage == null
+                    || response.RequestMessage.RequestUri == null
+                        ? settings.Uri.AbsoluteUri
+                        : response.RequestMessage.RequestUri.AbsoluteUri,
+                StatusCode = response.StatusCode,
+                StatusDescription = string.IsNullOrWhiteSpace(response.ReasonPhrase)
+                    ? response.StatusCode.ToString()
+                    : response.ReasonPhrase
+            };
+
+            IEnumerable<string> cookies;
+            if (response.Headers.TryGetValues("Set-Cookie", out cookies))
+            {
+                result.Cookie = string.Join(", ", cookies);
+                if (settings.ResultCookieType == ResultCookieType.CookieCollection)
+                    result.CookieCollection = ParseCookies(new Uri(result.ResponseUri), cookies);
+            }
+
+            if (settings.ResultType == ResultType.Byte)
+            {
+                result.ResultByte = responseBytes;
+                result.Html = string.Empty;
+            }
+            else
+            {
+                Encoding encoding = ResolveEncoding(settings, response);
+                result.Html = encoding.GetString(responseBytes);
+                if (settings.IsToLower)
+                    result.Html = result.Html.ToLowerInvariant();
+            }
+
             return result;
         }
 
-        private static bool IsTlsValidationFailure(WebException exception)
+        private static CookieCollection ParseCookies(Uri requestUri, IEnumerable<string> values)
         {
-            return exception.Status == WebExceptionStatus.TrustFailure ||
-                exception.Status == WebExceptionStatus.SecureChannelFailure;
-        }
-        #endregion
-
-        #region GetData  
-
-        /// <summary>  
-        /// Methods for obtaining and parsing data 
-        /// </summary>  
-        /// <param name="Item"></param>  
-        /// <param name="Result"></param>  
-        private void GetData(HttpItem Item, HttpResult Result)
-        {
-            if (Response == null)
+            CookieContainer container = new CookieContainer();
+            foreach (string value in values)
             {
-                return;
-            }
-            #region Base    
-            Result.StatusCode = Response.StatusCode; 
-            Result.StatusDescription = Response.StatusDescription;
-            Result.Header = Response.Headers;
-            Result.ResponseUri = Response.ResponseUri.ToString();
-            if (Response.Cookies != null) Result.CookieCollection = Response.Cookies;
-            if (Response.Headers["set-cookie"] != null) Result.Cookie = Response.Headers["set-cookie"];
-            #endregion
-
-            #region Byte  
-            byte[] ResponseByte = GetByte();
-            #endregion
-
-            #region Html  
-            if (ResponseByte != null && ResponseByte.Length > 0)
-            {
-                SetEncoding(Item, Result, ResponseByte);
-                Result.Html = Encoding.GetString(ResponseByte);
-            }
-            else
-            { 
-                Result.Html = string.Empty;
-            }
-            #endregion
-        }
-        /// <summary>  
-        /// Setting the encoding
-        /// </summary>  
-        /// <param name="Item">HttpItem</param>  
-        /// <param name="Result">HttpResult</param>  
-        /// <param name="ResponseByte">byte[]</param>  
-        private void SetEncoding(HttpItem Item, HttpResult Result, byte[] ResponseByte)
-        {
-            if (Item.ResultType == ResultType.Byte) Result.ResultByte = ResponseByte;
-  
-            if (Encoding == null)
-            {
-                Match meta = Regex.Match(Encoding.Default.GetString(ResponseByte), "<meta[^<]*charset=([^<]*)[\"']", RegexOptions.IgnoreCase);
-                string c = string.Empty;
-                if (meta != null && meta.Groups.Count > 0)
+                try
                 {
-                    c = meta.Groups[1].Value.ToLower().Trim();
+                    container.SetCookies(requestUri, value);
                 }
-                if (c.Length > 2)
+                catch (CookieException)
                 {
-                    try
+                    // Preserve the HTTP response when an individual provider cookie is malformed.
+                }
+            }
+
+            return container.GetCookies(requestUri);
+        }
+
+        private static async Task<byte[]> ReadBoundedAsync(
+            HttpContent content,
+            int maximumBytes,
+            CancellationToken cancellationToken)
+        {
+            using (Stream input = await content.ReadAsStreamAsync().ConfigureAwait(false))
+            using (MemoryStream output = new MemoryStream(Math.Min(maximumBytes, 81920)))
+            {
+                byte[] buffer = new byte[81920];
+                while (true)
+                {
+                    int count = await input.ReadAsync(
+                        buffer,
+                        0,
+                        buffer.Length,
+                        cancellationToken).ConfigureAwait(false);
+                    if (count == 0)
+                        return output.ToArray();
+                    if (output.Length > maximumBytes - count)
+                        throw new ResponseSizeLimitException();
+
+                    output.Write(buffer, 0, count);
+                }
+            }
+        }
+
+        private static void ValidateResponseHeaders(HttpResponseMessage response, int maximumBytes)
+        {
+            int totalBytes = 0;
+            foreach (KeyValuePair<string, IEnumerable<string>> header in response.Headers)
+                AddHeaderBytes(header, ref totalBytes, maximumBytes);
+            if (response.Content != null)
+            {
+                foreach (KeyValuePair<string, IEnumerable<string>> header in response.Content.Headers)
+                    AddHeaderBytes(header, ref totalBytes, maximumBytes);
+            }
+        }
+
+        private static void AddHeaderBytes(
+            KeyValuePair<string, IEnumerable<string>> header,
+            ref int totalBytes,
+            int maximumBytes)
+        {
+            AddBoundedByteCount(Encoding.UTF8.GetByteCount(header.Key), ref totalBytes, maximumBytes);
+            foreach (string value in header.Value)
+                AddBoundedByteCount(Encoding.UTF8.GetByteCount(value ?? string.Empty), ref totalBytes, maximumBytes);
+        }
+
+        private static void AddBoundedByteCount(int byteCount, ref int totalBytes, int maximumBytes)
+        {
+            if (byteCount > maximumBytes - totalBytes)
+                throw new ResponseHeaderLimitException();
+            totalBytes += byteCount;
+        }
+
+        private static WebHeaderCollection CopyResponseHeaders(HttpResponseMessage response)
+        {
+            WebHeaderCollection headers = new WebHeaderCollection();
+            foreach (KeyValuePair<string, IEnumerable<string>> header in response.Headers)
+                headers[header.Key] = string.Join(", ", header.Value);
+            if (response.Content != null)
+            {
+                foreach (KeyValuePair<string, IEnumerable<string>> header in response.Content.Headers)
+                    headers[header.Key] = string.Join(", ", header.Value);
+            }
+
+            return headers;
+        }
+
+        private static Encoding ResolveEncoding(HttpRequestSettings settings, HttpResponseMessage response)
+        {
+            if (settings.Encoding != null)
+                return settings.Encoding;
+
+            string charset = response.Content == null || response.Content.Headers.ContentType == null
+                ? null
+                : response.Content.Headers.ContentType.CharSet;
+            if (!string.IsNullOrWhiteSpace(charset))
+            {
+                try
+                {
+                    return Encoding.GetEncoding(charset.Trim('"', '\''));
+                }
+                catch (ArgumentException)
+                {
+                    // Fall back to UTF-8 when a provider declares an unknown character set.
+                }
+            }
+
+            return Encoding.UTF8;
+        }
+
+        private static bool ShouldRetry(HttpRequestSettings settings, HttpStatusCode statusCode)
+        {
+            int code = (int)statusCode;
+            return settings.CanRetry && (code == 429 || code >= 500 && code <= 599);
+        }
+
+        private static TimeSpan GetRetryDelay(HttpResponseMessage response, int attempt)
+        {
+            if (response != null && response.Headers.RetryAfter != null)
+            {
+                TimeSpan? retryAfter = response.Headers.RetryAfter.Delta;
+                if (!retryAfter.HasValue && response.Headers.RetryAfter.Date.HasValue)
+                    retryAfter = response.Headers.RetryAfter.Date.Value - DateTimeOffset.UtcNow;
+                if (retryAfter.HasValue)
+                    return BoundRetryDelay(retryAfter.Value);
+            }
+
+            double milliseconds = Math.Min(5000, 250 * Math.Pow(2, Math.Max(0, attempt - 1)));
+            return TimeSpan.FromMilliseconds(milliseconds);
+        }
+
+        private static TimeSpan BoundRetryDelay(TimeSpan delay)
+        {
+            if (delay < TimeSpan.Zero)
+                return TimeSpan.Zero;
+            return delay > MaximumRetryDelay ? MaximumRetryDelay : delay;
+        }
+
+        private async Task<HttpResult> DelayForRetryAsync(
+            TimeSpan delay,
+            int attempt,
+            CancellationToken callerToken,
+            CancellationToken operationToken)
+        {
+            try
+            {
+                await _delayAsync(delay, operationToken).ConfigureAwait(false);
+                return null;
+            }
+            catch (OperationCanceledException)
+            {
+                return callerToken.IsCancellationRequested
+                    ? HttpResult.Failure(HttpFailureKind.Cancelled, "Request cancelled.", attempt)
+                    : HttpResult.Failure(HttpFailureKind.Timeout, "Request timed out.", attempt);
+            }
+        }
+
+        private static bool IsConfigurationException(Exception exception)
+        {
+            return exception is ArgumentException ||
+                exception is FormatException ||
+                exception is InvalidOperationException ||
+                exception is NotSupportedException ||
+                exception is IOException ||
+                exception is UnauthorizedAccessException ||
+                exception is System.Security.Cryptography.CryptographicException;
+        }
+
+        private static bool IsTlsValidationFailure(Exception exception)
+        {
+            for (Exception current = exception; current != null; current = current.InnerException)
+            {
+                if (current is System.Security.Authentication.AuthenticationException)
+                    return true;
+                WebException webException = current as WebException;
+                if (webException != null &&
+                    (webException.Status == WebExceptionStatus.TrustFailure ||
+                     webException.Status == WebExceptionStatus.SecureChannelFailure))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private sealed class ResponseSizeLimitException : Exception
+        {
+        }
+
+        private sealed class ResponseHeaderLimitException : Exception
+        {
+        }
+
+        private sealed class HttpRequestSettings
+        {
+            private HttpRequestSettings()
+            {
+            }
+
+            internal Uri Uri { get; private set; }
+            internal HttpMethod Method { get; private set; }
+            internal TimeSpan Timeout { get; private set; }
+            internal int MaximumResponseBytes { get; private set; }
+            internal int MaximumHeaderBytes { get; private set; }
+            internal int MaximumRetries { get; private set; }
+            internal bool CanRetry { get; private set; }
+            internal bool HasRequestBody { get; private set; }
+            internal PostDataType PostDataType { get; private set; }
+            internal string PostData { get; private set; }
+            internal byte[] PostDataBytes { get; private set; }
+            internal Encoding PostEncoding { get; private set; }
+            internal string ContentType { get; private set; }
+            internal IReadOnlyList<KeyValuePair<string, string>> Headers { get; private set; }
+            internal string Accept { get; private set; }
+            internal string UserAgent { get; private set; }
+            internal string Cookie { get; private set; }
+            internal string Referer { get; private set; }
+            internal string Host { get; private set; }
+            internal DateTimeOffset? IfModifiedSince { get; private set; }
+            internal bool Expect100Continue { get; private set; }
+            internal bool KeepAlive { get; private set; }
+            internal Version ProtocolVersion { get; private set; }
+            internal ResultType ResultType { get; private set; }
+            internal ResultCookieType ResultCookieType { get; private set; }
+            internal Encoding Encoding { get; private set; }
+            internal bool IsToLower { get; private set; }
+            internal HttpClientConfiguration ClientConfiguration { get; private set; }
+
+            internal static HttpRequestSettings Create(HttpItem item)
+            {
+                if (item == null)
+                    throw new ArgumentNullException(nameof(item));
+                Uri uri;
+                if (!Uri.TryCreate(item.URL, UriKind.Absolute, out uri) ||
+                    uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
+                {
+                    throw new ArgumentException("The request URL must be absolute HTTP or HTTPS.", nameof(item));
+                }
+                if (!string.IsNullOrEmpty(uri.UserInfo))
+                    throw new ArgumentException("Credentials must not be embedded in the request URL.", nameof(item));
+                if (item.IPEndPoint != null)
+                    throw new NotSupportedException("Binding a shared HTTP client to a local endpoint is unsupported.");
+
+                int timeoutMilliseconds = GetTimeoutMilliseconds(item.Timeout, item.ReadWriteTimeout);
+                int maximumResponseBytes = RequireRange(
+                    item.MaximumResponseBytes,
+                    1,
+                    AbsoluteMaximumBodyBytes,
+                    nameof(item.MaximumResponseBytes));
+                int maximumRequestBytes = RequireRange(
+                    item.MaximumRequestBytes,
+                    1,
+                    AbsoluteMaximumBodyBytes,
+                    nameof(item.MaximumRequestBytes));
+                int maximumHeaderBytes = RequireRange(
+                    item.MaximumHeaderBytes,
+                    1024,
+                    AbsoluteMaximumHeaderBytes,
+                    nameof(item.MaximumHeaderBytes));
+                int maximumRetries = RequireRange(
+                    item.MaxRetries,
+                    0,
+                    AbsoluteMaximumRetries,
+                    nameof(item.MaxRetries));
+
+                HttpMethod method = CreateMethod(item.Method);
+                ValidateRequestBody(item, method, maximumRequestBytes);
+                IReadOnlyList<KeyValuePair<string, string>> headers = ReadHeaders(
+                    item.Header,
+                    maximumHeaderBytes);
+                bool safeMethod = method == HttpMethod.Get ||
+                    method == HttpMethod.Head ||
+                    method == HttpMethod.Options ||
+                    method == HttpMethod.Trace;
+
+                return new HttpRequestSettings
+                {
+                    Accept = item.Accept,
+                    CanRetry = safeMethod || item.AllowUnsafeRetries,
+                    ClientConfiguration = HttpClientConfiguration.Create(item),
+                    ContentType = item.ContentType,
+                    Cookie = CreateCookieHeader(item, uri),
+                    Encoding = item.Encoding,
+                    Expect100Continue = item.Expect100Continue,
+                    HasRequestBody = method != HttpMethod.Get && method != HttpMethod.Head,
+                    Headers = headers,
+                    Host = item.Host,
+                    IfModifiedSince = item.IfModifiedSince.HasValue
+                        ? new DateTimeOffset(item.IfModifiedSince.Value)
+                        : (DateTimeOffset?)null,
+                    IsToLower = item.IsToLower,
+                    KeepAlive = item.KeepAlive,
+                    MaximumHeaderBytes = maximumHeaderBytes,
+                    MaximumResponseBytes = maximumResponseBytes,
+                    MaximumRetries = maximumRetries,
+                    Method = method,
+                    PostData = item.Postdata,
+                    PostDataBytes = item.PostdataByte,
+                    PostDataType = item.PostDataType,
+                    PostEncoding = item.PostEncoding ?? Encoding.UTF8,
+                    ProtocolVersion = item.ProtocolVersion ?? HttpVersion.Version11,
+                    Referer = item.Referer,
+                    ResultType = item.ResultType,
+                    ResultCookieType = item.ResultCookieType,
+                    Timeout = TimeSpan.FromMilliseconds(timeoutMilliseconds),
+                    Uri = uri,
+                    UserAgent = item.UserAgent
+                };
+            }
+
+            private static int GetTimeoutMilliseconds(int timeout, int readWriteTimeout)
+            {
+                int requestTimeout = RequireRange(timeout, 1, 30 * 60 * 1000, nameof(HttpItem.Timeout));
+                int streamTimeout = RequireRange(
+                    readWriteTimeout,
+                    1,
+                    30 * 60 * 1000,
+                    nameof(HttpItem.ReadWriteTimeout));
+                return Math.Min(requestTimeout, streamTimeout);
+            }
+
+            private static int RequireRange(int value, int minimum, int maximum, string name)
+            {
+                if (value < minimum || value > maximum)
+                    throw new ArgumentOutOfRangeException(name);
+                return value;
+            }
+
+            private static HttpMethod CreateMethod(string value)
+            {
+                if (string.IsNullOrWhiteSpace(value) || value.Any(char.IsControl))
+                    throw new ArgumentException("The HTTP method is invalid.", nameof(value));
+                return new HttpMethod(value.Trim().ToUpperInvariant());
+            }
+
+            private static void ValidateRequestBody(HttpItem item, HttpMethod method, int maximumBytes)
+            {
+                if (method == HttpMethod.Get || method == HttpMethod.Head)
+                    return;
+
+                long byteCount;
+                switch (item.PostDataType)
+                {
+                    case PostDataType.Byte:
+                        byteCount = item.PostdataByte == null ? 0 : item.PostdataByte.LongLength;
+                        break;
+                    case PostDataType.FilePath:
+                        if (string.IsNullOrWhiteSpace(item.Postdata))
+                            throw new ArgumentException("A request body file path is required.", nameof(item));
+                        byteCount = new FileInfo(item.Postdata).Length;
+                        break;
+                    default:
+                        byteCount = (item.PostEncoding ?? Encoding.UTF8)
+                            .GetByteCount(item.Postdata ?? string.Empty);
+                        break;
+                }
+
+                if (byteCount > maximumBytes)
+                    throw new ArgumentException("The request body exceeds the configured size limit.", nameof(item));
+            }
+
+            private static IReadOnlyList<KeyValuePair<string, string>> ReadHeaders(
+                WebHeaderCollection headers,
+                int maximumBytes)
+            {
+                List<KeyValuePair<string, string>> result = new List<KeyValuePair<string, string>>();
+                if (headers == null)
+                    return result;
+                if (headers.Count > 100)
+                    throw new ArgumentException("The request contains too many headers.", nameof(headers));
+
+                int totalBytes = 0;
+                foreach (string name in headers.AllKeys)
+                {
+                    string value = headers[name] ?? string.Empty;
+                    if (string.IsNullOrWhiteSpace(name) ||
+                        name.Any(char.IsControl) ||
+                        value.Any(IsInvalidHeaderCharacter))
                     {
-                        Encoding = Encoding.GetEncoding(c.Replace("\"", string.Empty).Replace("'", "").Replace(";", "").Replace("iso-8859-1", "gbk").Trim());
+                        throw new ArgumentException("The request contains an invalid header.", nameof(headers));
                     }
-                    catch
-                    {
-                        if (string.IsNullOrEmpty(Response.CharacterSet))
-                        {
-                            Encoding = Encoding.UTF8;
-                        }
-                        else
-                        {
-                            Encoding = Encoding.GetEncoding(Response.CharacterSet);
-                        }
-                    }
+                    totalBytes = checked(
+                        totalBytes + Encoding.UTF8.GetByteCount(name) + Encoding.UTF8.GetByteCount(value));
+                    if (totalBytes > maximumBytes)
+                        throw new ArgumentException(
+                            "The request headers exceed the configured size limit.",
+                            nameof(headers));
+                    result.Add(new KeyValuePair<string, string>(name, value));
                 }
-                else
+
+                return result;
+            }
+
+            private static string CreateCookieHeader(HttpItem item, Uri uri)
+            {
+                List<string> values = new List<string>();
+                if (!string.IsNullOrWhiteSpace(item.Cookie))
+                    values.Add(item.Cookie);
+                if (item.ResultCookieType == ResultCookieType.CookieCollection &&
+                    item.CookieCollection != null &&
+                    item.CookieCollection.Count > 0)
                 {
-                    if (string.IsNullOrEmpty(Response.CharacterSet))
-                    {
-                        Encoding = Encoding.UTF8;
-                    }
-                    else
-                    {
-                        Encoding = Encoding.GetEncoding(Response.CharacterSet);
-                    }
+                    CookieContainer container = new CookieContainer();
+                    container.Add(item.CookieCollection);
+                    string collectionHeader = container.GetCookieHeader(uri);
+                    if (!string.IsNullOrWhiteSpace(collectionHeader))
+                        values.Add(collectionHeader);
                 }
+
+                return string.Join("; ", values);
+            }
+
+            private static bool IsInvalidHeaderCharacter(char value)
+            {
+                return value == '\r' || value == '\n' || value == '\0';
             }
         }
- 
-        private byte[] GetByte()
+
+        private sealed class HttpClientConfiguration : IEquatable<HttpClientConfiguration>
         {
-            byte[] ResponseByte = null;
-            using (MemoryStream _stream = new MemoryStream())
+            private HttpClientConfiguration()
             {
-                //GZIIP  
-                if (Response.ContentEncoding != null && Response.ContentEncoding.Equals("gzip", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    //Start reading the stream and set the encoding 
-                    new GZipStream(Response.GetResponseStream(), CompressionMode.Decompress).CopyTo(_stream, 10240);
-                }
-                else
-                {
-                    //Start reading the stream and set the encoding  
-                    Response.GetResponseStream().CopyTo(_stream, 10240);
-                }
-                //Get Byte  
-                ResponseByte = _stream.ToArray();
             }
-            return ResponseByte;
-        }
 
+            internal IWebProxy Proxy { get; private set; }
+            internal ICredentials Credentials { get; private set; }
+            internal bool AllowAutoRedirect { get; private set; }
+            internal int MaximumAutomaticRedirections { get; private set; }
+            internal int ConnectionLimit { get; private set; }
+            internal string ClientCertificatePath { get; private set; }
+            internal long ClientCertificateFileVersion { get; private set; }
+            internal X509Certificate[] ClientCertificates { get; private set; }
+            internal string ClientCertificateSignature { get; private set; }
 
-        #endregion
-
-        #region SetRequest  
-
-        /// <summary>  
-        /// Prepare parameters for the request 
-        /// </summary>  
-        ///<param name="Item"></param>  
-        private void SetRequest(HttpItem Item)
-        {
-            SetCer(Item);
-            if (Item.IPEndPoint != null)
+            internal static HttpClientConfiguration Create(HttpItem item)
             {
-                _IPEndPoint = Item.IPEndPoint;
-                Request.ServicePoint.BindIPEndPointDelegate = new BindIPEndPoint(BindIPEndPointCallback);
-            }
-            if (Item.Header != null && Item.Header.Count > 0) foreach (string key in Item.Header.AllKeys)
+                string certificatePath = null;
+                long certificateFileVersion = 0;
+                if (!string.IsNullOrWhiteSpace(item.CerPath))
                 {
-                    Request.Headers.Add(key, Item.Header[key]);
+                    certificatePath = Path.GetFullPath(item.CerPath);
+                    FileInfo certificateFile = new FileInfo(certificatePath);
+                    if (!certificateFile.Exists)
+                        throw new FileNotFoundException("The client certificate file does not exist.");
+                    certificateFileVersion = certificateFile.LastWriteTimeUtc.Ticks ^ certificateFile.Length;
                 }
-            SetProxy(Item);
-            if (Item.ProtocolVersion != null) Request.ProtocolVersion = Item.ProtocolVersion;
-            Request.ServicePoint.Expect100Continue = Item.Expect100Continue;  
-            Request.Method = Item.Method;
-            Request.Timeout = Item.Timeout;
-            Request.KeepAlive = Item.KeepAlive;
-            Request.ReadWriteTimeout = Item.ReadWriteTimeout;
-            if (!string.IsNullOrWhiteSpace(Item.Host))
-            {
-                Request.Host = Item.Host;
-            }
-            if (Item.IfModifiedSince != null) Request.IfModifiedSince = Convert.ToDateTime(Item.IfModifiedSince); 
-            Request.Accept = Item.Accept; 
-            Request.ContentType = Item.ContentType; 
-            Request.UserAgent = Item.UserAgent;
-            Encoding = Item.Encoding;
-            Request.Credentials = Item.ICredentials;
-            SetCookie(Item);
-            Request.Referer = Item.Referer;
-            Request.AllowAutoRedirect = Item.Allowautoredirect;
-            if (Item.MaximumAutomaticRedirections > 0)
-            {
-                Request.MaximumAutomaticRedirections = Item.MaximumAutomaticRedirections;
-            }  
-            SetPostData(Item);  
-            if (Item.Connectionlimit > 0) Request.ServicePoint.ConnectionLimit = Item.Connectionlimit;
-        }
-        /// <summary>  
-        /// Setting up certificates  
-        /// </summary>  
-        /// <param name="Item"></param>  
-        private void SetCer(HttpItem Item)
-        {
-            Request = (HttpWebRequest)WebRequest.Create(Item.URL);
-            SetCerList(Item);
 
-            if (!string.IsNullOrWhiteSpace(Item.CerPath))
-            {
-                Request.ClientCertificates.Add(new X509Certificate(Item.CerPath));
-            }
-        }
-        /// <summary>  
-        /// Setting up multiple certificates 
-        /// </summary>  
-        /// <param name="Item"></param>  
-        private void SetCerList(HttpItem Item)
-        {
-            if (Item.ClentCertificates != null && Item.ClentCertificates.Count > 0)
-            {
-                foreach (X509Certificate Cert in Item.ClentCertificates)
-                {
-                    Request.ClientCertificates.Add(Cert);
-                }
-            }
-        }
+                X509Certificate[] certificates = item.ClentCertificates == null
+                    ? Array.Empty<X509Certificate>()
+                    : item.ClentCertificates.Cast<X509Certificate>().ToArray();
+                string signature = string.Join(
+                    ";",
+                    certificates.Select(certificate => certificate.GetCertHashString()));
 
-        private void SetCookie(HttpItem Item)
-        {
-            if (!string.IsNullOrEmpty(Item.Cookie)) Request.Headers.Add("cookie", Item.Cookie);
-            if (Item.ResultCookieType == ResultCookieType.CookieCollection)
-            {
-                Request.CookieContainer = new CookieContainer();
-                if (Item.CookieCollection != null && Item.CookieCollection.Count > 0)
-                    Request.CookieContainer.Add(Item.CookieCollection);
+                return new HttpClientConfiguration
+                {
+                    AllowAutoRedirect = item.Allowautoredirect,
+                    ClientCertificateFileVersion = certificateFileVersion,
+                    ClientCertificatePath = certificatePath,
+                    ClientCertificates = certificates,
+                    ClientCertificateSignature = signature,
+                    ConnectionLimit = RequireRange(
+                        item.Connectionlimit > 0 ? item.Connectionlimit : 100,
+                        1,
+                        100000,
+                        nameof(item.Connectionlimit)),
+                    Credentials = item.ICredentials,
+                    MaximumAutomaticRedirections = item.MaximumAutomaticRedirections,
+                    Proxy = item.WebProxy
+                };
             }
-        }
-        /// <summary>  
-        /// Setting Post Data  
-        /// </summary>  
-        /// <param name="Item"></param>  
-        private void SetPostData(HttpItem Item)
-        {  
-            if (!Request.Method.Trim().ToLower().Contains("get"))
+
+            private static int RequireRange(int value, int minimum, int maximum, string name)
             {
-                if (Item.PostEncoding != null)
+                if (value < minimum || value > maximum)
+                    throw new ArgumentOutOfRangeException(name);
+                return value;
+            }
+
+            public bool Equals(HttpClientConfiguration other)
+            {
+                return other != null &&
+                    ReferenceEquals(Proxy, other.Proxy) &&
+                    ReferenceEquals(Credentials, other.Credentials) &&
+                    AllowAutoRedirect == other.AllowAutoRedirect &&
+                    MaximumAutomaticRedirections == other.MaximumAutomaticRedirections &&
+                    ConnectionLimit == other.ConnectionLimit &&
+                    ClientCertificateFileVersion == other.ClientCertificateFileVersion &&
+                    string.Equals(
+                        ClientCertificatePath,
+                        other.ClientCertificatePath,
+                        StringComparison.OrdinalIgnoreCase) &&
+                    string.Equals(
+                        ClientCertificateSignature,
+                        other.ClientCertificateSignature,
+                        StringComparison.Ordinal);
+            }
+
+            public override bool Equals(object obj)
+            {
+                return Equals(obj as HttpClientConfiguration);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
                 {
-                    Postencoding = Item.PostEncoding;
-                }
-                byte[] Buffer = null;
-                if (Item.PostDataType == PostDataType.Byte && Item.PostdataByte != null && Item.PostdataByte.Length > 0)
-                { 
-                    Buffer = Item.PostdataByte;
-                } 
-                else if (Item.PostDataType == PostDataType.FilePath && !string.IsNullOrWhiteSpace(Item.Postdata))
-                {
-                    StreamReader Reader = new StreamReader(Item.Postdata, Postencoding);
-                    Buffer = Postencoding.GetBytes(Reader.ReadToEnd());
-                    Reader.Close();
-                }  
-                else if (!string.IsNullOrWhiteSpace(Item.Postdata))
-                {
-                    Buffer = Postencoding.GetBytes(Item.Postdata);
-                }
-                if (Buffer != null)
-                {
-                    Request.ContentLength = Buffer.Length;
-                    Request.GetRequestStream().Write(Buffer, 0, Buffer.Length);
+                    int hash = Proxy == null ? 0 : RuntimeHelpers.GetHashCode(Proxy);
+                    hash = hash * 397 ^ (Credentials == null ? 0 : RuntimeHelpers.GetHashCode(Credentials));
+                    hash = hash * 397 ^ AllowAutoRedirect.GetHashCode();
+                    hash = hash * 397 ^ MaximumAutomaticRedirections;
+                    hash = hash * 397 ^ ConnectionLimit;
+                    hash = hash * 397 ^ ClientCertificateFileVersion.GetHashCode();
+                    hash = hash * 397 ^ StringComparer.OrdinalIgnoreCase.GetHashCode(
+                        ClientCertificatePath ?? string.Empty);
+                    hash = hash * 397 ^ StringComparer.Ordinal.GetHashCode(
+                        ClientCertificateSignature ?? string.Empty);
+                    return hash;
                 }
             }
         }
-        /// <summary>  
-        /// Setting up the proxy
-        /// </summary>  
-        /// <param name="Item"></param>  
-        private void SetProxy(HttpItem Item)
-        {
-            if (Item.WebProxy != null)
-            {
-                Request.Proxy = Item.WebProxy;
-            }
-            else
-            {
-                Request.Proxy = null;
-            }
-        }
-
-
-        #endregion
-
-        #region Private main  
-        /// <summary>  
-        /// By setting this property, you can bind the IP address used by the client to make the connection when making a connection.   
-        /// </summary>  
-        /// <param name="ServicePoint"></param>  
-        /// <param name="RemoteEndPoint"></param>  
-        /// <param name="RetryCount"></param>  
-        /// <returns></returns>  
-        private IPEndPoint BindIPEndPointCallback(ServicePoint ServicePoint, IPEndPoint RemoteEndPoint, int RetryCount)
-        {
-            return _IPEndPoint;  
-        }
-        #endregion
     }
 
-    #region Public calss  
-
+    /// <summary>
+    /// Describes one bounded HTTP request without changing process-wide network state.
+    /// </summary>
     public class HttpItem
     {
-        /// <summary>  
-        /// Request URL is required
-        /// </summary>  
+        /// <summary>Identifies the absolute HTTP or HTTPS request target.</summary>
         public string URL { get; set; }
-        string _Method = "GET";
-        /// <summary>  
-        /// The default request method is GET. When it is POST, you must set the value of Postdata. 
-        /// </summary>  
-        public string Method
-        {
-            get { return _Method; }
-            set { _Method = value; }
-        }
-        int _Timeout = 300000;
-        /// <summary>  
-        /// Default request timeout  
-        /// </summary>  
-        public int Timeout
-        {
-            get { return _Timeout; }
-            set { _Timeout = value; }
-        }
-        int _ReadWriteTimeout = 300000;
-        /// <summary>  
-        /// Default timeout for writing Post data  
-        /// </summary>  
-        public int ReadWriteTimeout
-        {
-            get { return _ReadWriteTimeout; }
-            set { _ReadWriteTimeout = value; }
-        }
-        /// <summary>  
-        /// Set the Host header information  
-        /// </summary>  
+
+        /// <summary>Specifies the HTTP method sent to the request target.</summary>
+        public string Method { get; set; } = "GET";
+
+        /// <summary>Limits the total request duration in milliseconds.</summary>
+        public int Timeout { get; set; } = 300000;
+
+        /// <summary>Limits response-stream work in milliseconds.</summary>
+        public int ReadWriteTimeout { get; set; } = 300000;
+
+        /// <summary>Overrides the Host header when a provider requires a specific authority.</summary>
         public string Host { get; set; }
-        bool _KeepAlive = true;
-        /// <summary>  
-        /// Gets or sets a value indicating whether to establish a persistent connection with the Internet resource. The default is true.  
-        /// </summary>  
-        public bool KeepAlive
-        {
-            get { return _KeepAlive; }
-            set { _KeepAlive = value; }
-        }
-        string _Accept = "text/html, application/xhtml+xml, */*";
-        /// <summary>  
-        /// Request header value defaults to text/html, application/xhtml+xml, */*  
-        /// </summary>  
-        public string Accept
-        {
-            get { return _Accept; }
-            set { _Accept = value; }
-        }
-        string _ContentType = "text/html";
-        /// <summary>  
-        /// The default request return type is text/html 
-        /// </summary>  
-        public string ContentType
-        {
-            get { return _ContentType; }
-            set { _ContentType = value; }
-        }
-        string _UserAgent = "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)";
-        /// <summary>  
-        /// Client access information default Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)  
-        /// </summary>  
-        public string UserAgent
-        {
-            get { return _UserAgent; }
-            set { _UserAgent = value; }
-        }
-        /// <summary>  
-        /// The default encoding of the returned data is NUll, which can be automatically identified, usually utf-8, gbk, gb2312 
-        /// </summary>  
+
+        /// <summary>Controls whether the connection may remain open for reuse.</summary>
+        public bool KeepAlive { get; set; } = true;
+
+        /// <summary>Specifies the accepted response media types.</summary>
+        public string Accept { get; set; } = "text/html, application/xhtml+xml, */*";
+
+        /// <summary>Specifies the request body media type.</summary>
+        public string ContentType { get; set; } = "text/html";
+
+        /// <summary>Identifies the caller in the User-Agent request header.</summary>
+        public string UserAgent { get; set; } =
+            "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)";
+
+        /// <summary>Overrides response character-set detection when supplied.</summary>
         public Encoding Encoding { get; set; }
-        private PostDataType _PostDataType = PostDataType.String;
-  
-        public PostDataType PostDataType
-        {
-            get { return _PostDataType; }
-            set { _PostDataType = value; }
-        }
-        /// <summary>  
-        /// Post data string to be sent when posting a request  
-        /// </summary>  
+
+        /// <summary>Selects how request body data is supplied.</summary>
+        public PostDataType PostDataType { get; set; } = PostDataType.String;
+
+        /// <summary>Contains the text body or file path selected by <see cref="PostDataType"/>.</summary>
         public string Postdata { get; set; }
-        /// <summary>  
-        /// Post data of Bytes type to be sent during Post request  
-        /// </summary>  
+
+        /// <summary>Contains the request body used for <see cref="PostDataType.Byte"/>.</summary>
         public byte[] PostdataByte { get; set; }
-  
+
+        /// <summary>Provides caller-owned cookies to select for the request target.</summary>
         public CookieCollection CookieCollection { get; set; }
- 
+
+        /// <summary>Provides a preformatted Cookie request header.</summary>
         public string Cookie { get; set; }
 
+        /// <summary>Identifies the absolute referring URI.</summary>
         public string Referer { get; set; }
 
-        /// <summary>
-        /// Gets or sets the optional path of a client certificate to attach to this request.
-        /// </summary>
+        /// <summary>Identifies an optional client certificate file to attach.</summary>
         /// <remarks>The certificate does not alter server certificate validation.</remarks>
         public string CerPath { get; set; }
 
-        private bool isToLower = false;
+        /// <summary>Controls whether decoded response text is converted to invariant lower case.</summary>
+        public bool IsToLower { get; set; }
 
-        public bool IsToLower
-        {
-            get { return isToLower; }
-            set { isToLower = value; }
-        }
-        private bool allowautoredirect = false;
+        /// <summary>Controls whether the transport follows redirects automatically.</summary>
+        public bool Allowautoredirect { get; set; }
 
-        public bool Allowautoredirect
-        {
-            get { return allowautoredirect; }
-            set { allowautoredirect = value; }
-        }
-        private int connectionlimit = 99999;
-        /// <summary>  
-        /// Maximum number of connections  
-        /// </summary>  
-        public int Connectionlimit
-        {
-            get { return connectionlimit; }
-            set { connectionlimit = value; }
-        }
+        /// <summary>Limits concurrent connections for this transport configuration.</summary>
+        public int Connectionlimit { get; set; } = 99999;
 
-        public IWebProxy WebProxy { get; set; } = null;
+        /// <summary>Routes the request through an optional proxy.</summary>
+        public IWebProxy WebProxy { get; set; }
 
-        private ResultType resulttype = ResultType.String;
+        /// <summary>Selects whether the response is returned as text or bytes.</summary>
+        public ResultType ResultType { get; set; } = ResultType.String;
 
-        public ResultType ResultType
-        {
-            get { return resulttype; }
-            set { resulttype = value; }
-        }
-        private WebHeaderCollection header = new WebHeaderCollection();
+        /// <summary>Provides additional request headers after validation.</summary>
+        public WebHeaderCollection Header { get; set; } = new WebHeaderCollection();
 
-        public WebHeaderCollection Header
-        {
-            get { return header; }
-            set { header = value; }
-        }
-        /// <summary>  
-        //  Gets or sets the HTTP version used for the request. Returns: The HTTP version used for the request. The default is System.Net.HttpVersion.Version11.
-        /// </summary>  
+        /// <summary>Selects the HTTP protocol version.</summary>
         public Version ProtocolVersion { get; set; }
-        private bool _expect100continue = false;
- 
-        public bool Expect100Continue
-        {
-            get { return _expect100continue; }
-            set { _expect100continue = value; }
-        }
 
-        /// <summary>
-        /// Gets or sets the caller-owned client certificates to attach to this request.
-        /// </summary>
-        /// <remarks>The collection and its certificates remain owned by the caller.</remarks>
+        /// <summary>Controls whether an Expect: 100-continue header is sent.</summary>
+        public bool Expect100Continue { get; set; }
+
+        /// <summary>Provides caller-owned client certificates to attach.</summary>
+        /// <remarks>
+        /// The collection and certificates remain owned by the caller and must remain valid for the lifetime of
+        /// the provider transport.
+        /// </remarks>
         public X509CertificateCollection ClentCertificates { get; set; }
 
+        /// <summary>Selects the encoding used for string request content.</summary>
         public Encoding PostEncoding { get; set; }
-        private ResultCookieType _ResultCookieType = ResultCookieType.String;
 
-        public ResultCookieType ResultCookieType
-        {
-            get { return _ResultCookieType; }
-            set { _ResultCookieType = value; }
-        }
-        private ICredentials _ICredentials = CredentialCache.DefaultCredentials;
+        /// <summary>Selects the cookie result representation.</summary>
+        public ResultCookieType ResultCookieType { get; set; } = ResultCookieType.String;
 
-        public ICredentials ICredentials
-        {
-            get { return _ICredentials; }
-            set { _ICredentials = value; }
-        }
+        /// <summary>Provides credentials used after a server authentication challenge.</summary>
+        public ICredentials ICredentials { get; set; } = CredentialCache.DefaultCredentials;
 
+        /// <summary>Limits redirects when automatic redirects are enabled.</summary>
         public int MaximumAutomaticRedirections { get; set; }
-        private DateTime? _IfModifiedSince = null;
 
-        public DateTime? IfModifiedSince
-        {
-            get { return _IfModifiedSince; }
-            set { _IfModifiedSince = value; }
-        }
-        #region ip-port  
-        private IPEndPoint _IPEndPoint = null;
+        /// <summary>Provides the If-Modified-Since request value.</summary>
+        public DateTime? IfModifiedSince { get; set; }
 
-        public IPEndPoint IPEndPoint
-        {
-            get { return _IPEndPoint; }
-            set { _IPEndPoint = value; }
-        }
-        #endregion
+        /// <summary>Provides a legacy local endpoint binding.</summary>
+        /// <remarks>Shared HttpClient transports reject this unsupported setting.</remarks>
+        public IPEndPoint IPEndPoint { get; set; }
+
+        /// <summary>Limits the decompressed response body size in bytes.</summary>
+        public int MaximumResponseBytes { get; set; } = 8 * 1024 * 1024;
+
+        /// <summary>Limits the request body size in bytes.</summary>
+        public int MaximumRequestBytes { get; set; } = 8 * 1024 * 1024;
+
+        /// <summary>Limits combined request or response headers in bytes.</summary>
+        public int MaximumHeaderBytes { get; set; } = 64 * 1024;
+
+        /// <summary>Limits transient retries after the initial attempt.</summary>
+        public int MaxRetries { get; set; } = 2;
+
+        /// <summary>Allows explicit retries for non-idempotent methods.</summary>
+        public bool AllowUnsafeRetries { get; set; }
     }
- 
+
+    /// <summary>
+    /// Contains a bounded HTTP response and structured failure information.
+    /// </summary>
     public class HttpResult
     {
-        /// <summary>  
-        /// Cookies returned by HTTP requests  
-        /// </summary>  
+        /// <summary>Contains the Set-Cookie response header.</summary>
         public string Cookie { get; set; }
-        /// <summary>  
-        /// Cookie object collection  
-        /// </summary>  
+
+        /// <summary>Contains parsed response cookies when requested and available.</summary>
         public CookieCollection CookieCollection { get; set; }
-        private string _html = string.Empty;
-        /// <summary>  
-        /// Returned String type data Data is returned only when ResultType.String is used, otherwise it is empty  
-        /// </summary>  
-        public string Html
-        {
-            get { return _html; }
-            set { _html = value; }
-        }
-        /// <summary>  
-        /// The returned Byte array returns data only when ResultType.Byte is used, otherwise it is empty.  
-        /// </summary>  
+
+        /// <summary>Contains decoded response text.</summary>
+        public string Html { get; set; } = string.Empty;
+
+        /// <summary>Contains response bytes when byte mode was requested.</summary>
         public byte[] ResultByte { get; set; }
 
+        /// <summary>Contains bounded response headers.</summary>
         public WebHeaderCollection Header { get; set; }
 
+        /// <summary>Describes the response or structured failure without sensitive details.</summary>
         public string StatusDescription { get; set; }
 
+        /// <summary>Identifies the HTTP response status.</summary>
         public HttpStatusCode StatusCode { get; set; }
 
+        /// <summary>Identifies the final response URI after redirects.</summary>
         public string ResponseUri { get; set; }
-        /// <summary>  
-        /// Get the redirect URL  
-        /// </summary>  
+
+        /// <summary>Identifies a structured transport failure.</summary>
+        public HttpFailureKind FailureKind { get; set; }
+
+        /// <summary>Counts network attempts made for this result.</summary>
+        public int AttemptCount { get; set; }
+
+        /// <summary>Indicates whether transport completed and returned an HTTP response.</summary>
+        public bool TransportSucceeded => FailureKind == HttpFailureKind.None;
+
+        /// <summary>Indicates whether the response status is between 200 and 299.</summary>
+        public bool IsSuccessStatusCode => TransportSucceeded &&
+            (int)StatusCode >= 200 &&
+            (int)StatusCode <= 299;
+
+        /// <summary>Resolves an absolute redirect target from a valid Location header.</summary>
         public string RedirectUrl
         {
             get
             {
-                try
+                string location = Header == null ? null : Header["Location"];
+                if (string.IsNullOrWhiteSpace(location))
+                    return string.Empty;
+
+                Uri redirect;
+                if (Uri.TryCreate(location, UriKind.Absolute, out redirect))
+                    return redirect.AbsoluteUri;
+                Uri responseUri;
+                if (Uri.TryCreate(ResponseUri, UriKind.Absolute, out responseUri) &&
+                    Uri.TryCreate(responseUri, location, out redirect))
                 {
-                    if (Header != null && Header.Count > 0)
-                    {
-                        if (Header.AllKeys.Any(k => k.ToLower().Contains("location")))
-                        {
-                            string baseurl = Header["location"].ToString().Trim();
-                            string locationurl = baseurl.ToLower();
-                            if (!string.IsNullOrWhiteSpace(locationurl))
-                            {
-                                bool b = locationurl.StartsWith("http://") || locationurl.StartsWith("https://");
-                                if (!b)
-                                {
-                                    baseurl = new Uri(new Uri(ResponseUri), baseurl).AbsoluteUri;
-                                }
-                            }
-                            return baseurl;
-                        }
-                    }
+                    return redirect.AbsoluteUri;
                 }
-                catch { }
+
                 return string.Empty;
             }
         }
+
+        internal static HttpResult Failure(HttpFailureKind kind, string message, int attemptCount)
+        {
+            return new HttpResult
+            {
+                AttemptCount = attemptCount,
+                FailureKind = kind,
+                Html = string.Empty,
+                StatusDescription = message
+            };
+        }
     }
 
+    /// <summary>Specifies whether a response is decoded as text or retained as bytes.</summary>
     public enum ResultType
     {
+        /// <summary>Decodes the bounded body as text.</summary>
         String,
+        /// <summary>Returns the bounded body as bytes.</summary>
         Byte
     }
+
+    /// <summary>Specifies how request body content is supplied.</summary>
     public enum PostDataType
-    { 
+    {
+        /// <summary>Encodes <see cref="HttpItem.Postdata"/> as text.</summary>
         String,
+        /// <summary>Uses <see cref="HttpItem.PostdataByte"/>.</summary>
         Byte,
+        /// <summary>Streams the file named by <see cref="HttpItem.Postdata"/>.</summary>
         FilePath
-    } 
+    }
+
+    /// <summary>Specifies the retained cookie representation.</summary>
     public enum ResultCookieType
     {
+        /// <summary>Returns the Set-Cookie header as a string.</summary>
         String,
+        /// <summary>Requests a cookie collection when the transport can provide one.</summary>
         CookieCollection
     }
 
-    #endregion
+    /// <summary>Identifies a structured HTTP transport failure.</summary>
+    public enum HttpFailureKind
+    {
+        /// <summary>No transport failure occurred.</summary>
+        None,
+        /// <summary>Request configuration was invalid.</summary>
+        Configuration,
+        /// <summary>The caller cancelled the operation.</summary>
+        Cancelled,
+        /// <summary>The configured timeout elapsed.</summary>
+        Timeout,
+        /// <summary>The network operation failed.</summary>
+        Network,
+        /// <summary>Platform server-certificate validation failed.</summary>
+        TlsValidation,
+        /// <summary>The response body exceeded its configured limit.</summary>
+        ResponseTooLarge,
+        /// <summary>The response headers exceeded their configured limit.</summary>
+        HeadersTooLarge,
+        /// <summary>The response stream or compression was malformed.</summary>
+        MalformedResponse
+    }
 }

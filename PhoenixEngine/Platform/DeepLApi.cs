@@ -30,6 +30,8 @@ namespace PhoenixEngine.Platform
 
     public class DeepLApi: I_TranslationNode
     {
+        private static readonly HttpHelper HttpTransport = new HttpHelper();
+
         public static PlatformType Type = PlatformType.DeepL;
         public EngineConfigJson ConfigRef { get; set; } = null;
         public WebProxy ProxyRef { get; set; } = null;
@@ -123,7 +125,7 @@ namespace PhoenixEngine.Platform
             }
             catch { }
 
-            string GetResult = new HttpHelper().GetHtml(Http).Html;
+            string GetResult = HttpTransport.GetHtml(Http).Html;
             Recv = GetResult;
             try
             {

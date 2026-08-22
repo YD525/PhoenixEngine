@@ -11,6 +11,8 @@ namespace PhoenixEngine.Language
 {
     public class ChineseVariantMap
     {
+        private static readonly HttpHelper HttpTransport = new HttpHelper();
+
         public static void Init()
         {
             string CheckTableSql = "SELECT name FROM sqlite_master WHERE type='table' AND name='ChineseVariantMap';";
@@ -202,7 +204,7 @@ namespace PhoenixEngine.Language
                 }
                 catch { }
 
-                string GetResult = new HttpHelper().GetHtml(Http).Html;
+                string GetResult = HttpTransport.GetHtml(Http).Html;
 
                 ZHConvertReturnJson GetReturn = JsonConvert.DeserializeObject<ZHConvertReturnJson>(GetResult);
 

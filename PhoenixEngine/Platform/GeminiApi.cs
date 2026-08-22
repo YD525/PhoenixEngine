@@ -77,6 +77,8 @@ namespace PhoenixEngine.Platform
 
     public class GeminiApi: I_AI_TranslationNode
     {
+        private static readonly HttpHelper HttpTransport = new HttpHelper();
+
         public static PlatformType Type = PlatformType.Gemini;
         public string Model { get; set; } = "";
         public AITranslationMemory AIMemoryRef { get; set; } = null;
@@ -189,7 +191,7 @@ namespace PhoenixEngine.Platform
             }
             catch { }
 
-            string GetResult = new HttpHelper().GetHtml(Http).Html;
+            string GetResult = HttpTransport.GetHtml(Http).Html;
 
             Recv = GetResult;
             try

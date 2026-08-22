@@ -14,6 +14,8 @@ namespace PhoenixEngine.Platform.LocalAI
 {
     public class CustomLocalAIApi : I_Local_AI_TranslationNode
     {
+        private static readonly HttpHelper HttpTransport = new HttpHelper();
+
         public static PlatformType Type = PlatformType.CustomPlatform;
 
         public CustomPlatformType CustomType = CustomPlatformType.LocalAI;
@@ -163,7 +165,7 @@ namespace PhoenixEngine.Platform.LocalAI
                 Encoding = Encoding.UTF8
             };
 
-            string GetResult = new HttpHelper().GetHtml(Http).Html;
+            string GetResult = HttpTransport.GetHtml(Http).Html;
 
             Recv = GetResult;
 

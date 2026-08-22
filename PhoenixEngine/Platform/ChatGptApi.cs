@@ -32,6 +32,8 @@ namespace PhoenixEngine.Platform
 
     public class ChatGptApi: I_AI_TranslationNode
     {
+        private static readonly HttpHelper HttpTransport = new HttpHelper();
+
         public static PlatformType Type = PlatformType.ChatGpt;
         public string Model { get; set; } = "";
         public AITranslationMemory AIMemoryRef { get; set; } = null;
@@ -80,7 +82,7 @@ namespace PhoenixEngine.Platform
             }
             catch { }
 
-            string GetResult = new HttpHelper().GetHtml(Http).Html;
+            string GetResult = HttpTransport.GetHtml(Http).Html;
         }
         public ChatGptRootobject CallAI(string ApiKey, ChatGptItem Item,ref string Recv)
         {
@@ -107,7 +109,7 @@ namespace PhoenixEngine.Platform
             }
             catch { }
 
-            string GetResult = new HttpHelper().GetHtml(Http).Html;
+            string GetResult = HttpTransport.GetHtml(Http).Html;
 
             Recv = GetResult;
             try
